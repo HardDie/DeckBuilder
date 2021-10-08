@@ -4,29 +4,26 @@ set -u
 set -e
 set -o pipefail
 
-CHARACTERS="\
-	https://foursouls.com/wp-content/uploads/2021/10/tw-tapeworm-768x1047.png\
+CHARACTERS="
+	https://foursouls.com/wp-content/uploads/2021/10/tw-tapeworm-768x1047.png
 "
 
-ETERNAL="\
-	https://foursouls.com/wp-content/uploads/2021/10/tw-pink_proglottid-768x1047.png \
+ETERNAL="
+	https://foursouls.com/wp-content/uploads/2021/10/tw-pink_proglottid-768x1047.png
 "
 
-TREASURE="\
-	https://foursouls.com/wp-content/uploads/2021/10/tw-black_proglottid-768x1047.png \
-	https://foursouls.com/wp-content/uploads/2021/10/tw-red_proglottid-768x1047.png \
-	https://foursouls.com/wp-content/uploads/2021/10/tw-white_proglottid-768x1047.png \
+TREASURE="
+	https://foursouls.com/wp-content/uploads/2021/10/tw-black_proglottid-768x1047.png
+	https://foursouls.com/wp-content/uploads/2021/10/tw-red_proglottid-768x1047.png
+	https://foursouls.com/wp-content/uploads/2021/10/tw-white_proglottid-768x1047.png
 "
 
-LOOT="\
-	https://foursouls.com/wp-content/uploads/2021/10/tw-rainbow_tapeworm-768x1047.png \
+LOOT="
+	https://foursouls.com/wp-content/uploads/2021/10/tw-rainbow_tapeworm-768x1047.png
 "
 
-MONSTERS="\
-	https://foursouls.com/wp-content/uploads/2021/10/tw-tapeworm_monster-768x1047.png \
-"
-
-BONUS_SOULS="\
+MONSTERS="
+	https://foursouls.com/wp-content/uploads/2021/10/tw-tapeworm_monster-768x1047.png
 "
 
 
@@ -72,15 +69,6 @@ pushd tapeworm
 		mkdir -pv monsters
 		pushd monsters
 			for item in ${MONSTERS}; do
-				wget -nv ${item}
-			done
-		popd
-	fi
-
-	if [[ `echo ${BONUS_SOULS} | wc -w` -ge 1 ]]; then
-		mkdir -pv bonus_souls
-		pushd bonus_souls
-			for item in ${BONUS_SOULS}; do
 				wget -nv ${item}
 			done
 		popd

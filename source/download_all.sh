@@ -5,9 +5,9 @@ set -e
 set -o pipefail
 
 ./download_back.sh
-# base
+./download_base_game.sh
 ./download_gold_box.sh
-# four
+./download_four_souls_plus.sh
 # requiem
 # warp
 # big goi
