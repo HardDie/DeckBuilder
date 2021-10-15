@@ -36,7 +36,7 @@ func OpenImage(path string) image.Image {
 	}
 	img, err := png.Decode(imgFile)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err.Error(), path)
 	}
 	return img
 }
@@ -169,8 +169,9 @@ func BuildDeckImage(prefix string, slice []string, postfix string) {
 }
 
 func main() {
-	Crawl("~/Desktop/4souls/Four Souls 2021.10.12/Second Edition")
-	Crawl("~/4souls/Four Souls 2021.10.12/Promo")
+	root := "/path/to/googledrive/Four Souls"
+	Crawl(root + "/Second Edition")
+	Crawl(root + "/Promo")
 
 	slices := []struct {
 		Title string
