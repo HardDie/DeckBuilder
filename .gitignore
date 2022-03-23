@@ -1,2 +1,5 @@
 empty.png
-result/
+result_png/
+.idea/
+.cache/
+desc
