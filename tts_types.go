@@ -13,10 +13,12 @@ type TTSDeckDescription struct {
 
 // Description of card inside deck
 type TTSCard struct {
-	Name        string  `json:"Name"`
-	Nickname    *string `json:"Nickname"`
-	Description *string `json:"Description"`
-	LuaScript   string  `json:"LuaScript"`
+	Name        string       `json:"Name"`
+	Nickname    *string      `json:"Nickname"`
+	Description *string      `json:"Description"`
+	CardID      int          `json:"CardID"`
+	LuaScript   string       `json:"LuaScript"`
+	Transform   TTSTransform `json:"Transform"`
 }
 
 type TTSTransform struct {
@@ -48,6 +50,12 @@ var (
 	deckVel    = 4
 	deckOffset = -deckVel
 )
+
+func NewTTSCard(deck TTSDeckObject) TTSCard {
+	return TTSCard{
+		Transform: deck.Transform,
+	}
+}
 
 func NewTTSDeckObject(nick, desc string) TTSDeckObject {
 	deckOffset += deckVel

@@ -30,6 +30,7 @@ func parseJson(path string) *Deck {
 }
 func cleanTitle(in string) string {
 	res := strings.ReplaceAll(in, " / ", "_")
+	res = strings.ReplaceAll(res, "/", "_")
 	return strings.ReplaceAll(res, " ", "_")
 }
 func getFilenameFromUrl(link string) string {
@@ -42,7 +43,7 @@ func getFilenameFromUrl(link string) string {
 }
 
 // Check every folder and get cards information
-func Crawl(path string, listOfDecks map[string][]*Deck) {
+func crawl(path string) (result []*Deck) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -51,21 +52,30 @@ func Crawl(path string, listOfDecks map[string][]*Deck) {
 	for _, file := range files {
 		newPath := path + "/" + file.Name()
 		if file.IsDir() {
-			Crawl(newPath, listOfDecks)
+			result = append(result, crawl(newPath)...)
 			continue
 		}
 		log.Println("Parse file:", newPath)
 
-		// Path to file convert to string
-		tokens := strings.Split(newPath, "/")
-		prefix := strings.Join(tokens[2:len(tokens)-1], "_")
-
 		deck := parseJson(newPath)
-		deck.Prefix = prefix
-		listOfDecks[deck.Type] = append(listOfDecks[deck.Type], deck)
+
+		result = append(result, deck)
 		// Set for each card
 		for _, card := range deck.Cards {
-			card.FillWithInfo(tokens[len(tokens)-2], deck.Prefix, deck.Type)
+			card.FillWithInfo(deck.Version, deck.Collection, deck.Type)
 		}
 	}
+	return
+}
+
+// Separate decks by type
+func Crawl(path string) map[string][]*Deck {
+	result := make(map[string][]*Deck)
+	// Get all decks
+	decks := crawl(path)
+	// Split decks by type
+	for _, deck := range decks {
+		result[deck.Type] = append(result[deck.Type], deck)
+	}
+	return result
 }

@@ -9,13 +9,11 @@ import (
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ltime)
 
-	listOfDecks := make(map[string][]*Deck)
-
-	// Read all configs
+	// Read all decks
 	version := "eng_v1"
-	Crawl("./desc/"+version, listOfDecks)
+	listOfDecks := Crawl("./desc/" + version)
 
-	// Build download list
+	// Get download list
 	var pairs []DownloadInfo
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {

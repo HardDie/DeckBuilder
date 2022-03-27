@@ -9,7 +9,7 @@ import (
 
 const (
 	// DEBUG
-	BuildImage = true
+	BuildImage = !true
 )
 
 func BestSize(count int) (images, cols, rows int) {
@@ -62,7 +62,9 @@ func BuildDeck(deckCol *DeckCollection) {
 	for index, deck := range deckCol.Decks {
 		imgSlice = nil
 		// Load images
-		log.Println("Start loading images...")
+		if BuildImage {
+			log.Println("Start loading images...")
+		}
 		for _, card := range deck.Cards {
 			if BuildImage {
 				imgSlice = append(imgSlice, OpenImage(card.GetFilePath()))
@@ -71,7 +73,9 @@ func BuildDeck(deckCol *DeckCollection) {
 			}
 		}
 		// Generate image
-		log.Println("Start generating image...")
-		deck.Columns, deck.Rows, deck.FileName = GenerateDeck(imgSlice, imgBack, deck.Type+"_"+strconv.Itoa(index+1))
+		if BuildImage {
+			log.Println("Start generating image...")
+		}
+		deck.Columns, deck.Rows, deck.FileName = GenerateDeck(imgSlice, imgBack, cleanTitle(deck.Type)+"_"+strconv.Itoa(index+1))
 	}
 }

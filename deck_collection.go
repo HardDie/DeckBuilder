@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"golang.org/x/exp/constraints"
 )
@@ -49,8 +50,9 @@ func (dc *DeckCollection) MergeDeck(d *Deck) {
 
 		dc.Decks = []*Deck{
 			{
-				Type:  d.Type,
-				Cards: d.Cards,
+				Type:       d.Type,
+				Collection: d.Collection,
+				Cards:      d.Cards,
 			},
 		}
 		return
@@ -66,8 +68,9 @@ func (dc *DeckCollection) MergeDeck(d *Deck) {
 	for i := MaxCardsOnPage; i < len(deck.Cards); i += MaxCardsOnPage {
 		max := min(i+MaxCardsOnPage, len(deck.Cards))
 		dc.Decks = append(dc.Decks, &Deck{
-			Type:  deck.Type,
-			Cards: deck.Cards[i:max],
+			Type:       deck.Type,
+			Collection: deck.Collection,
+			Cards:      deck.Cards[i:max],
 		})
 	}
 	deck.Cards = deck.Cards[0:MaxCardsOnPage]
@@ -97,8 +100,10 @@ func (dc *DeckCollection) GenerateTTSDeck() []TTSDeckObject {
 	var obj TTSDeckObject
 
 	var lastCollection string
+	var lastDeck int
 
 	for i, deck := range dc.Decks {
+		log.Println("Deck:", deck.Type, deck.Collection, len(deck.Cards))
 		// DEBUG
 		allReplaces = append(allReplaces, deck.FileName, dc.BackFileName)
 		// DEBUG
@@ -112,6 +117,20 @@ func (dc *DeckCollection) GenerateTTSDeck() []TTSDeckObject {
 					res = append(res, obj)
 					obj = NewTTSDeckObject(deck.Type, card.Collection)
 				}
+				log.Println("New deck object:", deck.Type, deck.Collection)
+				obj.CustomDeck[i+1] = TTSDeckDescription{
+					FaceURL:    deck.FileName,
+					BackURL:    dc.BackFileName,
+					NumWidth:   deck.Columns,
+					NumHeight:  deck.Rows,
+					UniqueBack: false,
+					Type:       0,
+				}
+				lastDeck = i
+			}
+
+			if lastDeck != i {
+				lastDeck = i
 				obj.CustomDeck[i+1] = TTSDeckDescription{
 					FaceURL:    deck.FileName,
 					BackURL:    dc.BackFileName,
@@ -122,12 +141,15 @@ func (dc *DeckCollection) GenerateTTSDeck() []TTSDeckObject {
 				}
 			}
 
-			obj.DeckIDs = append(obj.DeckIDs, (i+1)*100+j)
+			cardId := (i+1)*100 + j
+			obj.DeckIDs = append(obj.DeckIDs, cardId)
 			obj.ContainedObjects = append(obj.ContainedObjects, TTSCard{
 				Name:        "Card",
 				Nickname:    card.Title,
 				Description: new(string),
+				CardID:      cardId,
 				LuaScript:   card.GetLua(),
+				Transform:   obj.Transform,
 			})
 		}
 	}

@@ -16,17 +16,17 @@ type Card struct {
 
 	// Cards in same folder exist in same 'collection'
 	Collection string `json:"collection"`
-	// Full filename with all prefixes like: deck, collection, original name(URL path)
+	// Full filename with all prefixes: version, collection, deck type, original name(URL path)
 	FileName string `json:"fileName"`
 	// Same as FileName but for unique back
 	BackFileName *string `json:"backFileName"`
 }
 
-func (c *Card) FillWithInfo(collection, pathPrefix, deckType string) {
+func (c *Card) FillWithInfo(version, collection, deckType string) {
 	c.Collection = collection
-	c.FileName = pathPrefix + "_" + deckType + "_" + cleanTitle(*c.Title) + "_" + getFilenameFromUrl(*c.Link)
+	c.FileName = version + "_" + collection + "_" + deckType + "_" + cleanTitle(*c.Title) + "_" + getFilenameFromUrl(*c.Link)
 	if c.Background != nil {
-		name := pathPrefix + "_" + deckType + "_" + cleanTitle(*c.Title) + "_" + getFilenameFromUrl(*c.Background)
+		name := version + "_" + collection + "_" + deckType + "_" + cleanTitle(*c.Title) + "_" + getFilenameFromUrl(*c.Background)
 		c.BackFileName = &name
 	}
 }

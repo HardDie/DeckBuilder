@@ -61,8 +61,6 @@ func DownloadFiles(pairs []DownloadInfo) {
 	cachedFiles := 0
 	downloadedFiles := 0
 	for _, pair := range pairs {
-		// // Get only filename
-		// _, filename := path.Split(pair.File)
 		// Check if file already exists
 		if _, ok := cache[pair.FileName]; ok {
 			cachedFiles++
