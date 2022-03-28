@@ -5,9 +5,9 @@ const (
 )
 
 type Config struct {
-	SourceDir string
-	ResultDir string
-	CachePath string
+	SourceDir string `json:"sourceDir"`
+	ResultDir string `json:"resultDir"`
+	CachePath string `json:"cachePath"`
 }
 
 var config *Config
@@ -15,7 +15,7 @@ var config *Config
 func GetConfig() *Config {
 	if config == nil {
 		config = &Config{
-			SourceDir: "./desc/eng_v1",
+			SourceDir: "desc/eng_v1",
 			ResultDir: "result_png/",
 			CachePath: ".cache/",
 		}
