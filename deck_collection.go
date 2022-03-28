@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"golang.org/x/exp/constraints"
 )
@@ -103,7 +102,6 @@ func (dc *DeckCollection) GenerateTTSDeck() []TTSDeckObject {
 	var lastDeck int
 
 	for i, deck := range dc.Decks {
-		log.Println("Deck:", deck.Type, deck.Collection, len(deck.Cards))
 		// DEBUG
 		allReplaces = append(allReplaces, deck.FileName, dc.BackFileName)
 		// DEBUG
@@ -117,7 +115,6 @@ func (dc *DeckCollection) GenerateTTSDeck() []TTSDeckObject {
 					res = append(res, obj)
 					obj = NewTTSDeckObject(deck.Type, card.Collection)
 				}
-				log.Println("New deck object:", deck.Type, deck.Collection)
 				obj.CustomDeck[i+1] = TTSDeckDescription{
 					FaceURL:    deck.FileName,
 					BackURL:    dc.BackFileName,

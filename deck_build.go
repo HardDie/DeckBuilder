@@ -3,13 +3,11 @@ package main
 import (
 	"fmt"
 	"image"
-	"log"
-	"strconv"
 )
 
 const (
 	// DEBUG
-	BuildImage = !true
+	BuildImage = true
 )
 
 func BestSize(count int) (images, cols, rows int) {
@@ -30,26 +28,22 @@ func BestSize(count int) (images, cols, rows int) {
 	return
 }
 
-func GenerateDeck(imgSlice []image.Image, imgBack image.Image, prefix string) (cols, rows int, fileName string) {
-	images := len(imgSlice)
-	_, cols, rows = BestSize(len(imgSlice) + 1)
-	fileName = fmt.Sprintf("%s_%d_%dx%d.png", prefix, images, cols, rows)
-
-	if BuildImage {
-		bound := imgSlice[0].Bounds().Max
-		rgba := CreateImage(bound.X, bound.Y, cols, rows)
-		for row := 0; row < rows; row++ {
-			for col := 0; col < cols; col++ {
-				if len(imgSlice) <= (row*cols + col) {
-					continue
-				}
-				img := imgSlice[row*cols+col]
-				rgba.Draw(col, row, img)
+func GenerateDeck(deck *Deck, imgSlice []image.Image, imgBack image.Image) {
+	bound := imgSlice[0].Bounds().Max
+	rgba := CreateImage(bound.X, bound.Y, deck.Columns, deck.Rows)
+	for row := 0; row < deck.Rows; row++ {
+		for col := 0; col < deck.Columns; col++ {
+			if len(imgSlice) <= (row*deck.Columns + col) {
+				continue
 			}
+			img := imgSlice[row*deck.Columns+col]
+			rgba.Draw(col, row, img)
+			fmt.Printf("\r[ DRAW ] %s (%d / %d)", deck.FileName, row*deck.Columns+col+1, len(imgSlice))
 		}
-		rgba.Draw(cols-1, rows-1, imgBack)
-		rgba.SaveImage(ResultPath + fileName)
 	}
+	rgba.Draw(deck.Columns-1, deck.Rows-1, imgBack)
+	fmt.Printf("\r[ SAVE ] %s            ", deck.FileName)
+	rgba.SaveImage(ResultPath + deck.FileName)
 	return
 }
 
@@ -60,22 +54,20 @@ func BuildDeck(deckCol *DeckCollection) {
 	imgBack = OpenImage(deckCol.BackFilePath)
 
 	for index, deck := range deckCol.Decks {
-		imgSlice = nil
-		// Load images
+		_, deck.Columns, deck.Rows = BestSize(len(deck.Cards) + 1)
+		deck.FileName = fmt.Sprintf("%s_%d_%d_%dx%d.png", cleanTitle(deck.Type), index+1, len(deck.Cards)+1,
+			deck.Columns, deck.Rows)
+
 		if BuildImage {
-			log.Println("Start loading images...")
-		}
-		for _, card := range deck.Cards {
-			if BuildImage {
+			imgSlice = nil
+			// Load images
+			for i, card := range deck.Cards {
 				imgSlice = append(imgSlice, OpenImage(card.GetFilePath()))
-			} else {
-				imgSlice = append(imgSlice, nil)
+				fmt.Printf("\r[ LOAD ] %s (%d / %d)", deck.FileName, i+1, len(imgSlice))
 			}
+			// Generate image
+			GenerateDeck(deck, imgSlice, imgBack)
+			fmt.Printf("\r[ DONE ] %s\n", deck.FileName)
 		}
-		// Generate image
-		if BuildImage {
-			log.Println("Start generating image...")
-		}
-		deck.Columns, deck.Rows, deck.FileName = GenerateDeck(imgSlice, imgBack, cleanTitle(deck.Type)+"_"+strconv.Itoa(index+1))
 	}
 }

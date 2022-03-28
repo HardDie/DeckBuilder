@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/draw"
 	"image/jpeg"
@@ -60,7 +59,6 @@ func (img *Image) Draw(col int, row int, imageSrc image.Image) {
 	return
 }
 func (img *Image) SaveImage(title string) {
-	fmt.Printf("Building %s image...\n", title)
 	out, err := os.Create(title)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -69,5 +67,4 @@ func (img *Image) SaveImage(title string) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Printf("Image %s ready!\n", title)
 }

@@ -38,9 +38,6 @@ func main() {
 	var wc WholeCollection
 	for _, deckCol := range collection {
 		BuildDeck(deckCol)
-		for _, deck := range deckCol.Decks {
-			fmt.Println(deck.FileName)
-		}
 		wc = append(wc, deckCol)
 	}
 
