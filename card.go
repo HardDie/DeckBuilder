@@ -40,11 +40,11 @@ func (c *Card) GetBackFileName() *string {
 }
 
 func (c *Card) GetFilePath() string {
-	return CachePath + c.GetFileName()
+	return GetConfig().CachePath + c.GetFileName()
 }
 
 func (c *Card) GetBackFilePath() string {
-	return CachePath + *c.GetBackFileName()
+	return GetConfig().CachePath + *c.GetBackFileName()
 }
 
 func (c *Card) GetLua() string {

@@ -2,7 +2,7 @@ package main
 
 func (d *Deck) GetBacksideImagePath() DownloadInfo {
 	return DownloadInfo{
-		FilePath: CachePath + getFilenameFromUrl(*d.Backside),
+		FilePath: GetConfig().CachePath + getFilenameFromUrl(*d.Backside),
 		FileName: getFilenameFromUrl(*d.Backside),
 		URL:      *d.Backside,
 	}

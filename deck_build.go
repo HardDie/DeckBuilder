@@ -43,7 +43,7 @@ func GenerateDeck(deck *Deck, imgSlice []image.Image, imgBack image.Image) {
 	}
 	rgba.Draw(deck.Columns-1, deck.Rows-1, imgBack)
 	fmt.Printf("\r[ SAVE ] %s            ", deck.FileName)
-	rgba.SaveImage(ResultPath + deck.FileName)
+	rgba.SaveImage(GetConfig().ResultDir + deck.FileName)
 	return
 }
 

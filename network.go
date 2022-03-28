@@ -40,7 +40,7 @@ func DownloadFile(filePath string, link string) {
 func checkCache() map[string]struct{} {
 	res := make(map[string]struct{})
 
-	files, err := ioutil.ReadDir(CachePath)
+	files, err := ioutil.ReadDir(GetConfig().CachePath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

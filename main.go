@@ -10,8 +10,7 @@ func main() {
 	log.SetFlags(log.Lshortfile | log.Ltime)
 
 	// Read all decks
-	version := "eng_v1"
-	listOfDecks := Crawl("./desc/" + version)
+	listOfDecks := Crawl(GetConfig().SourceDir)
 
 	// Get download list
 	var pairs []DownloadInfo
@@ -45,7 +44,7 @@ func main() {
 	res := wc.GenerateTTSDeck()
 
 	// Write deck json to file
-	err := ioutil.WriteFile("./result_png/deck.json", res, 0644)
+	err := ioutil.WriteFile(GetConfig().ResultDir+"/deck.json", res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
