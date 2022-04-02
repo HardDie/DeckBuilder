@@ -22,6 +22,22 @@ type Card struct {
 	BackFileName *string `json:"backFileName"`
 }
 
+func (c *Card) GetFrontSideName() string {
+	return c.FileName
+}
+func (c *Card) GetFrontSideURL() string {
+	return *c.Link
+}
+func (c *Card) IsUniqueBack() bool {
+	return c.Background != nil
+}
+func (c *Card) GetUniqueBackSideName() string {
+	return *c.BackFileName
+}
+func (c *Card) GetUniqueBackSineURL() string {
+	return *c.Background
+}
+
 func (c *Card) FillWithInfo(version, collection, deckType string) {
 	c.Collection = collection
 	c.FileName = version + "_" + collection + "_" + deckType + "_" + cleanTitle(*c.Title) + "_" + getFilenameFromUrl(*c.Link)

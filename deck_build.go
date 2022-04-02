@@ -28,7 +28,7 @@ func BuildDeck(deckCol *DeckCollection) {
 	var imgSlice []image.Image
 	var imgBack image.Image
 
-	imgBack = OpenImage(deckCol.BackFilePath)
+	imgBack = OpenImage(GetConfig().CachePath + deckCol.BackFileName)
 
 	for _, deck := range deckCol.Decks {
 		imgSlice = nil

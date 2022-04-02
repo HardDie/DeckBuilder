@@ -28,7 +28,7 @@ func BestSize(count int) (cols, rows int) {
 type DeckCollection struct {
 	BackURL      string
 	BackFileName string
-	BackFilePath string
+	// BackFilePath string
 
 	// List of decks
 	Decks []*Deck
@@ -60,11 +60,8 @@ func (dc *DeckCollection) SplitOnDecks(d *Deck) []*Deck {
 func (dc *DeckCollection) MergeDeck(d *Deck) {
 	// If first call, init collection
 	if len(dc.Decks) == 0 {
-		bs := d.GetBacksideImagePath()
-		dc.BackURL = bs.URL
-		dc.BackFileName = bs.FileName
-		dc.BackFilePath = bs.FilePath
-
+		dc.BackURL = d.GetBackSideURL()
+		dc.BackFileName = d.GetBackSideName()
 		dc.Decks = []*Deck{
 			{
 				Type:       d.Type,

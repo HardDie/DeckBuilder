@@ -8,6 +8,7 @@ type Config struct {
 	SourceDir string `json:"sourceDir"`
 	ResultDir string `json:"resultDir"`
 	CachePath string `json:"cachePath"`
+	Debug     bool   `json:"debug"`
 }
 
 var config *Config
@@ -18,6 +19,7 @@ func GetConfig() *Config {
 			SourceDir: "desc/eng_v1",
 			ResultDir: "result_png/",
 			CachePath: ".cache/",
+			Debug:     false,
 		}
 	}
 	return config

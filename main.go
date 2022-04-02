@@ -13,16 +13,15 @@ func GenerateDeckImages() {
 	// Read all decks
 	listOfDecks := Crawl(GetConfig().SourceDir)
 
-	// Get download list
-	var pairs []DownloadInfo
+	dm := NewDownloadManager(GetConfig().CachePath)
+	// Fill download list
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {
-			pairs = append(pairs, deck.GetDownloadList()...)
+			PutDeckToDownloadManager(deck, dm)
 		}
 	}
-
 	// Download all images
-	DownloadFiles(pairs)
+	dm.Download()
 
 	// Build
 	collection := make(map[string]*DeckCollection)
