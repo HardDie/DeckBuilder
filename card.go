@@ -50,19 +50,9 @@ func (c *Card) FillWithInfo(version, collection, deckType string) {
 func (c *Card) GetFileName() string {
 	return c.FileName
 }
-
-func (c *Card) GetBackFileName() *string {
-	return c.BackFileName
-}
-
 func (c *Card) GetFilePath() string {
 	return GetConfig().CachePath + c.GetFileName()
 }
-
-func (c *Card) GetBackFilePath() string {
-	return GetConfig().CachePath + *c.GetBackFileName()
-}
-
 func (c *Card) GetLua() string {
 	var res string
 	for key, value := range c.Scripts {

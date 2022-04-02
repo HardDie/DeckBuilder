@@ -24,20 +24,22 @@ func GenerateDeckImages() {
 	dm.Download()
 
 	// Build
-	collection := make(map[string]*DeckCollection)
+	collection := make(map[string]*DeckBuilder)
 	for deckType, decks := range listOfDecks {
-		deckCol := NewDeckCollection()
-		for _, deck := range decks {
-			deckCol.MergeDeck(deck)
+		if len(decks) == 0 {
+			continue
 		}
-		deckCol.FillAttributes()
-		collection[deckType] = deckCol
+		db := NewDeckBuilder(decks[0])
+		for _, deck := range decks {
+			PutDeckToDeckBuilder(deck, db)
+		}
+		collection[deckType] = db
 	}
 
 	// Generate images
 	var wc WholeCollection
 	for _, deckCol := range collection {
-		BuildDeck(deckCol)
+		BuildDeck(deckCol.GetDecks())
 		wc = append(wc, deckCol)
 	}
 
@@ -55,14 +57,16 @@ func GenerateDeckObject() {
 	listOfDecks := Crawl(GetConfig().SourceDir)
 
 	// Build
-	collection := make(map[string]*DeckCollection)
+	collection := make(map[string]*DeckBuilder)
 	for deckType, decks := range listOfDecks {
-		deckCol := NewDeckCollection()
-		for _, deck := range decks {
-			deckCol.MergeDeck(deck)
+		if len(decks) == 0 {
+			continue
 		}
-		deckCol.FillAttributes()
-		collection[deckType] = deckCol
+		db := NewDeckBuilder(decks[0])
+		for _, deck := range decks {
+			PutDeckToDeckBuilder(deck, db)
+		}
+		collection[deckType] = db
 	}
 
 	// Generate images

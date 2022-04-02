@@ -24,13 +24,17 @@ func GenerateDeck(deck *Deck, imgSlice []image.Image, imgBack image.Image) {
 	return
 }
 
-func BuildDeck(deckCol *DeckCollection) {
+func BuildDeck(decks []*Deck) {
 	var imgSlice []image.Image
 	var imgBack image.Image
 
-	imgBack = OpenImage(GetConfig().CachePath + deckCol.BackFileName)
+	if len(decks) == 0 {
+		return
+	}
 
-	for _, deck := range deckCol.Decks {
+	imgBack = OpenImage(GetConfig().CachePath + decks[0].GetBackSideName())
+
+	for _, deck := range decks {
 		imgSlice = nil
 		// Load images
 		for i, card := range deck.Cards {

@@ -35,3 +35,9 @@ func (d *Deck) GetBackSideURL() string {
 func (d *Deck) GetCards() []*Card {
 	return d.Cards
 }
+func (d *Deck) GetType() string {
+	return d.Type
+}
+func (d *Deck) GetCollection() string {
+	return d.Collection
+}

@@ -69,6 +69,8 @@ func crawl(path string) (result []*Deck) {
 }
 
 // Separate decks by type
+// Top level map[string] - split by types (ex.: Loot, Monster)
+// Next level []*Deck - split by collection (ex.: Base, DLC)
 func Crawl(path string) map[string][]*Deck {
 	result := make(map[string][]*Deck)
 	// Get all decks
