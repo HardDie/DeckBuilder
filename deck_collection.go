@@ -9,18 +9,16 @@ import (
 type DeckBuilder struct {
 	cards []*Card
 
-	deckType       string
-	deckCollection string
-	backSideName   string
-	backSideURL    string
+	deckType     string
+	backSideName string
+	backSideURL  string
 }
 
 func NewDeckBuilder(deck *Deck) *DeckBuilder {
 	return &DeckBuilder{
-		deckType:       deck.GetType(),
-		deckCollection: deck.Collection,
-		backSideName:   deck.GetBackSideName(),
-		backSideURL:    deck.GetBackSideURL(),
+		deckType:     deck.GetType(),
+		backSideName: deck.GetBackSideName(),
+		backSideURL:  deck.GetBackSideURL(),
 	}
 }
 func (b *DeckBuilder) AddCard(card *Card) {

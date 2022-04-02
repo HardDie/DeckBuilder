@@ -51,12 +51,6 @@ var (
 	deckOffset = -deckVel
 )
 
-func NewTTSCard(deck TTSDeckObject) TTSCard {
-	return TTSCard{
-		Transform: deck.Transform,
-	}
-}
-
 func NewTTSDeckObject(nick, desc string) TTSDeckObject {
 	deckOffset += deckVel
 	return TTSDeckObject{
