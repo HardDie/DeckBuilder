@@ -21,6 +21,6 @@ func PutDeckToDownloadManager(d *Deck, dm *DownloadManager) {
 
 func PutDeckToDeckBuilder(d *Deck, db *DeckBuilder) {
 	for _, card := range d.GetCards() {
-		db.AddCard(card)
+		db.AddCard(d, card)
 	}
 }

@@ -24,27 +24,20 @@ func GenerateDeckImages() {
 	dm.Download()
 
 	// Build
-	collection := make(map[string]*DeckBuilder)
-	for deckType, decks := range listOfDecks {
-		if len(decks) == 0 {
-			continue
-		}
-		db := NewDeckBuilder(decks[0])
+	db := NewDeckBuilder()
+	for _, decks := range listOfDecks {
 		for _, deck := range decks {
 			PutDeckToDeckBuilder(deck, db)
 		}
-		collection[deckType] = db
 	}
 
 	// Generate images
-	var wc WholeCollection
-	for _, deckCol := range collection {
-		BuildDeck(deckCol.GetDecks())
-		wc = append(wc, deckCol)
+	for _, deckType := range db.GetTypes() {
+		BuildDeck(db.GetDecks(deckType))
 	}
 
 	// Write all created files
-	data, _ := json.MarshalIndent(wc.GetResultImages(), "", "	")
+	data, _ := json.MarshalIndent(db.GetResultImages(), "", "	")
 	err := ioutil.WriteFile(GetConfig().ResultDir+"/images.json", data, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -57,22 +50,11 @@ func GenerateDeckObject() {
 	listOfDecks := Crawl(GetConfig().SourceDir)
 
 	// Build
-	collection := make(map[string]*DeckBuilder)
-	for deckType, decks := range listOfDecks {
-		if len(decks) == 0 {
-			continue
-		}
-		db := NewDeckBuilder(decks[0])
+	db := NewDeckBuilder()
+	for _, decks := range listOfDecks {
 		for _, deck := range decks {
 			PutDeckToDeckBuilder(deck, db)
 		}
-		collection[deckType] = db
-	}
-
-	// Generate images
-	var wc WholeCollection
-	for _, deckCol := range collection {
-		wc = append(wc, deckCol)
 	}
 
 	data, err := ioutil.ReadFile(GetConfig().ResultDir + "/images.json")
@@ -87,7 +69,7 @@ func GenerateDeckObject() {
 	}
 
 	// Generate TTS object
-	res := wc.GenerateTTSDeck(replaces)
+	res := db.GenerateTTSDeck(replaces)
 
 	// Write deck json to file
 	err = ioutil.WriteFile(GetConfig().ResultDir+"/deck.json", res, 0644)

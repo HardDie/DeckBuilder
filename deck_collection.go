@@ -6,44 +6,58 @@ import (
 	"log"
 )
 
-type DeckBuilder struct {
+type deckBuilderDeck struct {
 	cards []*Card
 
 	deckType     string
 	backSideName string
 	backSideURL  string
 }
+type DeckBuilder struct {
+	decks map[string]*deckBuilderDeck
+}
 
-func NewDeckBuilder(deck *Deck) *DeckBuilder {
+func NewDeckBuilder() *DeckBuilder {
 	return &DeckBuilder{
-		deckType:     deck.GetType(),
-		backSideName: deck.GetBackSideName(),
-		backSideURL:  deck.GetBackSideURL(),
+		decks: make(map[string]*deckBuilderDeck),
 	}
 }
-func (b *DeckBuilder) AddCard(card *Card) {
-	b.cards = append(b.cards, card)
+func (b *DeckBuilder) AddCard(deck *Deck, card *Card) {
+	if _, ok := b.decks[deck.GetType()]; !ok {
+		b.decks[deck.GetType()] = &deckBuilderDeck{
+			deckType:     deck.GetType(),
+			backSideName: deck.GetBackSideName(),
+			backSideURL:  deck.GetBackSideURL(),
+		}
+	}
+	b.decks[deck.GetType()].cards = append(b.decks[deck.GetType()].cards, card)
 }
-func (b *DeckBuilder) splitCards() (cards [][]*Card) {
-	for leftBorder := 0; leftBorder < len(b.cards); leftBorder += MaxCardsOnPage {
+func (b *DeckBuilder) splitCards(deckType string) (cards [][]*Card) {
+	for leftBorder := 0; leftBorder < len(b.decks[deckType].cards); leftBorder += MaxCardsOnPage {
 		// Calculate right border for current deck
-		rightBorder := min(len(b.cards), leftBorder+MaxCardsOnPage)
-		cards = append(cards, b.cards[leftBorder:rightBorder])
+		rightBorder := min(len(b.decks[deckType].cards), leftBorder+MaxCardsOnPage)
+		cards = append(cards, b.decks[deckType].cards[leftBorder:rightBorder])
 	}
 	return
 }
-func (b *DeckBuilder) GetDecks() (decks []*Deck) {
-	for index, cards := range b.splitCards() {
+func (b *DeckBuilder) GetDecks(deckType string) (decks []*Deck) {
+	for index, cards := range b.splitCards(deckType) {
 		// Calculate optimal count of columns and rows for result image
 		columns, rows := b.getImageSize(len(cards) + 1)
 		decks = append(decks, &Deck{
 			Cards:   cards,
 			Columns: columns,
 			Rows:    rows,
-			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", cleanTitle(b.deckType), index+1, len(cards),
+			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", cleanTitle(b.decks[deckType].deckType), index+1, len(cards),
 				columns, rows),
-			BackSide: &b.backSideURL,
+			BackSide: &b.decks[deckType].backSideURL,
 		})
+	}
+	return
+}
+func (b *DeckBuilder) GetTypes() (types []string) {
+	for deckType := range b.decks {
+		types = append(types, deckType)
 	}
 	return
 }
@@ -64,15 +78,15 @@ func (b *DeckBuilder) getImageSize(count int) (cols, rows int) {
 	}
 	return
 }
-func (b *DeckBuilder) GetResultImages() []string {
+func (b *DeckBuilder) getResultImages(deckType string) []string {
 	var images []string
-	for _, deck := range b.GetDecks() {
+	for _, deck := range b.GetDecks(deckType) {
 		images = append(images, deck.FileName)
 	}
-	images = append(images, b.backSideName)
+	images = append(images, b.decks[deckType].backSideName)
 	return images
 }
-func (b *DeckBuilder) GenerateTTSDeck(replaces map[string]string) []TTSDeckObject {
+func (b *DeckBuilder) generateTTSDeck(replaces map[string]string, deckType string) []TTSDeckObject {
 	var res []TTSDeckObject
 
 	var obj TTSDeckObject
@@ -80,7 +94,7 @@ func (b *DeckBuilder) GenerateTTSDeck(replaces map[string]string) []TTSDeckObjec
 	var lastCollection string
 	var lastDeck int
 
-	for i, deck := range b.GetDecks() {
+	for i, deck := range b.GetDecks(deckType) {
 		for j, card := range deck.Cards {
 			if lastCollection != card.Collection {
 				if lastCollection == "" {
@@ -149,21 +163,19 @@ func (b *DeckBuilder) GenerateTTSDeck(replaces map[string]string) []TTSDeckObjec
 	return res
 }
 
-type WholeCollection []*DeckBuilder
-
-func (col WholeCollection) GetResultImages() map[string]string {
+func (b *DeckBuilder) GetResultImages() map[string]string {
 	res := make(map[string]string)
-	for _, dc := range col {
-		for _, image := range dc.GetResultImages() {
+	for _, deckType := range b.GetTypes() {
+		for _, image := range b.getResultImages(deckType) {
 			res[image] = ""
 		}
 	}
 	return res
 }
-func (col WholeCollection) GenerateTTSDeck(replaces map[string]string) []byte {
+func (b *DeckBuilder) GenerateTTSDeck(replaces map[string]string) []byte {
 	res := TTSSaveObject{}
-	for _, dc := range col {
-		res.ObjectStates = append(res.ObjectStates, dc.GenerateTTSDeck(replaces)...)
+	for _, deckType := range b.GetTypes() {
+		res.ObjectStates = append(res.ObjectStates, b.generateTTSDeck(replaces, deckType)...)
 	}
 	data, _ := json.MarshalIndent(res, "", "  ")
 	return data
