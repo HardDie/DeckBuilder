@@ -43,7 +43,7 @@ type TTSDeckObject struct {
 
 // Json object with decks
 type TTSSaveObject struct {
-	ObjectStates []*TTSDeckObject `json:"ObjectStates"`
+	ObjectStates []interface{} `json:"ObjectStates"`
 }
 
 var (

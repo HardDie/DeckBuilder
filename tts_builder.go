@@ -10,7 +10,7 @@ type TTSBuilder struct {
 	replaces map[string]string
 	objects  map[string]*TTSDeckObject
 
-	resObjects []*TTSDeckObject
+	resObjects []interface{}
 }
 
 func NewTTSBuilder() *TTSBuilder {
@@ -77,6 +77,6 @@ func (b *TTSBuilder) AddCard(deck *Deck, card *Card, deckId, cardId int) {
 	// Add card object to deck
 	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardId, ttsDeck.Transform))
 }
-func (b *TTSBuilder) GetObjects() []*TTSDeckObject {
+func (b *TTSBuilder) GetObjects() []interface{} {
 	return b.resObjects
 }
