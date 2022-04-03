@@ -32,9 +32,7 @@ func GenerateDeckImages() {
 	}
 
 	// Generate images
-	for _, deckType := range db.GetTypes() {
-		BuildDeck(db.GetDecks(deckType))
-	}
+	db.DrawDecks()
 
 	// Write all created files
 	data, _ := json.MarshalIndent(db.GetResultImages(), "", "	")

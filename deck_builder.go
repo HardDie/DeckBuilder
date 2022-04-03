@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image"
 	"log"
 )
 
@@ -22,6 +23,8 @@ func NewDeckBuilder() *DeckBuilder {
 		decks: make(map[string]*deckBuilderDeck),
 	}
 }
+
+// collect
 func (b *DeckBuilder) AddCard(deck *Deck, card *Card) {
 	if _, ok := b.decks[deck.GetType()]; !ok {
 		b.decks[deck.GetType()] = &deckBuilderDeck{
@@ -37,6 +40,22 @@ func (b *DeckBuilder) splitCards(deckType string) (cards [][]*Card) {
 		// Calculate right border for current deck
 		rightBorder := min(len(b.decks[deckType].cards), leftBorder+MaxCardsOnPage)
 		cards = append(cards, b.decks[deckType].cards[leftBorder:rightBorder])
+	}
+	return
+}
+func (b *DeckBuilder) getImageSize(count int) (cols, rows int) {
+	cols = 10
+	rows = 7
+	images := cols * rows
+	for r := 2; r <= 7; r++ {
+		for c := 2; c <= 10; c++ {
+			possible := c * r
+			if possible < images && possible >= count {
+				images = possible
+				cols = c
+				rows = r
+			}
+		}
 	}
 	return
 }
@@ -62,22 +81,48 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 	return
 }
 
-func (b *DeckBuilder) getImageSize(count int) (cols, rows int) {
-	cols = 10
-	rows = 7
-	images := cols * rows
-	for r := 2; r <= 7; r++ {
-		for c := 2; c <= 10; c++ {
-			possible := c * r
-			if possible < images && possible >= count {
-				images = possible
-				cols = c
-				rows = r
-			}
-		}
+// draw
+func (b *DeckBuilder) loadCards(cards []*Card) (images []image.Image) {
+	for i, card := range cards {
+		images = append(images, OpenImage(card.GetFilePath()))
+		fmt.Printf("\r[ LOAD ] %d / %d", i+1, len(cards))
 	}
 	return
 }
+func (b *DeckBuilder) collectImages(columns, rows int, images []image.Image, imageBackSide image.Image) *Image {
+	bound := images[0].Bounds().Max
+	deckImage := CreateImage(bound.X, bound.Y, columns, rows)
+	// Draw front side images
+	for row := 0; row < rows; row++ {
+		for col := 0; col < columns; col++ {
+			if len(images) <= (row*columns + col) {
+				continue
+			}
+			img := images[row*columns+col]
+			deckImage.Draw(col, row, img)
+			fmt.Printf("\r[ DRAW ] %d / %d", row*columns+col+1, len(images))
+		}
+	}
+	// On bottom right place draw back side image
+	deckImage.Draw(columns-1, rows-1, imageBackSide)
+	return deckImage
+}
+func (b *DeckBuilder) DrawDecks() {
+	for _, deckType := range b.GetTypes() {
+		decks := b.GetDecks(deckType)
+		imageBackSide := OpenImage(GetConfig().CachePath + decks[0].GetBackSideName())
+		for _, deck := range decks {
+			fmt.Println(deck.FileName)
+			images := b.loadCards(deck.Cards)
+			deckImage := b.collectImages(deck.Columns, deck.Rows, images, imageBackSide)
+			fmt.Printf("\r[ SAVE ]          ")
+			deckImage.SaveImage(GetConfig().ResultDir + deck.FileName)
+			fmt.Printf("\r[ DONE ] \n")
+		}
+	}
+}
+
+// tts
 func (b *DeckBuilder) getResultImages(deckType string) []string {
 	var images []string
 	for _, deck := range b.GetDecks(deckType) {
@@ -162,7 +207,6 @@ func (b *DeckBuilder) generateTTSDeck(replaces map[string]string, deckType strin
 	}
 	return res
 }
-
 func (b *DeckBuilder) GetResultImages() map[string]string {
 	res := make(map[string]string)
 	for _, deckType := range b.GetTypes() {
