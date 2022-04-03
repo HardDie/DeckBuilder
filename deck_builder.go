@@ -107,7 +107,9 @@ func (b *DeckBuilder) collectImages(columns, rows int, images []image.Image, ima
 	deckImage.Draw(columns-1, rows-1, imageBackSide)
 	return deckImage
 }
-func (b *DeckBuilder) DrawDecks() {
+func (b *DeckBuilder) DrawDecks() map[string]string {
+	// List of result files
+	res := make(map[string]string)
 	for _, deckType := range b.GetTypes() {
 		decks := b.GetDecks(deckType)
 		imageBackSide := OpenImage(GetConfig().CachePath + decks[0].GetBackSideName())
@@ -118,19 +120,16 @@ func (b *DeckBuilder) DrawDecks() {
 			fmt.Printf("\r[ SAVE ]          ")
 			deckImage.SaveImage(GetConfig().ResultDir + deck.FileName)
 			fmt.Printf("\r[ DONE ] \n")
+			// Add current deck title
+			res[deck.FileName] = ""
 		}
+		// Add back side image title
+		res[decks[0].GetBackSideName()] = ""
 	}
+	return res
 }
 
 // tts
-func (b *DeckBuilder) getResultImages(deckType string) []string {
-	var images []string
-	for _, deck := range b.GetDecks(deckType) {
-		images = append(images, deck.FileName)
-	}
-	images = append(images, b.decks[deckType].backSideName)
-	return images
-}
 func (b *DeckBuilder) generateTTSDeck(replaces map[string]string, deckType string) []TTSDeckObject {
 	var res []TTSDeckObject
 
@@ -204,15 +203,6 @@ func (b *DeckBuilder) generateTTSDeck(replaces map[string]string, deckType strin
 
 	if len(obj.ContainedObjects) > 0 {
 		res = append(res, obj)
-	}
-	return res
-}
-func (b *DeckBuilder) GetResultImages() map[string]string {
-	res := make(map[string]string)
-	for _, deckType := range b.GetTypes() {
-		for _, image := range b.getResultImages(deckType) {
-			res[image] = ""
-		}
 	}
 	return res
 }

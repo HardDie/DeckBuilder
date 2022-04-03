@@ -32,10 +32,10 @@ func GenerateDeckImages() {
 	}
 
 	// Generate images
-	db.DrawDecks()
+	images := db.DrawDecks()
 
 	// Write all created files
-	data, _ := json.MarshalIndent(db.GetResultImages(), "", "	")
+	data, _ := json.MarshalIndent(images, "", "	")
 	err := ioutil.WriteFile(GetConfig().ResultDir+"/images.json", data, 0644)
 	if err != nil {
 		log.Fatal(err)
