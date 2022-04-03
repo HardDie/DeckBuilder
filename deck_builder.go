@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 	"log"
 )
 
@@ -82,44 +81,13 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 }
 
 // draw
-func (b *DeckBuilder) loadCards(cards []*Card) (images []image.Image) {
-	for i, card := range cards {
-		images = append(images, OpenImage(card.GetFilePath()))
-		fmt.Printf("\r[ LOAD ] %d / %d", i+1, len(cards))
-	}
-	return
-}
-func (b *DeckBuilder) collectImages(columns, rows int, images []image.Image, imageBackSide image.Image) *Image {
-	bound := images[0].Bounds().Max
-	deckImage := CreateImage(bound.X, bound.Y, columns, rows)
-	// Draw front side images
-	for row := 0; row < rows; row++ {
-		for col := 0; col < columns; col++ {
-			if len(images) <= (row*columns + col) {
-				continue
-			}
-			img := images[row*columns+col]
-			deckImage.Draw(col, row, img)
-			fmt.Printf("\r[ DRAW ] %d / %d", row*columns+col+1, len(images))
-		}
-	}
-	// On bottom right place draw back side image
-	deckImage.Draw(columns-1, rows-1, imageBackSide)
-	return deckImage
-}
 func (b *DeckBuilder) DrawDecks() map[string]string {
 	// List of result files
 	res := make(map[string]string)
 	for _, deckType := range b.GetTypes() {
 		decks := b.GetDecks(deckType)
-		imageBackSide := OpenImage(GetConfig().CachePath + decks[0].GetBackSideName())
 		for _, deck := range decks {
-			fmt.Println(deck.FileName)
-			images := b.loadCards(deck.Cards)
-			deckImage := b.collectImages(deck.Columns, deck.Rows, images, imageBackSide)
-			fmt.Printf("\r[ SAVE ]          ")
-			deckImage.SaveImage(GetConfig().ResultDir + deck.FileName)
-			fmt.Printf("\r[ DONE ] \n")
+			NewDeckDrawer(deck).Draw()
 			// Add current deck title
 			res[deck.FileName] = ""
 		}
