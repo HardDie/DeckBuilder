@@ -55,22 +55,11 @@ func GenerateDeckObject() {
 		}
 	}
 
-	data, err := ioutil.ReadFile(GetConfig().ResultDir + "/images.json")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	replaces := make(map[string]string)
-	err = json.Unmarshal(data, &replaces)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
 	// Generate TTS object
-	res := db.GenerateTTSDeck(replaces)
+	res := db.GenerateTTSDeck()
 
 	// Write deck json to file
-	err = ioutil.WriteFile(GetConfig().ResultDir+"/deck.json", res, 0644)
+	err := ioutil.WriteFile(GetConfig().ResultDir+"/deck.json", res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

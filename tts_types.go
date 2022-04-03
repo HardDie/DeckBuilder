@@ -43,7 +43,7 @@ type TTSDeckObject struct {
 
 // Json object with decks
 type TTSSaveObject struct {
-	ObjectStates []TTSDeckObject `json:"ObjectStates"`
+	ObjectStates []*TTSDeckObject `json:"ObjectStates"`
 }
 
 var (
@@ -51,9 +51,9 @@ var (
 	deckOffset = -deckVel
 )
 
-func NewTTSDeckObject(nick, desc string) TTSDeckObject {
+func NewTTSDeckObject(nick, desc string) *TTSDeckObject {
 	deckOffset += deckVel
-	return TTSDeckObject{
+	return &TTSDeckObject{
 		Name:        "Deck",
 		Nickname:    nick,
 		Description: desc,

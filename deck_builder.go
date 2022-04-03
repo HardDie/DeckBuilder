@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"sort"
 )
 
 type deckBuilderDeck struct {
@@ -69,6 +69,7 @@ func (b *DeckBuilder) GetDecks(deckType string) (decks []*Deck) {
 			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", cleanTitle(b.decks[deckType].deckType), index+1, len(cards),
 				columns, rows),
 			BackSide: &b.decks[deckType].backSideURL,
+			Type:     deckType,
 		})
 	}
 	return
@@ -77,6 +78,9 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 	for deckType := range b.decks {
 		types = append(types, deckType)
 	}
+	sort.SliceStable(types, func(i, j int) bool {
+		return types[i] < types[j]
+	})
 	return
 }
 
@@ -98,86 +102,18 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 }
 
 // tts
-func (b *DeckBuilder) generateTTSDeck(replaces map[string]string, deckType string) []TTSDeckObject {
-	var res []TTSDeckObject
-
-	var obj TTSDeckObject
-
-	var lastCollection string
-	var lastDeck int
-
-	for i, deck := range b.GetDecks(deckType) {
-		for j, card := range deck.Cards {
-			if lastCollection != card.Collection {
-				if lastCollection == "" {
-					obj = NewTTSDeckObject(deck.Type, card.Collection)
-					lastCollection = card.Collection
-				} else {
-					lastCollection = card.Collection
-					res = append(res, obj)
-					obj = NewTTSDeckObject(deck.Type, card.Collection)
-				}
-				face, ok := replaces[deck.FileName]
-				if !ok {
-					log.Fatalf("Can't find URL for image: %s", deck.FileName)
-				}
-				back, ok := replaces[deck.GetBackSideName()]
-				if !ok {
-					log.Fatalf("Can't find URL for image: %s", deck.GetBackSideName())
-				}
-				obj.CustomDeck[i+1] = TTSDeckDescription{
-					FaceURL:    face,
-					BackURL:    back,
-					NumWidth:   deck.Columns,
-					NumHeight:  deck.Rows,
-					UniqueBack: false,
-					Type:       0,
-				}
-				lastDeck = i
-			}
-
-			if lastDeck != i {
-				lastDeck = i
-				face, ok := replaces[deck.FileName]
-				if !ok {
-					log.Fatalf("Can't find URL for image: %s", deck.FileName)
-				}
-				back, ok := replaces[deck.GetBackSideName()]
-				if !ok {
-					log.Fatalf("Can't find URL for image: %s", deck.GetBackSideName())
-				}
-				obj.CustomDeck[i+1] = TTSDeckDescription{
-					FaceURL:    face,
-					BackURL:    back,
-					NumWidth:   deck.Columns,
-					NumHeight:  deck.Rows,
-					UniqueBack: false,
-					Type:       0,
-				}
-			}
-
-			cardId := (i+1)*100 + j
-			obj.DeckIDs = append(obj.DeckIDs, cardId)
-			obj.ContainedObjects = append(obj.ContainedObjects, TTSCard{
-				Name:        "Card",
-				Nickname:    card.Title,
-				Description: new(string),
-				CardID:      cardId,
-				LuaScript:   card.GetLua(),
-				Transform:   obj.Transform,
-			})
-		}
-	}
-
-	if len(obj.ContainedObjects) > 0 {
-		res = append(res, obj)
-	}
-	return res
-}
-func (b *DeckBuilder) GenerateTTSDeck(replaces map[string]string) []byte {
+func (b *DeckBuilder) GenerateTTSDeck() []byte {
 	res := TTSSaveObject{}
 	for _, deckType := range b.GetTypes() {
-		res.ObjectStates = append(res.ObjectStates, b.generateTTSDeck(replaces, deckType)...)
+		tts := NewTTSBuilder()
+		decks := b.GetDecks(deckType)
+		for deckId, deck := range decks {
+			for j, card := range deck.Cards {
+				cardId := (deckId+1)*100 + j
+				tts.AddCard(deck, card, deckId+1, cardId)
+			}
+		}
+		res.ObjectStates = append(res.ObjectStates, tts.GetObjects()...)
 	}
 	data, _ := json.MarshalIndent(res, "", "  ")
 	return data
