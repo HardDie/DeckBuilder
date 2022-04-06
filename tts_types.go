@@ -13,12 +13,13 @@ type TTSDeckDescription struct {
 
 // Description of card inside deck
 type TTSCard struct {
-	Name        string       `json:"Name"`
-	Nickname    *string      `json:"Nickname"`
-	Description *string      `json:"Description"`
-	CardID      int          `json:"CardID"`
-	LuaScript   string       `json:"LuaScript"`
-	Transform   TTSTransform `json:"Transform"`
+	Name        string                     `json:"Name"`
+	Nickname    *string                    `json:"Nickname"`
+	Description *string                    `json:"Description"`
+	CardID      int                        `json:"CardID"`
+	LuaScript   string                     `json:"LuaScript"`
+	Transform   TTSTransform               `json:"Transform"`
+	CustomDeck  map[int]TTSDeckDescription `json:"CustomDeck,omitempty"`
 }
 
 type TTSTransform struct {

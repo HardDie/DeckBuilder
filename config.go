@@ -16,7 +16,7 @@ var config *Config
 func GetConfig() *Config {
 	if config == nil {
 		config = &Config{
-			SourceDir: "desc/rus_v1",
+			SourceDir: "desc/eng_v2",
 			ResultDir: "result_png/",
 			CachePath: ".cache/",
 			Debug:     false,

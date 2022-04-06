@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"sort"
 )
 
 type TTSBuilder struct {
@@ -78,6 +79,24 @@ func (b *TTSBuilder) AddCard(deck *Deck, card *Card, deckId, cardId int) {
 	// Add card object to deck
 	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardId, ttsDeck.Transform))
 }
-func (b *TTSBuilder) GetObjects() []interface{} {
-	return b.resObjects
+func (b *TTSBuilder) GetObjects() (result []interface{}) {
+	// Sort keys
+	var keys []string
+	for key := range b.objects {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		object := b.objects[key]
+		// If one card in deck, add separated card as object
+		if len(object.ContainedObjects) == 1 {
+			object.ContainedObjects[0].CustomDeck = object.CustomDeck
+			result = append(result, object.ContainedObjects[0])
+			continue
+		}
+		// Add deck as object
+		result = append(result, object)
+	}
+	return
 }
