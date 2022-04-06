@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 )
 
 // Read configurations, download images, build deck image files
@@ -36,7 +37,7 @@ func GenerateDeckImages() {
 
 	// Write all created files
 	data, _ := json.MarshalIndent(images, "", "	")
-	err := ioutil.WriteFile(GetConfig().ResultDir+"/images.json", data, 0644)
+	err := ioutil.WriteFile(filepath.Join(GetConfig().ResultDir, "images.json"), data, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +60,7 @@ func GenerateDeckObject() {
 	res := db.GenerateTTSDeck()
 
 	// Write deck json to file
-	err := ioutil.WriteFile(GetConfig().ResultDir+"/deck.json", res, 0644)
+	err := ioutil.WriteFile(filepath.Join(GetConfig().ResultDir, "deck.json"), res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"path/filepath"
 )
 
 type DeckDrawer struct {
@@ -41,7 +42,7 @@ func (d *DeckDrawer) loadCards() {
 		d.images = append(d.images, OpenImage(card.GetFilePath()))
 		d.log("LOAD", i+1, len(d.cards))
 	}
-	d.imageBackSide = OpenImage(GetConfig().CachePath + d.backSideName)
+	d.imageBackSide = OpenImage(filepath.Join(GetConfig().CachePath, d.backSideName))
 	return
 }
 func (d *DeckDrawer) collectDeckImage() *Image {
@@ -66,6 +67,6 @@ func (d *DeckDrawer) Draw() {
 	d.loadCards()
 	deckImage := d.collectDeckImage()
 	d.log("SAVE", 0, 0)
-	deckImage.SaveImage(GetConfig().ResultDir + d.deckFileName)
+	deckImage.SaveImage(filepath.Join(GetConfig().ResultDir, d.deckFileName))
 	d.log("DONE", 0, 0)
 }

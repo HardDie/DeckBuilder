@@ -1,5 +1,7 @@
 package main
 
+import "path/filepath"
+
 type Card struct {
 	// Link for front image download
 	Link *string `json:"link"`
@@ -51,7 +53,7 @@ func (c *Card) GetFileName() string {
 	return c.FileName
 }
 func (c *Card) GetFilePath() string {
-	return GetConfig().CachePath + c.GetFileName()
+	return filepath.Join(GetConfig().CachePath, c.GetFileName())
 }
 func (c *Card) GetLua() string {
 	var res string

@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 )
 
 type fileInfo struct {
@@ -28,7 +30,7 @@ func NewDownloadManager(cachePath string) *DownloadManager {
 	}
 }
 
-func (m *DownloadManager) AddFile(url, filename string) {
+func (m *DownloadManager) AddFile(localurl, filename string) {
 	if _, ok := m.unique[filename]; ok {
 		if GetConfig().Debug {
 			log.Println("File already exist in queue:", filename)
@@ -36,9 +38,14 @@ func (m *DownloadManager) AddFile(url, filename string) {
 		return
 	}
 
+	_, err := url.Parse(localurl)
+	if err != nil {
+		log.Fatalf("Bad URL: %q %v", localurl, err.Error())
+	}
+
 	m.files = append(m.files, fileInfo{
 		Filename: filename,
-		URL:      url,
+		URL:      localurl,
 	})
 	m.unique[filename] = struct{}{}
 }
@@ -55,13 +62,48 @@ func (m *DownloadManager) Download() {
 		}
 		// Download if it's new file
 		log.Println("File:", file.Filename, "downloading...")
-		m.download(file.URL, file.Filename)
+		u, _ := url.Parse(file.URL)
+		if u.Scheme == "" {
+			m.copy(filepath.Join(GetConfig().SourceDir, file.URL), file.Filename)
+		} else {
+			m.download(file.URL, file.Filename)
+		}
 		downloadedFiles++
 	}
 	log.Println("Total", cachedFiles, "images already exists in cache")
 	log.Println("Total", downloadedFiles, "images were downloaded")
 }
 
+func (m *DownloadManager) copy(path, filename string) {
+	// Check source file
+	sourceFileStat, err := os.Stat(path)
+	if err != nil {
+		log.Fatal("Can't open file:", err.Error())
+	}
+	// Check this is regular file
+	if !sourceFileStat.Mode().IsRegular() {
+		log.Fatalf("%s is not a regular file", path)
+	}
+	// Open source file
+	source, err := os.Open(path)
+	if err != nil {
+		log.Fatal("Can't open file:", err.Error())
+	}
+	defer source.Close()
+
+	// Create destination file
+	destination, err := os.Create(filepath.Join(m.cachePath, filename))
+	if err != nil {
+		log.Fatal("Can't create dest file:", err.Error())
+	}
+	defer destination.Close()
+
+	// Copy data from source to destination file
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		log.Fatal("Can't copy file:", err.Error())
+	}
+}
 func (m *DownloadManager) download(url, filename string) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -69,7 +111,7 @@ func (m *DownloadManager) download(url, filename string) {
 	}
 	defer resp.Body.Close()
 
-	out, err := os.Create(m.cachePath + filename)
+	out, err := os.Create(filepath.Join(m.cachePath, filename))
 	if err != nil {
 		log.Fatal(err.Error())
 	}

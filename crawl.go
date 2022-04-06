@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -50,13 +51,21 @@ func crawl(path string) (result []*Deck) {
 	}
 
 	for _, file := range files {
-		newPath := path + "/" + file.Name()
+		newPath := filepath.Join(path, file.Name())
 		if file.IsDir() {
+			// Skip 'files' folder
+			if file.Name() == "files" {
+				continue
+			}
 			result = append(result, crawl(newPath)...)
 			continue
 		}
 		log.Println("Parse file:", newPath)
 
+		// Parse only json files
+		if filepath.Ext(newPath) != ".json" {
+			continue
+		}
 		deck := parseJson(newPath)
 
 		result = append(result, deck)

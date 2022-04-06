@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 )
 
 type TTSBuilder struct {
@@ -14,7 +15,7 @@ type TTSBuilder struct {
 }
 
 func NewTTSBuilder() *TTSBuilder {
-	data, err := ioutil.ReadFile(GetConfig().ResultDir + "images.json")
+	data, err := ioutil.ReadFile(filepath.Join(GetConfig().ResultDir, "images.json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
