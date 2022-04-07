@@ -32,6 +32,9 @@ func parseJson(path string) *Deck {
 func cleanTitle(in string) string {
 	res := strings.ReplaceAll(in, " / ", "_")
 	res = strings.ReplaceAll(res, "/", "_")
+	res = strings.ReplaceAll(res, "!", "")
+	res = strings.ReplaceAll(res, "'", "")
+	res = strings.ReplaceAll(res, ".", "")
 	return strings.ReplaceAll(res, " ", "_")
 }
 func getFilenameFromUrl(link string) string {
