@@ -1,6 +1,10 @@
-package main
+package types
 
-import "log"
+import (
+	"log"
+
+	"tts_deck_build/internal/utils"
+)
 
 type Deck struct {
 	// Type of deck
@@ -24,7 +28,7 @@ func (d *Deck) GetBackSideName() string {
 	if d.BackSide == nil {
 		log.Fatalf("Can't get back side image")
 	}
-	return getFilenameFromUrl(*d.BackSide)
+	return utils.GetFilenameFromUrl(*d.BackSide)
 }
 func (d *Deck) GetBackSideURL() string {
 	if d.BackSide == nil {

@@ -10,28 +10,34 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/crawl"
+	deckBuilder "tts_deck_build/internal/deck_builder"
+	downloadManager "tts_deck_build/internal/download_manager"
+	"tts_deck_build/internal/helpers"
 )
 
 // Read configurations, download images, build deck image files
 func GenerateDeckImages() {
 	// Read all decks
-	listOfDecks := Crawl(GetConfig().SourceDir)
+	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
 
-	dm := NewDownloadManager(GetConfig().CachePath)
+	dm := downloadManager.NewDownloadManager(config.GetConfig().CachePath)
 	// Fill download list
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {
-			PutDeckToDownloadManager(deck, dm)
+			helpers.PutDeckToDownloadManager(deck, dm)
 		}
 	}
 	// Download all images
 	dm.Download()
 
 	// Build
-	db := NewDeckBuilder()
+	db := deckBuilder.NewDeckBuilder()
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {
-			PutDeckToDeckBuilder(deck, db)
+			helpers.PutDeckToDeckBuilder(deck, db)
 		}
 	}
 
@@ -40,7 +46,7 @@ func GenerateDeckImages() {
 
 	// Write all created files
 	data, _ := json.MarshalIndent(images, "", "	")
-	err := ioutil.WriteFile(filepath.Join(GetConfig().ResultDir, "images.json"), data, 0644)
+	err := ioutil.WriteFile(filepath.Join(config.GetConfig().ResultDir, "images.json"), data, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,13 +55,13 @@ func GenerateDeckImages() {
 // Read configurations, generate TTS json object with description
 func GenerateDeckObject() {
 	// Read all decks
-	listOfDecks := Crawl(GetConfig().SourceDir)
+	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
 
 	// Build
-	db := NewDeckBuilder()
+	db := deckBuilder.NewDeckBuilder()
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {
-			PutDeckToDeckBuilder(deck, db)
+			helpers.PutDeckToDeckBuilder(deck, db)
 		}
 	}
 
@@ -63,7 +69,7 @@ func GenerateDeckObject() {
 	res := db.GenerateTTSDeck()
 
 	// Write deck json to file
-	err := ioutil.WriteFile(filepath.Join(GetConfig().ResultDir, "deck.json"), res, 0644)
+	err := ioutil.WriteFile(filepath.Join(config.GetConfig().ResultDir, "deck.json"), res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

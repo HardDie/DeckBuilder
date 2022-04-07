@@ -1,4 +1,4 @@
-package main
+package download_manager
 
 import (
 	"io"
@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"tts_deck_build/internal/config"
 )
 
 type fileInfo struct {
@@ -32,7 +34,7 @@ func NewDownloadManager(cachePath string) *DownloadManager {
 
 func (m *DownloadManager) AddFile(localurl, filename string) {
 	if _, ok := m.unique[filename]; ok {
-		if GetConfig().Debug {
+		if config.GetConfig().Debug {
 			log.Println("File already exist in queue:", filename)
 		}
 		return
@@ -64,7 +66,7 @@ func (m *DownloadManager) Download() {
 		log.Println("File:", file.Filename, "downloading...")
 		u, _ := url.Parse(file.URL)
 		if u.Scheme == "" {
-			m.copy(filepath.Join(GetConfig().SourceDir, file.URL), file.Filename)
+			m.copy(filepath.Join(config.GetConfig().SourceDir, file.URL), file.Filename)
 		} else {
 			m.download(file.URL, file.Filename)
 		}
@@ -125,7 +127,7 @@ func (m *DownloadManager) download(url, filename string) {
 	m.cache[filename] = struct{}{}
 }
 func (m *DownloadManager) checkCache() {
-	files, err := ioutil.ReadDir(GetConfig().CachePath)
+	files, err := ioutil.ReadDir(config.GetConfig().CachePath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

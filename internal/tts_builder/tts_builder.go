@@ -1,4 +1,4 @@
-package main
+package tts_builder
 
 import (
 	"encoding/json"
@@ -6,17 +6,20 @@ import (
 	"log"
 	"path/filepath"
 	"sort"
+
+	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/types"
 )
 
 type TTSBuilder struct {
 	replaces map[string]string
-	objects  map[string]*TTSDeckObject
+	objects  map[string]*types.TTSDeckObject
 
 	resObjects []interface{}
 }
 
 func NewTTSBuilder() *TTSBuilder {
-	data, err := ioutil.ReadFile(filepath.Join(GetConfig().ResultDir, "images.json"))
+	data, err := ioutil.ReadFile(filepath.Join(config.GetConfig().ResultDir, "images.json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -27,12 +30,12 @@ func NewTTSBuilder() *TTSBuilder {
 	}
 
 	return &TTSBuilder{
-		objects:  make(map[string]*TTSDeckObject),
+		objects:  make(map[string]*types.TTSDeckObject),
 		replaces: replaces,
 	}
 }
 
-func (b *TTSBuilder) generateTTSDeckDescription(deck *Deck) TTSDeckDescription {
+func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckDescription {
 	face, ok := b.replaces[deck.FileName]
 	if !ok {
 		log.Fatalf("Can't find URL for image: %s", deck.FileName)
@@ -41,7 +44,7 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *Deck) TTSDeckDescription {
 	if !ok {
 		log.Fatalf("Can't find URL for image: %s", deck.GetBackSideName())
 	}
-	return TTSDeckDescription{
+	return types.TTSDeckDescription{
 		FaceURL:    face,
 		BackURL:    back,
 		NumWidth:   deck.Columns,
@@ -50,8 +53,8 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *Deck) TTSDeckDescription {
 		Type:       0,
 	}
 }
-func (b *TTSBuilder) generateTTSCard(card *Card, cardId int, transform TTSTransform) TTSCard {
-	return TTSCard{
+func (b *TTSBuilder) generateTTSCard(card *types.Card, cardId int, transform types.TTSTransform) types.TTSCard {
+	return types.TTSCard{
 		Name:        "Card",
 		Nickname:    card.Title,
 		Description: new(string),
@@ -60,11 +63,11 @@ func (b *TTSBuilder) generateTTSCard(card *Card, cardId int, transform TTSTransf
 		Transform:   transform,
 	}
 }
-func (b *TTSBuilder) AddCard(deck *Deck, card *Card, deckId, cardId int) {
+func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckId, cardId int) {
 	// Get deck object
 	ttsDeck, ok := b.objects[card.Collection]
 	if !ok {
-		ttsDeck = NewTTSDeckObject(deck.Type, card.Collection)
+		ttsDeck = types.NewTTSDeckObject(deck.Type, card.Collection)
 		b.resObjects = append(b.resObjects, ttsDeck)
 		b.objects[card.Collection] = ttsDeck
 	}

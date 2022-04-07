@@ -1,13 +1,19 @@
-package main
+package deck_builder
 
 import (
 	"encoding/json"
 	"fmt"
 	"sort"
+
+	"tts_deck_build/internal/config"
+	deckDrawer "tts_deck_build/internal/deck_drawer"
+	ttsBuilder "tts_deck_build/internal/tts_builder"
+	"tts_deck_build/internal/types"
+	"tts_deck_build/internal/utils"
 )
 
 type deckBuilderDeck struct {
-	cards []*Card
+	cards []*types.Card
 
 	deckType     string
 	backSideName string
@@ -24,7 +30,7 @@ func NewDeckBuilder() *DeckBuilder {
 }
 
 // collect
-func (b *DeckBuilder) AddCard(deck *Deck, card *Card) {
+func (b *DeckBuilder) AddCard(deck *types.Deck, card *types.Card) {
 	if _, ok := b.decks[deck.GetType()]; !ok {
 		b.decks[deck.GetType()] = &deckBuilderDeck{
 			deckType:     deck.GetType(),
@@ -34,10 +40,10 @@ func (b *DeckBuilder) AddCard(deck *Deck, card *Card) {
 	}
 	b.decks[deck.GetType()].cards = append(b.decks[deck.GetType()].cards, card)
 }
-func (b *DeckBuilder) splitCards(deckType string) (cards [][]*Card) {
-	for leftBorder := 0; leftBorder < len(b.decks[deckType].cards); leftBorder += MaxCardsOnPage {
+func (b *DeckBuilder) splitCards(deckType string) (cards [][]*types.Card) {
+	for leftBorder := 0; leftBorder < len(b.decks[deckType].cards); leftBorder += config.MaxCardsOnPage {
 		// Calculate right border for current deck
-		rightBorder := min(len(b.decks[deckType].cards), leftBorder+MaxCardsOnPage)
+		rightBorder := utils.Min[int](len(b.decks[deckType].cards), leftBorder+config.MaxCardsOnPage)
 		cards = append(cards, b.decks[deckType].cards[leftBorder:rightBorder])
 	}
 	return
@@ -58,15 +64,15 @@ func (b *DeckBuilder) getImageSize(count int) (cols, rows int) {
 	}
 	return
 }
-func (b *DeckBuilder) GetDecks(deckType string) (decks []*Deck) {
+func (b *DeckBuilder) GetDecks(deckType string) (decks []*types.Deck) {
 	for index, cards := range b.splitCards(deckType) {
 		// Calculate optimal count of columns and rows for result image
 		columns, rows := b.getImageSize(len(cards) + 1)
-		decks = append(decks, &Deck{
+		decks = append(decks, &types.Deck{
 			Cards:   cards,
 			Columns: columns,
 			Rows:    rows,
-			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", cleanTitle(b.decks[deckType].deckType), index+1, len(cards),
+			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", utils.CleanTitle(b.decks[deckType].deckType), index+1, len(cards),
 				columns, rows),
 			BackSide: &b.decks[deckType].backSideURL,
 			Type:     deckType,
@@ -91,7 +97,7 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 	for _, deckType := range b.GetTypes() {
 		decks := b.GetDecks(deckType)
 		for _, deck := range decks {
-			NewDeckDrawer(deck).Draw()
+			deckDrawer.NewDeckDrawer(deck).Draw()
 			// Add current deck title
 			res[deck.FileName] = ""
 		}
@@ -103,9 +109,9 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 
 // tts
 func (b *DeckBuilder) GenerateTTSDeck() []byte {
-	res := TTSSaveObject{}
+	res := types.TTSSaveObject{}
 	for _, deckType := range b.GetTypes() {
-		tts := NewTTSBuilder()
+		tts := ttsBuilder.NewTTSBuilder()
 		decks := b.GetDecks(deckType)
 		for deckId, deck := range decks {
 			for j, card := range deck.Cards {

@@ -1,19 +1,18 @@
-package main
+package crawl
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
+
+	"tts_deck_build/internal/types"
 )
 
 // Parse json file to deck
-func parseJson(path string) *Deck {
-	desc := &Deck{}
+func parseJson(path string) *types.Deck {
+	desc := &types.Deck{}
 
 	// Open file
 	f, err := os.Open(path)
@@ -29,25 +28,9 @@ func parseJson(path string) *Deck {
 
 	return desc
 }
-func cleanTitle(in string) string {
-	res := strings.ReplaceAll(in, " / ", "_")
-	res = strings.ReplaceAll(res, "/", "_")
-	res = strings.ReplaceAll(res, "!", "")
-	res = strings.ReplaceAll(res, "'", "")
-	res = strings.ReplaceAll(res, ".", "")
-	return strings.ReplaceAll(res, " ", "_")
-}
-func getFilenameFromUrl(link string) string {
-	u, err := url.Parse(link)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	_, filename := path.Split(u.Path)
-	return filename
-}
 
 // Check every folder and get cards information
-func crawl(path string) (result []*Deck) {
+func crawl(path string) (result []*types.Deck) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -83,8 +66,8 @@ func crawl(path string) (result []*Deck) {
 // Separate decks by type
 // Top level map[string] - split by types (ex.: Loot, Monster)
 // Next level []*Deck - split by collection (ex.: Base, DLC)
-func Crawl(path string) map[string][]*Deck {
-	result := make(map[string][]*Deck)
+func Crawl(path string) map[string][]*types.Deck {
+	result := make(map[string][]*types.Deck)
 	// Get all decks
 	decks := crawl(path)
 	// Split decks by type

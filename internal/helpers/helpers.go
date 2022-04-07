@@ -1,15 +1,12 @@
-package main
+package helpers
 
-import "golang.org/x/exp/constraints"
+import (
+	db "tts_deck_build/internal/deck_builder"
+	dm "tts_deck_build/internal/download_manager"
+	"tts_deck_build/internal/types"
+)
 
-func min[T constraints.Ordered](a, b T) T {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func PutDeckToDownloadManager(d *Deck, dm *DownloadManager) {
+func PutDeckToDownloadManager(d *types.Deck, dm *dm.DownloadManager) {
 	dm.AddFile(d.GetBackSideURL(), d.GetBackSideName())
 	for _, card := range d.GetCards() {
 		dm.AddFile(card.GetFrontSideURL(), card.GetFrontSideName())
@@ -19,7 +16,7 @@ func PutDeckToDownloadManager(d *Deck, dm *DownloadManager) {
 	}
 }
 
-func PutDeckToDeckBuilder(d *Deck, db *DeckBuilder) {
+func PutDeckToDeckBuilder(d *types.Deck, db *db.DeckBuilder) {
 	for _, card := range d.GetCards() {
 		db.AddCard(d, card)
 	}

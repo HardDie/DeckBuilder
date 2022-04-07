@@ -1,13 +1,17 @@
-package main
+package deck_drawer
 
 import (
 	"fmt"
 	"image"
 	"path/filepath"
+
+	"tts_deck_build/internal/config"
+	img "tts_deck_build/internal/image"
+	"tts_deck_build/internal/types"
 )
 
 type DeckDrawer struct {
-	cards        []*Card
+	cards        []*types.Card
 	backSideName string
 	columns      int
 	rows         int
@@ -17,7 +21,7 @@ type DeckDrawer struct {
 	imageBackSide image.Image
 }
 
-func NewDeckDrawer(deck *Deck) *DeckDrawer {
+func NewDeckDrawer(deck *types.Deck) *DeckDrawer {
 	return &DeckDrawer{
 		cards:        deck.Cards,
 		backSideName: deck.GetBackSideName(),
@@ -39,23 +43,23 @@ func (d *DeckDrawer) log(logType string, progress, total int) {
 }
 func (d *DeckDrawer) loadCards() {
 	for i, card := range d.cards {
-		d.images = append(d.images, OpenImage(card.GetFilePath()))
+		d.images = append(d.images, img.OpenImage(card.GetFilePath()))
 		d.log("LOAD", i+1, len(d.cards))
 	}
-	d.imageBackSide = OpenImage(filepath.Join(GetConfig().CachePath, d.backSideName))
+	d.imageBackSide = img.OpenImage(filepath.Join(config.GetConfig().CachePath, d.backSideName))
 	return
 }
-func (d *DeckDrawer) collectDeckImage() *Image {
+func (d *DeckDrawer) collectDeckImage() *img.Image {
 	bound := d.images[0].Bounds().Max
-	deckImage := CreateImage(bound.X, bound.Y, d.columns, d.rows)
+	deckImage := img.CreateImage(bound.X, bound.Y, d.columns, d.rows)
 	// Draw front side images
 	for row := 0; row < d.rows; row++ {
 		for col := 0; col < d.columns; col++ {
 			if len(d.images) <= (row*d.columns + col) {
 				continue
 			}
-			img := d.images[row*d.columns+col]
-			deckImage.Draw(col, row, img)
+			curImg := d.images[row*d.columns+col]
+			deckImage.Draw(col, row, curImg)
 			d.log("DRAW", row*d.columns+col+1, len(d.images))
 		}
 	}
@@ -67,6 +71,6 @@ func (d *DeckDrawer) Draw() {
 	d.loadCards()
 	deckImage := d.collectDeckImage()
 	d.log("SAVE", 0, 0)
-	deckImage.SaveImage(filepath.Join(GetConfig().ResultDir, d.deckFileName))
+	deckImage.SaveImage(filepath.Join(config.GetConfig().ResultDir, d.deckFileName))
 	d.log("DONE", 0, 0)
 }

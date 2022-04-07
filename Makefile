@@ -1,2 +1,2 @@
 run-server:
-	go run .
+	go run cmd/tts_deck_builder/main.go

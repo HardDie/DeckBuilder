@@ -1,4 +1,4 @@
-package main
+package types
 
 // Description of deck
 type TTSDeckDescription struct {
