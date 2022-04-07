@@ -1,0 +1,163 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json",
+    "binary"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Entry point for the application.",
+    "title": "TTS_deck_builder",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5000",
+  "basePath": "/",
+  "paths": {
+    "/games": {
+      "get": {
+        "description": "Get a list of existing games",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get games",
+        "operationId": "RequestListOfGames",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseListOfGames"
+          }
+        }
+      },
+      "post": {
+        "description": "Allows you to create a new game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Create game",
+        "operationId": "RequestCreateGame",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCreateGame"
+          }
+        }
+      },
+      "delete": {
+        "description": "Allows you to delete an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Delete game",
+        "operationId": "RequestDeleteGame",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeleteGame"
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "ResponseCreateGame": {
+      "description": "Status of game creation",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "x-go-name": "Message"
+          }
+        }
+      }
+    },
+    "ResponseDeleteGame": {
+      "description": "Game deletion status",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "x-go-name": "Message"
+          }
+        }
+      }
+    },
+    "ResponseListOfGames": {
+      "description": "List of games",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "games": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "Games"
+          }
+        }
+      }
+    }
+  }
+}

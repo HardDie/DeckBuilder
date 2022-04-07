@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"log"
 	"net/url"
 	"path"
@@ -30,4 +31,13 @@ func GetFilenameFromUrl(link string) string {
 	}
 	_, filename := path.Split(u.Path)
 	return filename
+}
+
+func ToJson(data interface{}) (res string) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	res = string(jsonData)
+	return
 }

@@ -1,3 +1,22 @@
+// Package main TTS_deck_builder
+//
+// Entry point for the application.
+//
+// Terms Of Service:
+//
+//     Schemes: http
+//     Host: localhost:5000
+//     BasePath: /
+//     Version: 1.0.0
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//     - binary
+//
+// swagger:meta
 package main
 
 import (
@@ -7,10 +26,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
 
+	"tts_deck_build/api"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/crawl"
 	deckBuilder "tts_deck_build/internal/deck_builder"
@@ -96,14 +118,12 @@ func openBrowser(url string) {
 }
 
 func WebServer() {
-	fs := http.FileServer(http.Dir("./web"))
-	http.Handle("/", fs)
-
 	log.Println("Listening on :5000...")
 
 	go func() {
 		for {
-			resp, err := http.Get("http://localhost:5000")
+			time.Sleep(time.Millisecond)
+			resp, err := http.Get("http://localhost:5000/web/")
 			if err != nil {
 				log.Println("Failed:", err)
 				continue
@@ -117,9 +137,10 @@ func WebServer() {
 			// Reached this point: server is up and running!
 			break
 		}
-		openBrowser("http://localhost:5000")
+		openBrowser("http://localhost:5000/web/")
 	}()
 
+	http.Handle("/", api.GetRoutes())
 	err := http.ListenAndServe(":5000", nil)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -127,9 +148,31 @@ func WebServer() {
 	return
 }
 
+func createDirIfNotExists(folder string) {
+	_, err := os.Stat(folder)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(folder, 0755)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		return
+	}
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+func setup() {
+	createDirIfNotExists(config.GetConfig().Data)
+	createDirIfNotExists(config.GetConfig().Games())
+	createDirIfNotExists(config.GetConfig().CachePath)
+	createDirIfNotExists(config.GetConfig().ResultDir)
+}
+
 func main() {
 	// Setup logs
 	log.SetFlags(log.Lshortfile | log.Ltime)
+
+	setup()
 
 	// Setup run flags
 	genImgMode := flag.Bool("generate_image", false, "Run process of generating deck images")

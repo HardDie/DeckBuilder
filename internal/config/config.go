@@ -1,5 +1,7 @@
 package config
 
+import "path/filepath"
+
 const (
 	MaxCardsOnPage = 69
 )
@@ -9,6 +11,9 @@ type Config struct {
 	ResultDir string `json:"resultDir"`
 	CachePath string `json:"cachePath"`
 	Debug     bool   `json:"debug"`
+
+	Data string `json:"data"`
+	Game string `json:"game"`
 }
 
 var config *Config
@@ -16,11 +21,18 @@ var config *Config
 func GetConfig() *Config {
 	if config == nil {
 		config = &Config{
-			SourceDir: "desc/eng_v2",
-			ResultDir: "result_png/",
-			CachePath: ".cache/",
+			SourceDir: "./data/desc/eng_v2",
+			ResultDir: "./data/result_png/",
+			CachePath: "./data/cache",
 			Debug:     false,
+
+			Data: "data",
+			Game: "games",
 		}
 	}
 	return config
+}
+
+func (c *Config) Games() string {
+	return filepath.Join(c.Data, c.Game)
 }
