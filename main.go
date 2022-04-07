@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"path/filepath"
 )
 
@@ -66,6 +67,18 @@ func GenerateDeckObject() {
 	}
 }
 
+func WebServer() {
+	fs := http.FileServer(http.Dir("./web"))
+	http.Handle("/", fs)
+
+	log.Println("Listening on :5000...")
+	err := http.ListenAndServe(":5000", nil)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return
+}
+
 func main() {
 	// Setup logs
 	log.SetFlags(log.Lshortfile | log.Ltime)
@@ -73,10 +86,15 @@ func main() {
 	// Setup run flags
 	genImgMode := flag.Bool("generate_image", false, "Run process of generating deck images")
 	genDeckMode := flag.Bool("generate_object", false, "Run process of generating json deck object")
+	helpMode := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
-	// One of the modes must be selected
-	if *genImgMode == *genDeckMode {
+	switch {
+	case *genImgMode:
+		GenerateDeckImages()
+	case *genDeckMode:
+		GenerateDeckObject()
+	case *helpMode:
 		fmt.Println("How to use:")
 		fmt.Println("1. Build images from ${sourceDir}/*.json descriptions (-generate_image)")
 		fmt.Println("2. Upload images on some hosting (steam cloud)")
@@ -86,13 +104,7 @@ func main() {
 		fmt.Println()
 		fmt.Println("Choose one of the mode:")
 		flag.PrintDefaults()
-		return
-	}
-
-	switch {
-	case *genImgMode:
-		GenerateDeckImages()
-	case *genDeckMode:
-		GenerateDeckObject()
+	default:
+		WebServer()
 	}
 }
