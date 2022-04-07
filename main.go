@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 // Read configurations, download images, build deck image files
@@ -67,11 +69,51 @@ func GenerateDeckObject() {
 	}
 }
 
+func openBrowser(url string) {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	err := exec.Command(cmd, args...).Start()
+	if err != nil {
+		log.Fatal("Can't run browser")
+	}
+}
+
 func WebServer() {
 	fs := http.FileServer(http.Dir("./web"))
 	http.Handle("/", fs)
 
 	log.Println("Listening on :5000...")
+
+	go func() {
+		for {
+			resp, err := http.Get("http://localhost:5000")
+			if err != nil {
+				log.Println("Failed:", err)
+				continue
+			}
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				log.Println("Not OK:", resp.StatusCode)
+				continue
+			}
+
+			// Reached this point: server is up and running!
+			break
+		}
+		openBrowser("http://localhost:5000")
+	}()
+
 	err := http.ListenAndServe(":5000", nil)
 	if err != nil {
 		log.Fatal(err.Error())
