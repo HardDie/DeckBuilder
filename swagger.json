@@ -65,6 +65,14 @@
             "schema": {
               "type": "object",
               "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
                 "name": {
                   "type": "string",
                   "x-go-name": "Name"
@@ -119,6 +127,26 @@
       }
     }
   },
+  "definitions": {
+    "GameInfo": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "image": {
+          "type": "string",
+          "x-go-name": "Image"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/games"
+    }
+  },
   "responses": {
     "ResponseCreateGame": {
       "description": "Status of game creation",
@@ -152,7 +180,7 @@
           "games": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/definitions/GameInfo"
             },
             "x-go-name": "Games"
           }
