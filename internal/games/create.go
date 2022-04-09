@@ -32,10 +32,7 @@ func CreateGame(req *CreateGameRequest) (response CreateGameResponse) {
 		response.Message = errors.UnknownError
 		return
 	}
-	info := utils.ToJson(GameInfo{
-		Description: req.Description,
-		Image:       req.Image,
-	})
+	info := utils.ToJson(req)
 	err = ioutil.WriteFile(filepath.Join(dstDir, GameInfoFilename), []byte(info), 0644)
 	if err != nil {
 		log.Println(err.Error())
