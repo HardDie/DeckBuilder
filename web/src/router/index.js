@@ -1,14 +1,20 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import Games from '@/views/Games'
+import Game from '@/views/Game'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Games',
+    component: Games
+  },
+  {
+    path: '/game/:name',
+    name: 'Game',
+    component: Game
   }
 ]
 
