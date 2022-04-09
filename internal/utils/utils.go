@@ -3,9 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"net/url"
+	"os/exec"
 	"path"
+	"runtime"
 	"strings"
+	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -40,4 +44,46 @@ func ToJson(data interface{}) (res string) {
 	}
 	res = string(jsonData)
 	return
+}
+
+func openBrowser(url string) {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	err := exec.Command(cmd, args...).Start()
+	if err != nil {
+		log.Fatal("Can't run browser")
+	}
+}
+
+func OpenBrowser(url string) {
+	go func() {
+		for {
+			time.Sleep(time.Millisecond)
+			resp, err := http.Get(url)
+			if err != nil {
+				log.Println("Failed:", err)
+				continue
+			}
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				log.Println("Not OK:", resp.StatusCode)
+				continue
+			}
+
+			// Reached this point: server is up and running!
+			break
+		}
+		openBrowser(url)
+	}()
 }

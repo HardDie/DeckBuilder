@@ -27,10 +27,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
-	"time"
 
 	"tts_deck_build/api"
 	"tts_deck_build/internal/config"
@@ -97,48 +94,8 @@ func GenerateDeckObject() {
 	}
 }
 
-func openBrowser(url string) {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		cmd = "xdg-open"
-	}
-	args = append(args, url)
-	err := exec.Command(cmd, args...).Start()
-	if err != nil {
-		log.Fatal("Can't run browser")
-	}
-}
-
 func WebServer() {
 	log.Println("Listening on :5000...")
-
-	go func() {
-		for {
-			time.Sleep(time.Millisecond)
-			resp, err := http.Get("http://localhost:5000/web/")
-			if err != nil {
-				log.Println("Failed:", err)
-				continue
-			}
-			resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				log.Println("Not OK:", resp.StatusCode)
-				continue
-			}
-
-			// Reached this point: server is up and running!
-			break
-		}
-		openBrowser("http://localhost:5000/web/")
-	}()
 
 	http.Handle("/", api.GetRoutes())
 	err := http.ListenAndServe(":5000", nil)
