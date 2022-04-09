@@ -19,7 +19,7 @@ func GetRoutes() *mux.Router {
 // CORS headers
 func corsSetupHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,UPDATE,DELETE")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 

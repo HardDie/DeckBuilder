@@ -19,7 +19,7 @@ func ItemGame(name string) (result *GameInfo, e *errors.Error) {
 		return
 	}
 
-	// Check if info file exits
+	// Check if info file exist
 	infoFile := filepath.Join(gameDir, GameInfoFilename)
 	_, err = os.Stat(infoFile)
 	if os.IsNotExist(err) {
