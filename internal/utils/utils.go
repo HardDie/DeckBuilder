@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -37,15 +38,6 @@ func GetFilenameFromUrl(link string) string {
 	return filename
 }
 
-func ToJson(data interface{}) (res string) {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	res = string(jsonData)
-	return
-}
-
 func openBrowser(url string) {
 	var cmd string
 	var args []string
@@ -65,7 +57,6 @@ func openBrowser(url string) {
 		log.Fatal("Can't run browser")
 	}
 }
-
 func OpenBrowser(url string) {
 	go func() {
 		for {
@@ -75,7 +66,7 @@ func OpenBrowser(url string) {
 				log.Println("Failed:", err)
 				continue
 			}
-			resp.Body.Close()
+			IfErrorLog(resp.Body.Close())
 			if resp.StatusCode != http.StatusOK {
 				log.Println("Not OK:", resp.StatusCode)
 				continue
@@ -86,4 +77,21 @@ func OpenBrowser(url string) {
 		}
 		openBrowser(url)
 	}()
+}
+
+func ToJson(data interface{}) (res []byte) {
+	res, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return
+}
+func RequestToObject(r io.ReadCloser, data interface{}) (err error) {
+	defer func() { IfErrorLog(r.Close()) }()
+	return json.NewDecoder(r).Decode(data)
+}
+func IfErrorLog(err error) {
+	if err != nil {
+		log.Output(2, err.Error())
+	}
 }

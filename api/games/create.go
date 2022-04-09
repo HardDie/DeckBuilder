@@ -1,9 +1,6 @@
 package games
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 
 	"tts_deck_build/internal/errors"
@@ -26,10 +23,6 @@ type RequestCreateGame struct {
 //
 // swagger:response ResponseCreateGame
 type ResponseCreateGame struct {
-	// In: body
-	Body struct {
-		games.CreateGameResponse
-	}
 }
 
 // swagger:route POST /games Games RequestCreateGame
@@ -48,24 +41,18 @@ type ResponseCreateGame struct {
 //
 //     Responses:
 //       200: ResponseCreateGame
+//       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	dec := json.NewDecoder(r.Body)
-	defer r.Body.Close()
-
 	req := &games.CreateGameRequest{}
-	err := dec.Decode(req)
+	err := utils.RequestToObject(r.Body, &req)
 	if err != nil {
-		log.Println(err.Error())
-		_, err = fmt.Fprintf(w, utils.ToJson(games.CreateGameResponse{Message: errors.UnknownError}))
-		if err != nil {
-			log.Println(err.Error())
-		}
+		errors.ResponseError(w, errors.InternalError.AddMessage(err.Error()))
 		return
 	}
 
-	_, err = fmt.Fprintf(w, utils.ToJson(games.CreateGame(req)))
-	if err != nil {
-		log.Println(err.Error())
+	e := games.CreateGame(req)
+	if e != nil {
+		errors.ResponseError(w, e)
 	}
 	return
 }

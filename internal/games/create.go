@@ -2,7 +2,6 @@ package games
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -15,30 +14,29 @@ type CreateGameRequest struct {
 	GameInfo
 }
 
-type CreateGameResponse struct {
-	Message string `json:"message"`
-}
-
-func CreateGame(req *CreateGameRequest) (response CreateGameResponse) {
+func CreateGame(req *CreateGameRequest) (e *errors.Error) {
+	// Check if game already exists
 	dstDir := filepath.Join(config.GetConfig().Games(), req.Name)
 	_, err := os.Stat(dstDir)
 	if !os.IsNotExist(err) {
-		response.Message = errors.FileExists
+		e = errors.FileExists
 		return
 	}
+
+	// Try to create folder with game
 	err = os.Mkdir(dstDir, 0755)
 	if err != nil {
-		log.Println(err.Error())
-		response.Message = errors.UnknownError
+		utils.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
-	info := utils.ToJson(req)
-	err = ioutil.WriteFile(filepath.Join(dstDir, GameInfoFilename), []byte(info), 0644)
+
+	// Create info file
+	err = ioutil.WriteFile(filepath.Join(dstDir, GameInfoFilename), utils.ToJson(req), 0644)
 	if err != nil {
-		log.Println(err.Error())
-		response.Message = errors.UnknownError
+		utils.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
-	response.Message = errors.Done
 	return
 }

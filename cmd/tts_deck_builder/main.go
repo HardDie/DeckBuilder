@@ -127,7 +127,7 @@ func setup() {
 
 func main() {
 	// Setup logs
-	log.SetFlags(log.Lshortfile | log.Ltime)
+	log.SetFlags(log.Llongfile | log.Ltime)
 
 	setup()
 

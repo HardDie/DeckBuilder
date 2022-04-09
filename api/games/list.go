@@ -1,10 +1,10 @@
 package games
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
+	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
 )
@@ -27,7 +27,7 @@ type ResponseListOfGames struct {
 
 // swagger:route GET /games Games RequestListOfGames
 //
-// Get games
+// Get games list
 //
 // Get a list of existing games
 //
@@ -41,8 +41,14 @@ type ResponseListOfGames struct {
 //
 //     Responses:
 //       200: ResponseListOfGames
+//       default: ResponseError
 func ListHandler(w http.ResponseWriter, _ *http.Request) {
-	_, err := fmt.Fprintf(w, utils.ToJson(games.ListOfGames()))
+	items, e := games.ListOfGames()
+	if e != nil {
+		errors.ResponseError(w, e)
+		return
+	}
+	_, err := w.Write(utils.ToJson(items))
 	if err != nil {
 		log.Println(err.Error())
 	}

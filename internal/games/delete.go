@@ -1,35 +1,29 @@
 package games
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/utils"
 )
 
-type DeleteGameRequest struct {
-	Name string `json:"name"`
-}
-
-type DeleteGameResponse struct {
-	Message string `json:"message"`
-}
-
-func DeleteGame(req *DeleteGameRequest) (response DeleteGameResponse) {
-	dstDir := filepath.Join(config.GetConfig().Games(), req.Name)
+func DeleteGame(name string) (e *errors.Error) {
+	// Check if game exists
+	dstDir := filepath.Join(config.GetConfig().Games(), name)
 	_, err := os.Stat(dstDir)
 	if os.IsNotExist(err) {
-		response.Message = errors.FileNotExist
+		e = errors.GameNotExists
 		return
 	}
+
+	// Try to delete game
 	err = os.RemoveAll(dstDir)
 	if err != nil {
-		log.Println(err.Error())
-		response.Message = errors.UnknownError
+		utils.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
-	response.Message = errors.Done
 	return
 }

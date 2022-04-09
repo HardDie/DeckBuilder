@@ -33,11 +33,14 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get games",
+        "summary": "Get games list",
         "operationId": "RequestListOfGames",
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseListOfGames"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
           }
         }
       },
@@ -84,6 +87,45 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseCreateGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{name}": {
+      "get": {
+        "description": "Get an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get game",
+        "operationId": "RequestGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
           }
         }
       },
@@ -105,23 +147,19 @@
         "operationId": "RequestDeleteGame",
         "parameters": [
           {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseDeleteGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
           }
         }
       }
@@ -149,7 +187,13 @@
   },
   "responses": {
     "ResponseCreateGame": {
-      "description": "Status of game creation",
+      "description": "Status of game creation"
+    },
+    "ResponseDeleteGame": {
+      "description": "Game deletion status"
+    },
+    "ResponseError": {
+      "description": "Default error response",
       "schema": {
         "type": "object",
         "properties": {
@@ -160,14 +204,22 @@
         }
       }
     },
-    "ResponseDeleteGame": {
-      "description": "Game deletion status",
+    "ResponseGame": {
+      "description": "Game",
       "schema": {
         "type": "object",
         "properties": {
-          "message": {
+          "description": {
             "type": "string",
-            "x-go-name": "Message"
+            "x-go-name": "Description"
+          },
+          "image": {
+            "type": "string",
+            "x-go-name": "Image"
+          },
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
           }
         }
       }
