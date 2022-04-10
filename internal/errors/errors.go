@@ -6,19 +6,12 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-const (
-	// FileNotExist =
-	// FileExists   = "file_exists"
-	UnknownError = "unknown_error"
-	Done         = "done"
-)
-
 var (
-	InternalError = NewError("internal error").HTTP(http.StatusInternalServerError)
-	DataInvalid   = NewError("game data invalid").HTTP(http.StatusNoContent)
-	GameNotExists = NewError("game not exists")
-	FileExists    = NewError("file exists")
-	// FileNotExist = NewError("file not exist")
+	InternalError     = NewError("internal error").HTTP(http.StatusInternalServerError)
+	DataInvalid       = NewError("game data invalid").HTTP(http.StatusNoContent)
+	GameExist         = NewError("game exist")
+	GameNotExists     = NewError("game not exists")
+	GameInfoNotExists = NewError("game info not exists")
 )
 
 type Error struct {

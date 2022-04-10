@@ -14,6 +14,8 @@ type Config struct {
 
 	Data string `json:"data"`
 	Game string `json:"game"`
+
+	InfoFilename string `json:"infoFilename"`
 }
 
 var config *Config
@@ -28,6 +30,8 @@ func GetConfig() *Config {
 
 			Data: "data",
 			Game: "games",
+
+			InfoFilename: "info.json",
 		}
 	}
 	return config

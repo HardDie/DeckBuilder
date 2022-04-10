@@ -1,13 +1,7 @@
 package games
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
-	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/utils"
 )
 
 type UpdateGameRequest struct {
@@ -21,30 +15,23 @@ func UpdateGame(name string, req *UpdateGameRequest) (e *errors.Error) {
 	}
 
 	// Check if game exists
-	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	_, err := os.Stat(gameDir)
-	if os.IsNotExist(err) {
-		e = errors.GameNotExists
+	exist, e := GameIsExist(name)
+	if e != nil {
+		return
+	}
+	if !exist {
 		return
 	}
 
 	// Update info file
-	infoFile := filepath.Join(gameDir, GameInfoFilename)
-	err = ioutil.WriteFile(infoFile, utils.ToJson(req), 0644)
-	if err != nil {
-		utils.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
+	e = GameAddInfo(name, req.GameInfo)
+	if e != nil {
 		return
 	}
 
 	// Rename folder if name changed
 	if req.Name != name {
-		newGameDir := filepath.Join(config.GetConfig().Games(), req.Name)
-		err = os.Rename(gameDir, newGameDir)
-		if err != nil {
-			utils.IfErrorLog(err)
-			e = errors.InternalError.AddMessage(err.Error())
-		}
+		e = GameRename(name, req.Name)
 	}
 	return
 }

@@ -1,42 +1,20 @@
 package games
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/utils"
 )
 
 type ListOfGamesResponse struct {
-	Games []GameInfo `json:"games"`
-}
-
-func parseFile(infoFile string) (item GameInfo, err error) {
-	// Open file
-	f, err := os.Open(infoFile)
-	if err != nil {
-		utils.IfErrorLog(err)
-		return
-	}
-	defer func() { utils.IfErrorLog(f.Close()) }()
-
-	// Decode json
-	err = json.NewDecoder(f).Decode(&item)
-	if err != nil {
-		utils.IfErrorLog(err)
-		return
-	}
-	return
+	Games []*GameInfo `json:"games"`
 }
 
 func ListOfGames() (result *ListOfGamesResponse, e *errors.Error) {
 	result = &ListOfGamesResponse{
-		Games: make([]GameInfo, 0),
+		Games: make([]*GameInfo, 0),
 	}
 
 	files, err := ioutil.ReadDir(config.GetConfig().Games())
@@ -49,23 +27,28 @@ func ListOfGames() (result *ListOfGamesResponse, e *errors.Error) {
 		if !file.IsDir() {
 			continue
 		}
-		var item GameInfo
-		infoFile := filepath.Join(config.GetConfig().Games(), file.Name(), GameInfoFilename)
+		var item *GameInfo
 
 		// Check if game info exist
-		_, err = os.Stat(infoFile)
-		if os.IsNotExist(err) {
-			log.Println("No info", infoFile)
+		var exist bool
+		exist, e = GameIsInfoExist(file.Name())
+		if e != nil {
+			log.Println("No info:", file.Name())
+			continue
+		}
+		if !exist {
+			e = errors.GameInfoNotExists
+			return
+		}
+
+		// Get info
+		item, e = GameGetInfo(file.Name())
+		if e != nil {
+			log.Println("Bad info:", file.Name())
 			continue
 		}
 
-		// Parse file
-		item, err = parseFile(infoFile)
-		if err != nil {
-			continue
-		}
-
-		// Append game to list
+		// Append game info to list
 		result.Games = append(result.Games, item)
 	}
 	return
