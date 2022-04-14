@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -63,4 +64,9 @@ func Init(route *mux.Router) {
 	for page := range pages {
 		route.HandleFunc(page, servePages)
 	}
+
+	// DEVELOP PURPOSE ONLY
+	redocHandler := middleware.Redoc(middleware.RedocOpts{SpecURL: "/swagger.json"}, nil)
+	route.Handle("/docs", redocHandler)
+	// DEVELOP PURPOSE ONLY
 }
