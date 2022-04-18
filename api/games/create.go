@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"tts_deck_build/internal/games"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/network"
 )
 
 // Request to create a game
@@ -43,14 +43,14 @@ type ResponseCreateGame struct {
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	req := &games.CreateGameRequest{}
-	e := utils.RequestToObject(r.Body, &req)
+	e := network.RequestToObject(r.Body, &req)
 	if e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 		return
 	}
 
 	if e = games.CreateGame(req); e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 	}
 	return
 }

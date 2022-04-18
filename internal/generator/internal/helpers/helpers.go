@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	db "tts_deck_build/internal/deck_builder"
-	dm "tts_deck_build/internal/download_manager"
-	"tts_deck_build/internal/types"
+	db "tts_deck_build/internal/generator/internal/deck_builder"
+	dm "tts_deck_build/internal/generator/internal/download_manager"
+	"tts_deck_build/internal/generator/internal/types"
 )
 
 func PutDeckToDownloadManager(d *types.Deck, dm *dm.DownloadManager) {

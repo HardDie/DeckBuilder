@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"tts_deck_build/internal/games"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/network"
 )
 
 // Requesting a list of existing games
@@ -44,10 +44,10 @@ type ResponseListOfGames struct {
 func ListHandler(w http.ResponseWriter, _ *http.Request) {
 	items, e := games.ListOfGames()
 	if e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 		return
 	}
-	_, err := w.Write(utils.ToJson(items))
+	_, err := w.Write(network.ToJson(items))
 	if err != nil {
 		log.Println(err.Error())
 	}

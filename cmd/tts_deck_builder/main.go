@@ -20,79 +20,16 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"tts_deck_build/api"
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/crawl"
-	deckBuilder "tts_deck_build/internal/deck_builder"
-	downloadManager "tts_deck_build/internal/download_manager"
-	"tts_deck_build/internal/helpers"
+	"tts_deck_build/internal/generator"
 )
-
-// Read configurations, download images, build deck image files
-func GenerateDeckImages() {
-	// Read all decks
-	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
-
-	dm := downloadManager.NewDownloadManager(config.GetConfig().CachePath)
-	// Fill download list
-	for _, decks := range listOfDecks {
-		for _, deck := range decks {
-			helpers.PutDeckToDownloadManager(deck, dm)
-		}
-	}
-	// Download all images
-	dm.Download()
-
-	// Build
-	db := deckBuilder.NewDeckBuilder()
-	for _, decks := range listOfDecks {
-		for _, deck := range decks {
-			helpers.PutDeckToDeckBuilder(deck, db)
-		}
-	}
-
-	// Generate images
-	images := db.DrawDecks()
-
-	// Write all created files
-	data, _ := json.MarshalIndent(images, "", "	")
-	err := ioutil.WriteFile(filepath.Join(config.GetConfig().ResultDir, "images.json"), data, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Read configurations, generate TTS json object with description
-func GenerateDeckObject() {
-	// Read all decks
-	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
-
-	// Build
-	db := deckBuilder.NewDeckBuilder()
-	for _, decks := range listOfDecks {
-		for _, deck := range decks {
-			helpers.PutDeckToDeckBuilder(deck, db)
-		}
-	}
-
-	// Generate TTS object
-	res := db.GenerateTTSDeck()
-
-	// Write deck json to file
-	err := ioutil.WriteFile(filepath.Join(config.GetConfig().ResultDir, "deck.json"), res, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func WebServer() {
 	log.Println("Listening on :5000...")
@@ -139,9 +76,9 @@ func main() {
 
 	switch {
 	case *genImgMode:
-		GenerateDeckImages()
+		generator.GenerateDeckImages()
 	case *genDeckMode:
-		GenerateDeckObject()
+		generator.GenerateDeckObject()
 	case *helpMode:
 		fmt.Println("How to use:")
 		fmt.Println("1. Build images from ${sourceDir}/*.json descriptions (-generate_image)")

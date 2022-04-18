@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
-	img "tts_deck_build/internal/image"
-	"tts_deck_build/internal/types"
+	img "tts_deck_build/internal/generator/internal/image"
+	"tts_deck_build/internal/generator/internal/types"
 )
 
 type DeckDrawer struct {

@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/network"
 )
 
 // Requesting an existing game
@@ -48,10 +49,10 @@ func ItemHandler(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	item, e := games.ItemGame(name)
 	if e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 		return
 	}
-	_, err := w.Write(utils.ToJson(item))
-	utils.IfErrorLog(err)
+	_, err := w.Write(network.ToJson(item))
+	errors.IfErrorLog(err)
 	return
 }

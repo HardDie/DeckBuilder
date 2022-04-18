@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/types"
+	"tts_deck_build/internal/generator/internal/types"
 )
 
 type TTSBuilder struct {

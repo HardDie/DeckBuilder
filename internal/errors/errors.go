@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -29,15 +30,20 @@ func NewError(message string) *Error {
 	}
 }
 
-func (e *Error) HTTP(code int) *Error {
+func (e Error) HTTP(code int) *Error {
 	e.code = code
-	return e
+	return &e
+}
+func (e Error) AddMessage(message string) *Error {
+	e.Message += ": " + message
+	return &e
 }
 
 func (e *Error) GetCode() int       { return e.code }
 func (e *Error) GetMessage() string { return e.Message }
 
-func (e Error) AddMessage(message string) *Error {
-	e.Message += ": " + message
-	return &e
+func IfErrorLog(err error) {
+	if err != nil {
+		log.Output(2, err.Error())
+	}
 }

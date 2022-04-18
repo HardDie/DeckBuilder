@@ -8,7 +8,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/fs"
 )
 
 func FullGameCheck(name string) (e *errors.Error) {
@@ -39,7 +39,7 @@ func GameIsExist(name string) (isExist bool, e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
 
 	// Check game
-	isExist, isDir, e := utils.IsDir(gameDir)
+	isExist, isDir, e := fs.IsDir(gameDir)
 	if e != nil {
 		return
 	}
@@ -60,27 +60,21 @@ func GameIsExist(name string) (isExist bool, e *errors.Error) {
 }
 func GameCreate(name string) (e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	err := os.Mkdir(gameDir, 0755)
-	if err != nil {
-		utils.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	return
+	return fs.CreateDir(gameDir)
 }
 func GameRename(oldName, newName string) (e *errors.Error) {
 	oldGameDir := filepath.Join(config.GetConfig().Games(), oldName)
 	newGameDir := filepath.Join(config.GetConfig().Games(), newName)
 	err := os.Rename(oldGameDir, newGameDir)
 	if err != nil {
-		utils.IfErrorLog(err)
+		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 	}
 	return
 }
 func GameDelete(name string) (e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	if e = utils.RemoveDir(gameDir); e != nil {
+	if e = fs.RemoveDir(gameDir); e != nil {
 		return
 	}
 	return
@@ -89,18 +83,18 @@ func GameDelete(name string) (e *errors.Error) {
 // Info
 func GameIsInfoExist(name string) (isExist bool, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
-	return utils.FileExist(infoFile)
+	return fs.FileExist(infoFile)
 }
 func GameAddInfo(name string, info GameInfo) (e *errors.Error) {
 	data, err := json.Marshal(info)
 	if err != nil {
-		utils.IfErrorLog(err)
+		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
 	err = ioutil.WriteFile(filepath.Join(config.GetConfig().Games(), name, "info.json"), data, 0644)
 	if err != nil {
-		utils.IfErrorLog(err)
+		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
@@ -110,15 +104,15 @@ func GameGetInfo(name string) (result *GameInfo, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
 	file, err := os.Open(infoFile)
 	if err != nil {
-		utils.IfErrorLog(err)
+		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
-	defer func() { utils.IfErrorLog(file.Close()) }()
+	defer func() { errors.IfErrorLog(file.Close()) }()
 
 	err = json.NewDecoder(file).Decode(&result)
 	if err != nil {
-		utils.IfErrorLog(err)
+		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}

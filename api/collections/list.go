@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"tts_deck_build/internal/collections"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/network"
 )
 
 // Requesting a list of existing collections
@@ -48,11 +49,11 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := mux.Vars(r)["gameName"]
 	items, e := collections.ListOfCollections(gameName)
 	if e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 		return
 	}
 
-	_, err := w.Write(utils.ToJson(items))
-	utils.IfErrorLog(err)
+	_, err := w.Write(network.ToJson(items))
+	errors.IfErrorLog(err)
 	return
 }

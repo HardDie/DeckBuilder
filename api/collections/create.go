@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"tts_deck_build/internal/collections"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/network"
 )
 
 // Request to create a collection
@@ -45,14 +45,14 @@ type ResponseCreateCollection struct {
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := mux.Vars(r)["gameName"]
 	req := &collections.CreateCollectionRequest{}
-	e := utils.RequestToObject(r.Body, &req)
+	e := network.RequestToObject(r.Body, &req)
 	if e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 		return
 	}
 
 	if e = collections.CreateCollection(gameName, req); e != nil {
-		utils.ResponseError(w, e)
+		network.ResponseError(w, e)
 	}
 	return
 }
