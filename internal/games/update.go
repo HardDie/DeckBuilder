@@ -12,6 +12,7 @@ func UpdateGame(name string, req *UpdateGameRequest) (e *errors.Error) {
 	// Validate
 	if len(req.Name) == 0 {
 		e = errors.DataInvalid.AddMessage("The name of the game cannot be empty")
+		return
 	}
 
 	// Check if game exists

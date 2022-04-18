@@ -3,7 +3,6 @@ package games
 import (
 	"net/http"
 
-	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
 )
@@ -44,15 +43,14 @@ type ResponseCreateGame struct {
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	req := &games.CreateGameRequest{}
-	err := utils.RequestToObject(r.Body, &req)
-	if err != nil {
-		errors.ResponseError(w, errors.InternalError.AddMessage(err.Error()))
+	e := utils.RequestToObject(r.Body, &req)
+	if e != nil {
+		utils.ResponseError(w, e)
 		return
 	}
 
-	e := games.CreateGame(req)
-	if e != nil {
-		errors.ResponseError(w, e)
+	if e = games.CreateGame(req); e != nil {
+		utils.ResponseError(w, e)
 	}
 	return
 }

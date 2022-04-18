@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/utils"
 )
 
 // Request to delete a game
@@ -44,7 +44,7 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	e := games.DeleteGame(name)
 	if e != nil {
-		errors.ResponseError(w, e)
+		utils.ResponseError(w, e)
 	}
 	return
 }

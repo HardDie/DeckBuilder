@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
 )
@@ -49,7 +48,7 @@ func ItemHandler(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	item, e := games.ItemGame(name)
 	if e != nil {
-		errors.ResponseError(w, e)
+		utils.ResponseError(w, e)
 		return
 	}
 	_, err := w.Write(utils.ToJson(item))

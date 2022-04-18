@@ -2,16 +2,19 @@ package errors
 
 import (
 	"net/http"
-
-	"tts_deck_build/internal/utils"
 )
 
 var (
-	InternalError     = NewError("internal error").HTTP(http.StatusInternalServerError)
-	DataInvalid       = NewError("game data invalid").HTTP(http.StatusNoContent)
+	InternalError = NewError("internal error").HTTP(http.StatusInternalServerError)
+	DataInvalid   = NewError("game data invalid").HTTP(http.StatusNoContent)
+
 	GameExist         = NewError("game exist")
 	GameNotExists     = NewError("game not exists")
+	GameInvalid       = NewError("game data invalid")
 	GameInfoNotExists = NewError("game info not exists")
+
+	CollectionInvalid       = NewError("collection data invalid")
+	CollectionInfoNotExists = NewError("collection info not exists")
 )
 
 type Error struct {
@@ -31,17 +34,10 @@ func (e *Error) HTTP(code int) *Error {
 	return e
 }
 
+func (e *Error) GetCode() int       { return e.code }
+func (e *Error) GetMessage() string { return e.Message }
+
 func (e Error) AddMessage(message string) *Error {
 	e.Message += ": " + message
 	return &e
-}
-
-func ResponseError(w http.ResponseWriter, e *Error) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(e.code)
-	if len(e.Message) > 0 {
-		_, err := w.Write(utils.ToJson(e))
-		utils.IfErrorLog(err)
-	}
-	return
 }

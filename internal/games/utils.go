@@ -37,12 +37,25 @@ func FullGameCheck(name string) (e *errors.Error) {
 // Game
 func GameIsExist(name string) (isExist bool, e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	_, err := os.Stat(gameDir)
-	if err != nil && !os.IsNotExist(err) {
-		e = errors.InternalError.AddMessage(err.Error())
+
+	// Check game
+	isExist, isDir, e := utils.IsDir(gameDir)
+	if e != nil {
 		return
 	}
-	isExist = true
+
+	// Game folder not exist
+	if !isExist {
+		return
+	}
+
+	// Is not folder
+	if !isDir {
+		e = errors.GameInvalid
+		return
+	}
+
+	// Game exist
 	return
 }
 func GameCreate(name string) (e *errors.Error) {
@@ -67,10 +80,7 @@ func GameRename(oldName, newName string) (e *errors.Error) {
 }
 func GameDelete(name string) (e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	err := os.RemoveAll(gameDir)
-	if err != nil {
-		utils.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
+	if e = utils.RemoveDir(gameDir); e != nil {
 		return
 	}
 	return
@@ -79,13 +89,7 @@ func GameDelete(name string) (e *errors.Error) {
 // Info
 func GameIsInfoExist(name string) (isExist bool, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
-	_, err := os.Stat(infoFile)
-	if err != nil && !os.IsNotExist(err) {
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	isExist = true
-	return
+	return utils.FileExist(infoFile)
 }
 func GameAddInfo(name string, info GameInfo) (e *errors.Error) {
 	data, err := json.Marshal(info)
