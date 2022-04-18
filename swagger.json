@@ -94,6 +94,91 @@
         }
       }
     },
+    "/games/{gameName}/collections": {
+      "get": {
+        "description": "Get a list of existing collections",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Get collections list",
+        "operationId": "RequestListOfCollections",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseListOfCollections"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "post": {
+        "description": "Allows you to create a new collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Create collection",
+        "operationId": "RequestCreateCollection",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCreateCollection"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{name}": {
       "get": {
         "description": "Get an existing game",
@@ -222,6 +307,24 @@
     }
   },
   "definitions": {
+    "CollectionInfo": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "image": {
+          "type": "string",
+          "x-go-name": "Image"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/collections"
+    },
     "GameInfo": {
       "type": "object",
       "properties": {
@@ -242,6 +345,9 @@
     }
   },
   "responses": {
+    "ResponseCreateCollection": {
+      "description": "Status of collection creation"
+    },
     "ResponseCreateGame": {
       "description": "Status of game creation"
     },
@@ -276,6 +382,21 @@
           "name": {
             "type": "string",
             "x-go-name": "Name"
+          }
+        }
+      }
+    },
+    "ResponseListOfCollections": {
+      "description": "List of collections",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "collections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/CollectionInfo"
+            },
+            "x-go-name": "Collections"
           }
         }
       }
