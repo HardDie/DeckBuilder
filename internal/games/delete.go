@@ -16,6 +16,5 @@ func DeleteGame(name string) (e *errors.Error) {
 	}
 
 	// Try to delete game
-	e = GameDelete(name)
-	return
+	return GameDelete(name)
 }

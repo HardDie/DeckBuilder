@@ -1,8 +1,6 @@
 package games
 
 import (
-	"log"
-
 	"tts_deck_build/internal/errors"
 )
 
@@ -16,7 +14,7 @@ func ItemGame(name string) (result *GameInfo, e *errors.Error) {
 	// Get info
 	result, e = GameGetInfo(name)
 	if e != nil {
-		log.Println("point")
+		return
 	}
 	return
 }

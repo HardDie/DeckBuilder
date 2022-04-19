@@ -14,6 +14,8 @@ var (
 	GameInvalid       = NewError("game data invalid")
 	GameInfoNotExists = NewError("game info not exists")
 
+	CollectionExist         = NewError("collection exist")
+	CollectionNotExists     = NewError("collection not exists")
 	CollectionInvalid       = NewError("collection data invalid")
 	CollectionInfoNotExists = NewError("collection info not exists")
 )

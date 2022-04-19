@@ -49,7 +49,7 @@ func CreateDir(path string) (e *errors.Error) {
 	return
 }
 func WriteDataToFile(path string, data interface{}) (e *errors.Error) {
-	f, err := os.Open(path)
+	f, err := os.Create(path)
 	if err != nil {
 		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())

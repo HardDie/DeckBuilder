@@ -12,6 +12,9 @@ import (
 //
 // swagger:parameters RequestCreateCollection
 type RequestCreateCollection struct {
+	// In: path
+	// Required: true
+	GameName string `json:"gameName"`
 	// In: body
 	// Required: true
 	Body struct {

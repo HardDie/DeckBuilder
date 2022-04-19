@@ -147,6 +147,13 @@
         "operationId": "RequestCreateCollection",
         "parameters": [
           {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
             "name": "Body",
             "in": "body",
             "required": true,
@@ -172,6 +179,153 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseCreateCollection"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{gameName}/collections/{collectionName}": {
+      "get": {
+        "description": "Get an existing collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Get collection",
+        "operationId": "RequestCollection",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CollectionName",
+            "name": "collectionName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCollection"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Allows you to delete an existing collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Delete collection",
+        "operationId": "RequestDeleteCollection",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CollectionName",
+            "name": "collectionName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeleteCollection"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "patch": {
+        "description": "Allows you to update an existing collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Update collection",
+        "operationId": "RequestUpdateCollection",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CollectionName",
+            "name": "collectionName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseUpdateCollection"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -345,11 +499,34 @@
     }
   },
   "responses": {
+    "ResponseCollection": {
+      "description": "Collection",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "x-go-name": "Description"
+          },
+          "image": {
+            "type": "string",
+            "x-go-name": "Image"
+          },
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
+          }
+        }
+      }
+    },
     "ResponseCreateCollection": {
       "description": "Status of collection creation"
     },
     "ResponseCreateGame": {
       "description": "Status of game creation"
+    },
+    "ResponseDeleteCollection": {
+      "description": "Collection deletion status"
     },
     "ResponseDeleteGame": {
       "description": "Game deletion status"
@@ -415,6 +592,9 @@
           }
         }
       }
+    },
+    "ResponseUpdateCollection": {
+      "description": "Status of collection update"
     },
     "ResponseUpdateGame": {
       "description": "Status of game update"

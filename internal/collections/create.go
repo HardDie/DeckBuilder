@@ -13,7 +13,7 @@ func CreateCollection(gameName string, req *CreateCollectionRequest) (e *errors.
 		return
 	}
 	if exist {
-		e = errors.GameExist
+		e = errors.CollectionExist
 		return
 	}
 
