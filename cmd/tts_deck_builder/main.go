@@ -29,10 +29,13 @@ import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/generator"
+	"tts_deck_build/internal/network"
 )
 
 func WebServer() {
 	log.Println("Listening on :5000...")
+
+	network.OpenBrowser("http://localhost:5000")
 
 	http.Handle("/", api.GetRoutes())
 	err := http.ListenAndServe(":5000", nil)
