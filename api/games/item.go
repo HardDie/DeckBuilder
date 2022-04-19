@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"tts_deck_build/internal/errors"
+
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/network"
 )
@@ -52,7 +52,6 @@ func ItemHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	_, err := w.Write(network.ToJson(item))
-	errors.IfErrorLog(err)
+	network.Response(w, item)
 	return
 }

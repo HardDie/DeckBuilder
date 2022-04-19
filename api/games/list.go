@@ -1,7 +1,6 @@
 package games
 
 import (
-	"log"
 	"net/http"
 
 	"tts_deck_build/internal/games"
@@ -47,9 +46,6 @@ func ListHandler(w http.ResponseWriter, _ *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	_, err := w.Write(network.ToJson(items))
-	if err != nil {
-		log.Println(err.Error())
-	}
+	network.Response(w, items)
 	return
 }

@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"encoding/json"
 	"os"
 
 	"tts_deck_build/internal/errors"
@@ -44,6 +45,40 @@ func CreateDir(path string) (e *errors.Error) {
 	if err != nil {
 		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
+	}
+	return
+}
+func WriteDataToFile(path string, data interface{}) (e *errors.Error) {
+	f, err := os.Open(path)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+	defer func() { errors.IfErrorLog(f.Close()) }()
+
+	err = json.NewEncoder(f).Encode(data)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+	return
+}
+func ReadDataFromFile[T any](path string) (data *T, e *errors.Error) {
+	file, err := os.Open(path)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+	defer func() { errors.IfErrorLog(file.Close()) }()
+
+	err = json.NewDecoder(file).Decode(&data)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
 	}
 	return
 }

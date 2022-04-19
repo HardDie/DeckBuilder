@@ -1,9 +1,6 @@
 package collections
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
@@ -46,35 +43,10 @@ func CollectionIsInfoExist(gameName, collectionName string) (isExist bool, e *er
 	return fs.FileExist(infoFile)
 }
 func CollectionAddInfo(gameName, collectionName string, info CollectionInfo) (e *errors.Error) {
-	data, err := json.Marshal(info)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	err = ioutil.WriteFile(filepath.Join(config.GetConfig().Games(), gameName, collectionName, "info.json"), data, 0644)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	return
+	infoPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, config.GetConfig().InfoFilename)
+	return fs.WriteDataToFile(infoPath, info)
 }
 func CollectionGetInfo(gameName, collectionName string) (result *CollectionInfo, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, config.GetConfig().InfoFilename)
-	file, err := os.Open(infoFile)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
-
-	err = json.NewDecoder(file).Decode(&result)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	return
+	return fs.ReadDataFromFile[CollectionInfo](infoFile)
 }

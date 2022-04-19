@@ -1,8 +1,6 @@
 package games
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -74,10 +72,7 @@ func GameRename(oldName, newName string) (e *errors.Error) {
 }
 func GameDelete(name string) (e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
-	if e = fs.RemoveDir(gameDir); e != nil {
-		return
-	}
-	return
+	return fs.RemoveDir(gameDir)
 }
 
 // Info
@@ -86,35 +81,10 @@ func GameIsInfoExist(name string) (isExist bool, e *errors.Error) {
 	return fs.FileExist(infoFile)
 }
 func GameAddInfo(name string, info GameInfo) (e *errors.Error) {
-	data, err := json.Marshal(info)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	err = ioutil.WriteFile(filepath.Join(config.GetConfig().Games(), name, "info.json"), data, 0644)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	return
+	infoPath := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
+	return fs.WriteDataToFile(infoPath, info)
 }
 func GameGetInfo(name string) (result *GameInfo, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
-	file, err := os.Open(infoFile)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
-
-	err = json.NewDecoder(file).Decode(&result)
-	if err != nil {
-		errors.IfErrorLog(err)
-		e = errors.InternalError.AddMessage(err.Error())
-		return
-	}
-	return
+	return fs.ReadDataFromFile[GameInfo](infoFile)
 }

@@ -53,7 +53,7 @@ func OpenBrowser(url string) {
 	}()
 }
 
-func ToJson(data interface{}) (res []byte) {
+func toJson(data interface{}) (res []byte) {
 	res, err := json.Marshal(data)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -73,8 +73,14 @@ func ResponseError(w http.ResponseWriter, e *errors.Error) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(e.GetCode())
 	if len(e.GetMessage()) > 0 {
-		_, err := w.Write(ToJson(e))
+		_, err := w.Write(toJson(e))
 		errors.IfErrorLog(err)
 	}
+	return
+}
+func Response(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_, err := w.Write(toJson(data))
+	errors.IfErrorLog(err)
 	return
 }

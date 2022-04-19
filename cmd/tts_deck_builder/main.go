@@ -24,10 +24,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"tts_deck_build/api"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/generator"
 )
 
@@ -43,16 +43,16 @@ func WebServer() {
 }
 
 func createDirIfNotExists(folder string) {
-	_, err := os.Stat(folder)
-	if os.IsNotExist(err) {
-		err = os.Mkdir(folder, 0755)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+	isExists, e := fs.FileExist(folder)
+	if e != nil {
+		log.Fatal(e.GetMessage())
+	}
+	if isExists {
 		return
 	}
-	if err != nil {
-		log.Fatal(err.Error())
+	e = fs.CreateDir(folder)
+	if e != nil {
+		log.Fatal(e.GetMessage())
 	}
 }
 func setup() {
