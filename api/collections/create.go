@@ -14,7 +14,7 @@ import (
 type RequestCreateCollection struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 	// In: body
 	// Required: true
 	Body struct {
@@ -28,7 +28,7 @@ type RequestCreateCollection struct {
 type ResponseCreateCollection struct {
 }
 
-// swagger:route POST /games/{gameName}/collections Collections RequestCreateCollection
+// swagger:route POST /games/{game}/collections Collections RequestCreateCollection
 //
 // Create collection
 //
@@ -46,7 +46,7 @@ type ResponseCreateCollection struct {
 //       200: ResponseCreateCollection
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
+	gameName := mux.Vars(r)["game"]
 	req := &collections.CreateCollectionRequest{}
 	e := network.RequestToObject(r.Body, &req)
 	if e != nil {

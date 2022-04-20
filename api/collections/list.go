@@ -15,7 +15,7 @@ import (
 type RequestListOfCollections struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 }
 
 // List of collections
@@ -28,7 +28,7 @@ type ResponseListOfCollections struct {
 	}
 }
 
-// swagger:route GET /games/{gameName}/collections Collections RequestListOfCollections
+// swagger:route GET /games/{game}/collections Collections RequestListOfCollections
 //
 // Get collections list
 //
@@ -46,7 +46,7 @@ type ResponseListOfCollections struct {
 //       200: ResponseListOfCollections
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
+	gameName := mux.Vars(r)["game"]
 	items, e := collections.ListOfCollections(gameName)
 	if e != nil {
 		network.ResponseError(w, e)

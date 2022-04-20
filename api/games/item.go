@@ -15,7 +15,7 @@ import (
 type RequestGame struct {
 	// In: path
 	// Required: true
-	Name string `json:"name"`
+	Game string `json:"game"`
 }
 
 // Game
@@ -28,7 +28,7 @@ type ResponseGame struct {
 	}
 }
 
-// swagger:route GET /games/{name} Games RequestGame
+// swagger:route GET /games/{game} Games RequestGame
 //
 // Get game
 //
@@ -46,8 +46,8 @@ type ResponseGame struct {
 //       200: ResponseGame
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
-	item, e := games.ItemGame(name)
+	gameName := mux.Vars(r)["game"]
+	item, e := games.ItemGame(gameName)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

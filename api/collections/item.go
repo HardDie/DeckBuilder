@@ -14,10 +14,10 @@ import (
 type RequestCollection struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 	// In: path
 	// Required: true
-	CollectionName string `json:"collectionName"`
+	Collection string `json:"collection"`
 }
 
 // Collection
@@ -30,7 +30,7 @@ type ResponseCollection struct {
 	}
 }
 
-// swagger:route GET /games/{gameName}/collections/{collectionName} Collections RequestCollection
+// swagger:route GET /games/{game}/collections/{collection} Collections RequestCollection
 //
 // Get collection
 //
@@ -48,8 +48,8 @@ type ResponseCollection struct {
 //       200: ResponseCollection
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
-	collectionName := mux.Vars(r)["collectionName"]
+	gameName := mux.Vars(r)["game"]
+	collectionName := mux.Vars(r)["collection"]
 	item, e := collections.ItemCollection(gameName, collectionName)
 	if e != nil {
 		network.ResponseError(w, e)

@@ -14,7 +14,7 @@ import (
 type RequestDeleteGame struct {
 	// In: path
 	// Required: true
-	Name string `json:"name"`
+	Game string `json:"game"`
 }
 
 // Game deletion status
@@ -23,7 +23,7 @@ type RequestDeleteGame struct {
 type ResponseDeleteGame struct {
 }
 
-// swagger:route DELETE /games/{name} Games RequestDeleteGame
+// swagger:route DELETE /games/{game} Games RequestDeleteGame
 //
 // Delete game
 //
@@ -41,8 +41,8 @@ type ResponseDeleteGame struct {
 //       200: ResponseDeleteGame
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
-	e := games.DeleteGame(name)
+	gameName := mux.Vars(r)["game"]
+	e := games.DeleteGame(gameName)
 	if e != nil {
 		network.ResponseError(w, e)
 	}

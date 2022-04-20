@@ -14,10 +14,10 @@ import (
 type RequestUpdateCollection struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 	// In: path
 	// Required: true
-	CollectionName string `json:"collectionName"`
+	Collection string `json:"collection"`
 	// In: body
 	// Required: true
 	Body struct {
@@ -31,7 +31,7 @@ type RequestUpdateCollection struct {
 type ResponseUpdateCollection struct {
 }
 
-// swagger:route PATCH /games/{gameName}/collections/{collectionName} Collections RequestUpdateCollection
+// swagger:route PATCH /games/{game}/collections/{collection} Collections RequestUpdateCollection
 //
 // Update collection
 //
@@ -49,8 +49,8 @@ type ResponseUpdateCollection struct {
 //       200: ResponseUpdateCollection
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
-	collectionName := mux.Vars(r)["collectionName"]
+	gameName := mux.Vars(r)["game"]
+	collectionName := mux.Vars(r)["collection"]
 	req := &collections.UpdateCollectionRequest{}
 	e := network.RequestToObject(r.Body, &req)
 	if e != nil {

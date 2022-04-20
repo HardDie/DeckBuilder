@@ -14,13 +14,13 @@ import (
 type RequestDeck struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 	// In: path
 	// Required: true
-	CollectionName string `json:"collectionName"`
+	Collection string `json:"collection"`
 	// In: path
 	// Required: true
-	DeckName string `json:"deckName"`
+	Deck string `json:"deck"`
 }
 
 // Deck
@@ -33,7 +33,7 @@ type ResponseDeck struct {
 	}
 }
 
-// swagger:route GET /games/{gameName}/collections/{collectionName}/decks/{deckName} Decks RequestDeck
+// swagger:route GET /games/{game}/collections/{collection}/decks/{deck} Decks RequestDeck
 //
 // Get deck
 //
@@ -51,9 +51,9 @@ type ResponseDeck struct {
 //       200: ResponseDeck
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
-	collectionName := mux.Vars(r)["collectionName"]
-	deckName := mux.Vars(r)["deckName"]
+	gameName := mux.Vars(r)["game"]
+	collectionName := mux.Vars(r)["collection"]
+	deckName := mux.Vars(r)["deck"]
 	item, e := decks.ItemDeck(gameName, collectionName, deckName)
 	if e != nil {
 		network.ResponseError(w, e)

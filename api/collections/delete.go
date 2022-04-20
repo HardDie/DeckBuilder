@@ -14,10 +14,10 @@ import (
 type RequestDeleteCollection struct {
 	// In: path
 	// Required: true
-	GameName string `json:"gameName"`
+	Game string `json:"game"`
 	// In: path
 	// Required: true
-	CollectionName string `json:"collectionName"`
+	Collection string `json:"collection"`
 }
 
 // Collection deletion status
@@ -26,7 +26,7 @@ type RequestDeleteCollection struct {
 type ResponseDeleteCollection struct {
 }
 
-// swagger:route DELETE /games/{gameName}/collections/{collectionName} Collections RequestDeleteCollection
+// swagger:route DELETE /games/{game}/collections/{collection} Collections RequestDeleteCollection
 //
 // Delete collection
 //
@@ -44,8 +44,8 @@ type ResponseDeleteCollection struct {
 //       200: ResponseDeleteCollection
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["gameName"]
-	collectionName := mux.Vars(r)["collectionName"]
+	gameName := mux.Vars(r)["game"]
+	collectionName := mux.Vars(r)["collection"]
 	e := collections.DeleteCollection(gameName, collectionName)
 	if e != nil {
 		network.ResponseError(w, e)

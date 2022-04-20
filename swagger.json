@@ -94,7 +94,133 @@
         }
       }
     },
-    "/games/{gameName}/collections": {
+    "/games/{game}": {
+      "get": {
+        "description": "Get an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get game",
+        "operationId": "RequestGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Allows you to delete an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Delete game",
+        "operationId": "RequestDeleteGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeleteGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "patch": {
+        "description": "Allows you to update an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Update game",
+        "operationId": "RequestUpdateGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseUpdateGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{game}/collections": {
       "get": {
         "description": "Get a list of existing collections",
         "consumes": [
@@ -114,8 +240,8 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           }
@@ -148,8 +274,8 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
@@ -186,7 +312,7 @@
         }
       }
     },
-    "/games/{gameName}/collections/{collectionName}": {
+    "/games/{game}/collections/{collection}": {
       "get": {
         "description": "Get an existing collection",
         "consumes": [
@@ -206,15 +332,15 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "CollectionName",
-            "name": "collectionName",
+            "x-go-name": "Collection",
+            "name": "collection",
             "in": "path",
             "required": true
           }
@@ -247,15 +373,15 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "CollectionName",
-            "name": "collectionName",
+            "x-go-name": "Collection",
+            "name": "collection",
             "in": "path",
             "required": true
           }
@@ -288,15 +414,15 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "CollectionName",
-            "name": "collectionName",
+            "x-go-name": "Collection",
+            "name": "collection",
             "in": "path",
             "required": true
           },
@@ -333,7 +459,7 @@
         }
       }
     },
-    "/games/{gameName}/collections/{collectionName}/decks": {
+    "/games/{game}/collections/{collection}/decks": {
       "get": {
         "description": "Get a list of existing decks",
         "consumes": [
@@ -353,15 +479,15 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "CollectionName",
-            "name": "collectionName",
+            "x-go-name": "Collection",
+            "name": "collection",
             "in": "path",
             "required": true
           }
@@ -376,7 +502,7 @@
         }
       }
     },
-    "/games/{gameName}/collections/{collectionName}/decks/{deckName}": {
+    "/games/{game}/collections/{collection}/decks/{deck}": {
       "get": {
         "description": "Get an existing deck",
         "consumes": [
@@ -396,22 +522,22 @@
         "parameters": [
           {
             "type": "string",
-            "x-go-name": "GameName",
-            "name": "gameName",
+            "x-go-name": "Game",
+            "name": "game",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "CollectionName",
-            "name": "collectionName",
+            "x-go-name": "Collection",
+            "name": "collection",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "x-go-name": "DeckName",
-            "name": "deckName",
+            "x-go-name": "Deck",
+            "name": "deck",
             "in": "path",
             "required": true
           }
@@ -419,132 +545,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseDeck"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{name}": {
-      "get": {
-        "description": "Get an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "Get game",
-        "operationId": "RequestGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "delete": {
-        "description": "Allows you to delete an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "Delete game",
-        "operationId": "RequestDeleteGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDeleteGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "patch": {
-        "description": "Allows you to update an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "Update game",
-        "operationId": "RequestUpdateGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "description": {
-                  "type": "string",
-                  "x-go-name": "Description"
-                },
-                "image": {
-                  "type": "string",
-                  "x-go-name": "Image"
-                },
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseUpdateGame"
           },
           "default": {
             "$ref": "#/responses/ResponseError"

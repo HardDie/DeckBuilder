@@ -7,10 +7,10 @@ import (
 )
 
 func Init(route *mux.Router) {
-	CollectionsRoute := route.PathPrefix("/games/{gameName}/collections").Subrouter()
+	CollectionsRoute := route.PathPrefix("/games/{game}/collections").Subrouter()
 	CollectionsRoute.HandleFunc("", ListHandler).Methods(http.MethodGet)
 	CollectionsRoute.HandleFunc("", CreateHandler).Methods(http.MethodPost)
-	CollectionsRoute.HandleFunc("/{collectionName}", DeleteHandler).Methods(http.MethodDelete)
-	CollectionsRoute.HandleFunc("/{collectionName}", ItemHandler).Methods(http.MethodGet)
-	CollectionsRoute.HandleFunc("/{collectionName}", UpdateHandler).Methods(http.MethodPatch)
+	CollectionsRoute.HandleFunc("/{collection}", DeleteHandler).Methods(http.MethodDelete)
+	CollectionsRoute.HandleFunc("/{collection}", ItemHandler).Methods(http.MethodGet)
+	CollectionsRoute.HandleFunc("/{collection}", UpdateHandler).Methods(http.MethodPatch)
 }
