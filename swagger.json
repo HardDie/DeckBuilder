@@ -333,6 +333,99 @@
         }
       }
     },
+    "/games/{gameName}/collections/{collectionName}/decks": {
+      "get": {
+        "description": "Get a list of existing decks",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Decks"
+        ],
+        "summary": "Get decks list",
+        "operationId": "RequestListOfDecks",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CollectionName",
+            "name": "collectionName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseListOfDecks"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{gameName}/collections/{collectionName}/decks/{deckName}": {
+      "get": {
+        "description": "Get an existing deck",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Decks"
+        ],
+        "summary": "Get deck",
+        "operationId": "RequestDeck",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "GameName",
+            "name": "gameName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CollectionName",
+            "name": "collectionName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "DeckName",
+            "name": "deckName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeck"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{name}": {
       "get": {
         "description": "Get an existing game",
@@ -479,6 +572,20 @@
       },
       "x-go-package": "tts_deck_build/internal/collections"
     },
+    "DeckInfo": {
+      "type": "object",
+      "properties": {
+        "backside": {
+          "type": "string",
+          "x-go-name": "BacksideImage"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/decks"
+    },
     "GameInfo": {
       "type": "object",
       "properties": {
@@ -524,6 +631,22 @@
     },
     "ResponseCreateGame": {
       "description": "Status of game creation"
+    },
+    "ResponseDeck": {
+      "description": "Deck",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "backside": {
+            "type": "string",
+            "x-go-name": "BacksideImage"
+          },
+          "type": {
+            "type": "string",
+            "x-go-name": "Type"
+          }
+        }
+      }
     },
     "ResponseDeleteCollection": {
       "description": "Collection deletion status"
@@ -574,6 +697,21 @@
               "$ref": "#/definitions/CollectionInfo"
             },
             "x-go-name": "Collections"
+          }
+        }
+      }
+    },
+    "ResponseListOfDecks": {
+      "description": "List of decks",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "decks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/DeckInfo"
+            },
+            "x-go-name": "Decks"
           }
         }
       }

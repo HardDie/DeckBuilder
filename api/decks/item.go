@@ -1,40 +1,43 @@
-package collections
+package decks
 
 import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"tts_deck_build/internal/collections"
+	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/network"
 )
 
-// Requesting an existing collection
+// Requesting an existing deck
 //
-// swagger:parameters RequestCollection
-type RequestCollection struct {
+// swagger:parameters RequestDeck
+type RequestDeck struct {
 	// In: path
 	// Required: true
 	GameName string `json:"gameName"`
 	// In: path
 	// Required: true
 	CollectionName string `json:"collectionName"`
+	// In: path
+	// Required: true
+	DeckName string `json:"deckName"`
 }
 
-// Collection
+// Deck
 //
-// swagger:response ResponseCollection
-type ResponseCollection struct {
+// swagger:response ResponseDeck
+type ResponseDeck struct {
 	// In: body
 	Body struct {
-		collections.CollectionInfo
+		decks.DeckInfo
 	}
 }
 
-// swagger:route GET /games/{gameName}/collections/{collectionName} Collections RequestCollection
+// swagger:route GET /games/{gameName}/collections/{collectionName}/decks/{deckName} Decks RequestDeck
 //
-// Get collection
+// Get deck
 //
-// Get an existing collection
+// Get an existing deck
 //
 //     Consumes:
 //     - application/json
@@ -45,12 +48,13 @@ type ResponseCollection struct {
 //     Schemes: http
 //
 //     Responses:
-//       200: ResponseCollection
+//       200: ResponseDeck
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := mux.Vars(r)["gameName"]
 	collectionName := mux.Vars(r)["collectionName"]
-	item, e := collections.ItemCollection(gameName, collectionName)
+	deckName := mux.Vars(r)["deckName"]
+	item, e := decks.ItemDeck(gameName, collectionName, deckName)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

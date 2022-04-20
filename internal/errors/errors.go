@@ -18,6 +18,8 @@ var (
 	CollectionNotExists     = NewError("collection not exists")
 	CollectionInvalid       = NewError("collection data invalid")
 	CollectionInfoNotExists = NewError("collection info not exists")
+
+	DeckNotExists = NewError("deck not exists")
 )
 
 type Error struct {
