@@ -10,11 +10,17 @@ import (
 	"tts_deck_build/internal/fs"
 )
 
-// Info
+// Deck
 func DeckIsExist(gameName, collectionName, deckName string) (isExist bool, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName)
 	return fs.FileExist(infoFile)
 }
+func DeckCreate(gameName, collectionName, deckName string, info DeckInfo) (e *errors.Error) {
+	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
+	return fs.WriteDataToFile(deckPath, info)
+}
+
+// Info
 func DeckGetInfo(gameName, collectionName, deckName string) (result *DeckInfo, e *errors.Error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName)
 	return fs.ReadDataFromFile[DeckInfo](infoFile)

@@ -19,6 +19,7 @@ var (
 	CollectionInvalid       = NewError("collection data invalid")
 	CollectionInfoNotExists = NewError("collection info not exists")
 
+	DeckExist     = NewError("deck exist")
 	DeckNotExists = NewError("deck not exists")
 )
 
