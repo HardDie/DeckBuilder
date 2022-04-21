@@ -21,6 +21,8 @@ func DeckGetInfo(gameName, collectionName, deckName string) (result *DeckInfo, e
 }
 
 func GetDecksFromCollection(gameName, collectionName string, files []os.FileInfo) (e *errors.Error, decks []*DeckInfo) {
+	decks = make([]*DeckInfo, 0)
+
 	for _, file := range files {
 		if file.IsDir() {
 			// Skip folders

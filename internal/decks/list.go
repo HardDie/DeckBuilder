@@ -15,12 +15,13 @@ type ListOfDecksResponse struct {
 }
 
 func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, e *errors.Error) {
+	result = &ListOfDecksResponse{
+		Decks: make([]*DeckInfo, 0),
+	}
+
 	e = collections.FullCollectionCheck(gameName, collectionName)
 	if e != nil {
 		return
-	}
-	result = &ListOfDecksResponse{
-		Decks: make([]*DeckInfo, 0),
 	}
 
 	// Get decks from collection

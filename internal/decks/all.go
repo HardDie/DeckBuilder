@@ -11,12 +11,13 @@ import (
 )
 
 func ListOfAllDecks(gameName string) (result *ListOfDecksResponse, e *errors.Error) {
+	result = &ListOfDecksResponse{
+		Decks: make([]*DeckInfo, 0),
+	}
+
 	e = games.FullGameCheck(gameName)
 	if e != nil {
 		return
-	}
-	result = &ListOfDecksResponse{
-		Decks: make([]*DeckInfo, 0),
 	}
 
 	// Get list of collections
@@ -34,9 +35,7 @@ func ListOfAllDecks(gameName string) (result *ListOfDecksResponse, e *errors.Err
 			continue
 		}
 
-		var (
-			decks []*DeckInfo
-		)
+		var decks []*DeckInfo
 
 		// Get list of decks
 		collectionPath := filepath.Join(gamePath, collection.Name())
