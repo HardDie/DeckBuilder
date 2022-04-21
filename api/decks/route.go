@@ -10,4 +10,6 @@ func Init(route *mux.Router) {
 	DecksRoute := route.PathPrefix("/games/{game}/collections/{collection}/decks").Subrouter()
 	DecksRoute.HandleFunc("", ListHandler).Methods(http.MethodGet)
 	DecksRoute.HandleFunc("/{deck}", ItemHandler).Methods(http.MethodGet)
+	GameRoute := route.PathPrefix("/games/{game}").Subrouter()
+	GameRoute.HandleFunc("/decks", AllDecksHandler).Methods(http.MethodGet)
 }

@@ -551,6 +551,42 @@
           }
         }
       }
+    },
+    "/games/{game}/decks": {
+      "get": {
+        "description": "Get a list of all existing decks in game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Decks"
+        ],
+        "summary": "Get list of all decks in game",
+        "operationId": "RequestListOfAllDecks",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseListOfAllDecks"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -682,6 +718,21 @@
           "name": {
             "type": "string",
             "x-go-name": "Name"
+          }
+        }
+      }
+    },
+    "ResponseListOfAllDecks": {
+      "description": "List of decks",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "decks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/DeckInfo"
+            },
+            "x-go-name": "Decks"
           }
         }
       }

@@ -2,8 +2,8 @@ package decks
 
 import (
 	"io/ioutil"
-	"log"
 	"path/filepath"
+	"sort"
 
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
@@ -23,6 +23,7 @@ func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, 
 		Decks: make([]*DeckInfo, 0),
 	}
 
+	// Get decks from collection
 	collectionPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName)
 	files, err := ioutil.ReadDir(collectionPath)
 	if err != nil {
@@ -30,28 +31,12 @@ func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, 
 		return
 	}
 
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		if filepath.Ext(file.Name()) != ".json" {
-			continue
-		}
-		if file.Name() == config.GetConfig().InfoFilename {
-			continue
-		}
+	// Get decks info
+	e, result.Decks = GetDecksFromCollection(gameName, collectionName, files)
 
-		var item *DeckInfo
-
-		// Get info
-		item, e = DeckGetInfo(gameName, collectionName, file.Name())
-		if e != nil {
-			log.Println("Bad info:", file.Name())
-			continue
-		}
-
-		// Append collection info to list
-		result.Decks = append(result.Decks, item)
-	}
+	// Sort decks in result
+	sort.SliceStable(result.Decks, func(i, j int) bool {
+		return result.Decks[i].Type < result.Decks[j].Type
+	})
 	return
 }
