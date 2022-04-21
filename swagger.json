@@ -609,6 +609,54 @@
             "$ref": "#/responses/ResponseError"
           }
         }
+      },
+      "delete": {
+        "description": "Allows you to delete an existing deck",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Decks"
+        ],
+        "summary": "Delete deck",
+        "operationId": "RequestDeleteDeck",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeleteDeck"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
       }
     },
     "/games/{game}/decks": {
@@ -748,6 +796,9 @@
     },
     "ResponseDeleteCollection": {
       "description": "Collection deletion status"
+    },
+    "ResponseDeleteDeck": {
+      "description": "Deck deletion status"
     },
     "ResponseDeleteGame": {
       "description": "Game deletion status"
