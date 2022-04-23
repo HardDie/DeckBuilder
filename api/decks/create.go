@@ -29,6 +29,7 @@ type RequestCreateDeck struct {
 //
 // swagger:response ResponseCreateDeck
 type ResponseCreateDeck struct {
+	decks.DeckInfo
 }
 
 // swagger:route POST /games/{game}/collections/{collection}/decks Decks RequestCreateDeck
@@ -58,8 +59,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if e = decks.CreateDeck(gameName, collectionName, req); e != nil {
+	item, e := decks.CreateDeck(gameName, collectionName, req)
+	if e != nil {
 		network.ResponseError(w, e)
+		return
 	}
-	return
+
+	network.Response(w, item)
 }

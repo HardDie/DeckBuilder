@@ -26,6 +26,7 @@ type RequestCreateCollection struct {
 //
 // swagger:response ResponseCreateCollection
 type ResponseCreateCollection struct {
+	collections.CollectionInfo
 }
 
 // swagger:route POST /games/{game}/collections Collections RequestCreateCollection
@@ -54,8 +55,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if e = collections.CreateCollection(gameName, req); e != nil {
+	item, e := collections.CreateCollection(gameName, req)
+	if e != nil {
 		network.ResponseError(w, e)
+		return
 	}
-	return
+
+	network.Response(w, item)
 }

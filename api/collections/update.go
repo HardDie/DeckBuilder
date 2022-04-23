@@ -29,6 +29,7 @@ type RequestUpdateCollection struct {
 //
 // swagger:response ResponseUpdateCollection
 type ResponseUpdateCollection struct {
+	collections.CollectionInfo
 }
 
 // swagger:route PATCH /games/{game}/collections/{collection} Collections RequestUpdateCollection
@@ -58,8 +59,11 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if e = collections.UpdateCollection(gameName, collectionName, req); e != nil {
+	item, e := collections.UpdateCollection(gameName, collectionName, req)
+	if e != nil {
 		network.ResponseError(w, e)
+		return
 	}
-	return
+
+	network.Response(w, item)
 }

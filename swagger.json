@@ -704,6 +704,10 @@
           "type": "string",
           "x-go-name": "Description"
         },
+        "id": {
+          "type": "string",
+          "x-go-name": "Id"
+        },
         "image": {
           "type": "string",
           "x-go-name": "Image"
@@ -722,6 +726,10 @@
           "type": "string",
           "x-go-name": "BacksideImage"
         },
+        "id": {
+          "type": "string",
+          "x-go-name": "Id"
+        },
         "type": {
           "type": "string",
           "x-go-name": "Type"
@@ -735,6 +743,10 @@
         "description": {
           "type": "string",
           "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "x-go-name": "Id"
         },
         "image": {
           "type": "string",
@@ -758,6 +770,10 @@
             "type": "string",
             "x-go-name": "Description"
           },
+          "id": {
+            "type": "string",
+            "x-go-name": "Id"
+          },
           "image": {
             "type": "string",
             "x-go-name": "Image"
@@ -770,13 +786,52 @@
       }
     },
     "ResponseCreateCollection": {
-      "description": "Status of collection creation"
+      "description": "Status of collection creation",
+      "headers": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
     },
     "ResponseCreateDeck": {
-      "description": "Status of deck creation"
+      "description": "Status of deck creation",
+      "headers": {
+        "backside": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
     },
     "ResponseCreateGame": {
-      "description": "Status of game creation"
+      "description": "Status of game creation",
+      "headers": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
     },
     "ResponseDeck": {
       "description": "Deck",
@@ -786,6 +841,10 @@
           "backside": {
             "type": "string",
             "x-go-name": "BacksideImage"
+          },
+          "id": {
+            "type": "string",
+            "x-go-name": "Id"
           },
           "type": {
             "type": "string",
@@ -823,6 +882,10 @@
           "description": {
             "type": "string",
             "x-go-name": "Description"
+          },
+          "id": {
+            "type": "string",
+            "x-go-name": "Id"
           },
           "image": {
             "type": "string",
@@ -896,10 +959,38 @@
       }
     },
     "ResponseUpdateCollection": {
-      "description": "Status of collection update"
+      "description": "Status of collection update",
+      "headers": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
     },
     "ResponseUpdateGame": {
-      "description": "Status of game update"
+      "description": "Status of game update",
+      "headers": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
     }
   }
 }

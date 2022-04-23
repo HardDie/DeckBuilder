@@ -26,6 +26,7 @@ type RequestUpdateGame struct {
 //
 // swagger:response ResponseUpdateGame
 type ResponseUpdateGame struct {
+	games.GameInfo
 }
 
 // swagger:route PATCH /games/{game} Games RequestUpdateGame
@@ -54,8 +55,11 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if e = games.UpdateGame(gameName, req); e != nil {
+	item, e := games.UpdateGame(gameName, req)
+	if e != nil {
 		network.ResponseError(w, e)
+		return
 	}
-	return
+
+	network.Response(w, item)
 }

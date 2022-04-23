@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 
 	"golang.org/x/exp/constraints"
@@ -30,4 +31,17 @@ func GetFilenameFromUrl(link string) string {
 	}
 	_, filename := path.Split(u.Path)
 	return filename
+}
+
+var (
+	reg = regexp.MustCompile("[^a-zA-Z0-9_]+")
+)
+
+func NameToId(in string) string {
+	// Convert all symbols to lowercase
+	lower := strings.ToLower(in)
+	// Replace all spaces to underscore symbol
+	underscore := strings.ReplaceAll(lower, " ", "_")
+	// Keep only letters, numbers and underscore symbols
+	return reg.ReplaceAllString(underscore, "")
 }

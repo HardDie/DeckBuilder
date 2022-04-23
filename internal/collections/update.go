@@ -3,13 +3,25 @@ package collections
 import (
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/utils"
 )
 
 type UpdateCollectionRequest struct {
-	CollectionInfo
+	CollectionInfoWithoutId
 }
 
-func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequest) (e *errors.Error) {
+func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequest) (res CollectionInfo, e *errors.Error) {
+	res = CollectionInfo{
+		Id:                      utils.NameToId(req.CollectionInfoWithoutId.Name),
+		CollectionInfoWithoutId: req.CollectionInfoWithoutId,
+	}
+
+	// Check if collection id correct
+	if len(res.Id) == 0 {
+		e = errors.BadName
+		return
+	}
+
 	// Validate
 	if len(req.Name) == 0 {
 		e = errors.DataInvalid.AddMessage("The name of the collection cannot be empty")
@@ -28,18 +40,19 @@ func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequ
 		return
 	}
 	if !exist {
-		return
-	}
-
-	// Update info file
-	e = CollectionAddInfo(gameName, collectionName, req.CollectionInfo)
-	if e != nil {
+		e = errors.CollectionNotExists
 		return
 	}
 
 	// Rename folder if name changed
-	if req.Name != collectionName {
-		e = CollectionRename(gameName, collectionName, req.Name)
+	if res.Id != collectionName {
+		e = CollectionRename(gameName, collectionName, res.Id)
+		if e != nil {
+			return
+		}
 	}
+
+	// Update info file
+	e = CollectionAddInfo(gameName, res.Id, res)
 	return
 }

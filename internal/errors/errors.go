@@ -9,6 +9,8 @@ var (
 	InternalError = NewError("internal error").HTTP(http.StatusInternalServerError)
 	DataInvalid   = NewError("game data invalid").HTTP(http.StatusNoContent)
 
+	BadName = NewError("bad name")
+
 	GameExist         = NewError("game exist")
 	GameNotExists     = NewError("game not exists")
 	GameInvalid       = NewError("game data invalid")

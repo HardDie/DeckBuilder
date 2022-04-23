@@ -2,13 +2,14 @@ package games
 
 import (
 	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/utils"
 )
 
 type CreateGameRequest struct {
-	GameInfo
+	GameInfoWithoutId
 }
 
-func CreateGame(req *CreateGameRequest) (e *errors.Error) {
+func CreateGame(req *CreateGameRequest) (res GameInfo, e *errors.Error) {
 	// Check if game already exists
 	exist, e := GameIsExist(req.Name)
 	if e != nil {
@@ -19,13 +20,24 @@ func CreateGame(req *CreateGameRequest) (e *errors.Error) {
 		return
 	}
 
+	res = GameInfo{
+		Id:                utils.NameToId(req.GameInfoWithoutId.Name),
+		GameInfoWithoutId: req.GameInfoWithoutId,
+	}
+
+	// Check if game id correct
+	if len(res.Id) == 0 {
+		e = errors.BadName
+		return
+	}
+
 	// Try to create folder with game
-	e = GameCreate(req.Name)
+	e = GameCreate(res.Id)
 	if e != nil {
 		return
 	}
 
 	// Create info file
-	e = GameAddInfo(req.Name, req.GameInfo)
+	e = GameAddInfo(res.Id, res)
 	return
 }

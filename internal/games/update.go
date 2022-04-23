@@ -2,16 +2,22 @@ package games
 
 import (
 	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/utils"
 )
 
 type UpdateGameRequest struct {
-	GameInfo
+	GameInfoWithoutId
 }
 
-func UpdateGame(name string, req *UpdateGameRequest) (e *errors.Error) {
-	// Validate
-	if len(req.Name) == 0 {
-		e = errors.DataInvalid.AddMessage("The name of the game cannot be empty")
+func UpdateGame(name string, req *UpdateGameRequest) (res GameInfo, e *errors.Error) {
+	res = GameInfo{
+		Id:                utils.NameToId(req.GameInfoWithoutId.Name),
+		GameInfoWithoutId: req.GameInfoWithoutId,
+	}
+
+	// Check if game id correct
+	if len(res.Id) == 0 {
+		e = errors.BadName
 		return
 	}
 
@@ -21,18 +27,19 @@ func UpdateGame(name string, req *UpdateGameRequest) (e *errors.Error) {
 		return
 	}
 	if !exist {
-		return
-	}
-
-	// Update info file
-	e = GameAddInfo(name, req.GameInfo)
-	if e != nil {
+		e = errors.GameNotExists
 		return
 	}
 
 	// Rename folder if name changed
-	if req.Name != name {
-		e = GameRename(name, req.Name)
+	if res.Id != name {
+		e = GameRename(name, res.Id)
+		if e != nil {
+			return
+		}
 	}
+
+	// Update info file
+	e = GameAddInfo(res.Id, res)
 	return
 }

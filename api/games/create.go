@@ -22,6 +22,7 @@ type RequestCreateGame struct {
 //
 // swagger:response ResponseCreateGame
 type ResponseCreateGame struct {
+	games.GameInfo
 }
 
 // swagger:route POST /games Games RequestCreateGame
@@ -49,8 +50,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if e = games.CreateGame(req); e != nil {
+	item, e := games.CreateGame(req)
+	if e != nil {
 		network.ResponseError(w, e)
+		return
 	}
-	return
+
+	network.Response(w, item)
 }
