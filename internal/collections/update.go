@@ -22,12 +22,6 @@ func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequ
 		return
 	}
 
-	// Validate
-	if len(req.Name) == 0 {
-		e = errors.DataInvalid.AddMessage("The name of the collection cannot be empty")
-		return
-	}
-
 	// Check if game exists
 	e = games.FullGameCheck(gameName)
 	if e != nil {

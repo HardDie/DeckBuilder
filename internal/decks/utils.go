@@ -19,6 +19,16 @@ func DeckCreate(gameName, collectionName, deckName string, info DeckInfo) (e *er
 	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
 	return fs.WriteDataToFile(deckPath, info)
 }
+func DeckRename(gameName, collectionName, oldName, newName string) (e *errors.Error) {
+	oldDeckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, oldName+".json")
+	newDeckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, newName+".json")
+	err := os.Rename(oldDeckPath, newDeckPath)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+	}
+	return
+}
 func DeckDelete(gameName, collectionName, deckName string) (e *errors.Error) {
 	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
 	return fs.RemoveDir(deckPath)
