@@ -7,6 +7,7 @@ import (
 	"tts_deck_build/api/collections"
 	"tts_deck_build/api/decks"
 	"tts_deck_build/api/games"
+	"tts_deck_build/api/images"
 	"tts_deck_build/api/web"
 )
 
@@ -16,6 +17,7 @@ func GetRoutes() *mux.Router {
 	games.Init(routes)
 	collections.Init(routes)
 	decks.Init(routes)
+	images.Init(routes)
 	routes.Use(corsMiddleware)
 	return routes
 }

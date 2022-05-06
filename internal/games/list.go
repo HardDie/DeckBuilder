@@ -32,13 +32,9 @@ func ListOfGames() (result *ListOfGamesResponse, e *errors.Error) {
 		// Check if game info exist
 		var exist bool
 		exist, e = GameIsInfoExist(file.Name())
-		if e != nil {
+		if e != nil || !exist {
 			log.Println("No info:", file.Name())
 			continue
-		}
-		if !exist {
-			e = errors.GameInfoNotExists
-			return
 		}
 
 		// Get info

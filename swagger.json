@@ -725,6 +725,52 @@
         }
       }
     },
+    "/games/{game}/collections/{collection}/image": {
+      "get": {
+        "description": "Get an image of existing collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get collection image",
+        "operationId": "RequestCollectionImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCollectionImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/decks": {
       "get": {
         "description": "Get a list of all existing decks in game",
@@ -754,6 +800,45 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseListOfAllDecks"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{game}/image": {
+      "get": {
+        "description": "Get an image of existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get game image",
+        "operationId": "RequestGameImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameImage"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -848,6 +933,16 @@
             "type": "string",
             "x-go-name": "Name"
           }
+        }
+      }
+    },
+    "ResponseCollectionImage": {
+      "description": "Collection image",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint8"
         }
       }
     },
@@ -961,6 +1056,16 @@
             "type": "string",
             "x-go-name": "Name"
           }
+        }
+      }
+    },
+    "ResponseGameImage": {
+      "description": "Game image",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint8"
         }
       }
     },

@@ -39,5 +39,13 @@ func CreateCollection(gameName string, req *CreateCollectionRequest) (res Collec
 
 	// Create info file
 	e = CollectionAddInfo(gameName, res.Id, res)
+	if e != nil {
+		return
+	}
+
+	// Download image if set
+	if len(res.Image) > 0 {
+		e = CreateImage(res.Image, gameName, res.Id)
+	}
 	return
 }

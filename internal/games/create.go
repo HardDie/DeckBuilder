@@ -39,5 +39,13 @@ func CreateGame(req *CreateGameRequest) (res GameInfo, e *errors.Error) {
 
 	// Create info file
 	e = GameAddInfo(res.Id, res)
+	if e != nil {
+		return
+	}
+
+	// Download image if set
+	if len(res.Image) > 0 {
+		e = CreateImage(res.Image, res.Id)
+	}
 	return
 }

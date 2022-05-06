@@ -1,10 +1,22 @@
 package fs
 
 import (
+	"bytes"
 	"encoding/json"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
+	"io"
 	"os"
 
 	"tts_deck_build/internal/errors"
+)
+
+const (
+	ImagePngType  = "image/png"
+	ImageJpegType = "image/jpeg"
+	ImageGifType  = "image/gif"
 )
 
 func FileExist(path string) (isExist bool, e *errors.Error) {
@@ -57,8 +69,9 @@ func WriteDataToFile(path string, data interface{}) (e *errors.Error) {
 	}
 	defer func() { errors.IfErrorLog(f.Close()) }()
 
-	err = json.NewEncoder(f).Encode(data)
-	if err != nil {
+	enc := json.NewEncoder(f)
+	enc.SetIndent("", "	")
+	if err = enc.Encode(data); err != nil {
 		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 		return
@@ -80,5 +93,79 @@ func ReadDataFromFile[T any](path string) (data *T, e *errors.Error) {
 		e = errors.InternalError.AddMessage(err.Error())
 		return
 	}
+	return
+}
+
+func BytesToImage(input io.Reader) (img image.Image, e *errors.Error) {
+	img, _, err := image.Decode(input)
+	if err != nil {
+		e = errors.UnknownImageType.AddMessage(err.Error())
+		return
+	}
+	return
+}
+func WriteImageToFile(path string, img image.Image) (e *errors.Error) {
+	// Create file
+	file, err := os.Create(path)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+	defer func() { errors.IfErrorLog(file.Close()) }()
+
+	// Write image to file
+	err = png.Encode(file, img)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+
+	// Done
+	return
+}
+func ReadImageFromFile(path string) (img []byte, imgType string, e *errors.Error) {
+	// Open file
+	file, err := os.Open(path)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+	defer func() { errors.IfErrorLog(file.Close()) }()
+
+	// Check image type
+	d, t, err := image.Decode(file)
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(err.Error())
+		return
+	}
+
+	var bufByte []byte
+	buf := bytes.NewBuffer(bufByte)
+
+	switch t {
+	case "png":
+		err = png.Encode(buf, d)
+		imgType = ImagePngType
+	case "jpeg":
+		err = jpeg.Encode(buf, d, nil)
+		imgType = ImageJpegType
+	case "gif":
+		err = gif.Encode(buf, d, nil)
+		imgType = ImageGifType
+	default:
+		e = errors.UnknownImageType.AddMessage(t)
+		return
+	}
+
+	if err != nil {
+		errors.IfErrorLog(err)
+		e = errors.InternalError.AddMessage(imgType + ":" + err.Error())
+	}
+
+	img = buf.Bytes()
 	return
 }

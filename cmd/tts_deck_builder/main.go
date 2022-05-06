@@ -61,8 +61,6 @@ func createDirIfNotExists(folder string) {
 func setup() {
 	createDirIfNotExists(config.GetConfig().Data)
 	createDirIfNotExists(config.GetConfig().Games())
-	createDirIfNotExists(config.GetConfig().CachePath)
-	createDirIfNotExists(config.GetConfig().ResultDir)
 }
 
 func main() {
