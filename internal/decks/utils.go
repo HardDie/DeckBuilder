@@ -12,7 +12,7 @@ import (
 
 // Deck
 func DeckIsExist(gameName, collectionName, deckName string) (isExist bool, e *errors.Error) {
-	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
+	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName)
 	return fs.FileExist(infoFile)
 }
 func DeckCreate(gameName, collectionName, deckName string, info DeckInfo) (e *errors.Error) {
