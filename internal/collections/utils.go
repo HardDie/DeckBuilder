@@ -79,7 +79,7 @@ func CollectionRename(gameName, oldName, newName string) (e *errors.Error) {
 }
 func CollectionDelete(gameName, collectionName string) (e *errors.Error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), gameName, collectionName)
-	return fs.RemoveDir(gameDir)
+	return fs.Remove(gameDir)
 }
 
 // Info

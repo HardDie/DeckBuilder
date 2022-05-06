@@ -44,7 +44,7 @@ func IsDir(path string) (isExist, isDir bool, e *errors.Error) {
 	}
 	return
 }
-func RemoveDir(path string) (e *errors.Error) {
+func Remove(path string) (e *errors.Error) {
 	err := os.RemoveAll(path)
 	if err != nil {
 		errors.IfErrorLog(err)

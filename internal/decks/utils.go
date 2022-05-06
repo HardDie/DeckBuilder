@@ -31,7 +31,7 @@ func DeckRename(gameName, collectionName, oldName, newName string) (e *errors.Er
 }
 func DeckDelete(gameName, collectionName, deckName string) (e *errors.Error) {
 	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
-	return fs.RemoveDir(deckPath)
+	return fs.Remove(deckPath)
 }
 
 // Info
