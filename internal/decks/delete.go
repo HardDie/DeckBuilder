@@ -2,7 +2,7 @@ package decks
 
 import "tts_deck_build/internal/errors"
 
-func DeleteDeck(gameName, collectionName, deckName string) (e *errors.Error) {
+func DeleteDeck(gameName, collectionName, deckName string) (e error) {
 	// Check if deck exists
 	exist, e := DeckIsExist(gameName, collectionName, deckName)
 	if e != nil {

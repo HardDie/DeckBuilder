@@ -60,7 +60,7 @@ func toJson(data interface{}) (res []byte) {
 	}
 	return
 }
-func RequestToObject(r io.ReadCloser, data interface{}) (e *errors.Error) {
+func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 	defer func() { errors.IfErrorLog(r.Close()) }()
 	err := json.NewDecoder(r).Decode(data)
 	if err != nil {
@@ -69,11 +69,20 @@ func RequestToObject(r io.ReadCloser, data interface{}) (e *errors.Error) {
 	}
 	return
 }
-func ResponseError(w http.ResponseWriter, e *errors.Error) {
+func ResponseError(w http.ResponseWriter, e error) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(e.GetCode())
-	if len(e.GetMessage()) > 0 {
-		_, err := w.Write(toJson(e))
+	switch val := e.(type) {
+	case errors.Err:
+		w.WriteHeader(val.GetCode())
+		if len(val.GetMessage()) > 0 {
+			_, err := w.Write(toJson(e))
+			errors.IfErrorLog(err)
+		}
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := "unhandled error: " + e.Error()
+		log.Print(msg)
+		_, err := w.Write([]byte(msg))
 		errors.IfErrorLog(err)
 	}
 	return

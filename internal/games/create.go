@@ -9,7 +9,7 @@ type CreateGameRequest struct {
 	GameInfoWithoutId
 }
 
-func CreateGame(req *CreateGameRequest) (res GameInfo, e *errors.Error) {
+func CreateGame(req *CreateGameRequest) (res GameInfo, e error) {
 	// Check if game already exists
 	exist, e := GameIsExist(req.Name)
 	if e != nil {

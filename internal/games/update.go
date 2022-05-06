@@ -9,7 +9,7 @@ type UpdateGameRequest struct {
 	GameInfoWithoutId
 }
 
-func UpdateGame(name string, req *UpdateGameRequest) (res GameInfo, e *errors.Error) {
+func UpdateGame(name string, req *UpdateGameRequest) (res GameInfo, e error) {
 	res = GameInfo{
 		Id:                utils.NameToId(req.GameInfoWithoutId.Name),
 		GameInfoWithoutId: req.GameInfoWithoutId,

@@ -12,7 +12,7 @@ type ListOfGamesResponse struct {
 	Games []*GameInfo `json:"games"`
 }
 
-func ListOfGames() (result *ListOfGamesResponse, e *errors.Error) {
+func ListOfGames() (result *ListOfGamesResponse, e error) {
 	result = &ListOfGamesResponse{
 		Games: make([]*GameInfo, 0),
 	}

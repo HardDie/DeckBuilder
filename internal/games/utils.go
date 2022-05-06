@@ -9,7 +9,7 @@ import (
 	"tts_deck_build/internal/fs"
 )
 
-func FullGameCheck(name string) (e *errors.Error) {
+func FullGameCheck(name string) (e error) {
 	// Check game exist
 	exist, e := GameIsExist(name)
 	if e != nil {
@@ -33,7 +33,7 @@ func FullGameCheck(name string) (e *errors.Error) {
 }
 
 // Game
-func GameIsExist(name string) (isExist bool, e *errors.Error) {
+func GameIsExist(name string) (isExist bool, e error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
 
 	// Check game
@@ -56,11 +56,11 @@ func GameIsExist(name string) (isExist bool, e *errors.Error) {
 	// Game exist
 	return
 }
-func GameCreate(name string) (e *errors.Error) {
+func GameCreate(name string) (e error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
 	return fs.CreateDir(gameDir)
 }
-func GameRename(oldName, newName string) (e *errors.Error) {
+func GameRename(oldName, newName string) (e error) {
 	oldGameDir := filepath.Join(config.GetConfig().Games(), oldName)
 	newGameDir := filepath.Join(config.GetConfig().Games(), newName)
 	err := os.Rename(oldGameDir, newGameDir)
@@ -70,21 +70,21 @@ func GameRename(oldName, newName string) (e *errors.Error) {
 	}
 	return
 }
-func GameDelete(name string) (e *errors.Error) {
+func GameDelete(name string) (e error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), name)
 	return fs.Remove(gameDir)
 }
 
 // Info
-func GameIsInfoExist(name string) (isExist bool, e *errors.Error) {
+func GameIsInfoExist(name string) (isExist bool, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
 	return fs.FileExist(infoFile)
 }
-func GameAddInfo(name string, info GameInfo) (e *errors.Error) {
+func GameAddInfo(name string, info GameInfo) (e error) {
 	infoPath := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
 	return fs.WriteDataToFile(infoPath, info)
 }
-func GameGetInfo(name string) (result *GameInfo, e *errors.Error) {
+func GameGetInfo(name string) (result *GameInfo, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), name, config.GetConfig().InfoFilename)
 	return fs.ReadDataFromFile[GameInfo](infoFile)
 }

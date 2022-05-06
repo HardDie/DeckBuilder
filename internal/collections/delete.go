@@ -2,7 +2,7 @@ package collections
 
 import "tts_deck_build/internal/errors"
 
-func DeleteCollection(gameName, collectionName string) (e *errors.Error) {
+func DeleteCollection(gameName, collectionName string) (e error) {
 	// Check if collection exists
 	exist, e := CollectionIsExist(gameName, collectionName)
 	if e != nil {

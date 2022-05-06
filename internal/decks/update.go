@@ -10,7 +10,7 @@ type UpdateDeckRequest struct {
 	DeckInfoWithoutId
 }
 
-func UpdateDeck(gameName, collectionName, deckName string, req *UpdateDeckRequest) (res DeckInfo, e *errors.Error) {
+func UpdateDeck(gameName, collectionName, deckName string, req *UpdateDeckRequest) (res DeckInfo, e error) {
 	res = DeckInfo{
 		Id:                utils.NameToId(req.DeckInfoWithoutId.Type),
 		DeckInfoWithoutId: req.DeckInfoWithoutId,

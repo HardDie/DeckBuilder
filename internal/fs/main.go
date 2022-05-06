@@ -19,11 +19,11 @@ const (
 	ImageGifType  = "image/gif"
 )
 
-func FileExist(path string) (isExist bool, e *errors.Error) {
+func FileExist(path string) (isExist bool, e error) {
 	isExist, _, e = IsDir(path)
 	return
 }
-func IsDir(path string) (isExist, isDir bool, e *errors.Error) {
+func IsDir(path string) (isExist, isDir bool, e error) {
 	stat, err := os.Stat(path)
 	if err == nil {
 		isExist = true
@@ -44,7 +44,7 @@ func IsDir(path string) (isExist, isDir bool, e *errors.Error) {
 	}
 	return
 }
-func Remove(path string) (e *errors.Error) {
+func Remove(path string) (e error) {
 	err := os.RemoveAll(path)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -52,7 +52,7 @@ func Remove(path string) (e *errors.Error) {
 	}
 	return
 }
-func CreateDir(path string) (e *errors.Error) {
+func CreateDir(path string) (e error) {
 	err := os.Mkdir(path, 0755)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -60,7 +60,7 @@ func CreateDir(path string) (e *errors.Error) {
 	}
 	return
 }
-func WriteDataToFile(path string, data interface{}) (e *errors.Error) {
+func WriteDataToFile(path string, data interface{}) (e error) {
 	f, err := os.Create(path)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -78,7 +78,7 @@ func WriteDataToFile(path string, data interface{}) (e *errors.Error) {
 	}
 	return
 }
-func ReadDataFromFile[T any](path string) (data *T, e *errors.Error) {
+func ReadDataFromFile[T any](path string) (data *T, e error) {
 	file, err := os.Open(path)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -96,7 +96,7 @@ func ReadDataFromFile[T any](path string) (data *T, e *errors.Error) {
 	return
 }
 
-func BytesToImage(input io.Reader) (img image.Image, e *errors.Error) {
+func BytesToImage(input io.Reader) (img image.Image, e error) {
 	img, _, err := image.Decode(input)
 	if err != nil {
 		e = errors.UnknownImageType.AddMessage(err.Error())
@@ -104,7 +104,7 @@ func BytesToImage(input io.Reader) (img image.Image, e *errors.Error) {
 	}
 	return
 }
-func WriteImageToFile(path string, img image.Image) (e *errors.Error) {
+func WriteImageToFile(path string, img image.Image) (e error) {
 	// Create file
 	file, err := os.Create(path)
 	if err != nil {
@@ -125,7 +125,7 @@ func WriteImageToFile(path string, img image.Image) (e *errors.Error) {
 	// Done
 	return
 }
-func ReadImageFromFile(path string) (img []byte, imgType string, e *errors.Error) {
+func ReadImageFromFile(path string) (img []byte, imgType string, e error) {
 	// Open file
 	file, err := os.Open(path)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"tts_deck_build/internal/errors"
 )
 
-func ItemDeck(gameName, collectionName, deckName string) (result *DeckInfo, e *errors.Error) {
+func ItemDeck(gameName, collectionName, deckName string) (result *DeckInfo, e error) {
 	// Check if collection and collection info exists
 	e = collections.FullCollectionCheck(gameName, collectionName)
 	if e != nil {
@@ -20,8 +20,7 @@ func ItemDeck(gameName, collectionName, deckName string) (result *DeckInfo, e *e
 		return
 	}
 	if !exist {
-		e = errors.DeckNotExists
-		return
+		return nil, errors.DeckNotExists
 	}
 
 	// Get info

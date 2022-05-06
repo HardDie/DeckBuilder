@@ -1,10 +1,6 @@
 package collections
 
-import (
-	"tts_deck_build/internal/errors"
-)
-
-func ItemCollection(gameName, collectionName string) (result *CollectionInfo, e *errors.Error) {
+func ItemCollection(gameName, collectionName string) (result *CollectionInfo, e error) {
 	// Check if collection and collection info exists
 	e = FullCollectionCheck(gameName, collectionName)
 	if e != nil {

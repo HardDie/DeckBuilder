@@ -10,7 +10,7 @@ type UpdateCollectionRequest struct {
 	CollectionInfoWithoutId
 }
 
-func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequest) (res CollectionInfo, e *errors.Error) {
+func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequest) (res CollectionInfo, e error) {
 	res = CollectionInfo{
 		Id:                      utils.NameToId(req.CollectionInfoWithoutId.Name),
 		CollectionInfoWithoutId: req.CollectionInfoWithoutId,

@@ -14,7 +14,7 @@ type ListOfDecksResponse struct {
 	Decks []*DeckInfo `json:"decks"`
 }
 
-func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, e *errors.Error) {
+func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, e error) {
 	result = &ListOfDecksResponse{
 		Decks: make([]*DeckInfo, 0),
 	}

@@ -11,15 +11,15 @@ import (
 )
 
 // Deck
-func DeckIsExist(gameName, collectionName, deckName string) (isExist bool, e *errors.Error) {
+func DeckIsExist(gameName, collectionName, deckName string) (isExist bool, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName)
 	return fs.FileExist(infoFile)
 }
-func DeckCreate(gameName, collectionName, deckName string, info DeckInfo) (e *errors.Error) {
+func DeckCreate(gameName, collectionName, deckName string, info DeckInfo) (e error) {
 	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
 	return fs.WriteDataToFile(deckPath, info)
 }
-func DeckRename(gameName, collectionName, oldName, newName string) (e *errors.Error) {
+func DeckRename(gameName, collectionName, oldName, newName string) (e error) {
 	oldDeckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, oldName+".json")
 	newDeckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, newName+".json")
 	err := os.Rename(oldDeckPath, newDeckPath)
@@ -29,18 +29,18 @@ func DeckRename(gameName, collectionName, oldName, newName string) (e *errors.Er
 	}
 	return
 }
-func DeckDelete(gameName, collectionName, deckName string) (e *errors.Error) {
+func DeckDelete(gameName, collectionName, deckName string) (e error) {
 	deckPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName+".json")
 	return fs.Remove(deckPath)
 }
 
 // Info
-func DeckGetInfo(gameName, collectionName, deckName string) (result *DeckInfo, e *errors.Error) {
+func DeckGetInfo(gameName, collectionName, deckName string) (result *DeckInfo, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, deckName)
 	return fs.ReadDataFromFile[DeckInfo](infoFile)
 }
 
-func GetDecksFromCollection(gameName, collectionName string, files []os.FileInfo) (e *errors.Error, decks []*DeckInfo) {
+func GetDecksFromCollection(gameName, collectionName string, files []os.FileInfo) (e error, decks []*DeckInfo) {
 	decks = make([]*DeckInfo, 0)
 
 	for _, file := range files {

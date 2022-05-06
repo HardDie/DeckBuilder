@@ -4,7 +4,7 @@ import (
 	"tts_deck_build/internal/errors"
 )
 
-func DeleteGame(name string) (e *errors.Error) {
+func DeleteGame(name string) (e error) {
 	// Check if game exists
 	exist, e := GameIsExist(name)
 	if e != nil {

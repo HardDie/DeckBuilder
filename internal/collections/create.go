@@ -9,7 +9,7 @@ type CreateCollectionRequest struct {
 	CollectionInfoWithoutId
 }
 
-func CreateCollection(gameName string, req *CreateCollectionRequest) (res CollectionInfo, e *errors.Error) {
+func CreateCollection(gameName string, req *CreateCollectionRequest) (res CollectionInfo, e error) {
 	// Check if collection already exists
 	exist, e := CollectionIsExist(gameName, req.Name)
 	if e != nil {

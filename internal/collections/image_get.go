@@ -8,7 +8,7 @@ import (
 	"tts_deck_build/internal/fs"
 )
 
-func GetImage(game, collection string) (img []byte, imgType string, e *errors.Error) {
+func GetImage(game, collection string) (img []byte, imgType string, e error) {
 	// Check if collection and collection info exists
 	e = FullCollectionCheck(game, collection)
 	if e != nil {

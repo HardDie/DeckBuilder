@@ -10,7 +10,7 @@ import (
 	"tts_deck_build/internal/games"
 )
 
-func FullCollectionCheck(gameName, collectionName string) (e *errors.Error) {
+func FullCollectionCheck(gameName, collectionName string) (e error) {
 	// Check game exist
 	e = games.FullGameCheck(gameName)
 	if e != nil {
@@ -40,7 +40,7 @@ func FullCollectionCheck(gameName, collectionName string) (e *errors.Error) {
 }
 
 // Collection
-func CollectionIsExist(gameName, collectionName string) (isExist bool, e *errors.Error) {
+func CollectionIsExist(gameName, collectionName string) (isExist bool, e error) {
 	collectionDir := filepath.Join(config.GetConfig().Games(), gameName, collectionName)
 
 	// Check collection
@@ -63,11 +63,11 @@ func CollectionIsExist(gameName, collectionName string) (isExist bool, e *errors
 	// Collection exist
 	return
 }
-func CollectionCreate(gameName, collectionName string) (e *errors.Error) {
+func CollectionCreate(gameName, collectionName string) (e error) {
 	collectionDir := filepath.Join(config.GetConfig().Games(), gameName, collectionName)
 	return fs.CreateDir(collectionDir)
 }
-func CollectionRename(gameName, oldName, newName string) (e *errors.Error) {
+func CollectionRename(gameName, oldName, newName string) (e error) {
 	oldCollectionDir := filepath.Join(config.GetConfig().Games(), gameName, oldName)
 	newCollectionDir := filepath.Join(config.GetConfig().Games(), gameName, newName)
 	err := os.Rename(oldCollectionDir, newCollectionDir)
@@ -77,21 +77,21 @@ func CollectionRename(gameName, oldName, newName string) (e *errors.Error) {
 	}
 	return
 }
-func CollectionDelete(gameName, collectionName string) (e *errors.Error) {
+func CollectionDelete(gameName, collectionName string) (e error) {
 	gameDir := filepath.Join(config.GetConfig().Games(), gameName, collectionName)
 	return fs.Remove(gameDir)
 }
 
 // Info
-func CollectionIsInfoExist(gameName, collectionName string) (isExist bool, e *errors.Error) {
+func CollectionIsInfoExist(gameName, collectionName string) (isExist bool, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, config.GetConfig().InfoFilename)
 	return fs.FileExist(infoFile)
 }
-func CollectionAddInfo(gameName, collectionName string, info CollectionInfo) (e *errors.Error) {
+func CollectionAddInfo(gameName, collectionName string, info CollectionInfo) (e error) {
 	infoPath := filepath.Join(config.GetConfig().Games(), gameName, collectionName, config.GetConfig().InfoFilename)
 	return fs.WriteDataToFile(infoPath, info)
 }
-func CollectionGetInfo(gameName, collectionName string) (result *CollectionInfo, e *errors.Error) {
+func CollectionGetInfo(gameName, collectionName string) (result *CollectionInfo, e error) {
 	infoFile := filepath.Join(config.GetConfig().Games(), gameName, collectionName, config.GetConfig().InfoFilename)
 	return fs.ReadDataFromFile[CollectionInfo](infoFile)
 }

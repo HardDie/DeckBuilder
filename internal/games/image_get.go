@@ -8,7 +8,7 @@ import (
 	"tts_deck_build/internal/fs"
 )
 
-func GetImage(game string) (img []byte, imgType string, e *errors.Error) {
+func GetImage(game string) (img []byte, imgType string, e error) {
 	// Check if game and game info exists
 	e = FullGameCheck(game)
 	if e != nil {

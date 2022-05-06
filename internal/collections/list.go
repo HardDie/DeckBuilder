@@ -14,7 +14,7 @@ type ListOfCollectionsResponse struct {
 	Collections []*CollectionInfo `json:"collections"`
 }
 
-func ListOfCollections(gameName string) (result *ListOfCollectionsResponse, e *errors.Error) {
+func ListOfCollections(gameName string) (result *ListOfCollectionsResponse, e error) {
 	e = games.FullGameCheck(gameName)
 	if e != nil {
 		return

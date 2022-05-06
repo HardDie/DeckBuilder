@@ -10,7 +10,7 @@ type CreateDeckRequest struct {
 	DeckInfoWithoutId
 }
 
-func CreateDeck(gameName, collectionName string, req *CreateDeckRequest) (res DeckInfo, e *errors.Error) {
+func CreateDeck(gameName, collectionName string, req *CreateDeckRequest) (res DeckInfo, e error) {
 	e = collections.FullCollectionCheck(gameName, collectionName)
 	if e != nil {
 		return

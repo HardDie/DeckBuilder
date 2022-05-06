@@ -9,7 +9,7 @@ import (
 	"tts_deck_build/internal/fs"
 )
 
-func DownloadImage(path string) (img image.Image, e *errors.Error) {
+func DownloadImage(path string) (img image.Image, e error) {
 	// Parse URL
 	imageUrl, err := (&url.URL{}).Parse(path)
 	if err != nil {

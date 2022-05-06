@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -30,32 +31,35 @@ var (
 	UnknownImageType = NewError("unknown image type")
 )
 
-type Error struct {
+type Err struct {
 	Message string `json:"message"`
 	code    int
 }
 
-func NewError(message string) *Error {
-	return &Error{
+func NewError(message string) *Err {
+	return &Err{
 		Message: message,
 		code:    http.StatusBadRequest,
 	}
 }
 
-func (e Error) HTTP(code int) *Error {
+func (e Err) HTTP(code int) *Err {
 	e.code = code
 	return &e
 }
-func (e Error) AddMessage(message string) *Error {
+func (e Err) AddMessage(message string) *Err {
 	e.Message += ": " + message
 	return &e
 }
+func (e Err) Error() string {
+	return fmt.Sprintf("HTTP[%d] %s", e.GetCode(), e.GetMessage())
+}
 
-func (e *Error) GetCode() int       { return e.code }
-func (e *Error) GetMessage() string { return e.Message }
+func (e *Err) GetCode() int       { return e.code }
+func (e *Err) GetMessage() string { return e.Message }
 
 func IfErrorLog(err error) {
 	if err != nil {
-		log.Output(2, err.Error())
+		_ = log.Output(2, err.Error())
 	}
 }

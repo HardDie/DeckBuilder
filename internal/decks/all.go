@@ -10,7 +10,7 @@ import (
 	"tts_deck_build/internal/games"
 )
 
-func ListOfAllDecks(gameName string) (result *ListOfDecksResponse, e *errors.Error) {
+func ListOfAllDecks(gameName string) (result *ListOfDecksResponse, e error) {
 	result = &ListOfDecksResponse{
 		Decks: make([]*DeckInfo, 0),
 	}
