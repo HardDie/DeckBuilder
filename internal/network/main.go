@@ -73,7 +73,11 @@ func ResponseError(w http.ResponseWriter, e error) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	switch val := e.(type) {
 	case errors.Err:
-		w.WriteHeader(val.GetCode())
+		if val.GetCode() > 0 {
+			w.WriteHeader(val.GetCode())
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		if len(val.GetMessage()) > 0 {
 			_, err := w.Write(toJson(e))
 			errors.IfErrorLog(err)
@@ -88,6 +92,7 @@ func ResponseError(w http.ResponseWriter, e error) {
 	return
 }
 func Response(w http.ResponseWriter, data interface{}) {
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	_, err := w.Write(toJson(data))
 	errors.IfErrorLog(err)

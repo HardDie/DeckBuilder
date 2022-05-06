@@ -11,9 +11,9 @@ var (
 	BarURL         = NewError("bad url")
 	BadHTTPRequest = NewError("bad http request")
 
-	BadName = NewError("bad name")
+	BadName = NewError("bad name").HTTP(http.StatusBadRequest)
 
-	GameExist          = NewError("game exist")
+	GameExist          = NewError("game exist").HTTP(http.StatusBadRequest)
 	GameNotExists      = NewError("game not exists").HTTP(http.StatusNoContent)
 	GameInvalid        = NewError("game data invalid")
 	GameInfoNotExists  = NewError("game info not exists").HTTP(http.StatusInternalServerError)
