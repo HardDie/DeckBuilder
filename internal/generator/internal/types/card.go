@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/generator/internal/utils"
 )
 
 type Card struct {

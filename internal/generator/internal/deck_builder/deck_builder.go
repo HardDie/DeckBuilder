@@ -9,7 +9,7 @@ import (
 	deckDrawer "tts_deck_build/internal/generator/internal/deck_drawer"
 	ttsBuilder "tts_deck_build/internal/generator/internal/tts_builder"
 	"tts_deck_build/internal/generator/internal/types"
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/generator/internal/utils"
 )
 
 type deckBuilderDeck struct {

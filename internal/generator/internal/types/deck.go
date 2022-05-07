@@ -3,7 +3,7 @@ package types
 import (
 	"log"
 
-	"tts_deck_build/internal/utils"
+	"tts_deck_build/internal/generator/internal/utils"
 )
 
 type Deck struct {
