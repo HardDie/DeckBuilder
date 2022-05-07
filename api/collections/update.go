@@ -21,7 +21,8 @@ type RequestUpdateCollection struct {
 	// In: body
 	// Required: true
 	Body struct {
-		collections.UpdateCollectionRequest
+		// Required: true
+		collections.UpdateCollectionDTO
 	}
 }
 
@@ -29,7 +30,12 @@ type RequestUpdateCollection struct {
 //
 // swagger:response ResponseUpdateCollection
 type ResponseUpdateCollection struct {
-	collections.CollectionInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data collections.CollectionInfo `json:"data"`
+	}
 }
 
 // swagger:route PATCH /games/{game}/collections/{collection} Collections RequestUpdateCollection
@@ -50,16 +56,16 @@ type ResponseUpdateCollection struct {
 //       200: ResponseUpdateCollection
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	req := &collections.UpdateCollectionRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	dto := &collections.UpdateCollectionDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := collections.UpdateCollection(gameName, collectionName, req)
+	item, e := collections.NewService().Update(gameId, collectionId, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

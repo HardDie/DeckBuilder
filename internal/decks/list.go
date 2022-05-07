@@ -19,7 +19,7 @@ func ListOfDecks(gameName, collectionName string) (result *ListOfDecksResponse, 
 		Decks: make([]*DeckInfo, 0),
 	}
 
-	e = collections.FullCollectionCheck(gameName, collectionName)
+	_, e = collections.NewService().Item(gameName, collectionName)
 	if e != nil {
 		return
 	}

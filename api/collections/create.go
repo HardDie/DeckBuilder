@@ -18,7 +18,8 @@ type RequestCreateCollection struct {
 	// In: body
 	// Required: true
 	Body struct {
-		collections.CreateCollectionRequest
+		// Required: true
+		collections.CreateCollectionDTO
 	}
 }
 
@@ -26,7 +27,12 @@ type RequestCreateCollection struct {
 //
 // swagger:response ResponseCreateCollection
 type ResponseCreateCollection struct {
-	collections.CollectionInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data collections.CollectionInfo `json:"data"`
+	}
 }
 
 // swagger:route POST /games/{game}/collections Collections RequestCreateCollection
@@ -47,15 +53,15 @@ type ResponseCreateCollection struct {
 //       200: ResponseCreateCollection
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	req := &collections.CreateCollectionRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	gameId := mux.Vars(r)["game"]
+	dto := &collections.CreateCollectionDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := collections.CreateCollection(gameName, req)
+	item, e := collections.NewService().Create(gameId, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

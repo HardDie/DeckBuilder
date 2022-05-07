@@ -7,7 +7,7 @@ import (
 
 func ItemDeck(gameName, collectionName, deckName string) (result *DeckInfo, e error) {
 	// Check if collection and collection info exists
-	e = collections.FullCollectionCheck(gameName, collectionName)
+	_, e = collections.NewService().Item(gameName, collectionName)
 	if e != nil {
 		return
 	}

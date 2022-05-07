@@ -50,16 +50,15 @@ type ResponseCollectionImage struct {
 //       200: ResponseCollectionImage
 //       default: ResponseError
 func CollectionHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	img, imgType, e := collections.GetImage(gameName, collectionName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	img, imgType, e := collections.NewService().GetImage(gameId, collectionId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	w.Header().Set("Content-Type", imgType)
+	w.Header().Set("Content-Type", "image/"+imgType)
 	if _, err := w.Write(img); err != nil {
 		errors.IfErrorLog(err)
 	}
-	return
 }

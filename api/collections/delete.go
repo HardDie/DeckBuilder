@@ -44,11 +44,10 @@ type ResponseDeleteCollection struct {
 //       200: ResponseDeleteCollection
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	e := collections.DeleteCollection(gameName, collectionName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	e := collections.NewService().Delete(gameId, collectionId)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
-	return
 }

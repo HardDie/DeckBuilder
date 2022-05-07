@@ -926,22 +926,12 @@
       "description": "Collection",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "description": {
-            "type": "string",
-            "x-go-name": "Description"
-          },
-          "id": {
-            "type": "string",
-            "x-go-name": "Id"
-          },
-          "image": {
-            "type": "string",
-            "x-go-name": "Image"
-          },
-          "name": {
-            "type": "string",
-            "x-go-name": "Name"
+          "data": {
+            "$ref": "#/definitions/CollectionInfo"
           }
         }
       }
@@ -958,18 +948,15 @@
     },
     "ResponseCreateCollection": {
       "description": "Status of collection creation",
-      "headers": {
-        "description": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "image": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/CollectionInfo"
+          }
         }
       }
     },
@@ -1087,13 +1074,16 @@
       "description": "List of collections",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "collections": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/definitions/CollectionInfo"
             },
-            "x-go-name": "Collections"
+            "x-go-name": "Data"
           }
         }
       }
@@ -1133,18 +1123,15 @@
     },
     "ResponseUpdateCollection": {
       "description": "Status of collection update",
-      "headers": {
-        "description": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "image": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/CollectionInfo"
+          }
         }
       }
     },

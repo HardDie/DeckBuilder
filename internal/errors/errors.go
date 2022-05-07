@@ -24,10 +24,9 @@ var (
 	GameImageNotExists = NewError("game image not exists").HTTP(http.StatusNoContent)
 
 	// collection
-	CollectionExist          = NewError("collection exist")
+	CollectionExist          = NewError("collection exist").HTTP(http.StatusBadRequest)
 	CollectionNotExists      = NewError("collection not exists").HTTP(http.StatusNoContent)
-	CollectionInvalid        = NewError("collection data invalid")
-	CollectionInfoNotExists  = NewError("collection info not exists").HTTP(http.StatusInternalServerError)
+	CollectionInfoNotExists  = NewError("collection info not exists")
 	CollectionImageNotExists = NewError("collection image not exists").HTTP(http.StatusNoContent)
 
 	// deck

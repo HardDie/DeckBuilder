@@ -26,7 +26,8 @@ type RequestCollection struct {
 type ResponseCollection struct {
 	// In: body
 	Body struct {
-		collections.CollectionInfo
+		// Required: true
+		Data collections.CollectionInfo `json:"data"`
 	}
 }
 
@@ -48,13 +49,12 @@ type ResponseCollection struct {
 //       200: ResponseCollection
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	item, e := collections.ItemCollection(gameName, collectionName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	item, e := collections.NewService().Item(gameId, collectionId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, item)
-	return
 }

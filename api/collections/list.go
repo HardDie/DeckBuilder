@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/network"
 )
@@ -23,8 +22,10 @@ type RequestListOfCollections struct {
 // swagger:response ResponseListOfCollections
 type ResponseListOfCollections struct {
 	// In: body
+	// Required: true
 	Body struct {
-		collections.ListOfCollectionsResponse
+		// Required: true
+		Data []*collections.CollectionInfo `json:"data"`
 	}
 }
 
@@ -46,12 +47,11 @@ type ResponseListOfCollections struct {
 //       200: ResponseListOfCollections
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	items, e := collections.ListOfCollections(gameName)
+	gameId := mux.Vars(r)["game"]
+	items, e := collections.NewService().List(gameId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, items)
-	return
 }

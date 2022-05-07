@@ -23,7 +23,7 @@ func UpdateDeck(gameName, collectionName, deckName string, req *UpdateDeckReques
 	}
 
 	// Check if game and collection exists
-	e = collections.FullCollectionCheck(gameName, collectionName)
+	_, e = collections.NewService().Item(gameName, collectionName)
 	if e != nil {
 		return
 	}
