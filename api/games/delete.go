@@ -41,10 +41,9 @@ type ResponseDeleteGame struct {
 //       200: ResponseDeleteGame
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	e := games.DeleteGame(gameName)
+	gameId := mux.Vars(r)["game"]
+	e := games.NewService().Delete(gameId)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
-	return
 }

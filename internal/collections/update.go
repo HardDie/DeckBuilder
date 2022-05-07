@@ -23,7 +23,7 @@ func UpdateCollection(gameName, collectionName string, req *UpdateCollectionRequ
 	}
 
 	// Check if game exists
-	e = games.FullGameCheck(gameName)
+	_, e = games.NewService().Item(gameName)
 	if e != nil {
 		return
 	}

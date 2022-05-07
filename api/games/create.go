@@ -14,7 +14,7 @@ type RequestCreateGame struct {
 	// In: body
 	// Required: true
 	Body struct {
-		games.CreateGameRequest
+		games.CreateGameDTO
 	}
 }
 
@@ -22,7 +22,12 @@ type RequestCreateGame struct {
 //
 // swagger:response ResponseCreateGame
 type ResponseCreateGame struct {
-	games.GameInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data games.GameInfo `json:"data"`
+	}
 }
 
 // swagger:route POST /games Games RequestCreateGame
@@ -43,14 +48,14 @@ type ResponseCreateGame struct {
 //       200: ResponseCreateGame
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	req := &games.CreateGameRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	dto := &games.CreateGameDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := games.CreateGame(req)
+	item, e := games.NewService().Create(dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

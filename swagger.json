@@ -888,6 +888,16 @@
       },
       "x-go-package": "tts_deck_build/internal/decks"
     },
+    "Err": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "x-go-name": "Message"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/errors"
+    },
     "GameInfo": {
       "type": "object",
       "properties": {
@@ -979,18 +989,15 @@
     },
     "ResponseCreateGame": {
       "description": "Status of game creation",
-      "headers": {
-        "description": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "image": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/GameInfo"
+          }
         }
       }
     },
@@ -1027,10 +1034,12 @@
       "description": "Default error response",
       "schema": {
         "type": "object",
+        "required": [
+          "error"
+        ],
         "properties": {
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
+          "error": {
+            "$ref": "#/definitions/Err"
           }
         }
       }
@@ -1039,22 +1048,12 @@
       "description": "Game",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "description": {
-            "type": "string",
-            "x-go-name": "Description"
-          },
-          "id": {
-            "type": "string",
-            "x-go-name": "Id"
-          },
-          "image": {
-            "type": "string",
-            "x-go-name": "Image"
-          },
-          "name": {
-            "type": "string",
-            "x-go-name": "Name"
+          "data": {
+            "$ref": "#/definitions/GameInfo"
           }
         }
       }
@@ -1118,13 +1117,16 @@
       "description": "List of games",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "games": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/definitions/GameInfo"
             },
-            "x-go-name": "Games"
+            "x-go-name": "Data"
           }
         }
       }
@@ -1162,18 +1164,15 @@
     },
     "ResponseUpdateGame": {
       "description": "Status of game update",
-      "headers": {
-        "description": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "image": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/GameInfo"
+          }
         }
       }
     }

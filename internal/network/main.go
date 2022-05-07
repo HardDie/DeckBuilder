@@ -12,6 +12,13 @@ import (
 	"tts_deck_build/internal/errors"
 )
 
+type JsonResponse struct {
+	// Body
+	Data interface{} `json:"data,omitempty"`
+	// Error information
+	Error interface{} `json:"error,omitempty"`
+}
+
 func openBrowser(url string) {
 	var cmd string
 	var args []string
@@ -69,32 +76,35 @@ func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 	}
 	return
 }
-func ResponseError(w http.ResponseWriter, e error) {
+func response(w http.ResponseWriter, httpCode int, data interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	switch val := e.(type) {
-	case errors.Err:
-		if val.GetCode() > 0 {
-			w.WriteHeader(val.GetCode())
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		if len(val.GetMessage()) > 0 {
-			_, err := w.Write(toJson(e))
-			errors.IfErrorLog(err)
-		}
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
-		msg := "unhandled error: " + e.Error()
-		log.Print(msg)
-		_, err := w.Write([]byte(msg))
-		errors.IfErrorLog(err)
+	w.WriteHeader(httpCode)
+	_, err := w.Write(toJson(data))
+	errors.IfErrorLog(err)
+	return err
+}
+func ResponseError(w http.ResponseWriter, e error) {
+	resp := JsonResponse{
+		Error: e,
 	}
+
+	httpCode := http.StatusInternalServerError
+	if val, ok := e.(*errors.Err); ok {
+		if val.GetCode() > 0 {
+			httpCode = val.GetCode()
+		}
+	} else {
+		log.Println("unhandled error: " + e.Error())
+	}
+
+	_ = response(w, httpCode, resp)
 	return
 }
 func Response(w http.ResponseWriter, data interface{}) {
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	_, err := w.Write(toJson(data))
-	errors.IfErrorLog(err)
+	resp := JsonResponse{
+		Data: data,
+	}
+
+	_ = response(w, http.StatusOK, resp)
 	return
 }

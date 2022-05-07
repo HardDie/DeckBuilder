@@ -18,7 +18,8 @@ type RequestUpdateGame struct {
 	// In: body
 	// Required: true
 	Body struct {
-		games.UpdateGameRequest
+		// Required: true
+		games.UpdateGameDTO
 	}
 }
 
@@ -26,7 +27,12 @@ type RequestUpdateGame struct {
 //
 // swagger:response ResponseUpdateGame
 type ResponseUpdateGame struct {
-	games.GameInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data games.GameInfo `json:"data"`
+	}
 }
 
 // swagger:route PATCH /games/{game} Games RequestUpdateGame
@@ -47,15 +53,15 @@ type ResponseUpdateGame struct {
 //       200: ResponseUpdateGame
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	req := &games.UpdateGameRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	gameId := mux.Vars(r)["game"]
+	dto := &games.UpdateGameDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := games.UpdateGame(gameName, req)
+	item, e := games.NewService().Update(gameId, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

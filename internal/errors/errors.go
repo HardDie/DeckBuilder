@@ -7,28 +7,35 @@ import (
 )
 
 var (
-	InternalError  = NewError("internal error").HTTP(http.StatusInternalServerError)
-	BarURL         = NewError("bad url")
-	BadHTTPRequest = NewError("bad http request")
+	// system
+	InternalError = NewError("internal error").HTTP(http.StatusInternalServerError)
+
+	// network errors
+	NetworkBadURL      = NewError("bad url")
+	NetworkBadRequest  = NewError("bad http request")
+	NetworkBadResponse = NewError("bad http response")
 
 	BadName = NewError("bad name").HTTP(http.StatusBadRequest)
 
+	// game
 	GameExist          = NewError("game exist").HTTP(http.StatusBadRequest)
 	GameNotExists      = NewError("game not exists").HTTP(http.StatusNoContent)
-	GameInvalid        = NewError("game data invalid")
-	GameInfoNotExists  = NewError("game info not exists").HTTP(http.StatusInternalServerError)
+	GameInfoNotExists  = NewError("game info not exists")
 	GameImageNotExists = NewError("game image not exists").HTTP(http.StatusNoContent)
 
+	// collection
 	CollectionExist          = NewError("collection exist")
 	CollectionNotExists      = NewError("collection not exists").HTTP(http.StatusNoContent)
 	CollectionInvalid        = NewError("collection data invalid")
 	CollectionInfoNotExists  = NewError("collection info not exists").HTTP(http.StatusInternalServerError)
 	CollectionImageNotExists = NewError("collection image not exists").HTTP(http.StatusNoContent)
 
+	// deck
 	DeckExist     = NewError("deck exist")
 	DeckNotExists = NewError("deck not exists").HTTP(http.StatusNoContent)
 
-	UnknownImageType = NewError("unknown image type")
+	// image
+	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
 )
 
 type Err struct {

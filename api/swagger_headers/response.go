@@ -1,15 +1,15 @@
 package swagger_headers
 
-import (
-	"tts_deck_build/internal/errors"
-)
+import "tts_deck_build/internal/errors"
 
 // Default error response
 //
 // swagger:response ResponseError
-type ResponseGame struct {
+type ResponseError struct {
 	// In: body
 	Body struct {
-		errors.Error
+		// Сообщение ошибки
+		// Required: true
+		Error errors.Err `json:"error"`
 	}
 }

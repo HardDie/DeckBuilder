@@ -1,7 +1,9 @@
 package network
 
 import (
+	"fmt"
 	"image"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -14,7 +16,7 @@ func DownloadImage(path string) (img image.Image, e error) {
 	imageUrl, err := (&url.URL{}).Parse(path)
 	if err != nil {
 		errors.IfErrorLog(err)
-		e = errors.BarURL.AddMessage(err.Error())
+		e = errors.NetworkBadURL.AddMessage(err.Error())
 		return
 	}
 
@@ -22,7 +24,7 @@ func DownloadImage(path string) (img image.Image, e error) {
 	resp, err := http.Get(imageUrl.String())
 	if err != nil {
 		errors.IfErrorLog(err)
-		e = errors.BadHTTPRequest.AddMessage(err.Error())
+		e = errors.NetworkBadRequest.AddMessage(err.Error())
 		return
 	}
 	defer func() { errors.IfErrorLog(resp.Body.Close()) }()
@@ -33,4 +35,33 @@ func DownloadImage(path string) (img image.Image, e error) {
 		return
 	}
 	return
+}
+
+func DownloadBytes(source string) ([]byte, error) {
+	// Parse URL
+	imageUrl, err := (&url.URL{}).Parse(source)
+	if err != nil {
+		errors.IfErrorLog(err)
+		return nil, errors.NetworkBadURL.AddMessage(err.Error())
+	}
+
+	// GET request for image
+	resp, err := http.Get(imageUrl.String())
+	if err != nil {
+		errors.IfErrorLog(err)
+		return nil, errors.NetworkBadRequest.AddMessage(err.Error())
+	}
+	defer func() { errors.IfErrorLog(resp.Body.Close()) }()
+
+	// Bad response
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.NetworkBadResponse.AddMessage(fmt.Sprintf("code: %d", resp.StatusCode))
+	}
+
+	// Read response
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.InternalError.AddMessage(err.Error())
+	}
+	return data, nil
 }

@@ -18,8 +18,10 @@ type RequestListOfGames struct {
 // swagger:response ResponseListOfGames
 type ResponseListOfGames struct {
 	// In: body
+	// Required: true
 	Body struct {
-		games.ListOfGamesResponse
+		// Required: true
+		Data []*games.GameInfo `json:"data"`
 	}
 }
 
@@ -41,11 +43,10 @@ type ResponseListOfGames struct {
 //       200: ResponseListOfGames
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, _ *http.Request) {
-	items, e := games.ListOfGames()
+	items, e := games.NewService().List()
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, items)
-	return
 }

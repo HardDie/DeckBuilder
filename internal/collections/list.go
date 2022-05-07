@@ -15,7 +15,7 @@ type ListOfCollectionsResponse struct {
 }
 
 func ListOfCollections(gameName string) (result *ListOfCollectionsResponse, e error) {
-	e = games.FullGameCheck(gameName)
+	_, e = games.NewService().Item(gameName)
 	if e != nil {
 		return
 	}

@@ -24,7 +24,8 @@ type RequestGame struct {
 type ResponseGame struct {
 	// In: body
 	Body struct {
-		games.GameInfo
+		// Required: true
+		Data games.GameInfo `json:"data"`
 	}
 }
 
@@ -46,12 +47,11 @@ type ResponseGame struct {
 //       200: ResponseGame
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	item, e := games.ItemGame(gameName)
+	gameId := mux.Vars(r)["game"]
+	item, e := games.NewService().Item(gameId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, item)
-	return
 }

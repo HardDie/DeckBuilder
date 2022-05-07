@@ -47,15 +47,14 @@ type ResponseGameImage struct {
 //       200: ResponseGameImage
 //       default: ResponseError
 func GameHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	img, imgType, e := games.GetImage(gameName)
+	gameId := mux.Vars(r)["game"]
+	img, imgType, e := games.NewService().GetImage(gameId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	w.Header().Set("Content-Type", imgType)
+	w.Header().Set("Content-Type", "image/"+imgType)
 	if _, err := w.Write(img); err != nil {
 		errors.IfErrorLog(err)
 	}
-	return
 }

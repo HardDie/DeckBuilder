@@ -12,7 +12,7 @@ import (
 
 func FullCollectionCheck(gameName, collectionName string) (e error) {
 	// Check game exist
-	e = games.FullGameCheck(gameName)
+	_, e = games.NewService().Item(gameName)
 	if e != nil {
 		return
 	}

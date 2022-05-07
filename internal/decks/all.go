@@ -15,7 +15,7 @@ func ListOfAllDecks(gameName string) (result *ListOfDecksResponse, e error) {
 		Decks: make([]*DeckInfo, 0),
 	}
 
-	e = games.FullGameCheck(gameName)
+	_, e = games.NewService().Item(gameName)
 	if e != nil {
 		return
 	}
