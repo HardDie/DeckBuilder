@@ -13,7 +13,7 @@ func NewService() *GameService {
 }
 
 func (s *GameService) Create(dto *CreateGameDTO) (*GameInfo, error) {
-	return s.storage.Create(NewGameInfo("", dto.Name, dto.Description, dto.Image))
+	return s.storage.Create(NewGameInfo(dto.Name, dto.Description, dto.Image))
 }
 
 func (s *GameService) Item(gameId string) (*GameInfo, error) {

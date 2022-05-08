@@ -3,7 +3,6 @@ package decks
 import (
 	"log"
 	"net/http"
-	"path/filepath"
 	"sort"
 
 	"tts_deck_build/internal/collections"
@@ -12,7 +11,6 @@ import (
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/utils"
 )
 
 type DeckStorage struct {
@@ -28,8 +26,7 @@ func NewDeckStorage(config *config.Config, collectionService *collections.Collec
 }
 
 func (s *DeckStorage) Create(gameId, collectionId string, deck *DeckInfo) (*DeckInfo, error) {
-	// Convert name to ID
-	deck.Id = utils.NameToId(deck.Type)
+	// Check ID
 	if len(deck.Id) == 0 {
 		return nil, errors.BadName.AddMessage(deck.Type)
 	}
@@ -39,11 +36,8 @@ func (s *DeckStorage) Create(gameId, collectionId string, deck *DeckInfo) (*Deck
 		return nil, errors.DeckExist
 	}
 
-	// Build path
-	deckPath := filepath.Join(s.Config.Games(), gameId, collectionId, deck.Id+".json")
-
 	// Writing info to file
-	if err := fs.WriteFile(deckPath, deck); err != nil {
+	if err := fs.WriteFile(deck.Path(gameId, collectionId), deck); err != nil {
 		return nil, err
 	}
 
@@ -63,11 +57,10 @@ func (s *DeckStorage) GetById(gameId, collectionId, deckId string) (*DeckInfo, e
 		return nil, err
 	}
 
-	// Build path
-	deckPath := filepath.Join(s.Config.Games(), gameId, collectionId, deckId+".json")
+	deck := DeckInfo{Id: deckId}
 
 	// Check if such an object exists
-	isExist, err := fs.IsFileExist(deckPath)
+	isExist, err := fs.IsFileExist(deck.Path(gameId, collectionId))
 	if err != nil {
 		return nil, err
 	}
@@ -76,19 +69,19 @@ func (s *DeckStorage) GetById(gameId, collectionId, deckId string) (*DeckInfo, e
 	}
 
 	// Read info from file
-	return fs.ReadFile[DeckInfo](deckPath)
+	return fs.ReadFile[DeckInfo](deck.Path(gameId, collectionId))
 }
 func (s *DeckStorage) GetAll(gameId, collectionId string) ([]*DeckInfo, error) {
 	decks := make([]*DeckInfo, 0)
 
 	// Check if the collection exists
-	_, err := s.CollectionService.Item(gameId, collectionId)
+	collection, err := s.CollectionService.Item(gameId, collectionId)
 	if err != nil {
 		return decks, err
 	}
 
 	// Get list of objects
-	folders, err := fs.ListOfFiles(filepath.Join(s.Config.Games(), gameId, collectionId))
+	folders, err := fs.ListOfFiles(collection.Path(gameId))
 	if err != nil {
 		return decks, err
 	}
@@ -113,17 +106,11 @@ func (s *DeckStorage) Update(gameId, collectionId, deckId string, dto *UpdateDec
 		return nil, err
 	}
 
-	// Convert name to ID
-	newDeckId := utils.NameToId(dto.Type)
-	if len(newDeckId) == 0 {
+	// Create deck object
+	deck := NewDeckInfo(dto.Type, dto.BacksideImage)
+	if len(deck.Id) == 0 {
 		return nil, errors.BadName.AddMessage(dto.Type)
 	}
-
-	// Create deck object
-	deck := NewDeckInfo(newDeckId, dto.Type, dto.BacksideImage)
-
-	// Build path
-	newDeckPath := filepath.Join(s.Config.Games(), gameId, collectionId, deck.Id+".json")
 
 	// If the id has been changed, rename the object
 	if deck.Id != oldDeck.Id {
@@ -134,32 +121,32 @@ func (s *DeckStorage) Update(gameId, collectionId, deckId string, dto *UpdateDec
 
 		// If image exist, rename
 		if data, _, _ := s.GetImage(gameId, collectionId, oldDeck.Id); data != nil {
-			oldDeckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, oldDeck.Id+".bin")
-			newDeckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, deck.Id+".bin")
-			err = fs.MoveFolder(oldDeckImagePath, newDeckImagePath)
+			err = fs.MoveFolder(oldDeck.ImagePath(gameId, collectionId), deck.ImagePath(gameId, collectionId))
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		// Build path
-		oldDeckPath := filepath.Join(s.Config.Games(), gameId, collectionId, oldDeck.Id+".json")
-
 		// Rename object
-		err = fs.MoveFolder(oldDeckPath, newDeckPath)
+		err = fs.MoveFolder(oldDeck.Path(gameId, collectionId), deck.Path(gameId, collectionId))
 		if err != nil {
+			return nil, err
+		}
+	}
+
+	// If the object has been changed, update the object file
+	if !oldDeck.Compare(deck) {
+		// Writing info to file
+		if err = fs.WriteFile(deck.Path(gameId, collectionId), deck); err != nil {
 			return nil, err
 		}
 	}
 
 	// If the image has been changed
 	if deck.BacksideImage != oldDeck.BacksideImage {
-		// Build image path
-		deckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, deck.Id+".bin")
-
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameId, collectionId, deck.Id); data != nil {
-			err = fs.RemoveFile(deckImagePath)
+			err = fs.RemoveFile(deck.ImagePath(gameId, collectionId))
 			if err != nil {
 				return nil, err
 			}
@@ -173,20 +160,10 @@ func (s *DeckStorage) Update(gameId, collectionId, deckId string, dto *UpdateDec
 		}
 	}
 
-	// If the object has been changed, update the object file
-	if !oldDeck.Compare(deck) {
-		// Writing info to file
-		if err = fs.WriteFile(newDeckPath, deck); err != nil {
-			return nil, err
-		}
-		return deck, nil
-	}
-
-	return oldDeck, nil
+	return deck, nil
 }
 func (s *DeckStorage) DeleteById(gameId, collectionId, deckId string) error {
-	// Build path
-	deckPath := filepath.Join(s.Config.Games(), gameId, collectionId, deckId+".json")
+	deck := DeckInfo{Id: deckId}
 
 	// Check if such an object exists
 	if val, _ := s.GetById(gameId, collectionId, deckId); val == nil {
@@ -194,30 +171,22 @@ func (s *DeckStorage) DeleteById(gameId, collectionId, deckId string) error {
 	}
 
 	// Remove object
-	if err := fs.RemoveFile(deckPath); err != nil {
+	if err := fs.RemoveFile(deck.Path(gameId, collectionId)); err != nil {
 		return err
 	}
 
 	// Remove image
-	deckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, deckId+".bin")
-	if err := fs.RemoveFile(deckImagePath); err != nil {
-		return err
-	}
-
-	return nil
+	return fs.RemoveFile(deck.ImagePath(gameId, collectionId))
 }
 func (s *DeckStorage) GetImage(gameId, collectionId, deckId string) ([]byte, string, error) {
 	// Check if such an object exists
-	_, err := s.GetById(gameId, collectionId, deckId)
+	deck, err := s.GetById(gameId, collectionId, deckId)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Build image path
-	deckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, deckId+".bin")
-
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(deckImagePath)
+	isExist, err := fs.IsFileExist(deck.ImagePath(gameId, collectionId))
 	if err != nil {
 		return nil, "", err
 	}
@@ -226,7 +195,7 @@ func (s *DeckStorage) GetImage(gameId, collectionId, deckId string) ([]byte, str
 	}
 
 	// Read an image from a file
-	data, err := fs.ReadBinaryFile(deckImagePath)
+	data, err := fs.ReadBinaryFile(deck.ImagePath(gameId, collectionId))
 	if err != nil {
 		return nil, "", err
 	}
@@ -240,7 +209,8 @@ func (s *DeckStorage) GetImage(gameId, collectionId, deckId string) ([]byte, str
 }
 func (s *DeckStorage) CreateImage(gameId, collectionId, deckId, imageUrl string) error {
 	// Check if such an object exists
-	if val, _ := s.GetById(gameId, collectionId, deckId); val == nil {
+	deck, _ := s.GetById(gameId, collectionId, deckId)
+	if deck == nil {
 		return errors.DeckNotExists.HTTP(http.StatusBadRequest)
 	}
 
@@ -256,11 +226,8 @@ func (s *DeckStorage) CreateImage(gameId, collectionId, deckId, imageUrl string)
 		return err
 	}
 
-	// Build image path
-	deckImagePath := filepath.Join(s.Config.Games(), gameId, collectionId, deckId+".bin")
-
 	// Write image to file
-	return fs.WriteBinaryFile(deckImagePath, imageBytes)
+	return fs.WriteBinaryFile(deck.ImagePath(gameId, collectionId), imageBytes)
 }
 func (s *DeckStorage) GetAllDecksInGame(gameId string) ([]*DeckInfo, error) {
 	decks := make([]*DeckInfo, 0)

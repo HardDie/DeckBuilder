@@ -16,7 +16,7 @@ func NewService() *DeckService {
 }
 
 func (s *DeckService) Create(gameId, collectionId string, dto *CreateDeckDTO) (*DeckInfo, error) {
-	return s.storage.Create(gameId, collectionId, NewDeckInfo("", dto.Type, dto.BacksideImage))
+	return s.storage.Create(gameId, collectionId, NewDeckInfo(dto.Type, dto.BacksideImage))
 }
 
 func (s *DeckService) Item(gameId, collectionId, deckId string) (*DeckInfo, error) {

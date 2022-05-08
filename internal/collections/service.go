@@ -16,7 +16,7 @@ func NewService() *CollectionService {
 }
 
 func (s *CollectionService) Create(gameId string, dto *CreateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Create(gameId, NewCollectionInfo("", dto.Name, dto.Description, dto.Image))
+	return s.storage.Create(gameId, NewCollectionInfo(dto.Name, dto.Description, dto.Image))
 }
 
 func (s *CollectionService) Item(gameId, collectionId string) (*CollectionInfo, error) {

@@ -46,14 +46,14 @@ func WebServer() {
 }
 
 func createDirIfNotExists(folder string) {
-	isExists, e := fs.FileExist(folder)
+	isExists, e := fs.IsFolderExist(folder)
 	if e != nil {
 		log.Fatal(e.Error())
 	}
 	if isExists {
 		return
 	}
-	e = fs.CreateDir(folder)
+	e = fs.CreateFolder(folder)
 	if e != nil {
 		log.Fatal(e.Error())
 	}

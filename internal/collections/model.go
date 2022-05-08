@@ -1,5 +1,12 @@
 package collections
 
+import (
+	"path/filepath"
+
+	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/utils"
+)
+
 type CollectionInfo struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
@@ -7,13 +14,25 @@ type CollectionInfo struct {
 	Image       string `json:"image"`
 }
 
-func NewCollectionInfo(id, name, desc, image string) *CollectionInfo {
+func NewCollectionInfo(name, desc, image string) *CollectionInfo {
 	return &CollectionInfo{
-		Id:          id,
+		Id:          utils.NameToId(name),
 		Name:        name,
 		Description: desc,
 		Image:       image,
 	}
+}
+
+func (i *CollectionInfo) Path(gameId string) string {
+	return filepath.Join(config.GetConfig().Games(), gameId, i.Id)
+}
+
+func (i *CollectionInfo) InfoPath(gameId string) string {
+	return filepath.Join(config.GetConfig().Games(), gameId, i.Id, config.GetConfig().InfoFilename)
+}
+
+func (i *CollectionInfo) ImagePath(gameId string) string {
+	return filepath.Join(config.GetConfig().Games(), gameId, i.Id, config.GetConfig().ImageFilename)
 }
 
 func (i *CollectionInfo) Compare(val *CollectionInfo) bool {
