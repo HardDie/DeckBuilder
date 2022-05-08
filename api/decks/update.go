@@ -24,7 +24,8 @@ type RequestUpdateDeck struct {
 	// In: body
 	// Required: true
 	Body struct {
-		decks.UpdateDeckRequest
+		// Required: true
+		decks.UpdateDeckDTO
 	}
 }
 
@@ -32,7 +33,12 @@ type RequestUpdateDeck struct {
 //
 // swagger:response ResponseUpdateDeck
 type ResponseUpdateDeck struct {
-	decks.DeckInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data decks.DeckInfo `json:"data"`
+	}
 }
 
 // swagger:route PATCH /games/{game}/collections/{collection}/decks/{deck} Decks RequestUpdateDeck
@@ -53,17 +59,17 @@ type ResponseUpdateDeck struct {
 //       200: ResponseUpdateDeck
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	deckName := mux.Vars(r)["deck"]
-	req := &decks.UpdateDeckRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	deckId := mux.Vars(r)["deck"]
+	dto := &decks.UpdateDeckDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := decks.UpdateDeck(gameName, collectionName, deckName, req)
+	item, e := decks.NewService().Update(gameId, collectionId, deckId, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

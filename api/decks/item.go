@@ -29,7 +29,8 @@ type RequestDeck struct {
 type ResponseDeck struct {
 	// In: body
 	Body struct {
-		decks.DeckInfo
+		// Required: true
+		Data decks.DeckInfo `json:"data"`
 	}
 }
 
@@ -51,14 +52,13 @@ type ResponseDeck struct {
 //       200: ResponseDeck
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	deckName := mux.Vars(r)["deck"]
-	item, e := decks.ItemDeck(gameName, collectionName, deckName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	deckId := mux.Vars(r)["deck"]
+	item, e := decks.NewService().Item(gameId, collectionId, deckId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, item)
-	return
 }

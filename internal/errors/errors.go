@@ -30,8 +30,9 @@ var (
 	CollectionImageNotExists = NewError("collection image not exists").HTTP(http.StatusNoContent)
 
 	// deck
-	DeckExist     = NewError("deck exist")
-	DeckNotExists = NewError("deck not exists").HTTP(http.StatusNoContent)
+	DeckExist          = NewError("deck exist").HTTP(http.StatusBadRequest)
+	DeckNotExists      = NewError("deck not exists").HTTP(http.StatusNoContent)
+	DeckImageNotExists = NewError("deck image not exists").HTTP(http.StatusNoContent)
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)

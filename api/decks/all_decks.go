@@ -22,8 +22,10 @@ type RequestListOfAllDecks struct {
 // swagger:response ResponseListOfAllDecks
 type ResponseListOfAllDecks struct {
 	// In: body
+	// Required: true
 	Body struct {
-		decks.ListOfDecksResponse
+		// Required: true
+		Data []*decks.DeckInfo `json:"data"`
 	}
 }
 
@@ -45,12 +47,11 @@ type ResponseListOfAllDecks struct {
 //       200: ResponseListOfAllDecks
 //       default: ResponseError
 func AllDecksHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	items, e := decks.ListOfAllDecks(gameName)
+	gameId := mux.Vars(r)["game"]
+	items, e := decks.NewService().ListAllUnique(gameId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, items)
-	return
 }

@@ -33,7 +33,7 @@ func GetConfig() *Config {
 			Game: "games",
 
 			InfoFilename:  ".info.json",
-			ImageFilename: "image.bin",
+			ImageFilename: ".image.bin",
 		}
 	}
 	return config

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"tts_deck_build/internal/errors"
 )
@@ -22,30 +23,37 @@ func IsFolderExist(path string) (isExist bool, err error) {
 		return false, err
 	}
 
-	// check if it folder
+	// check if it is a folder
 	if !stat.IsDir() {
 		err = errors.InternalError.AddMessage("there should be a folder, but it's file")
 		return false, err
 	}
 
-	// folder exist
+	// folder exists
 	return true, nil
 }
 func IsFileExist(path string) (isExist bool, err error) {
 	stat, err := os.Stat(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			// file not exist
+			return false, nil
+		}
+
+		// other error
 		errors.IfErrorLog(err)
 		err = errors.InternalError.AddMessage(err.Error())
-		return
+		return false, err
 	}
 
+	// check if it is a file
 	if stat.IsDir() {
 		err = errors.InternalError.AddMessage("there should be a file, but it's folder")
-		return
+		return false, err
 	}
 
-	isExist = true
-	return
+	// file exists
+	return true, nil
 }
 
 func CreateFolder(path string) error {
@@ -162,4 +170,32 @@ func RemoveFile(path string) error {
 		return errors.InternalError.AddMessage(err.Error())
 	}
 	return nil
+}
+func ListOfFiles(path string) ([]string, error) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, errors.InternalError.AddMessage(err.Error())
+	}
+
+	var listFiles []string
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if []rune(file.Name())[0] == '.' {
+			// Skip hidden files
+			continue
+		}
+		if filepath.Ext(file.Name()) != ".json" {
+			// Skip non json files
+			continue
+		}
+		listFiles = append(listFiles, file.Name())
+	}
+
+	return listFiles, nil
+}
+
+func GetFilenameWithoutExt(name string) string {
+	return name[:len(name)-len(filepath.Ext(name))]
 }

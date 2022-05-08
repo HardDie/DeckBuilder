@@ -12,4 +12,7 @@ func Init(route *mux.Router) {
 
 	CollectionsRoute := GamesRoute.PathPrefix("/{game}/collections").Subrouter()
 	CollectionsRoute.HandleFunc("/{collection}/image", CollectionHandler).Methods(http.MethodGet)
+
+	DecksRoute := CollectionsRoute.PathPrefix("/{collection}/decks").Subrouter()
+	DecksRoute.HandleFunc("/{deck}/image", DeckHandler).Methods(http.MethodGet)
 }

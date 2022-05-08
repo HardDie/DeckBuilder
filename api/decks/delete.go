@@ -47,12 +47,11 @@ type ResponseDeleteDeck struct {
 //       200: ResponseDeleteDeck
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	deckName := mux.Vars(r)["deck"]
-	e := decks.DeleteDeck(gameName, collectionName, deckName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	deckId := mux.Vars(r)["deck"]
+	e := decks.NewService().Delete(gameId, collectionId, deckId)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
-	return
 }

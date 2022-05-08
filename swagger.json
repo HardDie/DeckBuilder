@@ -725,6 +725,59 @@
         }
       }
     },
+    "/games/{game}/collections/{collection}/decks/{deck}/image": {
+      "get": {
+        "description": "Get an image of existing deck",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get deck image",
+        "operationId": "RequestDeckImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeckImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/collections/{collection}/image": {
       "get": {
         "description": "Get an image of existing collection",
@@ -962,15 +1015,15 @@
     },
     "ResponseCreateDeck": {
       "description": "Status of deck creation",
-      "headers": {
-        "backside": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/DeckInfo"
+          }
         }
       }
     },
@@ -992,19 +1045,23 @@
       "description": "Deck",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "backside": {
-            "type": "string",
-            "x-go-name": "BacksideImage"
-          },
-          "id": {
-            "type": "string",
-            "x-go-name": "Id"
-          },
-          "type": {
-            "type": "string",
-            "x-go-name": "Type"
+          "data": {
+            "$ref": "#/definitions/DeckInfo"
           }
+        }
+      }
+    },
+    "ResponseDeckImage": {
+      "description": "Deck image",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint8"
         }
       }
     },
@@ -1059,13 +1116,16 @@
       "description": "List of decks",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "decks": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/definitions/DeckInfo"
             },
-            "x-go-name": "Decks"
+            "x-go-name": "Data"
           }
         }
       }
@@ -1092,13 +1152,16 @@
       "description": "List of decks",
       "schema": {
         "type": "object",
+        "required": [
+          "data"
+        ],
         "properties": {
-          "decks": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/definitions/DeckInfo"
             },
-            "x-go-name": "Decks"
+            "x-go-name": "Data"
           }
         }
       }
@@ -1137,15 +1200,15 @@
     },
     "ResponseUpdateDeck": {
       "description": "Status of deck update",
-      "headers": {
-        "backside": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/DeckInfo"
+          }
         }
       }
     },

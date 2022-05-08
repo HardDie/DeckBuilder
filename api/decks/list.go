@@ -25,8 +25,10 @@ type RequestListOfDecks struct {
 // swagger:response ResponseListOfDecks
 type ResponseListOfDecks struct {
 	// In: body
+	// Required: true
 	Body struct {
-		decks.ListOfDecksResponse
+		// Required: true
+		Data []*decks.DeckInfo `json:"data"`
 	}
 }
 
@@ -48,13 +50,12 @@ type ResponseListOfDecks struct {
 //       200: ResponseListOfDecks
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	items, e := decks.ListOfDecks(gameName, collectionName)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	items, e := decks.NewService().List(gameId, collectionId)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 	network.Response(w, items)
-	return
 }

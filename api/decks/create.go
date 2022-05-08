@@ -21,7 +21,8 @@ type RequestCreateDeck struct {
 	// In: body
 	// Required: true
 	Body struct {
-		decks.CreateDeckRequest
+		// Required: true
+		decks.CreateDeckDTO
 	}
 }
 
@@ -29,7 +30,12 @@ type RequestCreateDeck struct {
 //
 // swagger:response ResponseCreateDeck
 type ResponseCreateDeck struct {
-	decks.DeckInfo
+	// In: body
+	// Required: true
+	Body struct {
+		// Required: true
+		Data decks.DeckInfo `json:"data"`
+	}
 }
 
 // swagger:route POST /games/{game}/collections/{collection}/decks Decks RequestCreateDeck
@@ -50,16 +56,16 @@ type ResponseCreateDeck struct {
 //       200: ResponseCreateDeck
 //       default: ResponseError
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	gameName := mux.Vars(r)["game"]
-	collectionName := mux.Vars(r)["collection"]
-	req := &decks.CreateDeckRequest{}
-	e := network.RequestToObject(r.Body, &req)
+	gameId := mux.Vars(r)["game"]
+	collectionId := mux.Vars(r)["collection"]
+	dto := &decks.CreateDeckDTO{}
+	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := decks.CreateDeck(gameName, collectionName, req)
+	item, e := decks.NewService().Create(gameId, collectionId, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
