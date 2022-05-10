@@ -233,23 +233,22 @@ func (s *DeckStorage) CreateImage(gameId, collectionId, deckId, imageUrl string)
 	return fs.WriteBinaryFile(deck.ImagePath(gameId, collectionId), imageBytes)
 }
 func (s *DeckStorage) GetAllDecksInGame(gameId string) ([]*DeckInfo, error) {
-	decks := make([]*DeckInfo, 0)
-
 	// Get all collections in selected game
 	listCollections, err := s.CollectionService.List(gameId, "")
 	if err != nil {
-		return decks, err
+		return make([]*DeckInfo, 0), err
 	}
 
 	// Mark unique deck types
 	uniqueDecks := make(map[string]struct{})
 
 	// Go through all collections and find unique types of decks
+	decks := make([]*DeckInfo, 0)
 	for _, collection := range listCollections {
 		// Get all decks in selected collection
 		collectionDecks, err := s.GetAll(gameId, collection.Id)
 		if err != nil {
-			return decks, err
+			return make([]*DeckInfo, 0), err
 		}
 
 		// Go through all decks and keep only unique decks

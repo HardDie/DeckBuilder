@@ -45,5 +45,10 @@ func (s *DeckService) GetImage(gameId, collectionId, deckId string) ([]byte, str
 }
 
 func (s *DeckService) ListAllUnique(gameId string) ([]*DeckInfo, error) {
-	return s.storage.GetAllDecksInGame(gameId)
+	items, err := s.storage.GetAllDecksInGame(gameId)
+	if err != nil {
+		return make([]*DeckInfo, 0), err
+	}
+	Sort(&items, "name")
+	return items, nil
 }
