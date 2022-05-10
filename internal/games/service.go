@@ -1,6 +1,8 @@
 package games
 
-import "tts_deck_build/internal/config"
+import (
+	"tts_deck_build/internal/config"
+)
 
 type GameService struct {
 	storage *GameStorage
@@ -20,8 +22,13 @@ func (s *GameService) Item(gameId string) (*GameInfo, error) {
 	return s.storage.GetById(gameId)
 }
 
-func (s *GameService) List() ([]*GameInfo, error) {
-	return s.storage.GetAll()
+func (s *GameService) List(sortField string) ([]*GameInfo, error) {
+	items, err := s.storage.GetAll()
+	if err != nil {
+		return make([]*GameInfo, 0), err
+	}
+	Sort(&items, sortField)
+	return items, nil
 }
 
 func (s *GameService) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, error) {

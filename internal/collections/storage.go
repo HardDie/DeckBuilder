@@ -3,6 +3,7 @@ package collections
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
@@ -86,21 +87,20 @@ func (s *CollectionStorage) GetById(gameId, collectionId string) (*CollectionInf
 	return fs.ReadFile[CollectionInfo](collection.InfoPath(gameId))
 }
 func (s *CollectionStorage) GetAll(gameId string) ([]*CollectionInfo, error) {
-	collections := make([]*CollectionInfo, 0)
-
 	// Check if the game exists
 	game, err := s.GameService.Item(gameId)
 	if err != nil {
-		return collections, err
+		return make([]*CollectionInfo, 0), err
 	}
 
 	// Get list of objects
 	folders, err := fs.ListOfFolders(game.Path())
 	if err != nil {
-		return collections, err
+		return make([]*CollectionInfo, 0), err
 	}
 
 	// Get each collection
+	collections := make([]*CollectionInfo, 0)
 	for _, collectionId := range folders {
 		collection, err := s.GetById(gameId, collectionId)
 		if err != nil {
@@ -119,14 +119,12 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 		return nil, err
 	}
 
-	// Convert name to ID
-	newCollectionId := utils.NameToId(dto.Name)
-	if len(newCollectionId) == 0 {
-		return nil, errors.BadName.AddMessage(dto.Name)
-	}
-
 	// Create collection object
 	collection := NewCollectionInfo(dto.Name, dto.Description, dto.Image)
+	collection.CreatedAt = oldCollection.CreatedAt
+	if len(collection.Id) == 0 {
+		return nil, errors.BadName.AddMessage(dto.Name)
+	}
 
 	// If the id has been changed, rename the object
 	if collection.Id != oldCollection.Id {
@@ -144,6 +142,7 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 
 	// If the object has been changed, update the info file
 	if !oldCollection.Compare(collection) {
+		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err = fs.WriteFile(collection.InfoPath(gameId), collection); err != nil {
 			return nil, err

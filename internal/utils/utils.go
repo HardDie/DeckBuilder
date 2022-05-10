@@ -17,3 +17,7 @@ func NameToId(in string) string {
 	// Keep only letters, numbers and underscore symbols
 	return reg.ReplaceAllString(underscore, "")
 }
+
+func Allocate[T any](val T) *T {
+	return &val
+}

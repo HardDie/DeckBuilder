@@ -3,7 +3,7 @@ package decks
 import (
 	"log"
 	"net/http"
-	"sort"
+	"time"
 
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
@@ -11,6 +11,7 @@ import (
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/utils"
 )
 
 type DeckStorage struct {
@@ -108,6 +109,7 @@ func (s *DeckStorage) Update(gameId, collectionId, deckId string, dto *UpdateDec
 
 	// Create deck object
 	deck := NewDeckInfo(dto.Type, dto.BacksideImage)
+	deck.CreatedAt = oldDeck.CreatedAt
 	if len(deck.Id) == 0 {
 		return nil, errors.BadName.AddMessage(dto.Type)
 	}
@@ -136,6 +138,7 @@ func (s *DeckStorage) Update(gameId, collectionId, deckId string, dto *UpdateDec
 
 	// If the object has been changed, update the object file
 	if !oldDeck.Compare(deck) {
+		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err = fs.WriteFile(deck.Path(gameId, collectionId), deck); err != nil {
 			return nil, err
@@ -233,7 +236,7 @@ func (s *DeckStorage) GetAllDecksInGame(gameId string) ([]*DeckInfo, error) {
 	decks := make([]*DeckInfo, 0)
 
 	// Get all collections in selected game
-	listCollections, err := s.CollectionService.List(gameId)
+	listCollections, err := s.CollectionService.List(gameId, "")
 	if err != nil {
 		return decks, err
 	}
@@ -260,10 +263,5 @@ func (s *DeckStorage) GetAllDecksInGame(gameId string) ([]*DeckInfo, error) {
 			decks = append(decks, deck)
 		}
 	}
-
-	// Sort decks in result
-	sort.SliceStable(decks, func(i, j int) bool {
-		return decks[i].Type < decks[j].Type
-	})
 	return decks, nil
 }

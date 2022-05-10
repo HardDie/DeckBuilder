@@ -11,6 +11,9 @@ import (
 //
 // swagger:parameters RequestListOfGames
 type RequestListOfGames struct {
+	// In: query
+	// Required: false
+	Sort string `json:"sort"`
 }
 
 // List of games
@@ -30,6 +33,7 @@ type ResponseListOfGames struct {
 // Get games list
 //
 // Get a list of existing games
+// Sort values: name, name_desc, created, created_desc
 //
 //     Consumes:
 //     - application/json
@@ -42,8 +46,9 @@ type ResponseListOfGames struct {
 //     Responses:
 //       200: ResponseListOfGames
 //       default: ResponseError
-func ListHandler(w http.ResponseWriter, _ *http.Request) {
-	items, e := games.NewService().List()
+func ListHandler(w http.ResponseWriter, r *http.Request) {
+	sort := r.URL.Query().Get("sort")
+	items, e := games.NewService().List(sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

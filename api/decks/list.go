@@ -18,6 +18,9 @@ type RequestListOfDecks struct {
 	// In: path
 	// Required: true
 	Collection string `json:"collection"`
+	// In: query
+	// Required: false
+	Sort string `json:"sort"`
 }
 
 // List of decks
@@ -37,6 +40,7 @@ type ResponseListOfDecks struct {
 // Get decks list
 //
 // Get a list of existing decks
+// Sort values: name, name_desc, created, created_desc
 //
 //     Consumes:
 //     - application/json
@@ -52,7 +56,8 @@ type ResponseListOfDecks struct {
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameId := mux.Vars(r)["game"]
 	collectionId := mux.Vars(r)["collection"]
-	items, e := decks.NewService().List(gameId, collectionId)
+	sort := r.URL.Query().Get("sort")
+	items, e := decks.NewService().List(gameId, collectionId, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

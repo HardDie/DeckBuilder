@@ -20,7 +20,7 @@
   "paths": {
     "/games": {
       "get": {
-        "description": "Get a list of existing games",
+        "description": "Get a list of existing games\nSort values: name, name_desc, created, created_desc",
         "consumes": [
           "application/json"
         ],
@@ -35,6 +35,14 @@
         ],
         "summary": "Get games list",
         "operationId": "RequestListOfGames",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseListOfGames"
@@ -222,7 +230,7 @@
     },
     "/games/{game}/collections": {
       "get": {
-        "description": "Get a list of existing collections",
+        "description": "Get a list of existing collections\nSort values: name, name_desc, created, created_desc",
         "consumes": [
           "application/json"
         ],
@@ -244,6 +252,12 @@
             "name": "game",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
           }
         ],
         "responses": {
@@ -461,7 +475,7 @@
     },
     "/games/{game}/collections/{collection}/decks": {
       "get": {
-        "description": "Get a list of existing decks",
+        "description": "Get a list of existing decks\nSort values: name, name_desc, created, created_desc",
         "consumes": [
           "application/json"
         ],
@@ -490,6 +504,12 @@
             "name": "collection",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
           }
         ],
         "responses": {
@@ -904,6 +924,11 @@
     "CollectionInfo": {
       "type": "object",
       "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
         "description": {
           "type": "string",
           "x-go-name": "Description"
@@ -919,6 +944,11 @@
         "name": {
           "type": "string",
           "x-go-name": "Name"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt"
         }
       },
       "x-go-package": "tts_deck_build/internal/collections"
@@ -930,6 +960,11 @@
           "type": "string",
           "x-go-name": "BacksideImage"
         },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
         "id": {
           "type": "string",
           "x-go-name": "Id"
@@ -937,6 +972,11 @@
         "type": {
           "type": "string",
           "x-go-name": "Type"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt"
         }
       },
       "x-go-package": "tts_deck_build/internal/decks"
@@ -954,6 +994,11 @@
     "GameInfo": {
       "type": "object",
       "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
         "description": {
           "type": "string",
           "x-go-name": "Description"
@@ -969,6 +1014,11 @@
         "name": {
           "type": "string",
           "x-go-name": "Name"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt"
         }
       },
       "x-go-package": "tts_deck_build/internal/games"

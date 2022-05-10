@@ -2,16 +2,21 @@ package games
 
 import (
 	"path/filepath"
+	"sort"
+	"strings"
+	"time"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/utils"
 )
 
 type GameInfo struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Image       string `json:"image"`
+	Id          string     `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Image       string     `json:"image"`
+	CreatedAt   *time.Time `json:"createdAt"`
+	UpdatedAt   *time.Time `json:"updatedAt"`
 }
 
 func NewGameInfo(name, desc, image string) *GameInfo {
@@ -20,6 +25,7 @@ func NewGameInfo(name, desc, image string) *GameInfo {
 		Name:        name,
 		Description: desc,
 		Image:       image,
+		CreatedAt:   utils.Allocate(time.Now()),
 	}
 }
 
@@ -49,4 +55,31 @@ func (i *GameInfo) Compare(val *GameInfo) bool {
 		return false
 	}
 	return true
+}
+
+func (i *GameInfo) GetName() string {
+	return i.Name
+}
+
+func (i *GameInfo) GetCreatedAt() time.Time {
+	if i.CreatedAt != nil {
+		return *i.CreatedAt
+	}
+	return time.Time{}
+}
+
+func Sort(items *[]*GameInfo, field string) {
+	field = strings.ToLower(field)
+	sort.SliceStable(*items, func(i, j int) bool {
+		switch field {
+		default: // "name"
+			return (*items)[i].GetName() < (*items)[j].GetName()
+		case "name_desc":
+			return (*items)[i].GetName() > (*items)[j].GetName()
+		case "created":
+			return (*items)[i].GetCreatedAt().Before((*items)[j].GetCreatedAt())
+		case "created_desc":
+			return (*items)[i].GetCreatedAt().After((*items)[j].GetCreatedAt())
+		}
+	})
 }

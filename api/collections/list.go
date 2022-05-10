@@ -15,6 +15,9 @@ type RequestListOfCollections struct {
 	// In: path
 	// Required: true
 	Game string `json:"game"`
+	// In: query
+	// Required: false
+	Sort string `json:"sort"`
 }
 
 // List of collections
@@ -34,6 +37,7 @@ type ResponseListOfCollections struct {
 // Get collections list
 //
 // Get a list of existing collections
+// Sort values: name, name_desc, created, created_desc
 //
 //     Consumes:
 //     - application/json
@@ -48,7 +52,8 @@ type ResponseListOfCollections struct {
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameId := mux.Vars(r)["game"]
-	items, e := collections.NewService().List(gameId)
+	sort := r.URL.Query().Get("sort")
+	items, e := collections.NewService().List(gameId, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

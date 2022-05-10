@@ -3,12 +3,14 @@ package games
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/utils"
 )
 
 type GameStorage struct {
@@ -76,15 +78,14 @@ func (s *GameStorage) GetById(gameId string) (*GameInfo, error) {
 	return fs.ReadFile[GameInfo](game.InfoPath())
 }
 func (s *GameStorage) GetAll() ([]*GameInfo, error) {
-	games := make([]*GameInfo, 0)
-
 	// Get list of objects
 	folders, err := fs.ListOfFolders(s.Config.Games())
 	if err != nil {
-		return games, err
+		return make([]*GameInfo, 0), err
 	}
 
 	// Get each game
+	games := make([]*GameInfo, 0)
 	for _, gameId := range folders {
 		game, err := s.GetById(gameId)
 		if err != nil {
@@ -105,6 +106,7 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 
 	// Create game object
 	game := NewGameInfo(dto.Name, dto.Description, dto.Image)
+	game.CreatedAt = oldGame.CreatedAt
 	if len(game.Id) == 0 {
 		return nil, errors.BadName.AddMessage(dto.Name)
 	}
@@ -125,6 +127,7 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 
 	// If the object has been changed, update the info file
 	if !oldGame.Compare(game) {
+		game.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err = fs.WriteFile(game.InfoPath(), game); err != nil {
 			return nil, err

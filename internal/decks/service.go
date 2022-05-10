@@ -23,8 +23,13 @@ func (s *DeckService) Item(gameId, collectionId, deckId string) (*DeckInfo, erro
 	return s.storage.GetById(gameId, collectionId, deckId)
 }
 
-func (s *DeckService) List(gameId, collectionId string) ([]*DeckInfo, error) {
-	return s.storage.GetAll(gameId, collectionId)
+func (s *DeckService) List(gameId, collectionId, sortField string) ([]*DeckInfo, error) {
+	items, err := s.storage.GetAll(gameId, collectionId)
+	if err != nil {
+		return make([]*DeckInfo, 0), err
+	}
+	Sort(&items, sortField)
+	return items, nil
 }
 
 func (s *DeckService) Update(gameId, collectionId, deckId string, dto *UpdateDeckDTO) (*DeckInfo, error) {
