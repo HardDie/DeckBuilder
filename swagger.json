@@ -935,7 +935,7 @@
         },
         "id": {
           "type": "string",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "image": {
           "type": "string",
@@ -967,7 +967,7 @@
         },
         "id": {
           "type": "string",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "type": {
           "type": "string",
@@ -1005,7 +1005,7 @@
         },
         "id": {
           "type": "string",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "image": {
           "type": "string",

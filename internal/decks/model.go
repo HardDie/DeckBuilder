@@ -10,6 +10,10 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
+type Deck struct {
+	Deck *DeckInfo `json:"deck"`
+}
+
 type DeckInfo struct {
 	ID            string     `json:"id"`
 	Type          string     `json:"type"`

@@ -38,7 +38,7 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 	}
 
 	// Writing info to file
-	if err := fs.WriteFile(deck.Path(gameID, collectionID), deck); err != nil {
+	if err := fs.WriteFile(deck.Path(gameID, collectionID), Deck{Deck: deck}); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +70,11 @@ func (s *DeckStorage) GetByID(gameID, collectionID, deckID string) (*DeckInfo, e
 	}
 
 	// Read info from file
-	return fs.ReadFile[DeckInfo](deck.Path(gameID, collectionID))
+	readDeck, err := fs.ReadFile[Deck](deck.Path(gameID, collectionID))
+	if err != nil {
+		return nil, err
+	}
+	return readDeck.Deck, nil
 }
 func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 	decks := make([]*DeckInfo, 0)
@@ -140,7 +144,7 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 	if !oldDeck.Compare(deck) {
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.WriteFile(deck.Path(gameID, collectionID), deck); err != nil {
+		if err = fs.WriteFile(deck.Path(gameID, collectionID), Deck{Deck: deck}); err != nil {
 			return nil, err
 		}
 	}
