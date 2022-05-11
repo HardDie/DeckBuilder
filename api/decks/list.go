@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/network"
 )
@@ -54,10 +55,10 @@ type ResponseListOfDecks struct {
 //       200: ResponseListOfDecks
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
-	items, e := decks.NewService().List(gameId, collectionId, sort)
+	items, e := decks.NewService().List(gameID, collectionID, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

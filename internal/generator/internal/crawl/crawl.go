@@ -2,7 +2,6 @@ package crawl
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,7 +10,7 @@ import (
 )
 
 // Parse json file to deck
-func parseJson(path string) *types.Deck {
+func parseJSON(path string) *types.Deck {
 	desc := &types.Deck{}
 
 	// Open file
@@ -31,7 +30,7 @@ func parseJson(path string) *types.Deck {
 
 // Check every folder and get cards information
 func crawl(path string) (result []*types.Deck) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -52,7 +51,7 @@ func crawl(path string) (result []*types.Deck) {
 		if filepath.Ext(newPath) != ".json" {
 			continue
 		}
-		deck := parseJson(newPath)
+		deck := parseJSON(newPath)
 
 		result = append(result, deck)
 		// Set for each card

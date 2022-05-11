@@ -1,4 +1,4 @@
-package swagger_headers
+package swaggerheaders
 
 import "tts_deck_build/internal/errors"
 

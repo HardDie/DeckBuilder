@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/network"
 )
@@ -47,10 +48,10 @@ type ResponseDeleteDeck struct {
 //       200: ResponseDeleteDeck
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
-	deckId := mux.Vars(r)["deck"]
-	e := decks.NewService().Delete(gameId, collectionId, deckId)
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
+	deckID := mux.Vars(r)["deck"]
+	e := decks.NewService().Delete(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}

@@ -1,12 +1,12 @@
 package helpers
 
 import (
-	db "tts_deck_build/internal/generator/internal/deck_builder"
-	dm "tts_deck_build/internal/generator/internal/download_manager"
+	"tts_deck_build/internal/generator/internal/deck_builder"
+	"tts_deck_build/internal/generator/internal/download_manager"
 	"tts_deck_build/internal/generator/internal/types"
 )
 
-func PutDeckToDownloadManager(d *types.Deck, dm *dm.DownloadManager) {
+func PutDeckToDownloadManager(d *types.Deck, dm *downloadmanager.DownloadManager) {
 	dm.AddFile(d.GetBackSideURL(), d.GetBackSideName())
 	for _, card := range d.GetCards() {
 		dm.AddFile(card.GetFrontSideURL(), card.GetFrontSideName())
@@ -16,7 +16,7 @@ func PutDeckToDownloadManager(d *types.Deck, dm *dm.DownloadManager) {
 	}
 }
 
-func PutDeckToDeckBuilder(d *types.Deck, db *db.DeckBuilder) {
+func PutDeckToDeckBuilder(d *types.Deck, db *deckbuilder.DeckBuilder) {
 	for _, card := range d.GetCards() {
 		db.AddCard(d, card)
 	}

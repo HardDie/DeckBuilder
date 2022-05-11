@@ -42,7 +42,6 @@ func WebServer() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	return
 }
 
 func createDirIfNotExists(folder string) {

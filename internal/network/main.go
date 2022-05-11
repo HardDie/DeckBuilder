@@ -12,7 +12,7 @@ import (
 	"tts_deck_build/internal/errors"
 )
 
-type JsonResponse struct {
+type JSONResponse struct {
 	// Body
 	Data interface{} `json:"data,omitempty"`
 	// Error information
@@ -60,7 +60,7 @@ func OpenBrowser(url string) {
 	}()
 }
 
-func toJson(data interface{}) (res []byte) {
+func toJSON(data interface{}) (res []byte) {
 	res, err := json.Marshal(data)
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -79,12 +79,12 @@ func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 func response(w http.ResponseWriter, httpCode int, data interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpCode)
-	_, err := w.Write(toJson(data))
+	_, err := w.Write(toJSON(data))
 	errors.IfErrorLog(err)
 	return err
 }
 func ResponseError(w http.ResponseWriter, e error) {
-	resp := JsonResponse{
+	resp := JSONResponse{
 		Error: e,
 	}
 
@@ -98,13 +98,11 @@ func ResponseError(w http.ResponseWriter, e error) {
 	}
 
 	_ = response(w, httpCode, resp)
-	return
 }
 func Response(w http.ResponseWriter, data interface{}) {
-	resp := JsonResponse{
+	resp := JSONResponse{
 		Data: data,
 	}
 
 	_ = response(w, http.StatusOK, resp)
-	return
 }

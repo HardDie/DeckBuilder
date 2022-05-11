@@ -47,8 +47,8 @@ type ResponseGame struct {
 //       200: ResponseGame
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	item, e := games.NewService().Item(gameId)
+	gameID := mux.Vars(r)["game"]
+	item, e := games.NewService().Item(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

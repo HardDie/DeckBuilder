@@ -18,8 +18,8 @@ func (s *GameService) Create(dto *CreateGameDTO) (*GameInfo, error) {
 	return s.storage.Create(NewGameInfo(dto.Name, dto.Description, dto.Image))
 }
 
-func (s *GameService) Item(gameId string) (*GameInfo, error) {
-	return s.storage.GetById(gameId)
+func (s *GameService) Item(gameID string) (*GameInfo, error) {
+	return s.storage.GetByID(gameID)
 }
 
 func (s *GameService) List(sortField string) ([]*GameInfo, error) {
@@ -31,14 +31,14 @@ func (s *GameService) List(sortField string) ([]*GameInfo, error) {
 	return items, nil
 }
 
-func (s *GameService) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, error) {
-	return s.storage.Update(gameId, dto)
+func (s *GameService) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, error) {
+	return s.storage.Update(gameID, dto)
 }
 
-func (s *GameService) Delete(gameId string) error {
-	return s.storage.DeleteById(gameId)
+func (s *GameService) Delete(gameID string) error {
+	return s.storage.DeleteByID(gameID)
 }
 
-func (s *GameService) GetImage(gameId string) ([]byte, string, error) {
-	return s.storage.GetImage(gameId)
+func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
+	return s.storage.GetImage(gameID)
 }

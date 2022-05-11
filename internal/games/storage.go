@@ -25,12 +25,12 @@ func NewGameStorage(config *config.Config) *GameStorage {
 
 func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 	// Check ID
-	if len(game.Id) == 0 {
+	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(game.Name)
 	}
 
 	// Check if such an object already exists
-	if val, _ := s.GetById(game.Id); val != nil {
+	if val, _ := s.GetByID(game.ID); val != nil {
 		return nil, errors.GameExist
 	}
 
@@ -46,15 +46,15 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 
 	if len(game.Image) > 0 {
 		// Download image
-		if err := s.CreateImage(game.Id, game.Image); err != nil {
+		if err := s.CreateImage(game.ID, game.Image); err != nil {
 			return nil, err
 		}
 	}
 
 	return game, nil
 }
-func (s *GameStorage) GetById(gameId string) (*GameInfo, error) {
-	game := GameInfo{Id: gameId}
+func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
+	game := GameInfo{ID: gameID}
 
 	// Check if such an object exists
 	isExist, err := fs.IsFolderExist(game.Path())
@@ -86,8 +86,8 @@ func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 
 	// Get each game
 	games := make([]*GameInfo, 0)
-	for _, gameId := range folders {
-		game, err := s.GetById(gameId)
+	for _, gameID := range folders {
+		game, err := s.GetByID(gameID)
 		if err != nil {
 			log.Println(err.Error())
 			continue
@@ -97,9 +97,9 @@ func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 
 	return games, nil
 }
-func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, error) {
+func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, error) {
 	// Get old object
-	oldGame, err := s.GetById(gameId)
+	oldGame, err := s.GetByID(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,14 +107,14 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 	// Create game object
 	game := NewGameInfo(dto.Name, dto.Description, dto.Image)
 	game.CreatedAt = oldGame.CreatedAt
-	if len(game.Id) == 0 {
+	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(dto.Name)
 	}
 
 	// If the id has been changed, rename the object
-	if game.Id != oldGame.Id {
+	if game.ID != oldGame.ID {
 		// Check if such an object already exists
-		if val, _ := s.GetById(game.Id); val != nil {
+		if val, _ := s.GetByID(game.ID); val != nil {
 			return nil, errors.GameExist
 		}
 
@@ -137,7 +137,7 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 	// If the image has been changed
 	if game.Image != oldGame.Image {
 		// If image exist, delete
-		if data, _, _ := s.GetImage(game.Id); data != nil {
+		if data, _, _ := s.GetImage(game.ID); data != nil {
 			err = fs.RemoveFile(game.ImagePath())
 			if err != nil {
 				return nil, err
@@ -146,7 +146,7 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 
 		if len(game.Image) > 0 {
 			// Download image
-			if err = s.CreateImage(game.Id, game.Image); err != nil {
+			if err = s.CreateImage(game.ID, game.Image); err != nil {
 				return nil, err
 			}
 		}
@@ -154,20 +154,20 @@ func (s *GameStorage) Update(gameId string, dto *UpdateGameDTO) (*GameInfo, erro
 
 	return game, nil
 }
-func (s *GameStorage) DeleteById(gameId string) error {
-	game := GameInfo{Id: gameId}
+func (s *GameStorage) DeleteByID(gameID string) error {
+	game := GameInfo{ID: gameID}
 
 	// Check if such an object exists
-	if val, _ := s.GetById(gameId); val == nil {
+	if val, _ := s.GetByID(gameID); val == nil {
 		return errors.GameNotExists.HTTP(http.StatusBadRequest)
 	}
 
 	// Remove object
 	return fs.RemoveFolder(game.Path())
 }
-func (s *GameStorage) GetImage(gameId string) ([]byte, string, error) {
+func (s *GameStorage) GetImage(gameID string) ([]byte, string, error) {
 	// Check if such an object exists
-	game, err := s.GetById(gameId)
+	game, err := s.GetByID(gameID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -194,15 +194,15 @@ func (s *GameStorage) GetImage(gameId string) ([]byte, string, error) {
 
 	return data, imgType, nil
 }
-func (s *GameStorage) CreateImage(gameId, imageUrl string) error {
+func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Check if such an object exists
-	game, _ := s.GetById(gameId)
+	game, _ := s.GetByID(gameID)
 	if game == nil {
 		return errors.GameNotExists.HTTP(http.StatusBadRequest)
 	}
 
 	// Download image
-	imageBytes, err := network.DownloadBytes(imageUrl)
+	imageBytes, err := network.DownloadBytes(imageURL)
 	if err != nil {
 		return err
 	}

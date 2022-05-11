@@ -11,7 +11,7 @@ import (
 )
 
 type DeckInfo struct {
-	Id            string     `json:"id"`
+	ID            string     `json:"id"`
 	Type          string     `json:"type"`
 	BacksideImage string     `json:"backside"`
 	CreatedAt     *time.Time `json:"createdAt"`
@@ -20,23 +20,23 @@ type DeckInfo struct {
 
 func NewDeckInfo(deckType, image string) *DeckInfo {
 	return &DeckInfo{
-		Id:            utils.NameToId(deckType),
+		ID:            utils.NameToID(deckType),
 		Type:          deckType,
 		BacksideImage: image,
 		CreatedAt:     utils.Allocate(time.Now()),
 	}
 }
 
-func (i *DeckInfo) Path(gameId, collectionId string) string {
-	return filepath.Join(config.GetConfig().Games(), gameId, collectionId, i.Id+".json")
+func (i *DeckInfo) Path(gameID, collectionID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".json")
 }
 
-func (i *DeckInfo) ImagePath(gameId, collectionId string) string {
-	return filepath.Join(config.GetConfig().Games(), gameId, collectionId, i.Id+".bin")
+func (i *DeckInfo) ImagePath(gameID, collectionID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".bin")
 }
 
 func (i *DeckInfo) Compare(val *DeckInfo) bool {
-	if i.Id != val.Id {
+	if i.ID != val.ID {
 		return false
 	}
 	if i.Type != val.Type {

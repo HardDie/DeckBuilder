@@ -23,7 +23,7 @@ func CleanTitle(in string) string {
 	res = strings.ReplaceAll(res, ".", "")
 	return strings.ReplaceAll(res, " ", "_")
 }
-func GetFilenameFromUrl(link string) string {
+func GetFilenameFromURL(link string) string {
 	u, err := url.Parse(link)
 	if err != nil {
 		log.Fatal(err.Error())

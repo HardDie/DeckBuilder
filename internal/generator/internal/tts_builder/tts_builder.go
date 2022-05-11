@@ -1,9 +1,9 @@
-package tts_builder
+package ttsbuilder
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -19,7 +19,7 @@ type TTSBuilder struct {
 }
 
 func NewTTSBuilder() *TTSBuilder {
-	data, err := ioutil.ReadFile(filepath.Join(config.GetConfig().ResultDir, "images.json"))
+	data, err := os.ReadFile(filepath.Join(config.GetConfig().ResultDir, "images.json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -53,17 +53,17 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckD
 		Type:       0,
 	}
 }
-func (b *TTSBuilder) generateTTSCard(card *types.Card, cardId int, transform types.TTSTransform) types.TTSCard {
+func (b *TTSBuilder) generateTTSCard(card *types.Card, cardID int, transform types.TTSTransform) types.TTSCard {
 	return types.TTSCard{
 		Name:        "Card",
 		Nickname:    card.Title,
 		Description: new(string),
-		CardID:      cardId,
+		CardID:      cardID,
 		LuaScript:   card.GetLua(),
 		Transform:   transform,
 	}
 }
-func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckId, cardId int) {
+func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckID, cardID int) {
 	// Get deck object
 	ttsDeck, ok := b.objects[card.Collection]
 	if !ok {
@@ -73,18 +73,18 @@ func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckId, cardId 
 	}
 
 	// Check if deck exists in list
-	if _, ok = ttsDeck.CustomDeck[deckId]; !ok {
-		ttsDeck.CustomDeck[deckId] = b.generateTTSDeckDescription(deck)
+	if _, ok = ttsDeck.CustomDeck[deckID]; !ok {
+		ttsDeck.CustomDeck[deckID] = b.generateTTSDeckDescription(deck)
 	}
 
 	// Add card id to deck
-	ttsDeck.DeckIDs = append(ttsDeck.DeckIDs, cardId)
+	ttsDeck.DeckIDs = append(ttsDeck.DeckIDs, cardID)
 	// Add card object to deck
-	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardId, ttsDeck.Transform))
+	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardID, ttsDeck.Transform))
 }
 func (b *TTSBuilder) GetObjects() (result []interface{}) {
 	// Sort keys
-	var keys []string
+	keys := make([]string, 0)
 	for key := range b.objects {
 		keys = append(keys, key)
 	}

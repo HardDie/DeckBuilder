@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/network"
 )
@@ -59,9 +60,9 @@ type ResponseUpdateDeck struct {
 //       200: ResponseUpdateDeck
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
-	deckId := mux.Vars(r)["deck"]
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
+	deckID := mux.Vars(r)["deck"]
 	dto := &decks.UpdateDeckDTO{}
 	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
@@ -69,7 +70,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := decks.NewService().Update(gameId, collectionId, deckId, dto)
+	item, e := decks.NewService().Update(gameID, collectionID, deckID, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

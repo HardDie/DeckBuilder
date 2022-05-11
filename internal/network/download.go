@@ -2,7 +2,7 @@ package network
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -11,14 +11,14 @@ import (
 
 func DownloadBytes(source string) ([]byte, error) {
 	// Parse URL
-	imageUrl, err := (&url.URL{}).Parse(source)
+	imageURL, err := (&url.URL{}).Parse(source)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return nil, errors.NetworkBadURL.AddMessage(err.Error())
 	}
 
 	// GET request for image
-	resp, err := http.Get(imageUrl.String())
+	resp, err := http.Get(imageURL.String())
 	if err != nil {
 		errors.IfErrorLog(err)
 		return nil, errors.NetworkBadRequest.AddMessage(err.Error())
@@ -31,7 +31,7 @@ func DownloadBytes(source string) ([]byte, error) {
 	}
 
 	// Read response
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.InternalError.AddMessage(err.Error())
 	}

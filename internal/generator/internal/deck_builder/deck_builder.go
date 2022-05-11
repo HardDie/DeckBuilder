@@ -1,4 +1,4 @@
-package deck_builder
+package deckbuilder
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"tts_deck_build/internal/config"
-	deckDrawer "tts_deck_build/internal/generator/internal/deck_drawer"
-	ttsBuilder "tts_deck_build/internal/generator/internal/tts_builder"
+	"tts_deck_build/internal/generator/internal/deck_drawer"
+	"tts_deck_build/internal/generator/internal/tts_builder"
 	"tts_deck_build/internal/generator/internal/types"
 	"tts_deck_build/internal/generator/internal/utils"
 )
@@ -97,7 +97,7 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 	for _, deckType := range b.GetTypes() {
 		decks := b.GetDecks(deckType)
 		for _, deck := range decks {
-			deckDrawer.NewDeckDrawer(deck).Draw()
+			deckdrawer.NewDeckDrawer(deck).Draw()
 			// Add current deck title
 			res[deck.FileName] = ""
 		}
@@ -111,12 +111,12 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 func (b *DeckBuilder) GenerateTTSDeck() []byte {
 	res := types.TTSSaveObject{}
 	for _, deckType := range b.GetTypes() {
-		tts := ttsBuilder.NewTTSBuilder()
+		tts := ttsbuilder.NewTTSBuilder()
 		decks := b.GetDecks(deckType)
-		for deckId, deck := range decks {
+		for deckID, deck := range decks {
 			for j, card := range deck.Cards {
-				cardId := (deckId+1)*100 + j
-				tts.AddCard(deck, card, deckId+1, cardId)
+				cardID := (deckID+1)*100 + j
+				tts.AddCard(deck, card, deckID+1, cardID)
 			}
 		}
 		res.ObjectStates = append(res.ObjectStates, tts.GetObjects()...)

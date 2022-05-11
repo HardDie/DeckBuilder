@@ -1,8 +1,7 @@
-package download_manager
+package downloadmanager
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -127,7 +126,7 @@ func (m *DownloadManager) download(url, filename string) {
 	m.cache[filename] = struct{}{}
 }
 func (m *DownloadManager) checkCache() {
-	files, err := ioutil.ReadDir(config.GetConfig().CachePath)
+	files, err := os.ReadDir(config.GetConfig().CachePath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

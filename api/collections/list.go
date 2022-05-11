@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/network"
 )
@@ -51,9 +52,9 @@ type ResponseListOfCollections struct {
 //       200: ResponseListOfCollections
 //       default: ResponseError
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
+	gameID := mux.Vars(r)["game"]
 	sort := r.URL.Query().Get("sort")
-	items, e := collections.NewService().List(gameId, sort)
+	items, e := collections.NewService().List(gameID, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

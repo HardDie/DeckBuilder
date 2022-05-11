@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/network"
 )
@@ -53,7 +54,7 @@ type ResponseUpdateGame struct {
 //       200: ResponseUpdateGame
 //       default: ResponseError
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
+	gameID := mux.Vars(r)["game"]
 	dto := &games.UpdateGameDTO{}
 	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
@@ -61,7 +62,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := games.NewService().Update(gameId, dto)
+	item, e := games.NewService().Update(gameID, dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

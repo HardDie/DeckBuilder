@@ -1,4 +1,4 @@
-package deck_drawer
+package deckdrawer
 
 import (
 	"fmt"
@@ -47,7 +47,6 @@ func (d *DeckDrawer) loadCards() {
 		d.log("LOAD", i+1, len(d.cards))
 	}
 	d.imageBackSide = img.OpenImage(filepath.Join(config.GetConfig().CachePath, d.backSideName))
-	return
 }
 func (d *DeckDrawer) collectDeckImage() *img.Image {
 	bound := d.images[0].Bounds().Max

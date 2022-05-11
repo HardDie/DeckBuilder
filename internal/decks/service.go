@@ -15,16 +15,16 @@ func NewService() *DeckService {
 	}
 }
 
-func (s *DeckService) Create(gameId, collectionId string, dto *CreateDeckDTO) (*DeckInfo, error) {
-	return s.storage.Create(gameId, collectionId, NewDeckInfo(dto.Type, dto.BacksideImage))
+func (s *DeckService) Create(gameID, collectionID string, dto *CreateDeckDTO) (*DeckInfo, error) {
+	return s.storage.Create(gameID, collectionID, NewDeckInfo(dto.Type, dto.BacksideImage))
 }
 
-func (s *DeckService) Item(gameId, collectionId, deckId string) (*DeckInfo, error) {
-	return s.storage.GetById(gameId, collectionId, deckId)
+func (s *DeckService) Item(gameID, collectionID, deckID string) (*DeckInfo, error) {
+	return s.storage.GetByID(gameID, collectionID, deckID)
 }
 
-func (s *DeckService) List(gameId, collectionId, sortField string) ([]*DeckInfo, error) {
-	items, err := s.storage.GetAll(gameId, collectionId)
+func (s *DeckService) List(gameID, collectionID, sortField string) ([]*DeckInfo, error) {
+	items, err := s.storage.GetAll(gameID, collectionID)
 	if err != nil {
 		return make([]*DeckInfo, 0), err
 	}
@@ -32,20 +32,20 @@ func (s *DeckService) List(gameId, collectionId, sortField string) ([]*DeckInfo,
 	return items, nil
 }
 
-func (s *DeckService) Update(gameId, collectionId, deckId string, dto *UpdateDeckDTO) (*DeckInfo, error) {
-	return s.storage.Update(gameId, collectionId, deckId, dto)
+func (s *DeckService) Update(gameID, collectionID, deckID string, dto *UpdateDeckDTO) (*DeckInfo, error) {
+	return s.storage.Update(gameID, collectionID, deckID, dto)
 }
 
-func (s *DeckService) Delete(gameId, collectionId, deckId string) error {
-	return s.storage.DeleteById(gameId, collectionId, deckId)
+func (s *DeckService) Delete(gameID, collectionID, deckID string) error {
+	return s.storage.DeleteByID(gameID, collectionID, deckID)
 }
 
-func (s *DeckService) GetImage(gameId, collectionId, deckId string) ([]byte, string, error) {
-	return s.storage.GetImage(gameId, collectionId, deckId)
+func (s *DeckService) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
+	return s.storage.GetImage(gameID, collectionID, deckID)
 }
 
-func (s *DeckService) ListAllUnique(gameId string) ([]*DeckInfo, error) {
-	items, err := s.storage.GetAllDecksInGame(gameId)
+func (s *DeckService) ListAllUnique(gameID string) ([]*DeckInfo, error) {
+	items, err := s.storage.GetAllDecksInGame(gameID)
 	if err != nil {
 		return make([]*DeckInfo, 0), err
 	}

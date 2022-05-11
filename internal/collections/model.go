@@ -11,7 +11,7 @@ import (
 )
 
 type CollectionInfo struct {
-	Id          string     `json:"id"`
+	ID          string     `json:"id"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Image       string     `json:"image"`
@@ -21,7 +21,7 @@ type CollectionInfo struct {
 
 func NewCollectionInfo(name, desc, image string) *CollectionInfo {
 	return &CollectionInfo{
-		Id:          utils.NameToId(name),
+		ID:          utils.NameToID(name),
 		Name:        name,
 		Description: desc,
 		Image:       image,
@@ -29,20 +29,20 @@ func NewCollectionInfo(name, desc, image string) *CollectionInfo {
 	}
 }
 
-func (i *CollectionInfo) Path(gameId string) string {
-	return filepath.Join(config.GetConfig().Games(), gameId, i.Id)
+func (i *CollectionInfo) Path(gameID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, i.ID)
 }
 
-func (i *CollectionInfo) InfoPath(gameId string) string {
-	return filepath.Join(config.GetConfig().Games(), gameId, i.Id, config.GetConfig().InfoFilename)
+func (i *CollectionInfo) InfoPath(gameID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, i.ID, config.GetConfig().InfoFilename)
 }
 
-func (i *CollectionInfo) ImagePath(gameId string) string {
-	return filepath.Join(config.GetConfig().Games(), gameId, i.Id, config.GetConfig().ImageFilename)
+func (i *CollectionInfo) ImagePath(gameID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, i.ID, config.GetConfig().ImageFilename)
 }
 
 func (i *CollectionInfo) Compare(val *CollectionInfo) bool {
-	if i.Id != val.Id {
+	if i.ID != val.ID {
 		return false
 	}
 	if i.Name != val.Name {

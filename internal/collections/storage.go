@@ -26,47 +26,47 @@ func NewCollectionStorage(config *config.Config, gameService *games.GameService)
 	}
 }
 
-func (s *CollectionStorage) Create(gameId string, collection *CollectionInfo) (*CollectionInfo, error) {
+func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*CollectionInfo, error) {
 	// Check ID
-	if len(collection.Id) == 0 {
+	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(collection.Name)
 	}
 
 	// Check if such an object already exists
-	if val, _ := s.GetById(gameId, collection.Id); val != nil {
+	if val, _ := s.GetByID(gameID, collection.ID); val != nil {
 		return nil, errors.CollectionExist
 	}
 
 	// Create folder
-	if err := fs.CreateFolder(collection.Path(gameId)); err != nil {
+	if err := fs.CreateFolder(collection.Path(gameID)); err != nil {
 		return nil, err
 	}
 
 	// Writing info to file
-	if err := fs.WriteFile(collection.InfoPath(gameId), collection); err != nil {
+	if err := fs.WriteFile(collection.InfoPath(gameID), collection); err != nil {
 		return nil, err
 	}
 
 	if len(collection.Image) > 0 {
 		// Download image
-		if err := s.CreateImage(gameId, collection.Id, collection.Image); err != nil {
+		if err := s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
 			return nil, err
 		}
 	}
 
 	return collection, nil
 }
-func (s *CollectionStorage) GetById(gameId, collectionId string) (*CollectionInfo, error) {
+func (s *CollectionStorage) GetByID(gameID, collectionID string) (*CollectionInfo, error) {
 	// Check if the game exists
-	_, err := s.GameService.Item(gameId)
+	_, err := s.GameService.Item(gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	collection := CollectionInfo{Id: collectionId}
+	collection := CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
-	isExist, err := fs.IsFolderExist(collection.Path(gameId))
+	isExist, err := fs.IsFolderExist(collection.Path(gameID))
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (s *CollectionStorage) GetById(gameId, collectionId string) (*CollectionInf
 	}
 
 	// Check if such an object exists
-	isExist, err = fs.IsFileExist(collection.InfoPath(gameId))
+	isExist, err = fs.IsFileExist(collection.InfoPath(gameID))
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +84,11 @@ func (s *CollectionStorage) GetById(gameId, collectionId string) (*CollectionInf
 	}
 
 	// Read info from file
-	return fs.ReadFile[CollectionInfo](collection.InfoPath(gameId))
+	return fs.ReadFile[CollectionInfo](collection.InfoPath(gameID))
 }
-func (s *CollectionStorage) GetAll(gameId string) ([]*CollectionInfo, error) {
+func (s *CollectionStorage) GetAll(gameID string) ([]*CollectionInfo, error) {
 	// Check if the game exists
-	game, err := s.GameService.Item(gameId)
+	game, err := s.GameService.Item(gameID)
 	if err != nil {
 		return make([]*CollectionInfo, 0), err
 	}
@@ -101,8 +101,8 @@ func (s *CollectionStorage) GetAll(gameId string) ([]*CollectionInfo, error) {
 
 	// Get each collection
 	collections := make([]*CollectionInfo, 0)
-	for _, collectionId := range folders {
-		collection, err := s.GetById(gameId, collectionId)
+	for _, collectionID := range folders {
+		collection, err := s.GetByID(gameID, collectionID)
 		if err != nil {
 			log.Println(err.Error())
 			continue
@@ -112,9 +112,9 @@ func (s *CollectionStorage) GetAll(gameId string) ([]*CollectionInfo, error) {
 
 	return collections, nil
 }
-func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
+func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
 	// Get old object
-	oldCollection, err := s.GetById(gameId, collectionId)
+	oldCollection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,19 +122,19 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 	// Create collection object
 	collection := NewCollectionInfo(dto.Name, dto.Description, dto.Image)
 	collection.CreatedAt = oldCollection.CreatedAt
-	if len(collection.Id) == 0 {
+	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(dto.Name)
 	}
 
 	// If the id has been changed, rename the object
-	if collection.Id != oldCollection.Id {
+	if collection.ID != oldCollection.ID {
 		// Check if such an object already exists
-		if val, _ := s.GetById(gameId, collection.Id); val != nil {
+		if val, _ := s.GetByID(gameID, collection.ID); val != nil {
 			return nil, errors.CollectionExist
 		}
 
 		// Rename object
-		err = fs.MoveFolder(oldCollection.Path(gameId), collection.Path(gameId))
+		err = fs.MoveFolder(oldCollection.Path(gameID), collection.Path(gameID))
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +144,7 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 	if !oldCollection.Compare(collection) {
 		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.WriteFile(collection.InfoPath(gameId), collection); err != nil {
+		if err = fs.WriteFile(collection.InfoPath(gameID), collection); err != nil {
 			return nil, err
 		}
 	}
@@ -152,8 +152,8 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 	// If the image has been changed
 	if collection.Image != oldCollection.Image {
 		// If image exist, delete
-		if data, _, _ := s.GetImage(gameId, collection.Id); data != nil {
-			err = fs.RemoveFile(collection.ImagePath(gameId))
+		if data, _, _ := s.GetImage(gameID, collection.ID); data != nil {
+			err = fs.RemoveFile(collection.ImagePath(gameID))
 			if err != nil {
 				return nil, err
 			}
@@ -161,7 +161,7 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 
 		if len(collection.Image) > 0 {
 			// Download image
-			if err = s.CreateImage(gameId, collection.Id, collection.Image); err != nil {
+			if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
 				return nil, err
 			}
 		}
@@ -169,26 +169,26 @@ func (s *CollectionStorage) Update(gameId, collectionId string, dto *UpdateColle
 
 	return collection, nil
 }
-func (s *CollectionStorage) DeleteById(gameId, collectionId string) error {
-	collection := CollectionInfo{Id: collectionId}
+func (s *CollectionStorage) DeleteByID(gameID, collectionID string) error {
+	collection := CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
-	if val, _ := s.GetById(gameId, collectionId); val == nil {
+	if val, _ := s.GetByID(gameID, collectionID); val == nil {
 		return errors.CollectionNotExists.HTTP(http.StatusBadRequest)
 	}
 
 	// Remove object
-	return fs.RemoveFolder(collection.Path(gameId))
+	return fs.RemoveFolder(collection.Path(gameID))
 }
-func (s *CollectionStorage) GetImage(gameId, collectionId string) ([]byte, string, error) {
+func (s *CollectionStorage) GetImage(gameID, collectionID string) ([]byte, string, error) {
 	// Check if such an object exists
-	collection, err := s.GetById(gameId, collectionId)
+	collection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
 		return nil, "", err
 	}
 
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(collection.ImagePath(gameId))
+	isExist, err := fs.IsFileExist(collection.ImagePath(gameID))
 	if err != nil {
 		return nil, "", err
 	}
@@ -197,7 +197,7 @@ func (s *CollectionStorage) GetImage(gameId, collectionId string) ([]byte, strin
 	}
 
 	// Read an image from a file
-	data, err := fs.ReadBinaryFile(collection.ImagePath(gameId))
+	data, err := fs.ReadBinaryFile(collection.ImagePath(gameID))
 	if err != nil {
 		return nil, "", err
 	}
@@ -209,15 +209,15 @@ func (s *CollectionStorage) GetImage(gameId, collectionId string) ([]byte, strin
 
 	return data, imgType, nil
 }
-func (s *CollectionStorage) CreateImage(gameId, collectionId, imageUrl string) error {
+func (s *CollectionStorage) CreateImage(gameID, collectionID, imageURL string) error {
 	// Check if such an object exists
-	collection, _ := s.GetById(gameId, collectionId)
+	collection, _ := s.GetByID(gameID, collectionID)
 	if collection == nil {
 		return errors.CollectionNotExists.HTTP(http.StatusBadRequest)
 	}
 
 	// Download image
-	imageBytes, err := network.DownloadBytes(imageUrl)
+	imageBytes, err := network.DownloadBytes(imageURL)
 	if err != nil {
 		return err
 	}
@@ -229,5 +229,5 @@ func (s *CollectionStorage) CreateImage(gameId, collectionId, imageUrl string) e
 	}
 
 	// Write image to file
-	return fs.WriteBinaryFile(collection.ImagePath(gameId), imageBytes)
+	return fs.WriteBinaryFile(collection.ImagePath(gameID), imageBytes)
 }

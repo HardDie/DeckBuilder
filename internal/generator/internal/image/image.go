@@ -48,7 +48,7 @@ func CreateImage(width, height, cols, rows int) *Image {
 		Height: height,
 	}
 }
-func (img *Image) Draw(col int, row int, imageSrc image.Image) {
+func (img *Image) Draw(col, row int, imageSrc image.Image) {
 	pos := image.Rect(
 		col*img.Width,             // Start X
 		row*img.Height,            // Start Y
@@ -56,7 +56,6 @@ func (img *Image) Draw(col int, row int, imageSrc image.Image) {
 		row*img.Height+img.Height, // End Y
 	)
 	draw.Draw(img.Img, pos, imageSrc, image.Point{0, 0}, draw.Src)
-	return
 }
 func (img *Image) SaveImage(title string) {
 	out, err := os.Create(title)

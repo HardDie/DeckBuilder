@@ -53,10 +53,10 @@ type ResponseDeckImage struct {
 //       200: ResponseDeckImage
 //       default: ResponseError
 func DeckHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
-	deckId := mux.Vars(r)["deck"]
-	img, imgType, e := decks.NewService().GetImage(gameId, collectionId, deckId)
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
+	deckID := mux.Vars(r)["deck"]
+	img, imgType, e := decks.NewService().GetImage(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

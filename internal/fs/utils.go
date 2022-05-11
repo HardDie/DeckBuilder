@@ -2,11 +2,15 @@ package fs
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
 	"tts_deck_build/internal/errors"
+)
+
+const (
+	DirPerm = 0755
 )
 
 func IsFolderExist(path string) (isExist bool, err error) {
@@ -57,7 +61,7 @@ func IsFileExist(path string) (isExist bool, err error) {
 }
 
 func CreateFolder(path string) error {
-	err := os.Mkdir(path, 0755)
+	err := os.Mkdir(path, DirPerm)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return errors.InternalError.AddMessage(err.Error())
@@ -81,12 +85,12 @@ func MoveFolder(oldPath, newPath string) error {
 	return nil
 }
 func ListOfFolders(path string) ([]string, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, errors.InternalError.AddMessage(err.Error())
 	}
 
-	var folders []string
+	folders := make([]string, 0)
 	for _, file := range files {
 		if !file.IsDir() {
 			continue
@@ -155,7 +159,7 @@ func ReadBinaryFile(path string) ([]byte, error) {
 	}
 	defer func() { errors.IfErrorLog(file.Close()) }()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return nil, errors.InternalError.AddMessage(err.Error())
@@ -172,12 +176,12 @@ func RemoveFile(path string) error {
 	return nil
 }
 func ListOfFiles(path string) ([]string, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, errors.InternalError.AddMessage(err.Error())
 	}
 
-	var listFiles []string
+	listFiles := make([]string, 0)
 	for _, file := range files {
 		if file.IsDir() {
 			continue

@@ -15,16 +15,16 @@ func NewService() *CollectionService {
 	}
 }
 
-func (s *CollectionService) Create(gameId string, dto *CreateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Create(gameId, NewCollectionInfo(dto.Name, dto.Description, dto.Image))
+func (s *CollectionService) Create(gameID string, dto *CreateCollectionDTO) (*CollectionInfo, error) {
+	return s.storage.Create(gameID, NewCollectionInfo(dto.Name, dto.Description, dto.Image))
 }
 
-func (s *CollectionService) Item(gameId, collectionId string) (*CollectionInfo, error) {
-	return s.storage.GetById(gameId, collectionId)
+func (s *CollectionService) Item(gameID, collectionID string) (*CollectionInfo, error) {
+	return s.storage.GetByID(gameID, collectionID)
 }
 
-func (s *CollectionService) List(gameId, sortField string) ([]*CollectionInfo, error) {
-	items, err := s.storage.GetAll(gameId)
+func (s *CollectionService) List(gameID, sortField string) ([]*CollectionInfo, error) {
+	items, err := s.storage.GetAll(gameID)
 	if err != nil {
 		return make([]*CollectionInfo, 0), err
 	}
@@ -32,14 +32,14 @@ func (s *CollectionService) List(gameId, sortField string) ([]*CollectionInfo, e
 	return items, nil
 }
 
-func (s *CollectionService) Update(gameId, collectionId string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Update(gameId, collectionId, dto)
+func (s *CollectionService) Update(gameID, collectionID string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
+	return s.storage.Update(gameID, collectionID, dto)
 }
 
-func (s *CollectionService) Delete(gameId, collectionId string) error {
-	return s.storage.DeleteById(gameId, collectionId)
+func (s *CollectionService) Delete(gameID, collectionID string) error {
+	return s.storage.DeleteByID(gameID, collectionID)
 }
 
-func (s *CollectionService) GetImage(gameId, collectionId string) ([]byte, string, error) {
-	return s.storage.GetImage(gameId, collectionId)
+func (s *CollectionService) GetImage(gameID, collectionID string) ([]byte, string, error) {
+	return s.storage.GetImage(gameID, collectionID)
 }

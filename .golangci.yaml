@@ -1,0 +1,48 @@
+linters-settings:
+  gocritic:
+    enabled-tags:
+      - diagnostic
+#      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+
+linters:
+  enable:
+    - staticcheck
+    - misspell
+    - unparam
+    - prealloc
+    - gomnd
+    - gocritic
+    - golint
+  disable-all: false
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gocritic
+        - unparam
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+severity:
+  default-severity: warning
+  rules:
+    - linters:
+      - dupl
+      - gosimple
+      - structcheck
+      - misspell
+      - prealloc
+      - gocritic
+      - golint
+      severity: info

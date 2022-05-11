@@ -47,9 +47,9 @@ func (c *Card) GetUniqueBackSineURL() string {
 
 func (c *Card) FillWithInfo(version, collection, deckType string) {
 	c.Collection = collection
-	c.FileName = version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromUrl(*c.Link)
+	c.FileName = version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Link)
 	if c.Background != nil {
-		name := version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromUrl(*c.Background)
+		name := version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Background)
 		c.BackFileName = &name
 	}
 }

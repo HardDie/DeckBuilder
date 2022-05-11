@@ -11,7 +11,7 @@ import (
 )
 
 type GameInfo struct {
-	Id          string     `json:"id"`
+	ID          string     `json:"id"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Image       string     `json:"image"`
@@ -21,7 +21,7 @@ type GameInfo struct {
 
 func NewGameInfo(name, desc, image string) *GameInfo {
 	return &GameInfo{
-		Id:          utils.NameToId(name),
+		ID:          utils.NameToID(name),
 		Name:        name,
 		Description: desc,
 		Image:       image,
@@ -30,19 +30,19 @@ func NewGameInfo(name, desc, image string) *GameInfo {
 }
 
 func (i *GameInfo) Path() string {
-	return filepath.Join(config.GetConfig().Games(), i.Id)
+	return filepath.Join(config.GetConfig().Games(), i.ID)
 }
 
 func (i *GameInfo) InfoPath() string {
-	return filepath.Join(config.GetConfig().Games(), i.Id, config.GetConfig().InfoFilename)
+	return filepath.Join(config.GetConfig().Games(), i.ID, config.GetConfig().InfoFilename)
 }
 
 func (i *GameInfo) ImagePath() string {
-	return filepath.Join(config.GetConfig().Games(), i.Id, config.GetConfig().ImageFilename)
+	return filepath.Join(config.GetConfig().Games(), i.ID, config.GetConfig().ImageFilename)
 }
 
 func (i *GameInfo) Compare(val *GameInfo) bool {
-	if i.Id != val.Id {
+	if i.ID != val.ID {
 		return false
 	}
 	if i.Name != val.Name {

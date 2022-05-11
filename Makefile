@@ -13,3 +13,15 @@ web-build:
 
 web-setup:
 	cp -r web/dist api/web/web
+
+linter-install:
+	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b ./bin
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin
+
+linter-run: linter-gosec linter-golangci-lint
+
+linter-gosec:
+	./bin/gosec -fmt=sonarqube ./... || echo "gosec found issues"
+
+linter-golangci-lint:
+	./bin/golangci-lint run

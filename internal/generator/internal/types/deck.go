@@ -28,7 +28,7 @@ func (d *Deck) GetBackSideName() string {
 	if d.BackSide == nil {
 		log.Fatalf("Can't get back side image")
 	}
-	return utils.GetFilenameFromUrl(*d.BackSide)
+	return utils.GetFilenameFromURL(*d.BackSide)
 }
 func (d *Deck) GetBackSideURL() string {
 	if d.BackSide == nil {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/network"
 )
@@ -49,9 +50,9 @@ type ResponseCollection struct {
 //       200: ResponseCollection
 //       default: ResponseError
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
-	item, e := collections.NewService().Item(gameId, collectionId)
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
+	item, e := collections.NewService().Item(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

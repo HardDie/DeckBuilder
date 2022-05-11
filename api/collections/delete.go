@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/network"
 )
@@ -44,9 +45,9 @@ type ResponseDeleteCollection struct {
 //       200: ResponseDeleteCollection
 //       default: ResponseError
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	gameId := mux.Vars(r)["game"]
-	collectionId := mux.Vars(r)["collection"]
-	e := collections.NewService().Delete(gameId, collectionId)
+	gameID := mux.Vars(r)["game"]
+	collectionID := mux.Vars(r)["collection"]
+	e := collections.NewService().Delete(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}

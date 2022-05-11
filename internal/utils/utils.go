@@ -9,7 +9,7 @@ var (
 	reg = regexp.MustCompile("[^a-zA-Z0-9_]+")
 )
 
-func NameToId(in string) string {
+func NameToID(in string) string {
 	// Convert all symbols to lowercase
 	lower := strings.ToLower(in)
 	// Replace all spaces to underscore symbol
