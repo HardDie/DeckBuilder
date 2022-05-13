@@ -3,6 +3,7 @@ package collections
 import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/utils"
 )
 
 type CollectionService struct {
@@ -28,7 +29,7 @@ func (s *CollectionService) List(gameID, sortField string) ([]*CollectionInfo, e
 	if err != nil {
 		return make([]*CollectionInfo, 0), err
 	}
-	Sort(&items, sortField)
+	utils.Sort(&items, sortField)
 	return items, nil
 }
 

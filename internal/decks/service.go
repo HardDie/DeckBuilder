@@ -3,6 +3,7 @@ package decks
 import (
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/utils"
 )
 
 type DeckService struct {
@@ -28,7 +29,7 @@ func (s *DeckService) List(gameID, collectionID, sortField string) ([]*DeckInfo,
 	if err != nil {
 		return make([]*DeckInfo, 0), err
 	}
-	Sort(&items, sortField)
+	utils.Sort(&items, sortField)
 	return items, nil
 }
 
@@ -49,6 +50,6 @@ func (s *DeckService) ListAllUnique(gameID string) ([]*DeckInfo, error) {
 	if err != nil {
 		return make([]*DeckInfo, 0), err
 	}
-	Sort(&items, "name")
+	utils.Sort(&items, "name")
 	return items, nil
 }

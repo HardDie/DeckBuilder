@@ -2,6 +2,7 @@ package games
 
 import (
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/utils"
 )
 
 type GameService struct {
@@ -27,7 +28,7 @@ func (s *GameService) List(sortField string) ([]*GameInfo, error) {
 	if err != nil {
 		return make([]*GameInfo, 0), err
 	}
-	Sort(&items, sortField)
+	utils.Sort(&items, sortField)
 	return items, nil
 }
 
