@@ -68,6 +68,17 @@ func CreateFolder(path string) error {
 	}
 	return nil
 }
+func CreateFolderIfNotExist(path string) error {
+	isExists, err := IsFolderExist(path)
+	if err != nil || isExists {
+		return err
+	}
+	err = CreateFolder(path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func RemoveFolder(path string) error {
 	err := os.RemoveAll(path)
 	if err != nil {

@@ -63,12 +63,7 @@ func (m *DownloadManager) Download() {
 		}
 		// Download if it's new file
 		log.Println("File:", file.Filename, "downloading...")
-		u, _ := url.Parse(file.URL)
-		if u.Scheme == "" {
-			m.copy(filepath.Join(config.GetConfig().SourceDir, file.URL), file.Filename)
-		} else {
-			m.download(file.URL, file.Filename)
-		}
+		m.download(file.URL, file.Filename)
 		downloadedFiles++
 	}
 	log.Println("Total", cachedFiles, "images already exists in cache")
@@ -126,7 +121,7 @@ func (m *DownloadManager) download(url, filename string) {
 	m.cache[filename] = struct{}{}
 }
 func (m *DownloadManager) checkCache() {
-	files, err := os.ReadDir(config.GetConfig().CachePath)
+	files, err := os.ReadDir(config.GetConfig().Caches())
 	if err != nil {
 		log.Fatal(err.Error())
 	}

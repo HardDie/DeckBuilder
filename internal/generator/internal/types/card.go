@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/generator/internal/utils"
+	"tts_deck_build/internal/utils"
 )
 
 type Card struct {
@@ -47,9 +47,9 @@ func (c *Card) GetUniqueBackSineURL() string {
 
 func (c *Card) FillWithInfo(version, collection, deckType string) {
 	c.Collection = collection
-	c.FileName = version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Link)
+	c.FileName = version + "_" + collection + "_" + deckType + "_" + utils.NameToID(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Link)
 	if c.Background != nil {
-		name := version + "_" + collection + "_" + deckType + "_" + utils.CleanTitle(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Background)
+		name := version + "_" + collection + "_" + deckType + "_" + utils.NameToID(*c.Title) + "_" + utils.GetFilenameFromURL(*c.Background)
 		c.BackFileName = &name
 	}
 }
@@ -58,7 +58,7 @@ func (c *Card) GetFileName() string {
 	return c.FileName
 }
 func (c *Card) GetFilePath() string {
-	return filepath.Join(config.GetConfig().CachePath, c.GetFileName())
+	return filepath.Join(config.GetConfig().Caches(), c.GetFileName())
 }
 func (c *Card) GetLua() string {
 	var res string

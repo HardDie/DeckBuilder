@@ -44,41 +44,35 @@ func WebServer() {
 	}
 }
 
-func createDirIfNotExists(folder string) {
-	isExists, e := fs.IsFolderExist(folder)
-	if e != nil {
-		log.Fatal(e.Error())
+func setup() error {
+	err := fs.CreateFolderIfNotExist(config.GetConfig().Data)
+	if err != nil {
+		return err
 	}
-	if isExists {
-		return
-	}
-	e = fs.CreateFolder(folder)
-	if e != nil {
-		log.Fatal(e.Error())
-	}
-}
-func setup() {
-	createDirIfNotExists(config.GetConfig().Data)
-	createDirIfNotExists(config.GetConfig().Games())
+	return fs.CreateFolderIfNotExist(config.GetConfig().Games())
 }
 
 func main() {
 	// Setup logs
 	log.SetFlags(log.Llongfile | log.Ltime)
 
-	setup()
+	err := setup()
+	if err != nil {
+		log.Fatal("Error creating default folders:", err.Error())
+	}
 
 	// Setup run flags
 	genImgMode := flag.Bool("generate_image", false, "Run process of generating deck images")
 	genDeckMode := flag.Bool("generate_object", false, "Run process of generating json deck object")
+	gameName := flag.String("game", "", "Title of game for generator")
 	helpMode := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
 	switch {
 	case *genImgMode:
-		generator.GenerateDeckImages()
+		generator.GenerateDeckImages(*gameName)
 	case *genDeckMode:
-		generator.GenerateDeckObject()
+		generator.GenerateDeckObject(*gameName)
 	case *helpMode:
 		fmt.Println("How to use:")
 		fmt.Println("1. Build images from ${sourceDir}/*.json descriptions (-generate_image)")

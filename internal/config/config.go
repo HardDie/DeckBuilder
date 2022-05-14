@@ -7,13 +7,12 @@ const (
 )
 
 type Config struct {
-	SourceDir string `json:"sourceDir"`
-	ResultDir string `json:"resultDir"`
-	CachePath string `json:"cachePath"`
-	Debug     bool   `json:"debug"`
+	Debug bool `json:"debug"`
 
-	Data string `json:"data"`
-	Game string `json:"game"`
+	Data   string `json:"data"`
+	Game   string `json:"game"`
+	Cache  string `json:"cache"`
+	Result string `json:"result"`
 
 	InfoFilename  string `json:"infoFilename"`
 	ImageFilename string `json:"imageFilename"`
@@ -24,13 +23,12 @@ var config *Config
 func GetConfig() *Config {
 	if config == nil {
 		config = &Config{
-			SourceDir: "./data/desc/eng_v2",
-			ResultDir: "./data/result_png/",
-			CachePath: "./data/cache",
-			Debug:     false,
+			Debug: false,
 
-			Data: "data",
-			Game: "games",
+			Data:   "data",
+			Game:   "games",
+			Cache:  "cache",
+			Result: "result_png",
 
 			InfoFilename:  ".info.json",
 			ImageFilename: ".image.bin",
@@ -41,4 +39,10 @@ func GetConfig() *Config {
 
 func (c *Config) Games() string {
 	return filepath.Join(c.Data, c.Game)
+}
+func (c *Config) Caches() string {
+	return filepath.Join(c.Data, c.Cache)
+}
+func (c *Config) Results() string {
+	return filepath.Join(c.Data, c.Result)
 }

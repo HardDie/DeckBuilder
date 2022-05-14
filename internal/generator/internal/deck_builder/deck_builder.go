@@ -9,7 +9,7 @@ import (
 	"tts_deck_build/internal/generator/internal/deck_drawer"
 	"tts_deck_build/internal/generator/internal/tts_builder"
 	"tts_deck_build/internal/generator/internal/types"
-	"tts_deck_build/internal/generator/internal/utils"
+	"tts_deck_build/internal/utils"
 )
 
 type deckBuilderDeck struct {
@@ -72,10 +72,12 @@ func (b *DeckBuilder) GetDecks(deckType string) (decks []*types.Deck) {
 			Cards:   cards,
 			Columns: columns,
 			Rows:    rows,
-			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", utils.CleanTitle(b.decks[deckType].deckType), index+1, len(cards),
+			FileName: fmt.Sprintf("%s_%d_%d_%dx%d.png", utils.NameToID(b.decks[deckType].deckType), index+1, len(cards),
 				columns, rows),
-			BackSide: &b.decks[deckType].backSideURL,
-			Type:     deckType,
+			Deck: types.DeckInfo{
+				BackSide: &b.decks[deckType].backSideURL,
+				Type:     deckType,
+			},
 		})
 	}
 	return

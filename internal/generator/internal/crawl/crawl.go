@@ -45,6 +45,11 @@ func crawl(path string) (result []*types.Deck) {
 			result = append(result, crawl(newPath)...)
 			continue
 		}
+		if file.Name()[0] == '.' {
+			// Skip hidden files
+			continue
+		}
+
 		log.Println("Parse file:", newPath)
 
 		// Parse only json files
@@ -56,7 +61,7 @@ func crawl(path string) (result []*types.Deck) {
 		result = append(result, deck)
 		// Set for each card
 		for _, card := range deck.Cards {
-			card.FillWithInfo(deck.Version, deck.Collection, deck.Type)
+			card.FillWithInfo(deck.Version, deck.Collection, deck.Deck.Type)
 		}
 	}
 	return
@@ -71,7 +76,7 @@ func Crawl(path string) map[string][]*types.Deck {
 	decks := crawl(path)
 	// Split decks by type
 	for _, deck := range decks {
-		result[deck.Type] = append(result[deck.Type], deck)
+		result[deck.Deck.Type] = append(result[deck.Deck.Type], deck)
 	}
 	return result
 }

@@ -46,7 +46,7 @@ func (d *DeckDrawer) loadCards() {
 		d.images = append(d.images, img.OpenImage(card.GetFilePath()))
 		d.log("LOAD", i+1, len(d.cards))
 	}
-	d.imageBackSide = img.OpenImage(filepath.Join(config.GetConfig().CachePath, d.backSideName))
+	d.imageBackSide = img.OpenImage(filepath.Join(config.GetConfig().Caches(), d.backSideName))
 }
 func (d *DeckDrawer) collectDeckImage() *img.Image {
 	bound := d.images[0].Bounds().Max
@@ -70,6 +70,6 @@ func (d *DeckDrawer) Draw() {
 	d.loadCards()
 	deckImage := d.collectDeckImage()
 	d.log("SAVE", 0, 0)
-	deckImage.SaveImage(filepath.Join(config.GetConfig().ResultDir, d.deckFileName))
+	deckImage.SaveImage(filepath.Join(config.GetConfig().Results(), d.deckFileName))
 	d.log("DONE", 0, 0)
 }

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/generator/internal/crawl"
 	"tts_deck_build/internal/generator/internal/deck_builder"
 	"tts_deck_build/internal/generator/internal/download_manager"
@@ -14,11 +15,12 @@ import (
 )
 
 // Read configurations, download images, build deck image files
-func GenerateDeckImages() {
+func GenerateDeckImages(gameID string) error {
+	gamePath := filepath.Join(config.GetConfig().Games(), gameID)
 	// Read all decks
-	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
+	listOfDecks := crawl.Crawl(gamePath)
 
-	dm := downloadmanager.NewDownloadManager(config.GetConfig().CachePath)
+	dm := downloadmanager.NewDownloadManager(config.GetConfig().Caches())
 	// Fill download list
 	for _, decks := range listOfDecks {
 		for _, deck := range decks {
@@ -26,6 +28,10 @@ func GenerateDeckImages() {
 		}
 	}
 	// Download all images
+	err := fs.CreateFolderIfNotExist(config.GetConfig().Caches())
+	if err != nil {
+		return err
+	}
 	dm.Download()
 
 	// Build
@@ -37,20 +43,29 @@ func GenerateDeckImages() {
 	}
 
 	// Generate images
+	err = fs.CreateFolderIfNotExist(config.GetConfig().Results())
+	if err != nil {
+		return err
+	}
 	images := db.DrawDecks()
 
 	// Write all created files
-	data, _ := json.MarshalIndent(images, "", "	")
-	err := os.WriteFile(filepath.Join(config.GetConfig().ResultDir, "images.json"), data, 0644)
+	data, err := json.MarshalIndent(images, "", "	")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	err = os.WriteFile(filepath.Join(config.GetConfig().Results(), "images.json"), data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Read configurations, generate TTS json object with description
-func GenerateDeckObject() {
+func GenerateDeckObject(gameID string) {
+	gamePath := filepath.Join(config.GetConfig().Games(), gameID)
 	// Read all decks
-	listOfDecks := crawl.Crawl(config.GetConfig().SourceDir)
+	listOfDecks := crawl.Crawl(gamePath)
 
 	// Build
 	db := deckbuilder.NewDeckBuilder()
@@ -64,7 +79,7 @@ func GenerateDeckObject() {
 	res := db.GenerateTTSDeck()
 
 	// Write deck json to file
-	err := os.WriteFile(filepath.Join(config.GetConfig().ResultDir, "deck.json"), res, 0644)
+	err := os.WriteFile(filepath.Join(config.GetConfig().Results(), "deck.json"), res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

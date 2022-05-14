@@ -19,7 +19,7 @@ type TTSBuilder struct {
 }
 
 func NewTTSBuilder() *TTSBuilder {
-	data, err := os.ReadFile(filepath.Join(config.GetConfig().ResultDir, "images.json"))
+	data, err := os.ReadFile(filepath.Join(config.GetConfig().Results(), "images.json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -53,21 +53,20 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckD
 		Type:       0,
 	}
 }
-func (b *TTSBuilder) generateTTSCard(card *types.Card, cardID int, transform types.TTSTransform) types.TTSCard {
+func (b *TTSBuilder) generateTTSCard(card *types.Card, cardID int) types.TTSCard {
 	return types.TTSCard{
 		Name:        "Card",
 		Nickname:    card.Title,
 		Description: new(string),
 		CardID:      cardID,
 		LuaScript:   card.GetLua(),
-		Transform:   transform,
 	}
 }
 func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckID, cardID int) {
 	// Get deck object
 	ttsDeck, ok := b.objects[card.Collection]
 	if !ok {
-		ttsDeck = types.NewTTSDeckObject(deck.Type, card.Collection)
+		ttsDeck = types.NewTTSDeckObject(deck.Deck.Type, card.Collection)
 		b.resObjects = append(b.resObjects, ttsDeck)
 		b.objects[card.Collection] = ttsDeck
 	}
@@ -80,7 +79,7 @@ func (b *TTSBuilder) AddCard(deck *types.Deck, card *types.Card, deckID, cardID 
 	// Add card id to deck
 	ttsDeck.DeckIDs = append(ttsDeck.DeckIDs, cardID)
 	// Add card object to deck
-	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardID, ttsDeck.Transform))
+	ttsDeck.ContainedObjects = append(ttsDeck.ContainedObjects, b.generateTTSCard(card, cardID))
 }
 func (b *TTSBuilder) GetObjects() (result []interface{}) {
 	// Sort keys
@@ -94,6 +93,7 @@ func (b *TTSBuilder) GetObjects() (result []interface{}) {
 		object := b.objects[key]
 		// If one card in deck, add separated card as object
 		if len(object.ContainedObjects) == 1 {
+			object.ContainedObjects[0].Transform = &object.Transform
 			object.ContainedObjects[0].CustomDeck = object.CustomDeck
 			result = append(result, object.ContainedObjects[0])
 			continue

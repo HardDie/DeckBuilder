@@ -18,7 +18,7 @@ type TTSCard struct {
 	Description *string                    `json:"Description"`
 	CardID      int                        `json:"CardID"`
 	LuaScript   string                     `json:"LuaScript"`
-	Transform   TTSTransform               `json:"Transform"`
+	Transform   *TTSTransform              `json:"Transform,omitempty"`
 	CustomDeck  map[int]TTSDeckDescription `json:"CustomDeck,omitempty"`
 }
 
