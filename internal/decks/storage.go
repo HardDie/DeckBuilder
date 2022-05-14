@@ -99,6 +99,10 @@ func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 			log.Println(err.Error())
 			continue
 		}
+		if deck == nil {
+			log.Println("Invalid deck file:", deckFileName)
+			continue
+		}
 		decks = append(decks, deck)
 	}
 
