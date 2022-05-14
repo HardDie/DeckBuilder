@@ -3,11 +3,11 @@ package image
 import (
 	"image"
 	"image/draw"
-	"image/jpeg"
+	_ "image/gif"
+	_ "image/jpeg"
 	"image/png"
 	"log"
 	"os"
-	"strings"
 )
 
 type (
@@ -24,20 +24,10 @@ func OpenImage(path string) image.Image {
 		log.Fatal(err.Error())
 	}
 
-	tokens := strings.Split(path, ".")
-	ext := strings.ToLower(tokens[len(tokens)-1])
-
 	var img image.Image
-	switch ext {
-	case "png":
-		img, err = png.Decode(imgFile)
-	case "jpg", "jpeg":
-		img, err = jpeg.Decode(imgFile)
-	default:
-		log.Fatal("Unknown file format:", ext)
-	}
+	img, _, err = image.Decode(imgFile)
 	if err != nil {
-		log.Fatal(err.Error(), path)
+		log.Fatal(err.Error())
 	}
 	return img
 }

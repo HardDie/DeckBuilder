@@ -75,10 +75,10 @@ func main() {
 		generator.GenerateDeckObject(*gameName)
 	case *helpMode:
 		fmt.Println("How to use:")
-		fmt.Println("1. Build images from ${sourceDir}/*.json descriptions (-generate_image)")
+		fmt.Println("1. Build images from ${sourceDir}/*.json descriptions (-generate_image -game gameID)")
 		fmt.Println("2. Upload images on some hosting (steam cloud)")
 		fmt.Println("3. Write URL for each image in ${resultDir}/images.json file")
-		fmt.Println("4. Build deck object ${resultDir}/deck.json (-generate_object)")
+		fmt.Println("4. Build deck object ${resultDir}/deck.json (-generate_object -game gameID)")
 		fmt.Println("5. Put deck object into \"Tabletop Simulator/Saves/Saved Objects\" folder")
 		fmt.Println()
 		fmt.Println("Choose one of the mode:")

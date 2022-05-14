@@ -18,7 +18,10 @@ import (
 func GenerateDeckImages(gameID string) error {
 	gamePath := filepath.Join(config.GetConfig().Games(), gameID)
 	// Read all decks
-	listOfDecks := crawl.Crawl(gamePath)
+	listOfDecks, err := crawl.Crawl(gamePath)
+	if err != nil {
+		return err
+	}
 
 	dm := downloadmanager.NewDownloadManager(config.GetConfig().Caches())
 	// Fill download list
@@ -28,7 +31,7 @@ func GenerateDeckImages(gameID string) error {
 		}
 	}
 	// Download all images
-	err := fs.CreateFolderIfNotExist(config.GetConfig().Caches())
+	err = fs.CreateFolderIfNotExist(config.GetConfig().Caches())
 	if err != nil {
 		return err
 	}
@@ -65,7 +68,10 @@ func GenerateDeckImages(gameID string) error {
 func GenerateDeckObject(gameID string) {
 	gamePath := filepath.Join(config.GetConfig().Games(), gameID)
 	// Read all decks
-	listOfDecks := crawl.Crawl(gamePath)
+	listOfDecks, err := crawl.Crawl(gamePath)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	// Build
 	db := deckbuilder.NewDeckBuilder()
@@ -79,7 +85,7 @@ func GenerateDeckObject(gameID string) {
 	res := db.GenerateTTSDeck()
 
 	// Write deck json to file
-	err := os.WriteFile(filepath.Join(config.GetConfig().Results(), "deck.json"), res, 0644)
+	err = os.WriteFile(filepath.Join(config.GetConfig().Results(), "deck.json"), res, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
