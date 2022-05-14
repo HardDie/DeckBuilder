@@ -43,7 +43,7 @@ func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*
 	}
 
 	// Writing info to file
-	if err := fs.WriteFile(collection.InfoPath(gameID), collection); err != nil {
+	if err := fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func (s *CollectionStorage) GetByID(gameID, collectionID string) (*CollectionInf
 	}
 
 	// Read info from file
-	return fs.ReadFile[CollectionInfo](collection.InfoPath(gameID))
+	return fs.OpenAndProcess(collection.InfoPath(gameID), fs.JsonFromReader[CollectionInfo])
 }
 func (s *CollectionStorage) GetAll(gameID string) ([]*CollectionInfo, error) {
 	// Check if the game exists
@@ -144,7 +144,7 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateColle
 	if !oldCollection.Compare(collection) {
 		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.WriteFile(collection.InfoPath(gameID), collection); err != nil {
+		if err = fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -197,7 +197,7 @@ func (s *CollectionStorage) GetImage(gameID, collectionID string) ([]byte, strin
 	}
 
 	// Read an image from a file
-	data, err := fs.ReadBinaryFile(collection.ImagePath(gameID))
+	data, err := fs.OpenAndProcess(collection.ImagePath(gameID), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -229,5 +229,5 @@ func (s *CollectionStorage) CreateImage(gameID, collectionID, imageURL string) e
 	}
 
 	// Write image to file
-	return fs.WriteBinaryFile(collection.ImagePath(gameID), imageBytes)
+	return fs.CreateAndProcess(collection.ImagePath(gameID), imageBytes, fs.BinToWriter)
 }

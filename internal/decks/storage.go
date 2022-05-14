@@ -38,7 +38,7 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 	}
 
 	// Writing info to file
-	if err := fs.WriteFile(deck.Path(gameID, collectionID), Deck{Deck: deck}); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck}, fs.JsonToWriter[Deck]); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +70,7 @@ func (s *DeckStorage) GetByID(gameID, collectionID, deckID string) (*DeckInfo, e
 	}
 
 	// Read info from file
-	readDeck, err := fs.ReadFile[Deck](deck.Path(gameID, collectionID))
+	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Deck])
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 	if !oldDeck.Compare(deck) {
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.WriteFile(deck.Path(gameID, collectionID), Deck{Deck: deck}); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck}, fs.JsonToWriter[Deck]); err != nil {
 			return nil, err
 		}
 	}
@@ -206,7 +206,7 @@ func (s *DeckStorage) GetImage(gameID, collectionID, deckID string) ([]byte, str
 	}
 
 	// Read an image from a file
-	data, err := fs.ReadBinaryFile(deck.ImagePath(gameID, collectionID))
+	data, err := fs.OpenAndProcess(deck.ImagePath(gameID, collectionID), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -238,7 +238,7 @@ func (s *DeckStorage) CreateImage(gameID, collectionID, deckID, imageURL string)
 	}
 
 	// Write image to file
-	return fs.WriteBinaryFile(deck.ImagePath(gameID, collectionID), imageBytes)
+	return fs.CreateAndProcess(deck.ImagePath(gameID, collectionID), imageBytes, fs.BinToWriter)
 }
 func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*DeckInfo, error) {
 	// Get all collections in selected game

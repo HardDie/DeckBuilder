@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -112,72 +111,6 @@ func ListOfFolders(path string) ([]string, error) {
 	return folders, nil
 }
 
-func WriteFile[T any](path string, data T) error {
-	// Creating a file
-	f, err := os.Create(path)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	defer func() { errors.IfErrorLog(f.Close()) }()
-
-	// Marshalling data to json and writing to file
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "	")
-	if err = enc.Encode(data); err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func WriteBinaryFile(path string, data []byte) error {
-	// Creating a file
-	f, err := os.Create(path)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	defer func() { errors.IfErrorLog(f.Close()) }()
-
-	// Write data to file
-	_, err = f.Write(data)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func ReadFile[T any](path string) (data *T, err error) {
-	file, err := os.Open(path)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
-
-	err = json.NewDecoder(file).Decode(&data)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-	return
-}
-func ReadBinaryFile(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
-
-	data, err := io.ReadAll(file)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-
-	return data, nil
-}
 func RemoveFile(path string) error {
 	err := os.Remove(path)
 	if err != nil {
@@ -213,4 +146,23 @@ func ListOfFiles(path string) ([]string, error) {
 
 func GetFilenameWithoutExt(name string) string {
 	return name[:len(name)-len(filepath.Ext(name))]
+}
+
+func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func() { errors.IfErrorLog(file.Close()) }()
+
+	return cb(file, in)
+}
+func OpenAndProcess[T any](path string, cb func(r io.Reader) (T, error)) (res T, err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer func() { errors.IfErrorLog(file.Close()) }()
+
+	return cb(file)
 }

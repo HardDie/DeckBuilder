@@ -40,7 +40,7 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 	}
 
 	// Writing info to file
-	if err := fs.WriteFile(game.InfoPath(), game); err != nil {
+	if err := fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
 	}
 
 	// Read info from file
-	return fs.ReadFile[GameInfo](game.InfoPath())
+	return fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[GameInfo])
 }
 func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 	// Get list of objects
@@ -129,7 +129,7 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 	if !oldGame.Compare(game) {
 		game.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.WriteFile(game.InfoPath(), game); err != nil {
+		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -182,7 +182,7 @@ func (s *GameStorage) GetImage(gameID string) ([]byte, string, error) {
 	}
 
 	// Read an image from a file
-	data, err := fs.ReadBinaryFile(game.ImagePath())
+	data, err := fs.OpenAndProcess(game.ImagePath(), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -214,5 +214,5 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	}
 
 	// Write image to file
-	return fs.WriteBinaryFile(game.ImagePath(), imageBytes)
+	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }

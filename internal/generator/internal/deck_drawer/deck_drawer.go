@@ -3,11 +3,13 @@ package deckdrawer
 import (
 	"fmt"
 	"image"
+	"log"
 	"path/filepath"
 
 	"tts_deck_build/internal/config"
-	img "tts_deck_build/internal/generator/internal/image"
+	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/generator/internal/types"
+	"tts_deck_build/internal/images"
 )
 
 type DeckDrawer struct {
@@ -43,14 +45,22 @@ func (d *DeckDrawer) log(logType string, progress, total int) {
 }
 func (d *DeckDrawer) loadCards() {
 	for i, card := range d.cards {
-		d.images = append(d.images, img.OpenImage(card.GetFilePath()))
+		img, err := fs.OpenAndProcess(card.GetFilePath(), images.ImageFromReader)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+		d.images = append(d.images, img)
 		d.log("LOAD", i+1, len(d.cards))
 	}
-	d.imageBackSide = img.OpenImage(filepath.Join(config.GetConfig().Caches(), d.backSideName))
+	img, err := fs.OpenAndProcess(filepath.Join(config.GetConfig().Caches(), d.backSideName), images.ImageFromReader)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	d.imageBackSide = img
 }
-func (d *DeckDrawer) collectDeckImage() *img.Image {
+func (d *DeckDrawer) collectDeckImage() *image.RGBA {
 	bound := d.images[0].Bounds().Max
-	deckImage := img.CreateImage(bound.X, bound.Y, d.columns, d.rows)
+	deckImage := images.CreateImage(bound.X*d.columns, bound.Y*d.rows)
 	// Draw front side images
 	for row := 0; row < d.rows; row++ {
 		for col := 0; col < d.columns; col++ {
@@ -58,18 +68,21 @@ func (d *DeckDrawer) collectDeckImage() *img.Image {
 				continue
 			}
 			curImg := d.images[row*d.columns+col]
-			deckImage.Draw(col, row, curImg)
+			images.Draw(deckImage, col, row, curImg)
 			d.log("DRAW", row*d.columns+col+1, len(d.images))
 		}
 	}
 	// On bottom right place draw back side image
-	deckImage.Draw(d.columns-1, d.rows-1, d.imageBackSide)
+	images.Draw(deckImage, d.columns-1, d.rows-1, d.imageBackSide)
 	return deckImage
 }
 func (d *DeckDrawer) Draw() {
 	d.loadCards()
 	deckImage := d.collectDeckImage()
 	d.log("SAVE", 0, 0)
-	deckImage.SaveImage(filepath.Join(config.GetConfig().Results(), d.deckFileName))
+	err := fs.CreateAndProcess[image.Image](filepath.Join(config.GetConfig().Results(), d.deckFileName), deckImage, images.SaveToWriter)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	d.log("DONE", 0, 0)
 }

@@ -28,7 +28,7 @@ func Crawl(gamePath string) (map[string][]*types.Deck, error) {
 			deckPath := filepath.Join(collectionPath, deck)
 
 			// Parse json
-			deckObj, err := fs.ReadFile[types.Deck](deckPath)
+			deckObj, err := fs.OpenAndProcess(deckPath, fs.JsonFromReader[types.Deck])
 			if err != nil {
 				return nil, err
 			}
