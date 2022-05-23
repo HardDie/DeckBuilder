@@ -26,8 +26,6 @@ import (
 	"net/http"
 
 	"tts_deck_build/api"
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/generator"
 	"tts_deck_build/internal/network"
 )
@@ -44,22 +42,9 @@ func WebServer() {
 	}
 }
 
-func setup() error {
-	err := fs.CreateFolderIfNotExist(config.GetConfig().Data)
-	if err != nil {
-		return err
-	}
-	return fs.CreateFolderIfNotExist(config.GetConfig().Games())
-}
-
 func main() {
 	// Setup logs
 	log.SetFlags(log.Llongfile | log.Ltime)
-
-	err := setup()
-	if err != nil {
-		log.Fatal("Error creating default folders:", err.Error())
-	}
 
 	// Setup run flags
 	genImgMode := flag.Bool("generate_image", false, "Run process of generating deck images")
