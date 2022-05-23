@@ -78,6 +78,14 @@ func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
 	return fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[GameInfo])
 }
 func (s *GameStorage) GetAll() ([]*GameInfo, error) {
+	isExist, err := fs.IsFolderExist(s.Config.Games())
+	if err != nil {
+		return make([]*GameInfo, 0), err
+	}
+	if !isExist {
+		return make([]*GameInfo, 0), nil
+	}
+
 	// Get list of objects
 	folders, err := fs.ListOfFolders(s.Config.Games())
 	if err != nil {
