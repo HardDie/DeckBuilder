@@ -60,7 +60,7 @@ func IsFileExist(path string) (isExist bool, err error) {
 }
 
 func CreateFolder(path string) error {
-	err := os.Mkdir(path, DirPerm)
+	err := os.MkdirAll(path, DirPerm)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return errors.InternalError.AddMessage(err.Error())
