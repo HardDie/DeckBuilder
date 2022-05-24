@@ -25,3 +25,8 @@ linter-gosec:
 
 linter-golangci-lint:
 	./bin/golangci-lint run
+
+test:
+	rm -rf data_test || 1
+	TEST_DATA_PATH=${PWD}/data_test go test ./... -v -race
+	rm -rf data_test || 1

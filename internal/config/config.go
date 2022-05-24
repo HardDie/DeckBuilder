@@ -46,3 +46,8 @@ func (c *Config) Caches() string {
 func (c *Config) Results() string {
 	return filepath.Join(c.Data, c.Result)
 }
+
+// SetDataPath For tests only!!!
+func (c *Config) SetDataPath(dataPath string) {
+	c.Data = dataPath
+}
