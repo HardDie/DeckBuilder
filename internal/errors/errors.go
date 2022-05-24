@@ -41,6 +41,7 @@ var (
 type Err struct {
 	Message string `json:"message"`
 	code    int
+	Err     error
 }
 
 func NewError(message string) *Err {
@@ -50,16 +51,26 @@ func NewError(message string) *Err {
 	}
 }
 
-func (e Err) HTTP(code int) *Err {
-	e.code = code
-	return &e
-}
-func (e Err) AddMessage(message string) *Err {
-	e.Message += ": " + message
-	return &e
-}
 func (e Err) Error() string {
 	return fmt.Sprintf("HTTP[%d] %s", e.GetCode(), e.GetMessage())
+}
+func (e Err) Unwrap() error {
+	return e.Err
+}
+
+func (e *Err) HTTP(code int) *Err {
+	return &Err{
+		Message: e.Message,
+		code:    code,
+		Err:     e,
+	}
+}
+func (e *Err) AddMessage(message string) *Err {
+	return &Err{
+		Message: message,
+		code:    e.code,
+		Err:     e,
+	}
 }
 
 func (e *Err) GetCode() int       { return e.code }
