@@ -336,8 +336,17 @@ func testImage(t *testing.T) {
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
 
+	// Check no game
+	_, _, err := service.GetImage(gameId)
+	if err == nil {
+		t.Fatal("Error, game not exists")
+	}
+	if !errors.Is(err, er.GameNotExists) {
+		t.Fatal(err)
+	}
+
 	// Create game
-	_, err := service.Create(&CreateGameDTO{
+	_, err = service.Create(&CreateGameDTO{
 		Name:  gameName,
 		Image: pngImage,
 	})
@@ -369,6 +378,23 @@ func testImage(t *testing.T) {
 	}
 	if imgType != "jpeg" {
 		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Update game
+	_, err = service.Update(gameId, &UpdateGameDTO{
+		Image: "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no image
+	_, _, err = service.GetImage(gameId)
+	if err == nil {
+		t.Fatal("Error, game don't have image")
+	}
+	if !errors.Is(err, er.GameImageNotExists) {
+		t.Fatal(err)
 	}
 
 	// Delete game
