@@ -33,7 +33,9 @@ import (
 func WebServer() {
 	log.Println("Listening on :5000...")
 
-	network.OpenBrowser("http://localhost:5000")
+	if false {
+		network.OpenBrowser("http://localhost:5000")
+	}
 
 	http.Handle("/", api.GetRoutes())
 	err := http.ListenAndServe(":5000", nil)
