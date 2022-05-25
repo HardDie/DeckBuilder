@@ -113,6 +113,9 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 	}
 
 	// Create game object
+	if dto.Name == "" {
+		dto.Name = oldGame.Name
+	}
 	game := NewGameInfo(dto.Name, dto.Description, dto.Image)
 	game.CreatedAt = oldGame.CreatedAt
 	if game.ID == "" {
