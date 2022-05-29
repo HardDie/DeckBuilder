@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/fs"
 )
 
 type JSONResponse struct {
@@ -60,13 +61,6 @@ func OpenBrowser(url string) {
 	}()
 }
 
-func toJSON(data interface{}) (res []byte) {
-	res, err := json.Marshal(data)
-	if err != nil {
-		errors.IfErrorLog(err)
-	}
-	return
-}
 func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 	defer func() { errors.IfErrorLog(r.Close()) }()
 	err := json.NewDecoder(r).Decode(data)
@@ -79,9 +73,7 @@ func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 func response(w http.ResponseWriter, httpCode int, data interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpCode)
-	_, err := w.Write(toJSON(data))
-	errors.IfErrorLog(err)
-	return err
+	return fs.JsonToWriter(w, data)
 }
 func ResponseError(w http.ResponseWriter, e error) {
 	resp := JSONResponse{

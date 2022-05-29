@@ -40,14 +40,14 @@ var (
 
 type Err struct {
 	Message string `json:"message"`
-	code    int
+	Code    int
 	Err     error
 }
 
 func NewError(message string) *Err {
 	return &Err{
 		Message: message,
-		code:    http.StatusBadRequest,
+		Code:    http.StatusBadRequest,
 	}
 }
 
@@ -61,19 +61,19 @@ func (e Err) Unwrap() error {
 func (e *Err) HTTP(code int) *Err {
 	return &Err{
 		Message: e.Message,
-		code:    code,
+		Code:    code,
 		Err:     e,
 	}
 }
 func (e *Err) AddMessage(message string) *Err {
 	return &Err{
 		Message: message,
-		code:    e.code,
+		Code:    e.Code,
 		Err:     e,
 	}
 }
 
-func (e *Err) GetCode() int       { return e.code }
+func (e *Err) GetCode() int       { return e.Code }
 func (e *Err) GetMessage() string { return e.Message }
 
 func IfErrorLog(err error) {

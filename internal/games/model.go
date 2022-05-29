@@ -2,6 +2,7 @@ package games
 
 import (
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -20,8 +21,8 @@ type GameInfo struct {
 func NewGameInfo(name, desc, image string) *GameInfo {
 	return &GameInfo{
 		ID:          utils.NameToID(name),
-		Name:        name,
-		Description: desc,
+		Name:        strconv.Quote(name),
+		Description: strconv.Quote(desc),
 		Image:       image,
 		CreatedAt:   utils.Allocate(time.Now()),
 	}

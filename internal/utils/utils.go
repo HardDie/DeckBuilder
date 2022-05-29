@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"golang.org/x/exp/constraints"
+
+	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/fs"
 )
 
@@ -22,7 +24,11 @@ func NameToID(in string) string {
 	// Replace all spaces to underscore symbol
 	underscore := strings.ReplaceAll(lower, " ", "_")
 	// Keep only letters, numbers and underscore symbols
-	return reg.ReplaceAllString(underscore, "")
+	res := reg.ReplaceAllString(underscore, "")
+	if len(res) > config.MaxFilenameLength {
+		res = res[0:config.MaxFilenameLength]
+	}
+	return res
 }
 
 func Allocate[T any](val T) *T {

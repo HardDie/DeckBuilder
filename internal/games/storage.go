@@ -3,6 +3,7 @@ package games
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -51,6 +52,10 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 		}
 	}
 
+	// Unescape strings
+	game.Name, _ = strconv.Unquote(game.Name)
+	game.Description, _ = strconv.Unquote(game.Description)
+
 	return game, nil
 }
 func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
@@ -75,7 +80,16 @@ func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
 	}
 
 	// Read info from file
-	return fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[GameInfo])
+	retGame, err := fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[GameInfo])
+	if err != nil {
+		return nil, err
+	}
+
+	// Unescape strings
+	retGame.Name, _ = strconv.Unquote(retGame.Name)
+	retGame.Description, _ = strconv.Unquote(retGame.Description)
+
+	return retGame, nil
 }
 func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 	isExist, err := fs.IsFolderExist(s.Config.Games())
@@ -162,6 +176,10 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 			}
 		}
 	}
+
+	// Unescape strings
+	game.Name, _ = strconv.Unquote(game.Name)
+	game.Description, _ = strconv.Unquote(game.Description)
 
 	return game, nil
 }

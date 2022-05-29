@@ -30,3 +30,8 @@ test:
 	rm -rf data_test || 1
 	TEST_DATA_PATH=${PWD}/data_test go test ./... -v -race
 	rm -rf data_test || 1
+
+fuzz:
+	rm -rf data_test || 1
+	cd internal/games && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzGame -parallel=1 -v
+	rm -rf data_test || 1

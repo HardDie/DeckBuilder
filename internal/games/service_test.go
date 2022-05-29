@@ -1,9 +1,12 @@
 package games
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"tts_deck_build/internal/config"
@@ -420,4 +423,186 @@ func TestGame(t *testing.T) {
 	t.Run("list", testList)
 	t.Run("item", testItem)
 	t.Run("image", testImage)
+}
+
+func fuzzCleanup(path string) {
+	_ = os.RemoveAll(path)
+}
+func fuzzList(t *testing.T, service *GameService, waitItems int) error {
+	items, err := service.List("")
+	if err != nil {
+		{
+			data, _ := json.MarshalIndent(err, "", "	")
+			t.Log(string(data))
+		}
+		return err
+	}
+	if len(items) != waitItems {
+		{
+			data, _ := json.MarshalIndent(items, "", "	")
+			t.Log(string(data))
+		}
+		return fmt.Errorf("items: [wait] %d, [got] %d", waitItems, len(items))
+	}
+	return nil
+}
+func fuzzItem(t *testing.T, service *GameService, gameId, name, desc string) error {
+	game, err := service.Item(gameId)
+	if err != nil {
+		{
+			data, _ := json.MarshalIndent(err, "", "	")
+			t.Log(string(data))
+		}
+		return err
+	}
+	if game.Name != name {
+		{
+			data, _ := json.MarshalIndent(game, "", "	")
+			t.Log(string(data))
+		}
+		return fmt.Errorf("name: [wait] %s [got] %s", name, game.Name)
+	}
+	if game.Description != desc {
+		{
+			data, _ := json.MarshalIndent(game, "", "	")
+			t.Log("item:", string(data))
+		}
+		return fmt.Errorf("description: [wait] %q [got] %q", desc, game.Description)
+	}
+	return nil
+}
+func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*GameInfo, error) {
+	game, err := service.Create(&CreateGameDTO{
+		Name:        name,
+		Description: desc,
+	})
+	if err != nil {
+		{
+			data, _ := json.MarshalIndent(err, "", "	")
+			t.Log(string(data))
+		}
+		return nil, err
+	}
+	{
+		data, _ := json.MarshalIndent(game, "", "	")
+		t.Log("create:", string(data))
+	}
+	return game, nil
+}
+func fuzzUpdate(t *testing.T, service *GameService, gameId, name, desc string) (*GameInfo, error) {
+	game, err := service.Update(gameId, &UpdateGameDTO{
+		Name:        name,
+		Description: desc,
+	})
+	if err != nil {
+		{
+			data, _ := json.MarshalIndent(err, "", "	")
+			t.Log(string(data))
+		}
+		return nil, err
+	}
+	{
+		data, _ := json.MarshalIndent(game, "", "	")
+		t.Log("update:", string(data))
+	}
+	return game, nil
+}
+func fuzzDelete(t *testing.T, service *GameService, gameId string) error {
+	err := service.Delete(gameId)
+	if err != nil {
+		{
+			data, _ := json.MarshalIndent(err, "", "	")
+			t.Log(string(data))
+		}
+		return err
+	}
+	return nil
+}
+
+func FuzzGame(f *testing.F) {
+	// Set path for the game test artifacts
+	dataPath := os.Getenv("TEST_DATA_PATH")
+	if dataPath == "" {
+		f.Fatal("TEST_DATA_PATH must be set")
+	}
+	config.GetConfig().SetDataPath(filepath.Join(dataPath, "game_fuzz"))
+
+	service := NewService()
+
+	f.Add("Isaac", "Isaac game", "Four Souls", "Four Souls game")
+
+	msync := sync.Mutex{}
+	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
+		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
+			// skip
+			return
+		}
+
+		// Only one test at once
+		msync.Lock()
+		defer msync.Unlock()
+
+		// Empty list
+		err := fuzzList(t, service, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Create game
+		game1, err := fuzzCreate(t, service, name1, desc1)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+		_ = game1
+
+		// List with game
+		err = fuzzList(t, service, 1)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// Check item
+		err = fuzzItem(t, service, game1.ID, name1, desc1)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// Update game
+		game2, err := fuzzUpdate(t, service, utils.NameToID(name1), name2, desc2)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// List with game
+		err = fuzzList(t, service, 1)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// Check item
+		err = fuzzItem(t, service, game2.ID, name2, desc2)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// Delete game
+		err = fuzzDelete(t, service, utils.NameToID(name2))
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+
+		// Empty list
+		err = fuzzList(t, service, 0)
+		if err != nil {
+			fuzzCleanup(dataPath) // Cleanup - just in case
+			t.Fatal(err)
+		}
+	})
 }
