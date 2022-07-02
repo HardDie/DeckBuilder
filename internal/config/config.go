@@ -15,6 +15,7 @@ type Config struct {
 	Cache  string `json:"cache"`
 	Result string `json:"result"`
 
+	Setting       string `json:"settings"`
 	InfoFilename  string `json:"infoFilename"`
 	ImageFilename string `json:"imageFilename"`
 }
@@ -31,6 +32,7 @@ func GetConfig() *Config {
 			Cache:  "cache",
 			Result: "result_png",
 
+			Setting:       "settings.json",
 			InfoFilename:  ".info.json",
 			ImageFilename: ".image.bin",
 		}
@@ -38,6 +40,9 @@ func GetConfig() *Config {
 	return config
 }
 
+func (c *Config) Settings() string {
+	return filepath.Join(c.Data, c.Setting)
+}
 func (c *Config) Games() string {
 	return filepath.Join(c.Data, c.Game)
 }

@@ -35,6 +35,10 @@ func servePages(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/css")
 	case ".js":
 		w.Header().Set("Content-Type", "text/javascript")
+	case ".json":
+		w.Header().Set("Content-Type", "application/json")
+	case ".ico":
+		w.Header().Set("Content-Type", "image/x-icon")
 	}
 	_, err = w.Write(file)
 	if err != nil {
