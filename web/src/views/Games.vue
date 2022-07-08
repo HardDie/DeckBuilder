@@ -58,8 +58,8 @@ export default {
   computed: {
     ...mapGetters('games', ['getGames']),
     isSendButtonActive () {
-      const { name, description, image } = this.addGameForm
-      return name && description && image
+      const { name, description } = this.addGameForm
+      return name && description
     }
   },
   methods: {
