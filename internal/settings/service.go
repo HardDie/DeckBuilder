@@ -34,3 +34,23 @@ func (s *SettingService) Get() (*SettingInfo, error) {
 	settings.Lang = set.Lang
 	return settings, nil
 }
+
+func (s *SettingService) Update(dto *UpdateSettingsDTO) (*SettingInfo, error) {
+	set, err := s.Get()
+	if err != nil {
+		return nil, err
+	}
+	isUpdated := false
+	switch dto.Lang {
+	case "en", "ru":
+		set.Lang = dto.Lang
+		isUpdated = true
+	}
+	if isUpdated {
+		err = s.storage.Save(*set)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return set, nil
+}

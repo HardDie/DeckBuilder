@@ -25,3 +25,7 @@ func (s *SettingStorage) Get() (*SettingInfo, error) {
 	// Read info from file
 	return fs.OpenAndProcess(s.Config.Settings(), fs.JsonFromReader[SettingInfo])
 }
+
+func (s *SettingStorage) Save(set SettingInfo) error {
+	return fs.CreateAndProcess[SettingInfo](s.Config.Settings(), set, fs.JsonToWriter[SettingInfo])
+}

@@ -944,6 +944,47 @@
             "$ref": "#/responses/ResponseError"
           }
         }
+      },
+      "patch": {
+        "description": "API to update settings",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Update settings",
+        "operationId": "RequestUpdateSettings",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "x-go-name": "Lang"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseUpdateSettings"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
       }
     }
   },
@@ -1330,6 +1371,20 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/GameInfo"
+          }
+        }
+      }
+    },
+    "ResponseUpdateSettings": {
+      "description": "Settings",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/SettingInfo"
           }
         }
       }
