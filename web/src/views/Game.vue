@@ -13,8 +13,8 @@
         </div>
       </div>
     </header>
-    <section class="decks">
-      <h3 class="decks__title">Колоды</h3>
+    <section class="collections">
+      <h3 class="collections__title">Коллекции</h3>
       <v-card width="300" height="500" class="d-flex align-center justify-center">
         <v-icon x-large>mdi-plus-thick</v-icon>
       </v-card>
@@ -41,7 +41,7 @@ export default {
     if (!this.getGames.length) {
       await this.fetchGames()
     }
-    this.game = this.getGames.find(game => game.name === this.$route.params?.name)
+    this.game = this.getGames.find(game => game.id === this.$route.params?.id)
   }
 }
 </script>
@@ -70,7 +70,7 @@ export default {
   gap: 20px;
 }
 
-.decks {
+.collections {
   margin-top: 50px;
   &__title {
     margin-bottom: 30px;

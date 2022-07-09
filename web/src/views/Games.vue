@@ -8,10 +8,7 @@
         <v-form @submit.prevent="sendGame">
           <v-text-field label="Имя игры" v-model="addGameForm.name"/>
           <v-text-field label="Описание игры" v-model="addGameForm.description"/>
-          <v-file-input
-            accept="image/*"
-            @change="onFileInput"
-          />
+          <v-text-field label="Ссылка на картинку" v-model="addGameForm.image"/>
           <v-btn type="submit" :disabled="!isSendButtonActive">
             Добавить
           </v-btn>
@@ -20,7 +17,7 @@
     </v-dialog>
     <v-card
       v-for="game in getGames"
-      :key="game.name"
+      :key="game.id"
       width="300"
       height="500"
       class="game-card"
@@ -32,7 +29,7 @@
       <v-card-subtitle>
         {{ `${prepareText(game.description)}` }}
       </v-card-subtitle>
-      <img class="game-image" :src="game.image" alt="game_img"/>
+      <img class="game-image" :src="'http://localhost:5000/games/' + game.id + '/image'" alt="game_img"/>
     </v-card>
     <v-card width="300" height="500" class="d-flex align-center justify-center" @click="isAddGameModal = true">
       <v-icon x-large>mdi-plus-thick</v-icon>
@@ -58,28 +55,14 @@ export default {
   computed: {
     ...mapGetters('games', ['getGames']),
     isSendButtonActive () {
-      const { name, description } = this.addGameForm
-      return name && description
+      const { name } = this.addGameForm
+      return name
     }
   },
   methods: {
     ...mapActions('games', ['fetchGames', 'fetchCreateGame']),
     prepareText (text) {
       return text.length > 29 ? text.slice(0, 30) + '...' : text
-    },
-    onFileInput (file) {
-      if (file) {
-        const reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = (event) => {
-          this.addGameForm.image = event.target.result
-        }
-        reader.onerror = () => {
-          this.addGameForm.image = ''
-        }
-      } else {
-        this.addGameForm.image = ''
-      }
     },
     sendGame () {
       this.fetchCreateGame(this.addGameForm)
@@ -97,7 +80,7 @@ export default {
       }
     },
     onGameClick (game) {
-      this.$router.push({ name: 'Game', params: { name: game.name } })
+      this.$router.push({ name: 'Game', params: { id: game.id } })
     }
   },
   mounted () {
