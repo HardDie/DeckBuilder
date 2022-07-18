@@ -745,6 +745,335 @@
         }
       }
     },
+    "/games/{game}/collections/{collection}/decks/{deck}/cards": {
+      "get": {
+        "description": "Get a list of existing cards\nSort values: name, name_desc, created, created_desc",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Cards"
+        ],
+        "summary": "Get cards list",
+        "operationId": "RequestListOfCard",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseListOfCard"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "post": {
+        "description": "Allows you to create a new card",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Cards"
+        ],
+        "summary": "Create card",
+        "operationId": "RequestCreateCard",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
+                "title": {
+                  "type": "string",
+                  "x-go-name": "Title"
+                },
+                "variables": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "x-go-name": "Variables"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCreateCard"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/games/{game}/collections/{collection}/decks/{deck}/cards/{card}": {
+      "get": {
+        "description": "Get an existing card",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Cards"
+        ],
+        "summary": "Get card",
+        "operationId": "RequestCard",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Card",
+            "name": "card",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCard"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Allows you to delete an existing card",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Cards"
+        ],
+        "summary": "Delete card",
+        "operationId": "RequestDeleteCard",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Card",
+            "name": "card",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeleteCard"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "patch": {
+        "description": "Allows you to update an existing card",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Cards"
+        ],
+        "summary": "Update card",
+        "operationId": "RequestUpdateCard",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Card",
+            "name": "card",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
+                "image": {
+                  "type": "string",
+                  "x-go-name": "Image"
+                },
+                "title": {
+                  "type": "string",
+                  "x-go-name": "Title"
+                },
+                "variables": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "x-go-name": "Variables"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseUpdateCard"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/collections/{collection}/decks/{deck}/image": {
       "get": {
         "description": "Get an image of existing deck",
@@ -989,6 +1318,45 @@
     }
   },
   "definitions": {
+    "CardInfo": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "image": {
+          "type": "string",
+          "x-go-name": "Image"
+        },
+        "title": {
+          "type": "string",
+          "x-go-name": "Title"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Variables"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/cards"
+    },
     "CollectionInfo": {
       "type": "object",
       "properties": {
@@ -1110,6 +1478,20 @@
     }
   },
   "responses": {
+    "ResponseCard": {
+      "description": "Card",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/CardInfo"
+          }
+        }
+      }
+    },
     "ResponseCollection": {
       "description": "Collection",
       "schema": {
@@ -1131,6 +1513,20 @@
         "items": {
           "type": "integer",
           "format": "uint8"
+        }
+      }
+    },
+    "ResponseCreateCard": {
+      "description": "Status of card creation",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/CardInfo"
+          }
         }
       }
     },
@@ -1200,6 +1596,9 @@
         }
       }
     },
+    "ResponseDeleteCard": {
+      "description": "Card deletion status"
+    },
     "ResponseDeleteCollection": {
       "description": "Collection deletion status"
     },
@@ -1259,6 +1658,24 @@
             "type": "array",
             "items": {
               "$ref": "#/definitions/DeckInfo"
+            },
+            "x-go-name": "Data"
+          }
+        }
+      }
+    },
+    "ResponseListOfCard": {
+      "description": "List of cards",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/CardInfo"
             },
             "x-go-name": "Data"
           }
@@ -1329,6 +1746,20 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/SettingInfo"
+          }
+        }
+      }
+    },
+    "ResponseUpdateCard": {
+      "description": "Status of card update",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/CardInfo"
           }
         }
       }
