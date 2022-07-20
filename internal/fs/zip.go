@@ -11,7 +11,7 @@ import (
 	"tts_deck_build/internal/errors"
 )
 
-func ArchiveFolder(gamePath, gameId string) (data []byte, err error) {
+func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
 	// Create buffer for result archive
 	buf := bytes.Buffer{}
 
@@ -45,7 +45,7 @@ func ArchiveFolder(gamePath, gameId string) (data []byte, err error) {
 				// Path to file inside collection
 				deckPathFile := filepath.Join(collectionPath, collectionPathFile.Name())
 				// Path to file inside zip archive
-				zipPath := filepath.Join(gameId, gamePathFile.Name(), collectionPathFile.Name())
+				zipPath := filepath.Join(gameID, gamePathFile.Name(), collectionPathFile.Name())
 				log.Println("Add file to archive:", deckPathFile, "->", zipPath)
 				// Copy file inside archive
 				err = addFileIntoArchive(deckPathFile, zipPath, zipWriter)
@@ -60,7 +60,7 @@ func ArchiveFolder(gamePath, gameId string) (data []byte, err error) {
 		// Path to game info file
 		gamePathInfo := filepath.Join(gamePath, gamePathFile.Name())
 		// Path to file inside zip archive
-		zipPath := filepath.Join(gameId, gamePathFile.Name())
+		zipPath := filepath.Join(gameID, gamePathFile.Name())
 		log.Println("Add file to archive:", gamePathInfo, "->", zipPath)
 		// Copy file inside archive
 		err = addFileIntoArchive(gamePathInfo, zipPath, zipWriter)

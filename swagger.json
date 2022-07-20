@@ -1210,6 +1210,43 @@
         }
       }
     },
+    "/games/{game}/export": {
+      "get": {
+        "description": "Get an existing game archive",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/zip"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get game archive",
+        "operationId": "RequestArchiveGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameArchive"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/image": {
       "get": {
         "description": "Get an image of existing game",
@@ -1635,6 +1672,16 @@
           "data": {
             "$ref": "#/definitions/GameInfo"
           }
+        }
+      }
+    },
+    "ResponseGameArchive": {
+      "description": "Game archive",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint8"
         }
       }
     },

@@ -13,4 +13,5 @@ func Init(route *mux.Router) {
 	GamesRoute.HandleFunc("/{game}", DeleteHandler).Methods(http.MethodDelete)
 	GamesRoute.HandleFunc("/{game}", ItemHandler).Methods(http.MethodGet)
 	GamesRoute.HandleFunc("/{game}", UpdateHandler).Methods(http.MethodPatch)
+	GamesRoute.HandleFunc("/{game}/export", ExportHandler).Methods(http.MethodGet)
 }

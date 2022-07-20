@@ -43,3 +43,7 @@ func (s *GameService) Delete(gameID string) error {
 func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
 	return s.storage.GetImage(gameID)
 }
+
+func (s *GameService) Export(gameID string) ([]byte, error) {
+	return s.storage.Export(gameID)
+}

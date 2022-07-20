@@ -245,3 +245,12 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Write image to file
 	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }
+func (s *GameStorage) Export(gameID string) ([]byte, error) {
+	// Check if such an object exists
+	game, _ := s.GetByID(gameID)
+	if game == nil {
+		return nil, errors.GameNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	return fs.ArchiveFolder(game.Path(), game.ID)
+}
