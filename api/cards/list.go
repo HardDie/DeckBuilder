@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/network"
 )
 
 // Requesting a list of existing cards
@@ -61,7 +62,10 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
 	sort := r.URL.Query().Get("sort")
-
-	_, _, _, _ = gameID, collectionID, deckID, sort
-	// network.Response(w, item)
+	items, e := cards.NewService().List(gameID, collectionID, deckID, sort)
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	network.Response(w, items)
 }

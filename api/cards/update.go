@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/network"
 )
 
@@ -66,14 +67,21 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	cardID := mux.Vars(r)["card"]
-	dto := &cards.CreateCardDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	cardID, e := fs.StringToInt64(mux.Vars(r)["card"])
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-
-	_, _, _, _ = gameID, collectionID, deckID, cardID
-	// network.Response(w, item)
+	dto := &cards.UpdateCardDTO{}
+	e = network.RequestToObject(r.Body, &dto)
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	item, e := cards.NewService().Update(gameID, collectionID, deckID, cardID, dto)
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	network.Response(w, item)
 }

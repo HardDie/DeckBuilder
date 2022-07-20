@@ -69,7 +69,10 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-
-	_, _, _ = gameID, collectionID, deckID
-	// network.Response(w, item)
+	item, e := cards.NewService().Create(gameID, collectionID, deckID, dto)
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	network.Response(w, item)
 }

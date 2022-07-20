@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/fs"
+	"tts_deck_build/internal/network"
 )
 
 // Requesting an existing card
@@ -23,7 +25,7 @@ type RequestCard struct {
 	Deck string `json:"deck"`
 	// In: path
 	// Required: true
-	Card string `json:"card"`
+	Card int64 `json:"card"`
 }
 
 // Card
@@ -59,8 +61,15 @@ func ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	cardID := mux.Vars(r)["card"]
-
-	_, _, _, _ = gameID, collectionID, deckID, cardID
-	// network.Response(w, item)
+	cardID, e := fs.StringToInt64(mux.Vars(r)["card"])
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	item, e := cards.NewService().Item(gameID, collectionID, deckID, cardID)
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	network.Response(w, item)
 }

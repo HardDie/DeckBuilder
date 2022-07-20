@@ -9,7 +9,8 @@ import (
 )
 
 type Deck struct {
-	Deck *DeckInfo `json:"deck"`
+	Deck  *DeckInfo   `json:"deck"`
+	Cards interface{} `json:"cards"`
 }
 
 type DeckInfo struct {

@@ -918,7 +918,8 @@
             "required": true
           },
           {
-            "type": "string",
+            "type": "integer",
+            "format": "int64",
             "x-go-name": "Card",
             "name": "card",
             "in": "path",
@@ -1331,7 +1332,8 @@
           "x-go-name": "Description"
         },
         "id": {
-          "type": "string",
+          "type": "integer",
+          "format": "int64",
           "x-go-name": "ID"
         },
         "image": {

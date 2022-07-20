@@ -4,6 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/fs"
+	"tts_deck_build/internal/network"
 )
 
 // Request to delete a card
@@ -51,8 +55,13 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	cardID := mux.Vars(r)["card"]
-
-	_, _, _, _ = gameID, collectionID, deckID, cardID
-	// network.Response(w, item)
+	cardID, e := fs.StringToInt64(mux.Vars(r)["card"])
+	if e != nil {
+		network.ResponseError(w, e)
+		return
+	}
+	e = cards.NewService().Delete(gameID, collectionID, deckID, cardID)
+	if e != nil {
+		network.ResponseError(w, e)
+	}
 }

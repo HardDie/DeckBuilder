@@ -16,6 +16,7 @@ var (
 	NetworkBadResponse = NewError("bad http response")
 
 	BadName = NewError("bad name").HTTP(http.StatusBadRequest)
+	BadId   = NewError("bad id").HTTP(http.StatusBadRequest)
 
 	// game
 	GameExist          = NewError("game exist").HTTP(http.StatusBadRequest)
@@ -33,6 +34,10 @@ var (
 	DeckExist          = NewError("deck exist").HTTP(http.StatusBadRequest)
 	DeckNotExists      = NewError("deck not exists").HTTP(http.StatusNoContent)
 	DeckImageNotExists = NewError("deck image not exists").HTTP(http.StatusNoContent)
+
+	// card
+	CardExists    = NewError("card exists").HTTP(http.StatusInternalServerError)
+	CardNotExists = NewError("card not exists").HTTP(http.StatusNoContent)
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
