@@ -36,6 +36,11 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 		return nil, err
 	}
 
+	// Init map of cards
+	if readCard.Cards == nil {
+		readCard.Cards = make(map[int64]*CardInfo)
+	}
+
 	// Add card to deck
 	readCard.Cards[card.ID] = card
 
