@@ -52,29 +52,11 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 	return deck, nil
 }
 func (s *DeckStorage) GetByID(gameID, collectionID, deckID string) (*DeckInfo, error) {
-	// Check if the collection exists
-	_, err := s.CollectionService.Item(gameID, collectionID)
+	deck, err := s.getDeck(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
-
-	deck := DeckInfo{ID: deckID}
-
-	// Check if such an object exists
-	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.DeckNotExists
-	}
-
-	// Read info from file
-	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Deck])
-	if err != nil {
-		return nil, err
-	}
-	return readDeck.Deck, nil
+	return deck.Deck, nil
 }
 func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 	decks := make([]*DeckInfo, 0)
@@ -110,51 +92,51 @@ func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 }
 func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDeckDTO) (*DeckInfo, error) {
 	// Get old object
-	oldDeck, err := s.GetByID(gameID, collectionID, deckID)
+	oldDeck, err := s.getDeck(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create deck object
 	deck := NewDeckInfo(dto.Type, dto.BacksideImage)
-	deck.CreatedAt = oldDeck.CreatedAt
+	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(dto.Type)
 	}
 
 	// If the id has been changed, rename the object
-	if deck.ID != oldDeck.ID {
+	if deck.ID != oldDeck.Deck.ID {
 		// Check if such an object already exists
 		if val, _ := s.GetByID(gameID, collectionID, deck.ID); val != nil {
 			return nil, errors.DeckExist
 		}
 
 		// If image exist, rename
-		if data, _, _ := s.GetImage(gameID, collectionID, oldDeck.ID); data != nil {
-			err = fs.MoveFolder(oldDeck.ImagePath(gameID, collectionID), deck.ImagePath(gameID, collectionID))
+		if data, _, _ := s.GetImage(gameID, collectionID, oldDeck.Deck.ID); data != nil {
+			err = fs.MoveFolder(oldDeck.Deck.ImagePath(gameID, collectionID), deck.ImagePath(gameID, collectionID))
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		// Rename object
-		err = fs.MoveFolder(oldDeck.Path(gameID, collectionID), deck.Path(gameID, collectionID))
+		err = fs.MoveFolder(oldDeck.Deck.Path(gameID, collectionID), deck.Path(gameID, collectionID))
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// If the object has been changed, update the object file
-	if !oldDeck.Compare(deck) {
+	if !oldDeck.Deck.Compare(deck) {
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck}, fs.JsonToWriter[Deck]); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[Deck]); err != nil {
 			return nil, err
 		}
 	}
 
 	// If the image has been changed
-	if deck.BacksideImage != oldDeck.BacksideImage {
+	if deck.BacksideImage != oldDeck.Deck.BacksideImage {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
 			err = fs.RemoveFile(deck.ImagePath(gameID, collectionID))
@@ -271,4 +253,30 @@ func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*DeckInfo, error) {
 		}
 	}
 	return decks, nil
+}
+
+func (s *DeckStorage) getDeck(gameID, collectionID, deckID string) (*Deck, error) {
+	// Check if the collection exists
+	_, err := s.CollectionService.Item(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	deck := DeckInfo{ID: deckID}
+
+	// Check if such an object exists
+	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID))
+	if err != nil {
+		return nil, err
+	}
+	if !isExist {
+		return nil, errors.DeckNotExists
+	}
+
+	// Read info from file
+	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Deck])
+	if err != nil {
+		return nil, err
+	}
+	return readDeck, nil
 }
