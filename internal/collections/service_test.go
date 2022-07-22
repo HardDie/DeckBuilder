@@ -44,7 +44,7 @@ func testCreate(t *testing.T) {
 		Name: collectionName,
 	})
 	if err == nil {
-		t.Fatal("Error, you can't create duplicate game")
+		t.Fatal("Error, you can't create duplicate collection")
 	}
 	if !errors.Is(err, er.CollectionExist) {
 		t.Fatal(err)
@@ -64,7 +64,7 @@ func testDelete(t *testing.T) {
 	// Try to remove non-existing collection
 	err := service.Delete(gameID, collectionID)
 	if err == nil {
-		t.Fatal("Error, game not exist")
+		t.Fatal("Error, collection not exist")
 	}
 	if !errors.Is(err, er.CollectionNotExists) {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func testDelete(t *testing.T) {
 	// Try to delete collection twice
 	err = service.Delete(gameID, collectionID)
 	if err == nil {
-		t.Fatal("Error, game not exist")
+		t.Fatal("Error, collection not exist")
 	}
 	if !errors.Is(err, er.CollectionNotExists) {
 		t.Fatal(err)

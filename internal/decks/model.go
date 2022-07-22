@@ -14,17 +14,17 @@ type Deck struct {
 }
 
 type DeckInfo struct {
-	ID            string     `json:"id"`
-	Type          string     `json:"type"`
-	BacksideImage string     `json:"backside"`
-	CreatedAt     *time.Time `json:"createdAt"`
-	UpdatedAt     *time.Time `json:"updatedAt"`
+	ID            string             `json:"id"`
+	Type          utils.QuotedString `json:"type"`
+	BacksideImage string             `json:"backside"`
+	CreatedAt     *time.Time         `json:"createdAt"`
+	UpdatedAt     *time.Time         `json:"updatedAt"`
 }
 
 func NewDeckInfo(deckType, image string) *DeckInfo {
 	return &DeckInfo{
 		ID:            utils.NameToID(deckType),
-		Type:          deckType,
+		Type:          utils.NewQuotedString(deckType),
 		BacksideImage: image,
 		CreatedAt:     utils.Allocate(time.Now()),
 	}
@@ -52,7 +52,7 @@ func (i *DeckInfo) Compare(val *DeckInfo) bool {
 }
 
 func (i *DeckInfo) GetName() string {
-	return i.Type
+	return i.Type.String()
 }
 
 func (i *DeckInfo) GetCreatedAt() time.Time {
@@ -60,4 +60,12 @@ func (i *DeckInfo) GetCreatedAt() time.Time {
 		return *i.CreatedAt
 	}
 	return time.Time{}
+}
+
+func (i *DeckInfo) SetQuotedOutput() {
+	i.Type.SetQuotedOutput()
+}
+
+func (i *DeckInfo) SetRawOutput() {
+	i.Type.SetRawOutput()
 }

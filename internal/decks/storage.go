@@ -29,13 +29,17 @@ func NewDeckStorage(config *config.Config, collectionService *collections.Collec
 func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*DeckInfo, error) {
 	// Check ID
 	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(deck.Type)
+		return nil, errors.BadName.AddMessage(deck.Type.String())
 	}
 
 	// Check if such an object already exists
 	if val, _ := s.GetByID(gameID, collectionID, deck.ID); val != nil {
 		return nil, errors.DeckExist
 	}
+
+	// Quote values before write to file
+	deck.SetQuotedOutput()
+	defer deck.SetRawOutput()
 
 	// Writing info to file
 	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck}, fs.JsonToWriter[Deck]); err != nil {
@@ -98,6 +102,9 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 	}
 
 	// Create deck object
+	if dto.Type == "" {
+		dto.Type = oldDeck.Deck.Type.String()
+	}
 	deck := NewDeckInfo(dto.Type, dto.BacksideImage)
 	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
@@ -128,6 +135,10 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 
 	// If the object has been changed, update the object file
 	if !oldDeck.Deck.Compare(deck) {
+		// Quote values before write to file
+		deck.SetQuotedOutput()
+		defer deck.SetRawOutput()
+
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[Deck]); err != nil {
@@ -159,7 +170,8 @@ func (s *DeckStorage) DeleteByID(gameID, collectionID, deckID string) error {
 	deck := DeckInfo{ID: deckID}
 
 	// Check if such an object exists
-	if val, _ := s.GetByID(gameID, collectionID, deckID); val == nil {
+	val, _ := s.GetByID(gameID, collectionID, deckID)
+	if val == nil {
 		return errors.DeckNotExists.HTTP(http.StatusBadRequest)
 	}
 
@@ -169,7 +181,10 @@ func (s *DeckStorage) DeleteByID(gameID, collectionID, deckID string) error {
 	}
 
 	// Remove image
-	return fs.RemoveFile(deck.ImagePath(gameID, collectionID))
+	if val.BacksideImage != "" {
+		return fs.RemoveFile(deck.ImagePath(gameID, collectionID))
+	}
+	return nil
 }
 func (s *DeckStorage) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
 	// Check if such an object exists
@@ -243,12 +258,12 @@ func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*DeckInfo, error) {
 
 		// Go through all decks and keep only unique decks
 		for _, deck := range collectionDecks {
-			if _, ok := uniqueDecks[deck.Type+deck.BacksideImage]; ok {
+			if _, ok := uniqueDecks[deck.Type.String()+deck.BacksideImage]; ok {
 				// If we have already seen such a deck, we skip it
 				continue
 			}
 			// If deck unique, put mark in map
-			uniqueDecks[deck.Type+deck.BacksideImage] = struct{}{}
+			uniqueDecks[deck.Type.String()+deck.BacksideImage] = struct{}{}
 			decks = append(decks, deck)
 		}
 	}
