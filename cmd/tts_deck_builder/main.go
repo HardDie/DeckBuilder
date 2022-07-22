@@ -1,3 +1,5 @@
+//go:generate goversioninfo -icon=../../win_icon/icon.ico -64
+
 // Package main TTS_deck_builder
 //
 // Entry point for the application.
