@@ -3,7 +3,6 @@ package games
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -27,7 +26,7 @@ func NewGameStorage(config *config.Config) *GameStorage {
 func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 	// Check ID
 	if game.ID == "" {
-		return nil, errors.BadName.AddMessage(game.Name)
+		return nil, errors.BadName.AddMessage(game.Name.String())
 	}
 
 	// Check if such an object already exists
@@ -40,6 +39,10 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 		return nil, err
 	}
 
+	// Quote values before write to file
+	game.SetQuotedOutput()
+	defer game.SetRawOutput()
+
 	// Writing info to file
 	if err := fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
 		return nil, err
@@ -51,10 +54,6 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 			return nil, err
 		}
 	}
-
-	// Unescape strings
-	game.Name, _ = strconv.Unquote(game.Name)
-	game.Description, _ = strconv.Unquote(game.Description)
 
 	return game, nil
 }
@@ -84,10 +83,6 @@ func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Unescape strings
-	retGame.Name, _ = strconv.Unquote(retGame.Name)
-	retGame.Description, _ = strconv.Unquote(retGame.Description)
 
 	return retGame, nil
 }
@@ -128,7 +123,7 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 
 	// Create game object
 	if dto.Name == "" {
-		dto.Name = oldGame.Name
+		dto.Name = oldGame.Name.String()
 	}
 	game := NewGameInfo(dto.Name, dto.Description, dto.Image)
 	game.CreatedAt = oldGame.CreatedAt
@@ -152,6 +147,10 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 
 	// If the object has been changed, update the info file
 	if !oldGame.Compare(game) {
+		// Quote values before write to file
+		game.SetQuotedOutput()
+		defer game.SetRawOutput()
+
 		game.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
@@ -176,10 +175,6 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 			}
 		}
 	}
-
-	// Unescape strings
-	game.Name, _ = strconv.Unquote(game.Name)
-	game.Description, _ = strconv.Unquote(game.Description)
 
 	return game, nil
 }

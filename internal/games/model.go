@@ -2,7 +2,6 @@ package games
 
 import (
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -10,19 +9,19 @@ import (
 )
 
 type GameInfo struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Image       string     `json:"image"`
-	CreatedAt   *time.Time `json:"createdAt"`
-	UpdatedAt   *time.Time `json:"updatedAt"`
+	ID          string             `json:"id"`
+	Name        utils.QuotedString `json:"name"`
+	Description utils.QuotedString `json:"description"`
+	Image       string             `json:"image"`
+	CreatedAt   *time.Time         `json:"createdAt"`
+	UpdatedAt   *time.Time         `json:"updatedAt"`
 }
 
 func NewGameInfo(name, desc, image string) *GameInfo {
 	return &GameInfo{
 		ID:          utils.NameToID(name),
-		Name:        strconv.Quote(name),
-		Description: strconv.Quote(desc),
+		Name:        utils.NewQuotedString(name),
+		Description: utils.NewQuotedString(desc),
 		Image:       image,
 		CreatedAt:   utils.Allocate(time.Now()),
 	}
@@ -57,7 +56,7 @@ func (i *GameInfo) Compare(val *GameInfo) bool {
 }
 
 func (i *GameInfo) GetName() string {
-	return i.Name
+	return i.Name.String()
 }
 
 func (i *GameInfo) GetCreatedAt() time.Time {
@@ -65,4 +64,14 @@ func (i *GameInfo) GetCreatedAt() time.Time {
 		return *i.CreatedAt
 	}
 	return time.Time{}
+}
+
+func (i *GameInfo) SetQuotedOutput() {
+	i.Name.SetQuotedOutput()
+	i.Description.SetQuotedOutput()
+}
+
+func (i *GameInfo) SetRawOutput() {
+	i.Name.SetRawOutput()
+	i.Description.SetRawOutput()
 }

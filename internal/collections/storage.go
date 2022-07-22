@@ -29,7 +29,7 @@ func NewCollectionStorage(config *config.Config, gameService *games.GameService)
 func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*CollectionInfo, error) {
 	// Check ID
 	if collection.ID == "" {
-		return nil, errors.BadName.AddMessage(collection.Name)
+		return nil, errors.BadName.AddMessage(collection.Name.String())
 	}
 
 	// Check if such an object already exists
@@ -41,6 +41,10 @@ func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*
 	if err := fs.CreateFolder(collection.Path(gameID)); err != nil {
 		return nil, err
 	}
+
+	// Quote values before write to file
+	collection.SetQuotedOutput()
+	defer collection.SetRawOutput()
 
 	// Writing info to file
 	if err := fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {
@@ -120,6 +124,9 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateColle
 	}
 
 	// Create collection object
+	if dto.Name == "" {
+		dto.Name = oldCollection.Name.String()
+	}
 	collection := NewCollectionInfo(dto.Name, dto.Description, dto.Image)
 	collection.CreatedAt = oldCollection.CreatedAt
 	if collection.ID == "" {
@@ -142,6 +149,10 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateColle
 
 	// If the object has been changed, update the info file
 	if !oldCollection.Compare(collection) {
+		// Quote values before write to file
+		collection.SetQuotedOutput()
+		defer collection.SetRawOutput()
+
 		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
 		if err = fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {

@@ -27,10 +27,10 @@ func testCreate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name != gameName {
+	if game.Name.String() != gameName {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName)
 	}
-	if game.Description != desc {
+	if game.Description.String() != desc {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc)
 	}
 
@@ -54,10 +54,10 @@ func testCreate(t *testing.T) {
 func testDelete(t *testing.T) {
 	service := NewService()
 	gameName := "one"
-	gameId := utils.NameToID(gameName)
+	gameID := utils.NameToID(gameName)
 
 	// Try to remove non-existing game
-	err := service.Delete(gameId)
+	err := service.Delete(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -74,13 +74,13 @@ func testDelete(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameId)
+	err = service.Delete(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to delete game twice
-	err = service.Delete(gameId)
+	err = service.Delete(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -92,10 +92,10 @@ func testUpdate(t *testing.T) {
 	service := NewService()
 	gameName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
-	gameId := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
+	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to update non-existing game
-	_, err := service.Update(gameId[0], &UpdateGameDTO{})
+	_, err := service.Update(gameID[0], &UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -111,36 +111,36 @@ func testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name != gameName[0] {
+	if game.Name.String() != gameName[0] {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[0])
 	}
-	if game.Description != desc[0] {
+	if game.Description.String() != desc[0] {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc[0])
 	}
 
 	// Update game
-	game, err = service.Update(gameId[0], &UpdateGameDTO{
+	game, err = service.Update(gameID[0], &UpdateGameDTO{
 		Name:        gameName[1],
 		Description: desc[1],
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name != gameName[1] {
+	if game.Name.String() != gameName[1] {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[1])
 	}
-	if game.Description != desc[1] {
+	if game.Description.String() != desc[1] {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc[1])
 	}
 
 	// Delete game
-	err = service.Delete(gameId[1])
+	err = service.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to update non-existing game
-	_, err = service.Update(gameId[1], &UpdateGameDTO{})
+	_, err = service.Update(gameID[1], &UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -151,7 +151,7 @@ func testUpdate(t *testing.T) {
 func testList(t *testing.T) {
 	service := NewService()
 	gameName := []string{"B game", "A game"}
-	gameId := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
+	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Empty list
 	items, err := service.List("")
@@ -195,10 +195,10 @@ func testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name != gameName[1] {
+	if items[0].Name.String() != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
 	}
-	if items[1].Name != gameName[0] {
+	if items[1].Name.String() != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
 	}
 
@@ -210,10 +210,10 @@ func testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name != gameName[0] {
+	if items[0].Name.String() != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
 	}
-	if items[1].Name != gameName[1] {
+	if items[1].Name.String() != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
@@ -225,10 +225,10 @@ func testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name != gameName[0] {
+	if items[0].Name.String() != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
 	}
-	if items[1].Name != gameName[1] {
+	if items[1].Name.String() != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
@@ -240,21 +240,21 @@ func testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name != gameName[1] {
+	if items[0].Name.String() != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
 	}
-	if items[1].Name != gameName[0] {
+	if items[1].Name.String() != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
 	}
 
 	// Delete first game
-	err = service.Delete(gameId[0])
+	err = service.Delete(gameID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Delete second game
-	err = service.Delete(gameId[1])
+	err = service.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,10 +271,10 @@ func testList(t *testing.T) {
 func testItem(t *testing.T) {
 	service := NewService()
 	gameName := []string{"one", "two"}
-	gameId := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
+	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to get non-existing game
-	_, err := service.Item(gameId[0])
+	_, err := service.Item(gameID[0])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -291,13 +291,13 @@ func testItem(t *testing.T) {
 	}
 
 	// Get valid game
-	_, err = service.Item(gameId[0])
+	_, err = service.Item(gameID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid game
-	_, err = service.Item(gameId[1])
+	_, err = service.Item(gameID[1])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -306,19 +306,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Rename game
-	_, err = service.Update(gameId[0], &UpdateGameDTO{Name: gameName[1]})
+	_, err = service.Update(gameID[0], &UpdateGameDTO{Name: gameName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get valid game
-	_, err = service.Item(gameId[1])
+	_, err = service.Item(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid game
-	_, err = service.Item(gameId[0])
+	_, err = service.Item(gameID[0])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -327,7 +327,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameId[1])
+	err = service.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -335,12 +335,12 @@ func testItem(t *testing.T) {
 func testImage(t *testing.T) {
 	service := NewService()
 	gameName := "one"
-	gameId := utils.NameToID(gameName)
+	gameID := utils.NameToID(gameName)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
 
 	// Check no game
-	_, _, err := service.GetImage(gameId)
+	_, _, err := service.GetImage(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exists")
 	}
@@ -358,7 +358,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err := service.GetImage(gameId)
+	_, imgType, err := service.GetImage(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -367,7 +367,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameId, &UpdateGameDTO{
+	_, err = service.Update(gameID, &UpdateGameDTO{
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -375,7 +375,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err = service.GetImage(gameId)
+	_, imgType, err = service.GetImage(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -384,7 +384,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameId, &UpdateGameDTO{
+	_, err = service.Update(gameID, &UpdateGameDTO{
 		Image: "",
 	})
 	if err != nil {
@@ -392,7 +392,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check no image
-	_, _, err = service.GetImage(gameId)
+	_, _, err = service.GetImage(gameID)
 	if err == nil {
 		t.Fatal("Error, game don't have image")
 	}
@@ -401,7 +401,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameId)
+	err = service.Delete(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -446,8 +446,8 @@ func fuzzList(t *testing.T, service *GameService, waitItems int) error {
 	}
 	return nil
 }
-func fuzzItem(t *testing.T, service *GameService, gameId, name, desc string) error {
-	game, err := service.Item(gameId)
+func fuzzItem(t *testing.T, service *GameService, gameID, name, desc string) error {
+	game, err := service.Item(gameID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -455,14 +455,14 @@ func fuzzItem(t *testing.T, service *GameService, gameId, name, desc string) err
 		}
 		return err
 	}
-	if game.Name != name {
+	if game.Name.String() != name {
 		{
 			data, _ := json.MarshalIndent(game, "", "	")
 			t.Log(string(data))
 		}
 		return fmt.Errorf("name: [wait] %s [got] %s", name, game.Name)
 	}
-	if game.Description != desc {
+	if game.Description.String() != desc {
 		{
 			data, _ := json.MarshalIndent(game, "", "	")
 			t.Log("item:", string(data))
@@ -489,8 +489,8 @@ func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*GameInf
 	}
 	return game, nil
 }
-func fuzzUpdate(t *testing.T, service *GameService, gameId, name, desc string) (*GameInfo, error) {
-	game, err := service.Update(gameId, &UpdateGameDTO{
+func fuzzUpdate(t *testing.T, service *GameService, gameID, name, desc string) (*GameInfo, error) {
+	game, err := service.Update(gameID, &UpdateGameDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -507,8 +507,8 @@ func fuzzUpdate(t *testing.T, service *GameService, gameId, name, desc string) (
 	}
 	return game, nil
 }
-func fuzzDelete(t *testing.T, service *GameService, gameId string) error {
-	err := service.Delete(gameId)
+func fuzzDelete(t *testing.T, service *GameService, gameID string) error {
+	err := service.Delete(gameID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
