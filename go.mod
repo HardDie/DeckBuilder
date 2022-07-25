@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/go-openapi/runtime v0.23.3
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.8.0
 	golang.org/x/exp v0.0.0-20220321173239-a90fa8a75705
 )

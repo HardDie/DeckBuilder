@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"tts_deck_build/internal/config"
 	er "tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
@@ -549,7 +551,7 @@ func FuzzCollection(f *testing.F) {
 	if dataPath == "" {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_fuzz"))
+	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
 
 	gameService := games.NewService()
 	service := NewService()

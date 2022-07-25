@@ -32,20 +32,20 @@ test:
 
 fuzz_game:
 	rm -rf data_test || 1
-	cd internal/games && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzGame -parallel=1 -v
+	cd internal/games && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzGame -v
 	rm -rf data_test || 1
 
 fuzz_collection:
 	rm -rf data_test || 1
-	cd internal/collections && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCollection -parallel=1 -v
+	cd internal/collections && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCollection -v
 	rm -rf data_test || 1
 
 fuzz_deck:
 	rm -rf data_test || 1
-	cd internal/decks && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzDeck -parallel=1 -v
+	cd internal/decks && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzDeck -v
 	rm -rf data_test || 1
 
 fuzz_card:
 	rm -rf data_test || 1
-	cd internal/cards && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCard -parallel=1 -v
+	cd internal/cards && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCard -v
 	rm -rf data_test || 1
