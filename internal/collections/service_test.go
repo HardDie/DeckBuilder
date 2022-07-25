@@ -422,9 +422,19 @@ func TestCollection(t *testing.T) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_test"))
 
+	service := NewService()
+
+	// Game not exist error
+	_, err := service.Create(gameID, &CreateCollectionDTO{
+		Name: "test",
+	})
+	if !errors.Is(err, er.GameNotExists) {
+		t.Fatal(err)
+	}
+
 	// Create game
 	gameService := games.NewService()
-	_, err := gameService.Create(&games.CreateGameDTO{
+	_, err = gameService.Create(&games.CreateGameDTO{
 		Name: gameID,
 	})
 	if err != nil {
@@ -544,8 +554,6 @@ func FuzzCollection(f *testing.F) {
 	gameService := games.NewService()
 	service := NewService()
 
-	f.Add("Base Game", "Gold Box", "Four Souls", "Requiem")
-
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
 		items, err := gameService.List("")
@@ -584,7 +592,6 @@ func FuzzCollection(f *testing.F) {
 			fuzzCleanup(dataPath) // Cleanup - just in case
 			t.Fatal(err)
 		}
-		_ = collection1
 
 		// List with collection
 		err = fuzzList(t, service, 1)

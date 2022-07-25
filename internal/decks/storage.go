@@ -32,6 +32,11 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 		return nil, errors.BadName.AddMessage(deck.Type.String())
 	}
 
+	// Check if collection exist
+	if _, err := s.CollectionService.Item(gameID, collectionID); err != nil {
+		return nil, err
+	}
+
 	// Check if such an object already exists
 	if val, _ := s.GetByID(gameID, collectionID, deck.ID); val != nil {
 		return nil, errors.DeckExist

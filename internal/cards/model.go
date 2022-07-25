@@ -2,7 +2,6 @@ package cards
 
 import (
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -16,20 +15,20 @@ type Card struct {
 }
 
 type CardInfo struct {
-	ID          int64             `json:"id"`
-	Title       string            `json:"title"`
-	Description string            `json:"description"`
-	Image       string            `json:"image"`
-	Variables   map[string]string `json:"variables"`
-	CreatedAt   *time.Time        `json:"createdAt"`
-	UpdatedAt   *time.Time        `json:"updatedAt"`
+	ID          int64              `json:"id"`
+	Title       utils.QuotedString `json:"title"`
+	Description utils.QuotedString `json:"description"`
+	Image       string             `json:"image"`
+	Variables   map[string]string  `json:"variables"`
+	CreatedAt   *time.Time         `json:"createdAt"`
+	UpdatedAt   *time.Time         `json:"updatedAt"`
 }
 
 func NewCardInfo(title, desc, image string, variables map[string]string) *CardInfo {
 	card := &CardInfo{
 		ID:          0,
-		Title:       strconv.Quote(title),
-		Description: strconv.Quote(desc),
+		Title:       utils.NewQuotedString(title),
+		Description: utils.NewQuotedString(desc),
 		Image:       image,
 		Variables:   make(map[string]string),
 		CreatedAt:   utils.Allocate(time.Now()),
@@ -71,7 +70,7 @@ func (i *CardInfo) Compare(val *CardInfo) bool {
 }
 
 func (i *CardInfo) GetName() string {
-	return i.Title
+	return i.Title.String()
 }
 
 func (i *CardInfo) GetCreatedAt() time.Time {
@@ -79,4 +78,14 @@ func (i *CardInfo) GetCreatedAt() time.Time {
 		return *i.CreatedAt
 	}
 	return time.Time{}
+}
+
+func (i *CardInfo) SetQuotedOutput() {
+	i.Title.SetQuotedOutput()
+	i.Description.SetQuotedOutput()
+}
+
+func (i *CardInfo) SetRawOutput() {
+	i.Title.SetRawOutput()
+	i.Description.SetRawOutput()
 }

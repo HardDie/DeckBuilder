@@ -189,7 +189,7 @@ func testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Type.String() != deckType[1] {
-		t.Fatal("Bad type order: [got]", items[0].Type, "[want]", deckType[1])
+		t.Fatal("Bad name order: [got]", items[0].Type, "[want]", deckType[1])
 	}
 	if items[1].Type.String() != deckType[0] {
 		t.Fatal("Bad name order: [got]", items[1].Type, "[want]", deckType[0])
@@ -410,12 +410,30 @@ func TestDeck(t *testing.T) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "deck_test"))
 
+	service := NewService()
+
+	// Game not exist error
+	_, err := service.Create(gameID, collectionID, &CreateDeckDTO{
+		Type: "test",
+	})
+	if !errors.Is(err, er.GameNotExists) {
+		t.Fatal(err)
+	}
+
 	// Create game
 	gameService := games.NewService()
-	_, err := gameService.Create(&games.CreateGameDTO{
+	_, err = gameService.Create(&games.CreateGameDTO{
 		Name: gameID,
 	})
 	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Collection not exist error
+	_, err = service.Create(gameID, collectionID, &CreateDeckDTO{
+		Type: "test",
+	})
+	if !errors.Is(err, er.CollectionNotExists) {
 		t.Fatal(err)
 	}
 
@@ -533,8 +551,6 @@ func FuzzDeck(f *testing.F) {
 	collectionService := collections.NewService()
 	service := NewService()
 
-	f.Add("Monster", "Treasure")
-
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, type1, type2 string) {
 		gameItems, err := gameService.List("")
@@ -550,18 +566,12 @@ func FuzzDeck(f *testing.F) {
 				f.Fatal(err)
 			}
 
-			collectionItems, err := collectionService.List(gameID, "")
+			// Create collection
+			_, err = collectionService.Create(gameID, &collections.CreateCollectionDTO{
+				Name: collectionID,
+			})
 			if err != nil {
-				t.Fatal(err)
-			}
-			if len(collectionItems) == 0 {
-				// Create collection
-				_, err = collectionService.Create(gameID, &collections.CreateCollectionDTO{
-					Name: collectionID,
-				})
-				if err != nil {
-					f.Fatal(err)
-				}
+				f.Fatal(err)
 			}
 		}
 
@@ -586,7 +596,6 @@ func FuzzDeck(f *testing.F) {
 			fuzzCleanup(dataPath) // Cleanup - just in case
 			t.Fatal(err)
 		}
-		_ = deck1
 
 		// List with deck
 		err = fuzzList(t, service, 1)

@@ -44,6 +44,12 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 	// Add card to deck
 	readCard.Cards[card.ID] = card
 
+	// Quote values before write to file
+	defer card.SetRawOutput()
+	for key := range readCard.Cards {
+		readCard.Cards[key].SetQuotedOutput()
+	}
+
 	// Writing info to file
 	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
 		return nil, err
@@ -109,6 +115,13 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 		card.UpdatedAt = utils.Allocate(time.Now())
 		// Replace old card with new one
 		readCard.Cards[card.ID] = card
+
+		// Quote values before write to file
+		defer card.SetRawOutput()
+		for key := range readCard.Cards {
+			readCard.Cards[key].SetQuotedOutput()
+		}
+
 		// Writing info to file
 		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
 			return nil, err

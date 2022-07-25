@@ -529,8 +529,6 @@ func FuzzGame(f *testing.F) {
 
 	service := NewService()
 
-	f.Add("Isaac", "Isaac game", "Four Souls", "Four Souls game")
-
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
 		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
@@ -554,7 +552,6 @@ func FuzzGame(f *testing.F) {
 			fuzzCleanup(dataPath) // Cleanup - just in case
 			t.Fatal(err)
 		}
-		_ = game1
 
 		// List with game
 		err = fuzzList(t, service, 1)

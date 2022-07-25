@@ -32,6 +32,11 @@ func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*
 		return nil, errors.BadName.AddMessage(collection.Name.String())
 	}
 
+	// Check if game exist
+	if _, err := s.GameService.Item(gameID); err != nil {
+		return nil, err
+	}
+
 	// Check if such an object already exists
 	if val, _ := s.GetByID(gameID, collection.ID); val != nil {
 		return nil, errors.CollectionExist
