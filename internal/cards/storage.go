@@ -8,6 +8,8 @@ import (
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
+	"tts_deck_build/internal/images"
+	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/utils"
 )
 
@@ -53,6 +55,13 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 	// Writing info to file
 	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
 		return nil, err
+	}
+
+	if len(card.Image) > 0 {
+		// Download image
+		if err := s.CreateImage(gameID, collectionID, deck.ID, card.ID, card.Image); err != nil {
+			return nil, err
+		}
 	}
 
 	return card, nil
@@ -128,6 +137,24 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 		}
 	}
 
+	// If the image has been changed
+	if card.Image != oldCard.Image {
+		// If image exist, delete
+		if data, _, _ := s.GetImage(gameID, collectionID, deckID, card.ID); data != nil {
+			err = fs.RemoveFile(card.ImagePath(gameID, collectionID, deckID))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if len(card.Image) > 0 {
+			// Download image
+			if err = s.CreateImage(gameID, collectionID, deckID, card.ID, card.Image); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	return card, nil
 }
 func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
@@ -156,6 +183,57 @@ func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int
 		return err
 	}
 	return nil
+}
+func (s *CardStorage) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
+	// Check if such an object exists
+	card, err := s.GetByID(gameID, collectionID, deckID, cardID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Check if an image exists
+	isExist, err := fs.IsFileExist(card.ImagePath(gameID, collectionID, deckID))
+	if err != nil {
+		return nil, "", err
+	}
+	if !isExist {
+		return nil, "", errors.CardImageNotExists
+	}
+
+	// Read an image from a file
+	data, err := fs.OpenAndProcess(card.ImagePath(gameID, collectionID, deckID), fs.BinFromReader)
+	if err != nil {
+		return nil, "", err
+	}
+
+	imgType, err := images.ValidateImage(data)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return data, imgType, nil
+}
+func (s *CardStorage) CreateImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error {
+	// Check if such an object exists
+	card, _ := s.GetByID(gameID, collectionID, deckID, cardID)
+	if card == nil {
+		return errors.CardNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	// Download image
+	imageBytes, err := network.DownloadBytes(imageURL)
+	if err != nil {
+		return err
+	}
+
+	// Validate image
+	_, err = images.ValidateImage(imageBytes)
+	if err != nil {
+		return err
+	}
+
+	// Write image to file
+	return fs.CreateAndProcess(card.ImagePath(gameID, collectionID, deckID), imageBytes, fs.BinToWriter)
 }
 
 // Internal function. Get map of cards inside deck

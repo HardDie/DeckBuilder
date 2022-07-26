@@ -36,8 +36,9 @@ var (
 	DeckImageNotExists = NewError("deck image not exists").HTTP(http.StatusNoContent)
 
 	// card
-	CardExists    = NewError("card exists").HTTP(http.StatusInternalServerError)
-	CardNotExists = NewError("card not exists").HTTP(http.StatusNoContent)
+	CardExists         = NewError("card exists").HTTP(http.StatusInternalServerError)
+	CardNotExists      = NewError("card not exists").HTTP(http.StatusNoContent)
+	CardImageNotExists = NewError("card image not exists").HTTP(http.StatusNoContent)
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)

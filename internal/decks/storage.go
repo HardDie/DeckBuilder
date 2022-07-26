@@ -51,6 +51,11 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 		return nil, err
 	}
 
+	// Create folder for card images
+	if err := fs.CreateFolder(deck.CardImagesPath(gameID, collectionID)); err != nil {
+		return nil, err
+	}
+
 	if len(deck.BacksideImage) > 0 {
 		// Download image
 		if err := s.CreateImage(gameID, collectionID, deck.ID, deck.BacksideImage); err != nil {
@@ -136,6 +141,12 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 		if err != nil {
 			return nil, err
 		}
+
+		// Rename card images folder
+		err = fs.MoveFolder(oldDeck.Deck.CardImagesPath(gameID, collectionID), deck.CardImagesPath(gameID, collectionID))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// If the object has been changed, update the object file
@@ -182,6 +193,11 @@ func (s *DeckStorage) DeleteByID(gameID, collectionID, deckID string) error {
 
 	// Remove object
 	if err := fs.RemoveFile(deck.Path(gameID, collectionID)); err != nil {
+		return err
+	}
+
+	// Remove card images
+	if err := fs.RemoveFile(deck.CardImagesPath(gameID, collectionID)); err != nil {
 		return err
 	}
 

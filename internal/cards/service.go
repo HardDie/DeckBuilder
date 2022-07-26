@@ -61,3 +61,7 @@ func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, 
 func (s *CardService) Delete(gameID, collectionID, deckID string, cardID int64) error {
 	return s.storage.DeleteByID(gameID, collectionID, deckID, cardID)
 }
+
+func (s *CardService) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
+	return s.storage.GetImage(gameID, collectionID, deckID, cardID)
+}

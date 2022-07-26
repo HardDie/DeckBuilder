@@ -34,6 +34,10 @@ func (i *DeckInfo) Path(gameID, collectionID string) string {
 	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".json")
 }
 
+func (i *DeckInfo) CardImagesPath(gameID, collectionID string) string {
+	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID)
+}
+
 func (i *DeckInfo) ImagePath(gameID, collectionID string) string {
 	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".bin")
 }

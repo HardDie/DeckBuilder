@@ -338,6 +338,79 @@ func testItem(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func testImage(t *testing.T) {
+	service := NewService()
+	cardTitle := "one"
+	pngImage := "https://github.com/fluidicon.png"
+	jpegImage := "https://avatars.githubusercontent.com/apple"
+
+	// Check no card
+	_, _, err := service.GetImage(gameID, collectionID, deckID, 1)
+	if err == nil {
+		t.Fatal("Error, card not exists")
+	}
+	if !errors.Is(err, er.CardNotExists) {
+		t.Fatal(err)
+	}
+
+	// Create card
+	card, err := service.Create(gameID, collectionID, deckID, &CreateCardDTO{
+		Title: cardTitle,
+		Image: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err := service.GetImage(gameID, collectionID, deckID, card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "png" {
+		t.Fatal("Image type error! [got]", imgType, "[want] png")
+	}
+
+	// Update card
+	_, err = service.Update(gameID, collectionID, deckID, card.ID, &UpdateCardDTO{
+		Image: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = service.GetImage(gameID, collectionID, deckID, card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Update card
+	_, err = service.Update(gameID, collectionID, deckID, card.ID, &UpdateCardDTO{
+		Image: "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no image
+	_, _, err = service.GetImage(gameID, collectionID, deckID, card.ID)
+	if err == nil {
+		t.Fatal("Error, card don't have image")
+	}
+	if !errors.Is(err, er.CardImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete card
+	err = service.Delete(gameID, collectionID, deckID, card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestCard(t *testing.T) {
 	t.Parallel()
@@ -407,6 +480,7 @@ func TestCard(t *testing.T) {
 	t.Run("update", testUpdate)
 	t.Run("list", testList)
 	t.Run("item", testItem)
+	t.Run("image", testImage)
 }
 
 func fuzzCleanup(path string) {
