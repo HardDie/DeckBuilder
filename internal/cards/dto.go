@@ -5,6 +5,7 @@ type CreateCardDTO struct {
 	Description string            `json:"description"`
 	Image       string            `json:"image"`
 	Variables   map[string]string `json:"variables"`
+	Count       int               `json:"count"`
 }
 
 type UpdateCardDTO struct {
@@ -12,4 +13,5 @@ type UpdateCardDTO struct {
 	Description string            `json:"description"`
 	Image       string            `json:"image"`
 	Variables   map[string]string `json:"variables"`
+	Count       int               `json:"count"`
 }

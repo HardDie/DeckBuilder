@@ -106,7 +106,7 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 	}
 
 	// Create card object
-	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables)
+	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables, dto.Count)
 	card.ID = oldCard.ID
 	card.CreatedAt = oldCard.CreatedAt
 

@@ -28,11 +28,13 @@ func testCreate(t *testing.T) {
 	service := NewService()
 	cardTitle := "one"
 	desc := "best card ever"
+	count := 2
 
 	// Create card
 	card, err := service.Create(gameID, collectionID, deckID, &CreateCardDTO{
 		Title:       cardTitle,
 		Description: desc,
+		Count:       count,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -42,6 +44,9 @@ func testCreate(t *testing.T) {
 	}
 	if card.Description.String() != desc {
 		t.Fatal("Bad description [got]", card.Description, "[want]", desc)
+	}
+	if card.Count != count {
+		t.Fatal("Bad count [got]", card.Count, "[want]", count)
 	}
 
 	// Delete card
@@ -90,6 +95,7 @@ func testUpdate(t *testing.T) {
 	service := NewService()
 	cardTitle := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
+	count := []int{5, 12}
 
 	// Try to update non-existing card
 	_, err := service.Update(gameID, collectionID, deckID, 1, &UpdateCardDTO{})
@@ -104,6 +110,7 @@ func testUpdate(t *testing.T) {
 	card1, err := service.Create(gameID, collectionID, deckID, &CreateCardDTO{
 		Title:       cardTitle[0],
 		Description: desc[0],
+		Count:       count[0],
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -114,11 +121,15 @@ func testUpdate(t *testing.T) {
 	if card1.Description.String() != desc[0] {
 		t.Fatal("Bad description [got]", card1.Description, "[want]", desc[0])
 	}
+	if card1.Count != count[0] {
+		t.Fatal("Bad count [got]", card1.Count, "[want]", count[0])
+	}
 
 	// Update card
 	card2, err := service.Update(gameID, collectionID, deckID, card1.ID, &UpdateCardDTO{
 		Title:       cardTitle[1],
 		Description: desc[1],
+		Count:       count[1],
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -128,6 +139,9 @@ func testUpdate(t *testing.T) {
 	}
 	if card2.Description.String() != desc[1] {
 		t.Fatal("Bad description [got]", card2.Description, "[want]", desc[1])
+	}
+	if card2.Count != count[1] {
+		t.Fatal("Bad count [got]", card2.Count, "[want]", count[1])
 	}
 
 	// Delete card

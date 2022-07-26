@@ -17,7 +17,7 @@ func NewService() *CardService {
 }
 
 func (s *CardService) Create(gameID, collectionID, deckID string, dto *CreateCardDTO) (*CardInfo, error) {
-	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables)
+	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables, dto.Count)
 
 	// Get all cards in deck
 	allCards, err := s.List(gameID, collectionID, deckID, "")
