@@ -102,6 +102,54 @@
         }
       }
     },
+    "/games/import": {
+      "post": {
+        "description": "Creat game from archive",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Import game from archive",
+        "operationId": "RequestImportGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Specify a name for the imported game",
+            "name": "name",
+            "in": "formData"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "File",
+            "description": "Binary data of the imported file",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameImport"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}": {
       "get": {
         "description": "Get an existing game",
@@ -1296,7 +1344,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get game archive",
+        "summary": "Export game to archive",
         "operationId": "RequestArchiveGame",
         "parameters": [
           {
@@ -1776,6 +1824,9 @@
           "format": "uint8"
         }
       }
+    },
+    "ResponseGameImport": {
+      "description": "Import game"
     },
     "ResponseListOfAllDecks": {
       "description": "List of decks",

@@ -249,3 +249,39 @@ func (s *GameStorage) Export(gameID string) ([]byte, error) {
 
 	return fs.ArchiveFolder(game.Path(), game.ID)
 }
+func (s *GameStorage) Import(data []byte, name string) error {
+	gameID := utils.NameToID(name)
+	if name != "" && gameID == "" {
+		return errors.BadName
+	}
+
+	// Unpack the archive
+	err := fs.UnarchiveFolder(data, gameID)
+	if err != nil {
+		return err
+	}
+
+	// If the name has been changed
+	if name != "" {
+		// Get old object
+		game, err := s.GetByID(gameID)
+		if err != nil {
+			return err
+		}
+
+		// Update the title of the game
+		game.ID = gameID
+		game.Name = utils.NewQuotedString(name)
+
+		// Quote values before write to file
+		game.SetQuotedOutput()
+		defer game.SetRawOutput()
+
+		// Writing info to file
+		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

@@ -47,3 +47,7 @@ func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
 func (s *GameService) Export(gameID string) ([]byte, error) {
 	return s.storage.Export(gameID)
 }
+
+func (s *GameService) Import(data []byte, name string) error {
+	return s.storage.Import(data, name)
+}

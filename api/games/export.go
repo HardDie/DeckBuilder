@@ -29,7 +29,7 @@ type ResponseGameArchive struct {
 
 // swagger:route GET /games/{game}/export Games RequestArchiveGame
 //
-// Get game archive
+// Export game to archive
 //
 // Get an existing game archive
 //
