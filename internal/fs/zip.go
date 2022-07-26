@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -23,50 +22,10 @@ func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
 		}
 	}()
 
-	// Open game dir
-	gamePathFiles, err := os.ReadDir(gamePath)
+	// Add all filed to archive
+	err = recursiveWalk(zipWriter, gamePath, gameID)
 	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.InternalError.AddMessage("Error open game: " + err.Error())
-	}
-
-	// Go through all collections
-	for _, gamePathFile := range gamePathFiles {
-		// If dir - it's collection
-		if gamePathFile.IsDir() {
-			collectionPath := filepath.Join(gamePath, gamePathFile.Name())
-			collectionPathFiles, err := os.ReadDir(collectionPath)
-			if err != nil {
-				errors.IfErrorLog(err)
-				return nil, errors.InternalError.AddMessage("Error open collection: " + err.Error())
-			}
-
-			for _, collectionPathFile := range collectionPathFiles {
-				// Path to file inside collection
-				deckPathFile := filepath.Join(collectionPath, collectionPathFile.Name())
-				// Path to file inside zip archive
-				zipPath := filepath.Join(gameID, gamePathFile.Name(), collectionPathFile.Name())
-				log.Println("Add file to archive:", deckPathFile, "->", zipPath)
-				// Copy file inside archive
-				err = addFileIntoArchive(deckPathFile, zipPath, zipWriter)
-				if err != nil {
-					return nil, err
-				}
-			}
-			continue
-		}
-
-		// If file - it's game related
-		// Path to game info file
-		gamePathInfo := filepath.Join(gamePath, gamePathFile.Name())
-		// Path to file inside zip archive
-		zipPath := filepath.Join(gameID, gamePathFile.Name())
-		log.Println("Add file to archive:", gamePathInfo, "->", zipPath)
-		// Copy file inside archive
-		err = addFileIntoArchive(gamePathInfo, zipPath, zipWriter)
-		if err != nil {
-			return nil, err
-		}
+		return
 	}
 
 	// Flush data from zip writer into buffer
@@ -80,6 +39,35 @@ func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
 
 	// Return zip file
 	return buf.Bytes(), nil
+}
+
+func recursiveWalk(zipWriter *zip.Writer, dirPath string, relatePath string) error {
+	// Open dir
+	dirFiles, err := os.ReadDir(dirPath)
+	if err != nil {
+		errors.IfErrorLog(err)
+		return errors.InternalError.AddMessage("Error open folder: " + dirPath + "; " + err.Error())
+	}
+
+	// Go through all files
+	for _, file := range dirFiles {
+		filePath := filepath.Join(dirPath, file.Name())
+		newRelatePath := filepath.Join(relatePath, file.Name())
+
+		if file.IsDir() {
+			err = recursiveWalk(zipWriter, filePath, newRelatePath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy file inside archive
+			err = addFileIntoArchive(filePath, newRelatePath, zipWriter)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Adding single file into archive
