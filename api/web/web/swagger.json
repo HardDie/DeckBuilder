@@ -1471,6 +1471,33 @@
           }
         }
       }
+    },
+    "/system/quit": {
+      "delete": {
+        "description": "Close app on back side",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Close application",
+        "operationId": "RequestQuit",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseQuit"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -1917,6 +1944,9 @@
           }
         }
       }
+    },
+    "ResponseQuit": {
+      "description": "Quit"
     },
     "ResponseSettings": {
       "description": "Settings",
