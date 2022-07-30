@@ -3,6 +3,7 @@ package games
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"tts_deck_build/internal/config"
@@ -256,19 +257,31 @@ func (s *GameStorage) Import(data []byte, name string) error {
 	}
 
 	// Unpack the archive
-	err := fs.UnarchiveFolder(data, gameID)
+	resultGameID, err := fs.UnarchiveFolder(data, gameID)
 	if err != nil {
 		return err
 	}
 
+	// Check if the root folder contains information about the game
+	game, err := s.GetByID(resultGameID)
+	if err != nil {
+		// Build a full relative path to the root game folder
+		gameRootPath := filepath.Join(config.GetConfig().Games(), resultGameID)
+		// If an error occurs during unzipping, delete the created folder with the game
+		errors.IfErrorLog(fs.RemoveFolder(gameRootPath))
+		return err
+	}
+
+	// If the user skipped passing a new name for the game,
+	// but the root folder has a different name than in the game information file.
+	// Fix the game information file.
+	if name == "" && resultGameID != game.ID {
+		gameID = resultGameID
+		name = resultGameID
+	}
+
 	// If the name has been changed
 	if name != "" {
-		// Get old object
-		game, err := s.GetByID(gameID)
-		if err != nil {
-			return err
-		}
-
 		// Update the title of the game
 		game.ID = gameID
 		game.Name = utils.NewQuotedString(name)

@@ -10,6 +10,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/errors"
+	"tts_deck_build/internal/utils"
 )
 
 func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
@@ -43,60 +44,97 @@ func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
 	return buf.Bytes(), nil
 }
 
-func UnarchiveFolder(data []byte, gameID string) (err error) {
+func UnarchiveFolder(data []byte, gameID string) (resultGameID string, err error) {
 	zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
 		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage("Error open zip archive: " + err.Error())
+		return "", errors.InternalError.AddMessage("Error open zip archive: " + err.Error())
 	}
 
+	// The original game ID as it is set in the zip-archive
 	var importGameID string
 
-	// Basic validation
+	// Validation
 	for _, file := range zipReader.File {
+		// Split the full path to the file into parts
 		pathList := strings.Split(file.Name, string(filepath.Separator))
-		if len(pathList) < 2 {
-			// All files should be located inside folder
-			return errors.BadArchive
+
+		// The archive must not contain files outside the folder
+		if !file.Mode().IsDir() && len(pathList) < 2 {
+			return "", errors.BadArchive.AddMessage("The file is located outside the root folder")
 		}
+
+		// If this is the first file, extract the name of the root folder
 		if importGameID == "" {
 			// Get the original title of the game
 			importGameID = pathList[0]
+
+			// Check that the folder name matches the required format of the ID
+			if utils.NameToID(importGameID) != importGameID {
+				return "", errors.BadArchive.AddMessage("The root folder of the game has a bad ID")
+			}
 			continue
 		}
+
+		// The root folder for all files must be the same
 		if importGameID != pathList[0] {
-			// All files should be located inside one folder
-			return errors.BadArchive
+			return "", errors.BadArchive.AddMessage("There should only be one folder in the root of the archive")
 		}
 	}
 
+	// Set the resulting game ID
+	if gameID != "" {
+		// If the user passed the game ID, the created folder will have the following name
+		resultGameID = gameID
+	} else {
+		// If the user skips the game ID, the created folder will have the same name as before
+		resultGameID = importGameID
+	}
+
+	// Build a full relative path to the root game folder
+	gameRootPath := filepath.Join(config.GetConfig().Games(), resultGameID)
+	// Create the root folder of the game
+	err = CreateFolder(gameRootPath)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if err != nil {
+			// If an error occurs during unzipping, delete the created folder with the game
+			errors.IfErrorLog(RemoveFolder(gameRootPath))
+		}
+	}()
+
 	// Unzip files
 	for _, file := range zipReader.File {
+		// Backing up the original file path
 		zipFilePath := file.Name
+
 		if gameID != "" {
-			// If the user passed a different title of the game, replace the original title with the new one
+			// If the user passed a different name of the game, replace the name of the root folder
 			pathList := strings.Split(zipFilePath, string(filepath.Separator))
 			pathList[0] = gameID
 			zipFilePath = filepath.Join(pathList...)
 		}
 
-		// Building the path in the FS for the file from the archive
+		// Build a full relative path to the game folder
 		resultPath := filepath.Join(config.GetConfig().Games(), zipFilePath)
 
 		if file.FileInfo().IsDir() {
 			err = CreateFolderIfNotExist(resultPath)
 			if err != nil {
-				return err
+				return "", err
 			}
 		} else {
 			// Create file in the new game directory
 			err = createFileFromArchive(resultPath, file)
 			if err != nil {
-				return
+				return "", err
 			}
 		}
 	}
-	return
+	return resultGameID, nil
 }
 
 func recursiveWalk(zipWriter *zip.Writer, dirPath string, relatePath string) error {
