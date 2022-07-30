@@ -1,10 +1,10 @@
-package settings
+package system
 
 import (
 	"net/http"
 
 	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/settings"
+	"tts_deck_build/internal/system"
 )
 
 // Request to update a settings
@@ -15,7 +15,7 @@ type RequestUpdateSettings struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		settings.UpdateSettingsDTO
+		system.UpdateSettingsDTO
 	}
 }
 
@@ -26,11 +26,11 @@ type ResponseUpdateSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data settings.SettingInfo `json:"data"`
+		Data system.SettingInfo `json:"data"`
 	}
 }
 
-// swagger:route PATCH /settings Settings RequestUpdateSettings
+// swagger:route PATCH /system/settings System RequestUpdateSettings
 //
 // Update settings
 //
@@ -47,15 +47,15 @@ type ResponseUpdateSettings struct {
 //     Responses:
 //       200: ResponseUpdateSettings
 //       default: ResponseError
-func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	dto := &settings.UpdateSettingsDTO{}
+func UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {
+	dto := &system.UpdateSettingsDTO{}
 	e := network.RequestToObject(r.Body, &dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	setting, e := settings.NewService().Update(dto)
+	setting, e := system.NewService().UpdateSettings(dto)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

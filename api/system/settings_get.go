@@ -1,10 +1,10 @@
-package settings
+package system
 
 import (
 	"net/http"
 
 	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/settings"
+	"tts_deck_build/internal/system"
 )
 
 // swagger:parameters RequestSettings
@@ -18,11 +18,11 @@ type ResponseSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data settings.SettingInfo `json:"data"`
+		Data system.SettingInfo `json:"data"`
 	}
 }
 
-// swagger:route GET /settings Settings RequestSettings
+// swagger:route GET /system/settings System RequestSettings
 //
 // Get settings
 //
@@ -39,8 +39,8 @@ type ResponseSettings struct {
 //     Responses:
 //       200: ResponseSettings
 //       default: ResponseError
-func SettingsHandler(w http.ResponseWriter, r *http.Request) {
-	setting, e := settings.NewService().Get()
+func GetSettingsHandler(w http.ResponseWriter, r *http.Request) {
+	setting, e := system.NewService().GetSettings()
 	if e != nil {
 		network.ResponseError(w, e)
 		return

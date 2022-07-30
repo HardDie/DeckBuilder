@@ -1,4 +1,4 @@
-package settings
+package system
 
 type SettingInfo struct {
 	Lang string `json:"lang"`

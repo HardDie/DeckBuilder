@@ -1404,7 +1404,34 @@
         }
       }
     },
-    "/settings": {
+    "/system/quit": {
+      "delete": {
+        "description": "Close app on back side",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Close application",
+        "operationId": "RequestQuit",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseQuit"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/system/settings": {
       "get": {
         "description": "Get default or changed settings",
         "consumes": [
@@ -1417,7 +1444,7 @@
           "http"
         ],
         "tags": [
-          "Settings"
+          "System"
         ],
         "summary": "Get settings",
         "operationId": "RequestSettings",
@@ -1442,7 +1469,7 @@
           "http"
         ],
         "tags": [
-          "Settings"
+          "System"
         ],
         "summary": "Update settings",
         "operationId": "RequestUpdateSettings",
@@ -1465,33 +1492,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseUpdateSettings"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/system/quit": {
-      "delete": {
-        "description": "Close app on back side",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "System"
-        ],
-        "summary": "Close application",
-        "operationId": "RequestQuit",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseQuit"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -1660,7 +1660,7 @@
           "x-go-name": "Lang"
         }
       },
-      "x-go-package": "tts_deck_build/internal/settings"
+      "x-go-package": "tts_deck_build/internal/system"
     }
   },
   "responses": {
