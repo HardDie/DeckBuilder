@@ -55,6 +55,10 @@ func UnarchiveFolder(data []byte, gameID string) (err error) {
 	// Basic validation
 	for _, file := range zipReader.File {
 		pathList := strings.Split(file.Name, string(filepath.Separator))
+		if len(pathList) < 2 {
+			// All files should be located inside folder
+			return errors.BadArchive
+		}
 		if importGameID == "" {
 			// Get the original title of the game
 			importGameID = pathList[0]
