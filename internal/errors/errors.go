@@ -42,6 +42,9 @@ var (
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
+
+	// zip
+	BadArchive = NewError("bad zip archive").HTTP(http.StatusBadRequest)
 )
 
 type Err struct {
