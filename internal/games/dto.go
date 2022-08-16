@@ -11,3 +11,7 @@ type UpdateGameDTO struct {
 	Description string `json:"description"`
 	Image       string `json:"image"`
 }
+
+type DuplicateGameDTO struct {
+	Name string `json:"name"`
+}

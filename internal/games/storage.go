@@ -241,6 +241,43 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Write image to file
 	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }
+func (s *GameStorage) Duplicate(gameID string, dto *DuplicateGameDTO) (*GameInfo, error) {
+	// Check if the game exists
+	oldGame, _ := s.GetByID(gameID)
+	if oldGame == nil {
+		return nil, errors.GameNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	// New game object
+	game := NewGameInfo(dto.Name, oldGame.Description.String(), oldGame.Image)
+
+	// Check ID
+	if game.ID == "" {
+		return nil, errors.BadName.AddMessage(game.Name.String())
+	}
+
+	// Check if such an object already exists
+	if val, _ := s.GetByID(game.ID); val != nil {
+		return nil, errors.GameExist
+	}
+
+	// Create a copy of the game
+	err := fs.CopyFolder(oldGame.Path(), game.Path())
+	if err != nil {
+		return nil, err
+	}
+
+	// Quote values before write to file
+	game.SetQuotedOutput()
+	defer game.SetRawOutput()
+
+	// Writing info to file
+	if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
 func (s *GameStorage) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
 	game, _ := s.GetByID(gameID)

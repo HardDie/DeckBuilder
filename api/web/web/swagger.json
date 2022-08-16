@@ -1328,6 +1328,56 @@
         }
       }
     },
+    "/games/{game}/duplicate": {
+      "post": {
+        "description": "Allows you to create a copy of an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Duplicate game",
+        "operationId": "RequestDuplicateGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDuplicateGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/export": {
       "get": {
         "description": "Get an existing game archive",
@@ -1803,6 +1853,20 @@
     },
     "ResponseDeleteGame": {
       "description": "Game deletion status"
+    },
+    "ResponseDuplicateGame": {
+      "description": "Status of game duplicate",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/GameInfo"
+          }
+        }
+      }
     },
     "ResponseError": {
       "description": "Default error response",

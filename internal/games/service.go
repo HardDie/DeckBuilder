@@ -44,6 +44,10 @@ func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
 	return s.storage.GetImage(gameID)
 }
 
+func (s *GameService) Duplicate(gameID string, dto *DuplicateGameDTO) (*GameInfo, error) {
+	return s.storage.Duplicate(gameID, dto)
+}
+
 func (s *GameService) Export(gameID string) ([]byte, error) {
 	return s.storage.Export(gameID)
 }

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/otiai10/copy"
+
 	"tts_deck_build/internal/errors"
 )
 
@@ -88,6 +90,14 @@ func RemoveFolder(path string) error {
 }
 func MoveFolder(oldPath, newPath string) error {
 	err := os.Rename(oldPath, newPath)
+	if err != nil {
+		errors.IfErrorLog(err)
+		return errors.InternalError.AddMessage(err.Error())
+	}
+	return nil
+}
+func CopyFolder(oldPath, newPath string) error {
+	err := copy.Copy(oldPath, newPath)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return errors.InternalError.AddMessage(err.Error())
