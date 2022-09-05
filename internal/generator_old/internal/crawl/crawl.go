@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/generator/internal/types"
+	"tts_deck_build/internal/generator_old/internal/types"
 )
 
 // Separate decks by type

@@ -6,9 +6,9 @@ import (
 	"sort"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/generator/internal/deck_drawer"
-	"tts_deck_build/internal/generator/internal/tts_builder"
-	"tts_deck_build/internal/generator/internal/types"
+	"tts_deck_build/internal/generator_old/internal/deck_drawer"
+	"tts_deck_build/internal/generator_old/internal/tts_builder"
+	"tts_deck_build/internal/generator_old/internal/types"
 	"tts_deck_build/internal/utils"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/generator/internal/types"
+	"tts_deck_build/internal/generator_old/internal/types"
 	"tts_deck_build/internal/images"
 )
 

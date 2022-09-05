@@ -28,7 +28,7 @@ import (
 	"net/http"
 
 	"tts_deck_build/api"
-	"tts_deck_build/internal/generator"
+	generator "tts_deck_build/internal/generator_old"
 	"tts_deck_build/internal/network"
 )
 

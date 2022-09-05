@@ -1,4 +1,4 @@
-package generator
+package generator_old
 
 import (
 	"encoding/json"
@@ -8,10 +8,11 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/generator/internal/crawl"
-	"tts_deck_build/internal/generator/internal/deck_builder"
-	"tts_deck_build/internal/generator/internal/download_manager"
-	"tts_deck_build/internal/generator/internal/helpers"
+
+	"tts_deck_build/internal/generator_old/internal/crawl"
+	"tts_deck_build/internal/generator_old/internal/deck_builder"
+	"tts_deck_build/internal/generator_old/internal/download_manager"
+	"tts_deck_build/internal/generator_old/internal/helpers"
 )
 
 // Read configurations, download images, build deck image files
