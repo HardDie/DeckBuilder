@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/generator_old/internal/deck_drawer"
 	"tts_deck_build/internal/generator_old/internal/tts_builder"
 	"tts_deck_build/internal/generator_old/internal/types"
 	"tts_deck_build/internal/tts_entity"
@@ -91,23 +90,6 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 		return types[i] < types[j]
 	})
 	return
-}
-
-// draw
-func (b *DeckBuilder) DrawDecks() map[string]string {
-	// List of result files
-	res := make(map[string]string)
-	for _, deckType := range b.GetTypes() {
-		decks := b.GetDecks(deckType)
-		for _, deck := range decks {
-			deckdrawer.NewDeckDrawer(deck).Draw()
-			// Add current deck title
-			res[deck.FileName] = ""
-		}
-		// Add back side image title
-		res[decks[0].GetBackSideName()] = ""
-	}
-	return res
 }
 
 // tts

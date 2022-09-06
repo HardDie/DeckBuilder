@@ -51,15 +51,12 @@ func main() {
 	log.SetFlags(log.Llongfile | log.Ltime)
 
 	// Setup run flags
-	genImgMode := flag.Bool("generate_image", false, "Run process of generating deck images")
 	genDeckMode := flag.Bool("generate_object", false, "Run process of generating json deck object")
 	gameName := flag.String("game", "", "Title of game for generator")
 	helpMode := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
 	switch {
-	case *genImgMode:
-		generator.GenerateDeckImages(*gameName)
 	case *genDeckMode:
 		generator.GenerateDeckObject(*gameName)
 	case *helpMode:
