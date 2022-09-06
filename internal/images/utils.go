@@ -31,6 +31,16 @@ func Draw(dst *image.RGBA, col, row int, src image.Image) {
 	)
 	draw.Draw(dst, pos, src, image.Point{}, draw.Src)
 }
+func ImageSize(data []byte) (width, height int, err error) {
+	img, err := ImageFromBinary(data)
+	if err != nil {
+		return
+	}
+	bound := img.Bounds().Max
+	width = bound.X
+	height = bound.Y
+	return
+}
 
 func ImageFromReader(r io.Reader) (image.Image, error) {
 	img, _, err := image.Decode(r)
@@ -38,6 +48,9 @@ func ImageFromReader(r io.Reader) (image.Image, error) {
 		return nil, err
 	}
 	return img, nil
+}
+func ImageFromBinary(data []byte) (image.Image, error) {
+	return ImageFromReader(bytes.NewReader(data))
 }
 func SaveToWriter(w io.Writer, img image.Image) error {
 	err := png.Encode(w, img)
