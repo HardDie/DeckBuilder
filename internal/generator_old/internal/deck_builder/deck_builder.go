@@ -9,6 +9,7 @@ import (
 	"tts_deck_build/internal/generator_old/internal/deck_drawer"
 	"tts_deck_build/internal/generator_old/internal/tts_builder"
 	"tts_deck_build/internal/generator_old/internal/types"
+	"tts_deck_build/internal/tts_entity"
 	"tts_deck_build/internal/utils"
 )
 
@@ -111,7 +112,7 @@ func (b *DeckBuilder) DrawDecks() map[string]string {
 
 // tts
 func (b *DeckBuilder) GenerateTTSDeck() []byte {
-	res := types.TTSSaveObject{}
+	res := tts_entity.SaveObject{}
 	for _, deckType := range b.GetTypes() {
 		tts := ttsbuilder.NewTTSBuilder()
 		decks := b.GetDecks(deckType)

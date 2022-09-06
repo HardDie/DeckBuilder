@@ -9,11 +9,12 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/generator_old/internal/types"
+	"tts_deck_build/internal/tts_entity"
 )
 
 type TTSBuilder struct {
 	replaces map[string]string
-	objects  map[string]*types.TTSDeckObject
+	objects  map[string]*tts_entity.DeckObject
 
 	resObjects []interface{}
 }
@@ -30,12 +31,12 @@ func NewTTSBuilder() *TTSBuilder {
 	}
 
 	return &TTSBuilder{
-		objects:  make(map[string]*types.TTSDeckObject),
+		objects:  make(map[string]*tts_entity.DeckObject),
 		replaces: replaces,
 	}
 }
 
-func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckDescription {
+func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) tts_entity.DeckDescription {
 	face, ok := b.replaces[deck.FileName]
 	if !ok {
 		log.Fatalf("Can't find URL for image: %s", deck.FileName)
@@ -44,7 +45,7 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckD
 	if !ok {
 		log.Fatalf("Can't find URL for image: %s", deck.GetBackSideName())
 	}
-	return types.TTSDeckDescription{
+	return tts_entity.DeckDescription{
 		FaceURL:    face,
 		BackURL:    back,
 		NumWidth:   deck.Columns,
@@ -53,8 +54,8 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) types.TTSDeckD
 		Type:       0,
 	}
 }
-func (b *TTSBuilder) generateTTSCard(card *types.Card, cardID int) types.TTSCard {
-	return types.TTSCard{
+func (b *TTSBuilder) generateTTSCard(card *types.Card, cardID int) tts_entity.Card {
+	return tts_entity.Card{
 		Name:        "Card",
 		Nickname:    card.Title,
 		Description: new(string),
