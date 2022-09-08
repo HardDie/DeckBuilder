@@ -64,15 +64,10 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 	return deckArray, totalCountOfCards, nil
 }
 
-func GenerateImagesForGame(gameID string) error {
+func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 	st := status.GetStatus()
-	st.SetType("Image generation")
 	st.SetMessage("Reading a list of cards from the disk...")
 
-	deckArray, totalCountOfCards, err := getListCards(gameID)
-	if err != nil {
-		return err
-	}
 	var processedCards int
 
 	// Create deck and card service

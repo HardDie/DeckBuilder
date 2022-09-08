@@ -30,7 +30,7 @@ func GetConfig() *Config {
 			Data:   "data",
 			Game:   "games",
 			Cache:  "cache",
-			Result: "result_png",
+			Result: "result",
 
 			Setting:       "settings.json",
 			InfoFilename:  ".info.json",
