@@ -13,6 +13,7 @@ import (
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
+	"tts_deck_build/internal/status"
 
 	"github.com/disintegration/imaging"
 )
@@ -64,15 +65,22 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 }
 
 func GenerateImagesForGame(gameID string) error {
-	deckArray, _, err := getListCards(gameID)
+	st := status.GetStatus()
+	st.SetType("Image generation")
+	st.SetMessage("Reading a list of cards from the disk...")
+
+	deckArray, totalCountOfCards, err := getListCards(gameID)
 	if err != nil {
 		return err
 	}
+	var processedCards int
 
 	// Create deck and card service
 	deckService := decks.NewService()
 	cardService := cards.NewService()
 
+	st.SetMessage("Generating the resulting image pages...")
+	st.SetProgress(0)
 	for deckType, pages := range deckArray.Decks {
 		// Processing one type of deck
 
@@ -110,6 +118,7 @@ func GenerateImagesForGame(gameID string) error {
 			}
 			// Make the backside image slightly darker than the original image
 			darkerDeckImg := imaging.AdjustBrightness(deckImg, -30)
+			st.SetMessage("Drawing cards on the resulting page...")
 			for i, card := range page {
 				// Get image
 				imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckType.Title, card.CardID)
@@ -125,18 +134,23 @@ func GenerateImagesForGame(gameID string) error {
 				column, row := cardIdToPageCoordinates(i, columns)
 				// Draw an image on the page
 				images.Draw(pageImage, column, row, cardImg)
+				processedCards++
+				st.SetProgress(float32(processedCards) / float32(totalCountOfCards) * 100)
 			}
+			st.SetMessage("Drawing backside image on the resulting page...")
 			// Draw a picture of the backside in the bottom right position
 			// images.Draw(pageImage, columns-1, rows-1, deckImg)
 			images.Draw(pageImage, columns-1, rows-1, darkerDeckImg)
 			// Build the file name of the result page
 			pageFileName := fmt.Sprintf("%s_%d_%d_%dx%d.png", deckType.Title, i+1, len(page), columns, rows)
 			// Save the image page to file
+			st.SetMessage("Saving the resulting page to disk...")
 			err = fs.CreateAndProcess[image.Image](filepath.Join(config.GetConfig().Results(), pageFileName), pageImage, images.SaveToWriter)
 			if err != nil {
 				return err
 			}
 		}
 	}
+	st.SetMessage("All image pages were successfully generated!")
 	return nil
 }
