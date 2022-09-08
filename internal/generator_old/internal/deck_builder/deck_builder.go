@@ -94,7 +94,7 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 
 // tts
 func (b *DeckBuilder) GenerateTTSDeck() []byte {
-	res := tts_entity.SaveObject{}
+	res := tts_entity.RootObjects{}
 	for _, deckType := range b.GetTypes() {
 		tts := ttsbuilder.NewTTSBuilder()
 		decks := b.GetDecks(deckType)

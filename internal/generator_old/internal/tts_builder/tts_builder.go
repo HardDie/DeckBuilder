@@ -43,7 +43,7 @@ func (b *TTSBuilder) generateTTSDeckDescription(deck *types.Deck) tts_entity.Dec
 	}
 	back, ok := b.replaces[deck.GetBackSideName()]
 	if !ok {
-		log.Fatalf("Can't find URL for image: %s", deck.GetBackSideName())
+		log.Fatalf("Can't find URL for image: %q", deck.GetBackSideName())
 	}
 	return tts_entity.DeckDescription{
 		FaceURL:    face,
