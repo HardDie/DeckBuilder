@@ -7,66 +7,18 @@ import (
 	"path/filepath"
 
 	"tts_deck_build/internal/cards"
-	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
-	"tts_deck_build/internal/status"
+	"tts_deck_build/internal/progress"
 
 	"github.com/disintegration/imaging"
 )
 
-func getListCards(gameID string) (*DeckArray, int, error) {
-	deckArray := NewDeckArray()
-	totalCountOfCards := 0
-
-	// Check if the game exists
-	gameService := games.NewService()
-	gameItem, err := gameService.Item(gameID)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Get collection list
-	collectionService := collections.NewService()
-	collectionItems, err := collectionService.List(gameItem.ID, "")
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Create deck and card service
-	deckService := decks.NewService()
-	cardService := cards.NewService()
-
-	// Get a list of decks for each collection
-	for _, collectionItem := range collectionItems {
-		deckItems, err := deckService.List(gameItem.ID, collectionItem.ID, "")
-		if err != nil {
-			return nil, 0, err
-		}
-		// Get a list of cards for each deck
-		for _, deckItem := range deckItems {
-			// Create a unique description of the deck
-			deckArray.SelectDeck(deckItem.ID, deckItem.BacksideImage)
-			cardItems, err := cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, "")
-			if err != nil {
-				return nil, 0, err
-			}
-			for _, cardItem := range cardItems {
-				// Add card a card to the linked unique deck
-				deckArray.AddCard(gameItem.ID, collectionItem.ID, cardItem.ID)
-				totalCountOfCards++
-			}
-		}
-	}
-	return deckArray, totalCountOfCards, nil
-}
-
 func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
-	st := status.GetStatus()
-	st.SetMessage("Reading a list of cards from the disk...")
+	pr := progress.GetProgress()
+	pr.SetMessage("Reading a list of cards from the disk...")
 
 	var processedCards int
 
@@ -74,15 +26,15 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 	deckService := decks.NewService()
 	cardService := cards.NewService()
 
-	st.SetMessage("Generating the resulting image pages...")
-	st.SetProgress(0)
+	pr.SetMessage("Generating the resulting image pages...")
+	pr.SetProgress(0)
 	for deckType, pages := range deckArray.Decks {
 		// Processing one type of deck
 
 		log.Printf("Deck: %q\n", deckType.Title)
 		// If there are many cards in the deck, then one image page may not be enough.
 		// Processing each page of the image.
-		for i, page := range pages.Pages {
+		for pageId, page := range pages.Pages {
 			// Getting the first image from the page
 			firstCard := page[0]
 			// Extracting the size of the image
@@ -113,8 +65,8 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 			}
 			// Make the backside image slightly darker than the original image
 			darkerDeckImg := imaging.AdjustBrightness(deckImg, -30)
-			st.SetMessage("Drawing cards on the resulting page...")
-			for i, card := range page {
+			pr.SetMessage("Drawing cards on the resulting page...")
+			for cardId, card := range page {
 				// Get image
 				imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckType.Title, card.CardID)
 				if err != nil {
@@ -126,26 +78,26 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 					return err
 				}
 				// Calculate the position of the image on the page
-				column, row := cardIdToPageCoordinates(i, columns)
+				column, row := cardIdToPageCoordinates(cardId, columns)
 				// Draw an image on the page
 				images.Draw(pageImage, column, row, cardImg)
 				processedCards++
-				st.SetProgress(float32(processedCards) / float32(totalCountOfCards) * 100)
+				pr.SetProgress(float32(processedCards) / float32(totalCountOfCards) * 100)
 			}
-			st.SetMessage("Drawing backside image on the resulting page...")
+			pr.SetMessage("Drawing backside image on the resulting page...")
 			// Draw a picture of the backside in the bottom right position
 			// images.Draw(pageImage, columns-1, rows-1, deckImg)
 			images.Draw(pageImage, columns-1, rows-1, darkerDeckImg)
 			// Build the file name of the result page
-			pageFileName := fmt.Sprintf("%s_%d_%d_%dx%d.png", deckType.Title, i+1, len(page), columns, rows)
+			pageFileName := fmt.Sprintf("%s_%d_%d_%dx%d.png", deckType.Title, pageId+1, len(page), columns, rows)
 			// Save the image page to file
-			st.SetMessage("Saving the resulting page to disk...")
+			pr.SetMessage("Saving the resulting page to disk...")
 			err = fs.CreateAndProcess[image.Image](filepath.Join(config.GetConfig().Results(), pageFileName), pageImage, images.SaveToWriter)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	st.SetMessage("All image pages were successfully generated!")
+	pr.SetMessage("All image pages were successfully generated!")
 	return nil
 }

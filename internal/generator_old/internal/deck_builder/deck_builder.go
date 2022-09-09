@@ -94,7 +94,7 @@ func (b *DeckBuilder) GetTypes() (types []string) {
 
 // tts
 func (b *DeckBuilder) GenerateTTSDeck() []byte {
-	res := tts_entity.RootObjects{}
+	bag := tts_entity.Bag{}
 	for _, deckType := range b.GetTypes() {
 		tts := ttsbuilder.NewTTSBuilder()
 		decks := b.GetDecks(deckType)
@@ -104,7 +104,12 @@ func (b *DeckBuilder) GenerateTTSDeck() []byte {
 				tts.AddCard(deck, card, deckID+1, cardID)
 			}
 		}
-		res.ObjectStates = append(res.ObjectStates, tts.GetObjects()...)
+		bag.ContainedObjects = append(bag.ContainedObjects, tts.GetObjects()...)
+	}
+	res := tts_entity.RootObjects{
+		ObjectStates: []tts_entity.Bag{
+			bag,
+		},
 	}
 	data, _ := json.MarshalIndent(res, "", "  ")
 	return data
