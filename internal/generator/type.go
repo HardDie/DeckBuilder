@@ -1,4 +1,4 @@
-package generator_image
+package generator
 
 const (
 	MinWidth  = 2

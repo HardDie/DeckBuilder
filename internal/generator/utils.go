@@ -1,4 +1,4 @@
-package generator_image
+package generator
 
 // Allows you to find the minimum image size for all cards on the page
 func calculateGridSize(cardsNumber int) (cols, rows int) {
