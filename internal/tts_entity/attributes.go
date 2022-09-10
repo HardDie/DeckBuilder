@@ -8,3 +8,13 @@ type Transform struct {
 	ScaleY float64 `json:"scaleY"`
 	ScaleZ float64 `json:"scaleZ"`
 }
+
+type DeckDescription struct {
+	FaceURL      string `json:"FaceURL"`
+	BackURL      string `json:"BackURL"`
+	NumWidth     int    `json:"NumWidth"`
+	NumHeight    int    `json:"NumHeight"`
+	BackIsHidden bool   `json:"BackIsHidden"`
+	UniqueBack   bool   `json:"UniqueBack"`
+	Type         int    `json:"Type"`
+}
