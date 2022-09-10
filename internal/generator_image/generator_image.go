@@ -1,6 +1,7 @@
 package generator_image
 
 import (
+	"crypto/md5"
 	"fmt"
 	"image"
 	"log"
@@ -21,6 +22,7 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 	pr.SetMessage("Reading a list of cards from the disk...")
 
 	var processedCards int
+	backsideMark := make(map[string]struct{})
 
 	// Create deck and card service
 	deckService := decks.NewService()
@@ -54,10 +56,24 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 			resultImageHeight := cardHeight * rows
 			// Creating a page image
 			pageImage := images.CreateImage(resultImageWidth, resultImageHeight)
+			// Getting an deck item
+			deckItem, err := deckService.Item(firstCard.GameID, firstCard.CollectionID, deckType.Title)
+			if err != nil {
+				return err
+			}
 			// Getting an image of the backside
 			deckBinImg, _, err := deckService.GetImage(firstCard.GameID, firstCard.CollectionID, deckType.Title)
 			if err != nil {
 				return err
+			}
+			if _, ok := backsideMark[deckItem.ID+deckItem.BacksideImage]; !ok {
+				backsideMark[deckItem.ID+deckItem.BacksideImage] = struct{}{}
+				hash := md5.Sum([]byte(deckItem.BacksideImage))
+				backside := "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
+				err = fs.CreateAndProcess(filepath.Join(config.GetConfig().Results(), backside), deckBinImg, fs.BinToWriter)
+				if err != nil {
+					return err
+				}
 			}
 			deckImg, err := images.ImageFromBinary(deckBinImg)
 			if err != nil {

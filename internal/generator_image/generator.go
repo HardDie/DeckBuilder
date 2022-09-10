@@ -65,12 +65,19 @@ func Generate(gameID string) error {
 	}
 
 	// Create folder
-	if err := fs.CreateFolder(config.GetConfig().Results()); err != nil {
+	err = fs.CreateFolder(config.GetConfig().Results())
+	if err != nil {
 		return err
 	}
 
 	pr.SetType("Image generation")
 	err = GenerateImagesForGame(deckArray, totalCountOfCards)
+	if err != nil {
+		return err
+	}
+
+	pr.SetType("Json generation")
+	err = GenerateJsonForTTS(deckArray)
 	if err != nil {
 		return err
 	}
