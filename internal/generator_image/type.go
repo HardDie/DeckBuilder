@@ -10,8 +10,8 @@ const (
 
 // DeckType Unique description for deck
 type DeckType struct {
-	Title string
-	Image string
+	DeckID string
+	Image  string
 }
 
 // CardDescription Full description for single card
@@ -67,8 +67,8 @@ func NewDeckArray() *DeckArray {
 // in the following calls to the AddCard() method
 func (dArr *DeckArray) SelectDeck(title, image string) {
 	dArr.selectedDeck = DeckType{
-		Title: title,
-		Image: image,
+		DeckID: title,
+		Image:  image,
 	}
 	if _, ok := dArr.Decks[dArr.selectedDeck]; !ok {
 		dArr.Decks[dArr.selectedDeck] = NewCardArray()

@@ -10,7 +10,7 @@ import (
 	"tts_deck_build/internal/progress"
 )
 
-func getListCards(gameID string) (*DeckArray, int, error) {
+func getListCards(gameID string, sortField string) (*DeckArray, int, error) {
 	deckArray := NewDeckArray()
 	totalCountOfCards := 0
 
@@ -23,7 +23,7 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 
 	// Get collection list
 	collectionService := collections.NewService()
-	collectionItems, err := collectionService.List(gameItem.ID, "")
+	collectionItems, err := collectionService.List(gameItem.ID, sortField)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -34,7 +34,7 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
-		deckItems, err := deckService.List(gameItem.ID, collectionItem.ID, "")
+		deckItems, err := deckService.List(gameItem.ID, collectionItem.ID, sortField)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -42,7 +42,7 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
 			deckArray.SelectDeck(deckItem.ID, deckItem.BacksideImage)
-			cardItems, err := cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, "")
+			cardItems, err := cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, sortField)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -59,12 +59,12 @@ func getListCards(gameID string) (*DeckArray, int, error) {
 func Generate(gameID string) error {
 	pr := progress.GetProgress()
 
-	deckArray, totalCountOfCards, err := getListCards(gameID)
+	deckArray, totalCountOfCards, err := getListCards(gameID, "name")
 	if err != nil {
 		return err
 	}
 
-	// Create folder
+	// Create result folder
 	err = fs.CreateFolder(config.GetConfig().Results())
 	if err != nil {
 		return err

@@ -33,14 +33,14 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 	for deckType, pages := range deckArray.Decks {
 		// Processing one type of deck
 
-		log.Printf("Deck: %q\n", deckType.Title)
+		log.Printf("Deck: %q\n", deckType.DeckID)
 		// If there are many cards in the deck, then one image page may not be enough.
 		// Processing each page of the image.
 		for pageId, page := range pages.Pages {
 			// Getting the first image from the page
 			firstCard := page[0]
 			// Extracting the size of the image
-			imgBin, _, err := cardService.GetImage(firstCard.GameID, firstCard.CollectionID, deckType.Title, firstCard.CardID)
+			imgBin, _, err := cardService.GetImage(firstCard.GameID, firstCard.CollectionID, deckType.DeckID, firstCard.CardID)
 			if err != nil {
 				return err
 			}
@@ -57,12 +57,12 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 			// Creating a page image
 			pageImage := images.CreateImage(resultImageWidth, resultImageHeight)
 			// Getting an deck item
-			deckItem, err := deckService.Item(firstCard.GameID, firstCard.CollectionID, deckType.Title)
+			deckItem, err := deckService.Item(firstCard.GameID, firstCard.CollectionID, deckType.DeckID)
 			if err != nil {
 				return err
 			}
 			// Getting an image of the backside
-			deckBinImg, _, err := deckService.GetImage(firstCard.GameID, firstCard.CollectionID, deckType.Title)
+			deckBinImg, _, err := deckService.GetImage(firstCard.GameID, firstCard.CollectionID, deckType.DeckID)
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 			pr.SetMessage("Drawing cards on the resulting page...")
 			for cardId, card := range page {
 				// Get image
-				imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckType.Title, card.CardID)
+				imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckType.DeckID, card.CardID)
 				if err != nil {
 					return err
 				}
@@ -105,7 +105,7 @@ func GenerateImagesForGame(deckArray *DeckArray, totalCountOfCards int) error {
 			// images.Draw(pageImage, columns-1, rows-1, deckImg)
 			images.Draw(pageImage, columns-1, rows-1, darkerDeckImg)
 			// Build the file name of the result page
-			pageFileName := fmt.Sprintf("%s_%d_%d_%dx%d.png", deckType.Title, pageId+1, len(page), columns, rows)
+			pageFileName := fmt.Sprintf("%s_%d_%d_%dx%d.png", deckType.DeckID, pageId+1, len(page), columns, rows)
 			// Save the image page to file
 			pr.SetMessage("Saving the resulting page to disk...")
 			err = fs.CreateAndProcess[image.Image](filepath.Join(config.GetConfig().Results(), pageFileName), pageImage, images.SaveToWriter)

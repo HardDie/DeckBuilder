@@ -48,9 +48,9 @@ func GenerateJsonForTTS(deckArray *DeckArray) error {
 					// Calculation the optimal proportion of the image.
 					columns, rows := calculateGridSize(len(page) + 1)
 					// Build file page name
-					pagePath := fmt.Sprintf("file:///home/user/data/%s_%d_%d_%dx%d.png", deckType.Title, pageId+1, len(page), columns, rows)
+					pagePath := fmt.Sprintf("file:///home/user/data/%s_%d_%d_%dx%d.png", deckType.DeckID, pageId+1, len(page), columns, rows)
 					// Get information about the deck
-					deckItem, err := deckService.Item(card.GameID, card.CollectionID, deckType.Title)
+					deckItem, err := deckService.Item(card.GameID, card.CollectionID, deckType.DeckID)
 					if err != nil {
 						return err
 					}
@@ -71,8 +71,8 @@ func GenerateJsonForTTS(deckArray *DeckArray) error {
 
 				// If the collection on the previous card is different,
 				// we move the current deck to the object list and create a new deck
-				if collectionType != card.CollectionID+deckType.Title {
-					collectionType = card.CollectionID + deckType.Title
+				if collectionType != card.CollectionID+deckType.DeckID {
+					collectionType = card.CollectionID + deckType.DeckID
 
 					switch {
 					case len(deck.ContainedObjects) == 1:
@@ -84,7 +84,7 @@ func GenerateJsonForTTS(deckArray *DeckArray) error {
 					}
 
 					// Get information about the deck
-					deckItem, err := deckService.Item(card.GameID, card.CollectionID, deckType.Title)
+					deckItem, err := deckService.Item(card.GameID, card.CollectionID, deckType.DeckID)
 					if err != nil {
 						return err
 					}
@@ -101,7 +101,7 @@ func GenerateJsonForTTS(deckArray *DeckArray) error {
 				}
 
 				// Get information about the card
-				cardItem, err := cardService.Item(card.GameID, card.CollectionID, deckType.Title, card.CardID)
+				cardItem, err := cardService.Item(card.GameID, card.CollectionID, deckType.DeckID, card.CardID)
 				if err != nil {
 					return err
 				}
