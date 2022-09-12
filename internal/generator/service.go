@@ -18,9 +18,54 @@ import (
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/tts_entity"
+	"tts_deck_build/internal/utils"
 )
 
-func getListCards(gameID string, sortField string) (*DeckArray, int, error) {
+const (
+	MinWidth  = 2
+	MinHeight = 2
+	MaxWidth  = 10
+	MaxHeight = 7
+	MaxCount  = MaxWidth*MaxHeight - 1
+)
+
+type GeneratorService struct {
+}
+
+func NewService() *GeneratorService {
+	return &GeneratorService{}
+}
+
+func (s *GeneratorService) GenerateGame(gameID string, dto *GenerateGameDTO) error {
+	pr := progress.GetProgress()
+
+	deckArray, totalCountOfCards, err := s.getListOfCards(gameID, dto.SortOrder)
+	if err != nil {
+		return err
+	}
+
+	// Cleanup before generation
+	err = fs.RemoveFolder(config.GetConfig().Results())
+	if err != nil {
+		return err
+	}
+
+	// Create result folder
+	err = fs.CreateFolder(config.GetConfig().Results())
+	if err != nil {
+		return err
+	}
+
+	pr.SetType("Image generation")
+	err = s.generateBody(deckArray, totalCountOfCards)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*DeckArray, int, error) {
 	deckArray := NewDeckArray()
 	totalCountOfCards := 0
 
@@ -66,41 +111,7 @@ func getListCards(gameID string, sortField string) (*DeckArray, int, error) {
 	return deckArray, totalCountOfCards, nil
 }
 
-func Generate(gameID string) error {
-	pr := progress.GetProgress()
-
-	deckArray, totalCountOfCards, err := getListCards(gameID, "name")
-	if err != nil {
-		return err
-	}
-
-	// Create result folder
-	err = fs.CreateFolder(config.GetConfig().Results())
-	if err != nil {
-		return err
-	}
-
-	pr.SetType("Image generation")
-	err = GenerateSingle(deckArray, totalCountOfCards)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type PageInfo struct {
-	Columns, Rows int
-	Width, Height int
-	Count         int
-	Name          string
-}
-
-func allocate[T any](val T) *T {
-	return &val
-}
-
-func GenerateSingle(deckArray *DeckArray, totalCountOfCards int) error {
+func (s *GeneratorService) generateBody(deckArray *DeckArray, totalCountOfCards int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
@@ -259,8 +270,8 @@ func GenerateSingle(deckArray *DeckArray, totalCountOfCards int) error {
 				// Create a card and place it in the list of cards inside the deck
 				deck.ContainedObjects = append(deck.ContainedObjects, tts_entity.Card{
 					Name:        "Card",
-					Nickname:    allocate(cardItem.Title.String()),
-					Description: allocate(cardItem.Description.String()),
+					Nickname:    utils.Allocate(cardItem.Title.String()),
+					Description: utils.Allocate(cardItem.Description.String()),
 					CardID:      (pageId+1)*100 + cardId,
 					LuaScript:   strings.Join(variables, "\n"),
 					CustomDeck: map[int]tts_entity.DeckDescription{

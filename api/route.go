@@ -9,6 +9,7 @@ import (
 	"tts_deck_build/api/collections"
 	"tts_deck_build/api/decks"
 	"tts_deck_build/api/games"
+	"tts_deck_build/api/generator"
 	"tts_deck_build/api/images"
 	"tts_deck_build/api/system"
 	"tts_deck_build/api/web"
@@ -16,13 +17,15 @@ import (
 
 func GetRoutes() *mux.Router {
 	routes := mux.NewRouter().StrictSlash(false)
-	web.Init(routes)
-	games.Init(routes)
-	collections.Init(routes)
-	decks.Init(routes)
-	cards.Init(routes)
-	images.Init(routes)
-	system.Init(routes)
+	ApiRoute := routes.PathPrefix("/api").Subrouter()
+	web.Init(ApiRoute)
+	games.Init(ApiRoute)
+	collections.Init(ApiRoute)
+	decks.Init(ApiRoute)
+	cards.Init(ApiRoute)
+	images.Init(ApiRoute)
+	system.Init(ApiRoute)
+	generator.Init(ApiRoute)
 	routes.Use(corsMiddleware)
 	return routes
 }

@@ -65,6 +65,10 @@ func RequestToObject(r io.ReadCloser, data interface{}) (e error) {
 	defer func() { errors.IfErrorLog(r.Close()) }()
 	err := json.NewDecoder(r).Decode(data)
 	if err != nil {
+		if err == io.EOF {
+			// If the body of the request is empty, it is not an error
+			return nil
+		}
 		errors.IfErrorLog(err)
 		e = errors.InternalError.AddMessage(err.Error())
 	}

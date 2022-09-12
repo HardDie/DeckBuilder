@@ -4,8 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"golang.org/x/exp/constraints"
-
 	"tts_deck_build/internal/config"
 )
 
@@ -28,16 +26,4 @@ func NameToID(in string) string {
 
 func Allocate[T any](val T) *T {
 	return &val
-}
-
-func Min[T constraints.Ordered](a, b T) T {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-// TODO: Remove
-func GetFilenameFromURL(link string) string {
-	return ""
 }
