@@ -18,7 +18,7 @@ import (
 func GetRoutes() *mux.Router {
 	routes := mux.NewRouter().StrictSlash(false)
 	ApiRoute := routes.PathPrefix("/api").Subrouter()
-	web.Init(ApiRoute)
+	web.Init(routes)
 	games.Init(ApiRoute)
 	collections.Init(ApiRoute)
 	decks.Init(ApiRoute)

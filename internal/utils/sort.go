@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-type Sortable interface {
+type ISortable interface {
 	GetName() string
 	GetCreatedAt() time.Time
 }
 
-func Sort[T Sortable](items *[]T, field string) {
+func Sort[T ISortable](items *[]T, field string) {
 	field = strings.ToLower(field)
 	sort.SliceStable(*items, func(i, j int) bool {
 		switch field {
