@@ -276,94 +276,7 @@
         }
       }
     },
-    "/api/games/{game}/duplicate": {
-      "post": {
-        "description": "Allows you to create a copy of an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "Duplicate game",
-        "operationId": "RequestDuplicateGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDuplicateGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/games/{game}/export": {
-      "get": {
-        "description": "Get an existing game archive",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json",
-          "application/zip"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "Export game to archive",
-        "operationId": "RequestArchiveGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameArchive"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{game}/collections": {
+    "/api/games/{game}/collections": {
       "get": {
         "description": "Get a list of existing collections\nSort values: name, name_desc, created, created_desc",
         "consumes": [
@@ -461,7 +374,7 @@
         }
       }
     },
-    "/games/{game}/collections/{collection}": {
+    "/api/games/{game}/collections/{collection}": {
       "get": {
         "description": "Get an existing collection",
         "consumes": [
@@ -601,6 +514,93 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseUpdateCollection"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/games/{game}/duplicate": {
+      "post": {
+        "description": "Allows you to create a copy of an existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Duplicate game",
+        "operationId": "RequestDuplicateGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDuplicateGame"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/games/{game}/export": {
+      "get": {
+        "description": "Get an existing game archive",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/zip"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Games"
+        ],
+        "summary": "Export game to archive",
+        "operationId": "RequestArchiveGame",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameArchive"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
