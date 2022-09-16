@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/api/cards"
-	"tts_deck_build/api/decks"
 	"tts_deck_build/api/generator"
 	"tts_deck_build/api/images"
 	"tts_deck_build/api/system"
@@ -21,9 +20,9 @@ func GetRoutes() *mux.Router {
 	web.Init(routes)
 	api.RegisterGameServer(routes, server.NewGameServer())
 	api.RegisterCollectionServer(routes, server.NewCollectionServer())
+	api.RegisterDeckServer(routes, server.NewDeckServer())
 
 	ApiRoute := routes.PathPrefix("/api").Subrouter()
-	decks.Init(ApiRoute)
 	cards.Init(ApiRoute)
 	images.Init(ApiRoute)
 	system.Init(ApiRoute)
