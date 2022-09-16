@@ -1,4 +1,4 @@
-package generator
+package api
 
 import (
 	"net/http"
@@ -6,13 +6,29 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/generator"
-	"tts_deck_build/internal/network"
+)
+
+type IGeneratorServer interface {
+	GameHandler(w http.ResponseWriter, r *http.Request)
+}
+
+func RegisterGeneratorServer(route *mux.Router, srv IGeneratorServer) {
+	GeneratorsRoute := route.PathPrefix("/api/games/{game}").Subrouter()
+	GeneratorsRoute.HandleFunc("/generate", srv.GameHandler).Methods(http.MethodGet)
+}
+
+type UnimplementedGeneratorServer struct {
+}
+
+var (
+	// Validation
+	_ IGeneratorServer = &UnimplementedGeneratorServer{}
 )
 
 // Request to start generating result objects
 //
 // swagger:parameters RequestGameGenerate
-type RequestGameImage struct {
+type RequestGameGenerate struct {
 	// In: path
 	// Required: true
 	Game string `json:"game"`
@@ -29,7 +45,7 @@ type RequestGameImage struct {
 type ResponseGameGenerate struct {
 }
 
-// swagger:route POST /games/{game}/generate Generator RequestGameGenerate
+// swagger:route POST /api/games/{game}/generate Generator RequestGameGenerate
 //
 // Start generating items for TTS
 //
@@ -46,18 +62,4 @@ type ResponseGameGenerate struct {
 //     Responses:
 //       200: ResponseGameGenerate
 //       default: ResponseError
-func GameHandler(w http.ResponseWriter, r *http.Request) {
-	dto := &generator.GenerateGameDTO{}
-	e := network.RequestToObject(r.Body, &dto)
-	if e != nil {
-		network.ResponseError(w, e)
-		return
-	}
-
-	gameID := mux.Vars(r)["game"]
-	e = generator.NewService().GenerateGame(gameID, dto)
-	if e != nil {
-		network.ResponseError(w, e)
-		return
-	}
-}
+func (s *UnimplementedGeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {}

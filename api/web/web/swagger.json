@@ -16,7 +16,7 @@
     "version": "1.0.0"
   },
   "host": "localhost:5000",
-  "basePath": "/api",
+  "basePath": "/",
   "paths": {
     "/api/games": {
       "get": {
@@ -1415,6 +1415,55 @@
         }
       }
     },
+    "/api/games/{game}/generate": {
+      "post": {
+        "description": "Allow to run the background process of generating images and json item for the game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Generator"
+        ],
+        "summary": "Start generating items for TTS",
+        "operationId": "RequestGameGenerate",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "sortOrder": {
+                  "type": "string",
+                  "x-go-name": "SortOrder"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameGenerate"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/games/{game}/image": {
       "get": {
         "description": "Get an image of existing game",
@@ -1542,55 +1591,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseUpdateSettings"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{game}/generate": {
-      "post": {
-        "description": "Allow to run the background process of generating images and json item for the game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Generator"
-        ],
-        "summary": "Start generating items for TTS",
-        "operationId": "RequestGameGenerate",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "sortOrder": {
-                  "type": "string",
-                  "x-go-name": "SortOrder"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameGenerate"
           },
           "default": {
             "$ref": "#/responses/ResponseError"

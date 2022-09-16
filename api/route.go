@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/api/generator"
 	"tts_deck_build/api/web"
 	"tts_deck_build/internal/api"
 	"tts_deck_build/internal/server"
@@ -23,9 +22,8 @@ func GetRoutes() *mux.Router {
 
 	api.RegisterImageServer(routes, server.NewImageServer())
 	api.RegisterSystemServer(routes, server.NewSystemServer())
+	api.RegisterGeneratorServer(routes, server.NewGeneratorServer())
 
-	ApiRoute := routes.PathPrefix("/api").Subrouter()
-	generator.Init(ApiRoute)
 	routes.Use(corsMiddleware)
 	return routes
 }

@@ -8,7 +8,7 @@
 //
 //     Schemes: http
 //     Host: localhost:5000
-//     BasePath: /api
+//     BasePath: /
 //     Version: 1.0.0
 //
 //     Consumes:
