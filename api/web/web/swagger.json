@@ -1256,6 +1256,101 @@
         }
       }
     },
+    "/api/system/quit": {
+      "delete": {
+        "description": "Close app on back side",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Close application",
+        "operationId": "RequestQuit",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseQuit"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/system/settings": {
+      "get": {
+        "description": "Get default or changed settings",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Get settings",
+        "operationId": "RequestSettings",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseSettings"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      },
+      "patch": {
+        "description": "API to update settings",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Update settings",
+        "operationId": "RequestUpdateSettings",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "x-go-name": "Lang"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseUpdateSettings"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image": {
       "get": {
         "description": "Get an image of existing card",
@@ -1496,101 +1591,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseGameImage"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/system/quit": {
-      "delete": {
-        "description": "Close app on back side",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "System"
-        ],
-        "summary": "Close application",
-        "operationId": "RequestQuit",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseQuit"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/system/settings": {
-      "get": {
-        "description": "Get default or changed settings",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "System"
-        ],
-        "summary": "Get settings",
-        "operationId": "RequestSettings",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseSettings"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "patch": {
-        "description": "API to update settings",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "System"
-        ],
-        "summary": "Update settings",
-        "operationId": "RequestUpdateSettings",
-        "parameters": [
-          {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "lang": {
-                  "type": "string",
-                  "x-go-name": "Lang"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseUpdateSettings"
           },
           "default": {
             "$ref": "#/responses/ResponseError"

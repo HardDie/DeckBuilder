@@ -7,7 +7,6 @@ import (
 
 	"tts_deck_build/api/generator"
 	"tts_deck_build/api/images"
-	"tts_deck_build/api/system"
 	"tts_deck_build/api/web"
 	"tts_deck_build/internal/api"
 	"tts_deck_build/internal/server"
@@ -21,10 +20,10 @@ func GetRoutes() *mux.Router {
 	api.RegisterCollectionServer(routes, server.NewCollectionServer())
 	api.RegisterDeckServer(routes, server.NewDeckServer())
 	api.RegisterCardServer(routes, server.NewCardServer())
+	api.RegisterSystemServer(routes, server.NewSystemServer())
 
 	ApiRoute := routes.PathPrefix("/api").Subrouter()
 	images.Init(ApiRoute)
-	system.Init(ApiRoute)
 	generator.Init(ApiRoute)
 	routes.Use(corsMiddleware)
 	return routes
