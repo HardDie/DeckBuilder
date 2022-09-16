@@ -7,6 +7,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/games"
@@ -27,7 +28,7 @@ func NewCollectionStorage(config *config.Config, gameService *games.GameService)
 	}
 }
 
-func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*CollectionInfo, error) {
+func (s *CollectionStorage) Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error) {
 	// Check ID
 	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(collection.Name.String())
@@ -53,7 +54,7 @@ func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*
 	defer collection.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {
+	if err := fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 		return nil, err
 	}
 
@@ -66,14 +67,14 @@ func (s *CollectionStorage) Create(gameID string, collection *CollectionInfo) (*
 
 	return collection, nil
 }
-func (s *CollectionStorage) GetByID(gameID, collectionID string) (*CollectionInfo, error) {
+func (s *CollectionStorage) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
 	// Check if the game exists
 	_, err := s.GameService.Item(gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	collection := CollectionInfo{ID: collectionID}
+	collection := entity.CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
 	isExist, err := fs.IsFolderExist(collection.Path(gameID))
@@ -94,23 +95,23 @@ func (s *CollectionStorage) GetByID(gameID, collectionID string) (*CollectionInf
 	}
 
 	// Read info from file
-	return fs.OpenAndProcess(collection.InfoPath(gameID), fs.JsonFromReader[CollectionInfo])
+	return fs.OpenAndProcess(collection.InfoPath(gameID), fs.JsonFromReader[entity.CollectionInfo])
 }
-func (s *CollectionStorage) GetAll(gameID string) ([]*CollectionInfo, error) {
+func (s *CollectionStorage) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
 	// Check if the game exists
 	game, err := s.GameService.Item(gameID)
 	if err != nil {
-		return make([]*CollectionInfo, 0), err
+		return make([]*entity.CollectionInfo, 0), err
 	}
 
 	// Get list of objects
 	folders, err := fs.ListOfFolders(game.Path())
 	if err != nil {
-		return make([]*CollectionInfo, 0), err
+		return make([]*entity.CollectionInfo, 0), err
 	}
 
 	// Get each collection
-	collections := make([]*CollectionInfo, 0)
+	collections := make([]*entity.CollectionInfo, 0)
 	for _, collectionID := range folders {
 		collection, err := s.GetByID(gameID, collectionID)
 		if err != nil {
@@ -122,7 +123,7 @@ func (s *CollectionStorage) GetAll(gameID string) ([]*CollectionInfo, error) {
 
 	return collections, nil
 }
-func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*CollectionInfo, error) {
+func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
 	// Get old object
 	oldCollection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
@@ -133,7 +134,7 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.U
 	if dtoObject.Name == "" {
 		dtoObject.Name = oldCollection.Name.String()
 	}
-	collection := NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
+	collection := entity.NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	collection.CreatedAt = oldCollection.CreatedAt
 	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
@@ -161,7 +162,7 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.U
 
 		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*CollectionInfo]); err != nil {
+		if err = fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -187,7 +188,7 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.U
 	return collection, nil
 }
 func (s *CollectionStorage) DeleteByID(gameID, collectionID string) error {
-	collection := CollectionInfo{ID: collectionID}
+	collection := entity.CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
 	if val, _ := s.GetByID(gameID, collectionID); val == nil {

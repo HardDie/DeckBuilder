@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/system"
+	"tts_deck_build/internal/entity"
 )
 
 type ISystemServer interface {
@@ -70,7 +70,7 @@ type ResponseSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data system.SettingInfo `json:"data"`
+		Data entity.SettingInfo `json:"data"`
 	}
 }
 
@@ -112,7 +112,7 @@ type ResponseUpdateSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data system.SettingInfo `json:"data"`
+		Data entity.SettingInfo `json:"data"`
 	}
 }
 

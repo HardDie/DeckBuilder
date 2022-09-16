@@ -8,6 +8,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -25,7 +26,7 @@ func NewGameStorage(config *config.Config) *GameStorage {
 	}
 }
 
-func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
+func (s *GameStorage) Create(game *entity.GameInfo) (*entity.GameInfo, error) {
 	// Check ID
 	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(game.Name.String())
@@ -46,7 +47,7 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 	defer game.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+	if err := fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 		return nil, err
 	}
 
@@ -59,8 +60,8 @@ func (s *GameStorage) Create(game *GameInfo) (*GameInfo, error) {
 
 	return game, nil
 }
-func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
-	game := GameInfo{ID: gameID}
+func (s *GameStorage) GetByID(gameID string) (*entity.GameInfo, error) {
+	game := entity.GameInfo{ID: gameID}
 
 	// Check if such an object exists
 	isExist, err := fs.IsFolderExist(game.Path())
@@ -81,30 +82,30 @@ func (s *GameStorage) GetByID(gameID string) (*GameInfo, error) {
 	}
 
 	// Read info from file
-	retGame, err := fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[GameInfo])
+	retGame, err := fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[entity.GameInfo])
 	if err != nil {
 		return nil, err
 	}
 
 	return retGame, nil
 }
-func (s *GameStorage) GetAll() ([]*GameInfo, error) {
+func (s *GameStorage) GetAll() ([]*entity.GameInfo, error) {
 	isExist, err := fs.IsFolderExist(s.Config.Games())
 	if err != nil {
-		return make([]*GameInfo, 0), err
+		return make([]*entity.GameInfo, 0), err
 	}
 	if !isExist {
-		return make([]*GameInfo, 0), nil
+		return make([]*entity.GameInfo, 0), nil
 	}
 
 	// Get list of objects
 	folders, err := fs.ListOfFolders(s.Config.Games())
 	if err != nil {
-		return make([]*GameInfo, 0), err
+		return make([]*entity.GameInfo, 0), err
 	}
 
 	// Get each game
-	games := make([]*GameInfo, 0)
+	games := make([]*entity.GameInfo, 0)
 	for _, gameID := range folders {
 		game, err := s.GetByID(gameID)
 		if err != nil {
@@ -116,7 +117,7 @@ func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 
 	return games, nil
 }
-func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*GameInfo, error) {
+func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
 	// Get old object
 	oldGame, err := s.GetByID(gameID)
 	if err != nil {
@@ -127,7 +128,7 @@ func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*Game
 	if dtoObject.Name == "" {
 		dtoObject.Name = oldGame.Name.String()
 	}
-	game := NewGameInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
+	game := entity.NewGameInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	game.CreatedAt = oldGame.CreatedAt
 	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
@@ -155,7 +156,7 @@ func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*Game
 
 		game.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -181,7 +182,7 @@ func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*Game
 	return game, nil
 }
 func (s *GameStorage) DeleteByID(gameID string) error {
-	game := GameInfo{ID: gameID}
+	game := entity.GameInfo{ID: gameID}
 
 	// Check if such an object exists
 	if val, _ := s.GetByID(gameID); val == nil {
@@ -242,7 +243,7 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Write image to file
 	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }
-func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*GameInfo, error) {
+func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
 	// Check if the game exists
 	oldGame, _ := s.GetByID(gameID)
 	if oldGame == nil {
@@ -250,7 +251,7 @@ func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) 
 	}
 
 	// New game object
-	game := NewGameInfo(dtoObject.Name, oldGame.Description.String(), oldGame.Image)
+	game := entity.NewGameInfo(dtoObject.Name, oldGame.Description.String(), oldGame.Image)
 
 	// Check ID
 	if game.ID == "" {
@@ -273,7 +274,7 @@ func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) 
 	defer game.SetRawOutput()
 
 	// Writing info to file
-	if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+	if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 		return nil, err
 	}
 
@@ -329,7 +330,7 @@ func (s *GameStorage) Import(data []byte, name string) error {
 		defer game.SetRawOutput()
 
 		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*GameInfo]); err != nil {
+		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 			return err
 		}
 	}

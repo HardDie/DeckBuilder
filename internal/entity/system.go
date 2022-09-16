@@ -1,4 +1,4 @@
-package system
+package entity
 
 type SettingInfo struct {
 	Lang string `json:"lang"`

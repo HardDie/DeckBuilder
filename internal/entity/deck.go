@@ -1,4 +1,4 @@
-package decks
+package entity
 
 import (
 	"path/filepath"

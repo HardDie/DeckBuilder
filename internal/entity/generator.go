@@ -1,4 +1,12 @@
-package generator
+package entity
+
+const (
+	MinWidth  = 2
+	MinHeight = 2
+	MaxWidth  = 10
+	MaxHeight = 7
+	MaxCount  = MaxWidth*MaxHeight - 1
+)
 
 type PageInfo struct {
 	Columns, Rows int

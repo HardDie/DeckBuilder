@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 )
 
 type ICollectionServer interface {
@@ -57,7 +57,7 @@ type ResponseCreateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data collections.CollectionInfo `json:"data"`
+		Data entity.CollectionInfo `json:"data"`
 	}
 }
 
@@ -136,7 +136,7 @@ type ResponseCollection struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data collections.CollectionInfo `json:"data"`
+		Data entity.CollectionInfo `json:"data"`
 	}
 }
 
@@ -179,7 +179,7 @@ type ResponseListOfCollections struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*collections.CollectionInfo `json:"data"`
+		Data []*entity.CollectionInfo `json:"data"`
 	}
 }
 
@@ -229,7 +229,7 @@ type ResponseUpdateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data collections.CollectionInfo `json:"data"`
+		Data entity.CollectionInfo `json:"data"`
 	}
 }
 

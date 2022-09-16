@@ -2,6 +2,7 @@ package system
 
 import (
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/fs"
 )
 
@@ -15,7 +16,7 @@ func NewSystemStorage(config *config.Config) *SystemStorage {
 	}
 }
 
-func (s *SystemStorage) GetSettings() (*SettingInfo, error) {
+func (s *SystemStorage) GetSettings() (*entity.SettingInfo, error) {
 	// Check if such an object exists
 	isExist, err := fs.IsFileExist(s.Config.Settings())
 	if err != nil || !isExist {
@@ -23,9 +24,9 @@ func (s *SystemStorage) GetSettings() (*SettingInfo, error) {
 	}
 
 	// Read info from file
-	return fs.OpenAndProcess(s.Config.Settings(), fs.JsonFromReader[SettingInfo])
+	return fs.OpenAndProcess(s.Config.Settings(), fs.JsonFromReader[entity.SettingInfo])
 }
 
-func (s *SystemStorage) SaveSettings(set SettingInfo) error {
-	return fs.CreateAndProcess[SettingInfo](s.Config.Settings(), set, fs.JsonToWriter[SettingInfo])
+func (s *SystemStorage) SaveSettings(set entity.SettingInfo) error {
+	return fs.CreateAndProcess[entity.SettingInfo](s.Config.Settings(), set, fs.JsonToWriter[entity.SettingInfo])
 }

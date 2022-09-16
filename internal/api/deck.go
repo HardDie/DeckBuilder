@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 )
 
 type IDeckServer interface {
@@ -53,7 +53,7 @@ type ResponseListOfAllDecks struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*decks.DeckInfo `json:"data"`
+		Data []*entity.DeckInfo `json:"data"`
 	}
 }
 
@@ -102,7 +102,7 @@ type ResponseCreateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data decks.DeckInfo `json:"data"`
+		Data entity.DeckInfo `json:"data"`
 	}
 }
 
@@ -187,7 +187,7 @@ type ResponseDeck struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data decks.DeckInfo `json:"data"`
+		Data entity.DeckInfo `json:"data"`
 	}
 }
 
@@ -233,7 +233,7 @@ type ResponseListOfDecks struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*decks.DeckInfo `json:"data"`
+		Data []*entity.DeckInfo `json:"data"`
 	}
 }
 
@@ -286,7 +286,7 @@ type ResponseUpdateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data decks.DeckInfo `json:"data"`
+		Data entity.DeckInfo `json:"data"`
 	}
 }
 

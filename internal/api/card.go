@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/cards"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 )
 
 type ICardServer interface {
@@ -63,7 +63,7 @@ type ResponseCreateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data cards.CardInfo `json:"data"`
+		Data entity.CardInfo `json:"data"`
 	}
 }
 
@@ -155,7 +155,7 @@ type ResponseCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data cards.CardInfo `json:"data"`
+		Data entity.CardInfo `json:"data"`
 	}
 }
 
@@ -204,7 +204,7 @@ type ResponseListOfCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*cards.CardInfo `json:"data"`
+		Data []*entity.CardInfo `json:"data"`
 	}
 }
 
@@ -260,7 +260,7 @@ type ResponseUpdateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data cards.CardInfo `json:"data"`
+		Data entity.CardInfo `json:"data"`
 	}
 }
 

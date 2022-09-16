@@ -1,4 +1,4 @@
-package cards
+package entity
 
 import (
 	"path/filepath"

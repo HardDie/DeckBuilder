@@ -8,6 +8,7 @@ import (
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -27,7 +28,7 @@ func NewDeckStorage(config *config.Config, collectionService *collections.Collec
 	}
 }
 
-func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*DeckInfo, error) {
+func (s *DeckStorage) Create(gameID, collectionID string, deck *entity.DeckInfo) (*entity.DeckInfo, error) {
 	// Check ID
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(deck.Type.String())
@@ -48,7 +49,7 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 	defer deck.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck}, fs.JsonToWriter[Deck]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
 		return nil, err
 	}
 
@@ -66,15 +67,15 @@ func (s *DeckStorage) Create(gameID, collectionID string, deck *DeckInfo) (*Deck
 
 	return deck, nil
 }
-func (s *DeckStorage) GetByID(gameID, collectionID, deckID string) (*DeckInfo, error) {
+func (s *DeckStorage) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
 	deck, err := s.getDeck(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 	return deck.Deck, nil
 }
-func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
-	decks := make([]*DeckInfo, 0)
+func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
+	decks := make([]*entity.DeckInfo, 0)
 
 	// Check if the collection exists
 	collection, err := s.CollectionService.Item(gameID, collectionID)
@@ -105,7 +106,7 @@ func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 
 	return decks, nil
 }
-func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*DeckInfo, error) {
+func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
 	// Get old object
 	oldDeck, err := s.getDeck(gameID, collectionID, deckID)
 	if err != nil {
@@ -116,7 +117,7 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto
 	if dtoObject.Type == "" {
 		dtoObject.Type = oldDeck.Deck.Type.String()
 	}
-	deck := NewDeckInfo(dtoObject.Type, dtoObject.BacksideImage)
+	deck := entity.NewDeckInfo(dtoObject.Type, dtoObject.BacksideImage)
 	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Type)
@@ -158,7 +159,7 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto
 
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[Deck]); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
 			return nil, err
 		}
 	}
@@ -184,7 +185,7 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto
 	return deck, nil
 }
 func (s *DeckStorage) DeleteByID(gameID, collectionID, deckID string) error {
-	deck := DeckInfo{ID: deckID}
+	deck := entity.DeckInfo{ID: deckID}
 
 	// Check if such an object exists
 	val, _ := s.GetByID(gameID, collectionID, deckID)
@@ -259,23 +260,23 @@ func (s *DeckStorage) CreateImage(gameID, collectionID, deckID, imageURL string)
 	// Write image to file
 	return fs.CreateAndProcess(deck.ImagePath(gameID, collectionID), imageBytes, fs.BinToWriter)
 }
-func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*DeckInfo, error) {
+func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 	// Get all collections in selected game
 	listCollections, err := s.CollectionService.List(gameID, "")
 	if err != nil {
-		return make([]*DeckInfo, 0), err
+		return make([]*entity.DeckInfo, 0), err
 	}
 
 	// Mark unique deck types
 	uniqueDecks := make(map[string]struct{})
 
 	// Go through all collections and find unique types of decks
-	decks := make([]*DeckInfo, 0)
+	decks := make([]*entity.DeckInfo, 0)
 	for _, collection := range listCollections {
 		// Get all decks in selected collection
 		collectionDecks, err := s.GetAll(gameID, collection.ID)
 		if err != nil {
-			return make([]*DeckInfo, 0), err
+			return make([]*entity.DeckInfo, 0), err
 		}
 
 		// Go through all decks and keep only unique decks
@@ -292,14 +293,14 @@ func (s *DeckStorage) GetAllDecksInGame(gameID string) ([]*DeckInfo, error) {
 	return decks, nil
 }
 
-func (s *DeckStorage) getDeck(gameID, collectionID, deckID string) (*Deck, error) {
+func (s *DeckStorage) getDeck(gameID, collectionID, deckID string) (*entity.Deck, error) {
 	// Check if the collection exists
 	_, err := s.CollectionService.Item(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	deck := DeckInfo{ID: deckID}
+	deck := entity.DeckInfo{ID: deckID}
 
 	// Check if such an object exists
 	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID))
@@ -311,7 +312,7 @@ func (s *DeckStorage) getDeck(gameID, collectionID, deckID string) (*Deck, error
 	}
 
 	// Read info from file
-	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Deck])
+	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Deck])
 	if err != nil {
 		return nil, err
 	}

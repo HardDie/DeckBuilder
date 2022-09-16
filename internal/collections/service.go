@@ -3,6 +3,7 @@ package collections
 import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
 )
@@ -17,24 +18,24 @@ func NewService() *CollectionService {
 	}
 }
 
-func (s *CollectionService) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Create(gameID, NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image))
+func (s *CollectionService) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
+	return s.storage.Create(gameID, entity.NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image))
 }
 
-func (s *CollectionService) Item(gameID, collectionID string) (*CollectionInfo, error) {
+func (s *CollectionService) Item(gameID, collectionID string) (*entity.CollectionInfo, error) {
 	return s.storage.GetByID(gameID, collectionID)
 }
 
-func (s *CollectionService) List(gameID, sortField string) ([]*CollectionInfo, error) {
+func (s *CollectionService) List(gameID, sortField string) ([]*entity.CollectionInfo, error) {
 	items, err := s.storage.GetAll(gameID)
 	if err != nil {
-		return make([]*CollectionInfo, 0), err
+		return make([]*entity.CollectionInfo, 0), err
 	}
 	utils.Sort(&items, sortField)
 	return items, nil
 }
 
-func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*CollectionInfo, error) {
+func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
 	return s.storage.Update(gameID, collectionID, dtoObject)
 }
 

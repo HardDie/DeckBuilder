@@ -14,20 +14,13 @@ import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/tts_entity"
 	"tts_deck_build/internal/utils"
-)
-
-const (
-	MinWidth  = 2
-	MinHeight = 2
-	MaxWidth  = 10
-	MaxHeight = 7
-	MaxCount  = MaxWidth*MaxHeight - 1
 )
 
 type GeneratorService struct {
@@ -66,8 +59,8 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	return nil
 }
 
-func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*DeckArray, int, error) {
-	deckArray := NewDeckArray()
+func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, int, error) {
+	deckArray := entity.NewDeckArray()
 	totalCountOfCards := 0
 
 	// Check if the game exists
@@ -112,7 +105,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*Dec
 	return deckArray, totalCountOfCards, nil
 }
 
-func (s *GeneratorService) generateBody(deckArray *DeckArray, totalCountOfCards int) error {
+func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountOfCards int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
@@ -142,14 +135,14 @@ func (s *GeneratorService) generateBody(deckArray *DeckArray, totalCountOfCards 
 	pr.SetProgress(0)
 	for deckInfo, pages := range deckArray.Decks {
 		var collectionType string
-		var deckItem *decks.DeckInfo
+		var deckItem *entity.DeckInfo
 		var deckBacksideImage []byte
 		var deckBacksideImageDarker *image.NRGBA
 		var deckBacksideImageName string
 		var deckDesc tts_entity.DeckDescription
 
 		for pageId, page := range pages.Pages {
-			var pageInfo *PageInfo
+			var pageInfo *entity.PageInfo
 			var pageImage *image.RGBA
 			pr.SetMessage("Drawing cards on the resulting page...")
 			for cardId, card := range page {
@@ -194,7 +187,7 @@ func (s *GeneratorService) generateBody(deckArray *DeckArray, totalCountOfCards 
 					if err != nil {
 						return err
 					}
-					pageInfo = &PageInfo{
+					pageInfo = &entity.PageInfo{
 						Columns: columns,
 						Rows:    rows,
 						Width:   cardWidth * columns,

@@ -1,4 +1,4 @@
-package collections
+package entity
 
 import (
 	"path/filepath"

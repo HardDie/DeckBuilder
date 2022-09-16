@@ -1,4 +1,4 @@
-package games
+package entity
 
 import (
 	"path/filepath"

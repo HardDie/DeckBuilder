@@ -14,6 +14,7 @@ import (
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	er "tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
@@ -496,7 +497,7 @@ func fuzzItem(t *testing.T, service *DeckService, deckID, deckType string) error
 	}
 	return nil
 }
-func fuzzCreate(t *testing.T, service *DeckService, deckType string) (*DeckInfo, error) {
+func fuzzCreate(t *testing.T, service *DeckService, deckType string) (*entity.DeckInfo, error) {
 	deck, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
@@ -513,7 +514,7 @@ func fuzzCreate(t *testing.T, service *DeckService, deckType string) (*DeckInfo,
 	}
 	return deck, nil
 }
-func fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*DeckInfo, error) {
+func fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*entity.DeckInfo, error) {
 	deck, err := service.Update(gameID, collectionID, deckID, &dto.UpdateDeckDTO{
 		Type: deckType,
 	})

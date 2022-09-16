@@ -5,6 +5,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 )
 
 type SystemService struct {
@@ -21,9 +22,9 @@ func (s *SystemService) Quit() {
 	os.Exit(0)
 }
 
-func (s *SystemService) GetSettings() (*SettingInfo, error) {
+func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 	// Load default value
-	settings := NewSettings()
+	settings := entity.NewSettings()
 
 	// Try to read settings from file
 	set, err := s.storage.GetSettings()
@@ -42,7 +43,7 @@ func (s *SystemService) GetSettings() (*SettingInfo, error) {
 	return settings, nil
 }
 
-func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*SettingInfo, error) {
+func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error) {
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err

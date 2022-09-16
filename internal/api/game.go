@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/entity"
 )
 
 type IGameServer interface {
@@ -59,7 +59,7 @@ type ResponseCreateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data games.GameInfo `json:"data"`
+		Data entity.GameInfo `json:"data"`
 	}
 }
 
@@ -139,7 +139,7 @@ type ResponseDuplicateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data games.GameInfo `json:"data"`
+		Data entity.GameInfo `json:"data"`
 	}
 }
 
@@ -254,7 +254,7 @@ type ResponseGame struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data games.GameInfo `json:"data"`
+		Data entity.GameInfo `json:"data"`
 	}
 }
 
@@ -294,7 +294,7 @@ type ResponseListOfGames struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*games.GameInfo `json:"data"`
+		Data []*entity.GameInfo `json:"data"`
 	}
 }
 
@@ -341,7 +341,7 @@ type ResponseUpdateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data games.GameInfo `json:"data"`
+		Data entity.GameInfo `json:"data"`
 	}
 }
 

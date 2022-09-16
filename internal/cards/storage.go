@@ -7,6 +7,7 @@ import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -26,7 +27,7 @@ func NewCardStorage(config *config.Config, deckService *decks.DeckService) *Card
 	}
 }
 
-func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo) (*CardInfo, error) {
+func (s *CardStorage) Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error) {
 	// Check if the deck exists
 	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
 	if err != nil {
@@ -34,14 +35,14 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}
 
 	// Init map of cards
 	if readCard.Cards == nil {
-		readCard.Cards = make(map[int64]*CardInfo)
+		readCard.Cards = make(map[int64]*entity.CardInfo)
 	}
 
 	// Add card to deck
@@ -54,7 +55,7 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 	}
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +68,7 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *CardInfo
 
 	return card, nil
 }
-func (s *CardStorage) GetByID(gameID, collectionID, deckID string, cardID int64) (*CardInfo, error) {
+func (s *CardStorage) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
 	// Read map of cards
 	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
 	if err != nil {
@@ -82,7 +83,7 @@ func (s *CardStorage) GetByID(gameID, collectionID, deckID string, cardID int64)
 
 	return card, nil
 }
-func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*CardInfo, error) {
+func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
 	// Read map of cards
 	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
 	if err != nil {
@@ -90,13 +91,13 @@ func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*CardInfo, 
 	}
 
 	// Convert map to list
-	cards := make([]*CardInfo, 0)
+	cards := make([]*entity.CardInfo, 0)
 	for _, card := range cardsMap {
 		cards = append(cards, card)
 	}
 	return cards, nil
 }
-func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*CardInfo, error) {
+func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
 	// Check if the deck exists
 	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
 	if err != nil {
@@ -104,7 +105,7 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,7 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 	}
 
 	// Create card object
-	card := NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
+	card := entity.NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 	card.ID = oldCard.ID
 	card.CreatedAt = oldCard.CreatedAt
 
@@ -133,7 +134,7 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 		}
 
 		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 			return nil, err
 		}
 	}
@@ -166,7 +167,7 @@ func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return err
 	}
@@ -180,7 +181,7 @@ func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int
 	delete(readCard.Cards, cardID)
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[Card]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 		return err
 	}
 	return nil
@@ -238,7 +239,7 @@ func (s *CardStorage) CreateImage(gameID, collectionID, deckID string, cardID in
 }
 
 // Internal function. Get map of cards inside deck
-func (s *CardStorage) getCardsMap(gameID, collectionID, deckID string) (map[int64]*CardInfo, error) {
+func (s *CardStorage) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
 	// Check if the deck exists
 	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
 	if err != nil {
@@ -246,7 +247,7 @@ func (s *CardStorage) getCardsMap(gameID, collectionID, deckID string) (map[int6
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}
