@@ -1133,6 +1133,165 @@
         }
       }
     },
+    "/api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image": {
+      "get": {
+        "description": "Get an image of existing card",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get card image",
+        "operationId": "RequestCardImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Card",
+            "name": "card",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCardImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/games/{game}/collections/{collection}/decks/{deck}/image": {
+      "get": {
+        "description": "Get an image of existing deck",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get deck image",
+        "operationId": "RequestDeckImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Deck",
+            "name": "deck",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDeckImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/games/{game}/collections/{collection}/image": {
+      "get": {
+        "description": "Get an image of existing collection",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get collection image",
+        "operationId": "RequestCollectionImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCollectionImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/games/{game}/decks": {
       "get": {
         "description": "Get a list of all existing decks in game",
@@ -1256,6 +1415,45 @@
         }
       }
     },
+    "/api/games/{game}/image": {
+      "get": {
+        "description": "Get an image of existing game",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "image/png",
+          "image/jpeg",
+          "image/gif"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Images"
+        ],
+        "summary": "Get game image",
+        "operationId": "RequestGameImage",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameImage"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/system/quit": {
       "delete": {
         "description": "Close app on back side",
@@ -1351,165 +1549,6 @@
         }
       }
     },
-    "/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image": {
-      "get": {
-        "description": "Get an image of existing card",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json",
-          "image/png",
-          "image/jpeg",
-          "image/gif"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Images"
-        ],
-        "summary": "Get card image",
-        "operationId": "RequestCardImage",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Deck",
-            "name": "deck",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Card",
-            "name": "card",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseCardImage"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{game}/collections/{collection}/decks/{deck}/image": {
-      "get": {
-        "description": "Get an image of existing deck",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json",
-          "image/png",
-          "image/jpeg",
-          "image/gif"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Images"
-        ],
-        "summary": "Get deck image",
-        "operationId": "RequestDeckImage",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Deck",
-            "name": "deck",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDeckImage"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{game}/collections/{collection}/image": {
-      "get": {
-        "description": "Get an image of existing collection",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json",
-          "image/png",
-          "image/jpeg",
-          "image/gif"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Images"
-        ],
-        "summary": "Get collection image",
-        "operationId": "RequestCollectionImage",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseCollectionImage"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/games/{game}/generate": {
       "post": {
         "description": "Allow to run the background process of generating images and json item for the game",
@@ -1552,45 +1591,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseGameGenerate"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/games/{game}/image": {
-      "get": {
-        "description": "Get an image of existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json",
-          "image/png",
-          "image/jpeg",
-          "image/gif"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "Images"
-        ],
-        "summary": "Get game image",
-        "operationId": "RequestGameImage",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameImage"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
