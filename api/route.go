@@ -8,18 +8,21 @@ import (
 	"tts_deck_build/api/cards"
 	"tts_deck_build/api/collections"
 	"tts_deck_build/api/decks"
-	"tts_deck_build/api/games"
 	"tts_deck_build/api/generator"
 	"tts_deck_build/api/images"
 	"tts_deck_build/api/system"
 	"tts_deck_build/api/web"
+	"tts_deck_build/internal/api"
+	"tts_deck_build/internal/server"
 )
 
 func GetRoutes() *mux.Router {
 	routes := mux.NewRouter().StrictSlash(false)
-	ApiRoute := routes.PathPrefix("/api").Subrouter()
+
 	web.Init(routes)
-	games.Init(ApiRoute)
+	api.RegisterGameServer(routes, server.NewGameServer())
+
+	ApiRoute := routes.PathPrefix("/api").Subrouter()
 	collections.Init(ApiRoute)
 	decks.Init(ApiRoute)
 	cards.Init(ApiRoute)
