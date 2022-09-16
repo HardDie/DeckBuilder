@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/collections"
+	"tts_deck_build/internal/dto"
 )
 
 type ICollectionServer interface {
@@ -44,7 +45,7 @@ type RequestCreateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		collections.CreateCollectionDTO
+		dto.CreateCollectionDTO
 	}
 }
 
@@ -216,7 +217,7 @@ type RequestUpdateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		collections.UpdateCollectionDTO
+		dto.UpdateCollectionDTO
 	}
 }
 

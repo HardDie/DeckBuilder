@@ -1,4 +1,4 @@
-package games
+package dto
 
 type CreateGameDTO struct {
 	Name        string `json:"name"`

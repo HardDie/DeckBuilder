@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/system"
 )
@@ -26,14 +27,14 @@ func (s *SystemServer) GetSettingsHandler(w http.ResponseWriter, r *http.Request
 	network.Response(w, setting)
 }
 func (s *SystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {
-	dto := &system.UpdateSettingsDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.UpdateSettingsDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	setting, e := system.NewService().UpdateSettings(dto)
+	setting, e := system.NewService().UpdateSettings(dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

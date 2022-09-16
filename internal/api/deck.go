@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/decks"
+	"tts_deck_build/internal/dto"
 )
 
 type IDeckServer interface {
@@ -89,7 +90,7 @@ type RequestCreateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		decks.CreateDeckDTO
+		dto.CreateDeckDTO
 	}
 }
 
@@ -273,7 +274,7 @@ type RequestUpdateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		decks.UpdateDeckDTO
+		dto.UpdateDeckDTO
 	}
 }
 

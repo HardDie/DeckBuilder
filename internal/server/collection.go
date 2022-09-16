@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/collections"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
 )
 
@@ -18,14 +19,14 @@ func NewCollectionServer() *CollectionServer {
 
 func (s *CollectionServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	dto := &collections.CreateCollectionDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.CreateCollectionDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := collections.NewService().Create(gameID, dto)
+	item, e := collections.NewService().Create(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -64,14 +65,14 @@ func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 func (s *CollectionServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	dto := &collections.UpdateCollectionDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.UpdateCollectionDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := collections.NewService().Update(gameID, collectionID, dto)
+	item, e := collections.NewService().Update(gameID, collectionID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

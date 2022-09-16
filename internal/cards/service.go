@@ -3,6 +3,7 @@ package cards
 import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/utils"
 )
 
@@ -16,8 +17,8 @@ func NewService() *CardService {
 	}
 }
 
-func (s *CardService) Create(gameID, collectionID, deckID string, dto *CreateCardDTO) (*CardInfo, error) {
-	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables, dto.Count)
+func (s *CardService) Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*CardInfo, error) {
+	card := NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 
 	// Get all cards in deck
 	allCards, err := s.List(gameID, collectionID, deckID, "")
@@ -54,8 +55,8 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField string) ([]*C
 	return items, nil
 }
 
-func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dto *UpdateCardDTO) (*CardInfo, error) {
-	return s.storage.Update(gameID, collectionID, deckID, cardID, dto)
+func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*CardInfo, error) {
+	return s.storage.Update(gameID, collectionID, deckID, cardID, dtoObject)
 }
 
 func (s *CardService) Delete(gameID, collectionID, deckID string, cardID int64) error {

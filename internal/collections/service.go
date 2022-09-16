@@ -2,6 +2,7 @@ package collections
 
 import (
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/utils"
 )
@@ -16,8 +17,8 @@ func NewService() *CollectionService {
 	}
 }
 
-func (s *CollectionService) Create(gameID string, dto *CreateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Create(gameID, NewCollectionInfo(dto.Name, dto.Description, dto.Image))
+func (s *CollectionService) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*CollectionInfo, error) {
+	return s.storage.Create(gameID, NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image))
 }
 
 func (s *CollectionService) Item(gameID, collectionID string) (*CollectionInfo, error) {
@@ -33,8 +34,8 @@ func (s *CollectionService) List(gameID, sortField string) ([]*CollectionInfo, e
 	return items, nil
 }
 
-func (s *CollectionService) Update(gameID, collectionID string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
-	return s.storage.Update(gameID, collectionID, dto)
+func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*CollectionInfo, error) {
+	return s.storage.Update(gameID, collectionID, dtoObject)
 }
 
 func (s *CollectionService) Delete(gameID, collectionID string) error {

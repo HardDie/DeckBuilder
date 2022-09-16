@@ -7,6 +7,7 @@ import (
 
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -104,7 +105,7 @@ func (s *DeckStorage) GetAll(gameID, collectionID string) ([]*DeckInfo, error) {
 
 	return decks, nil
 }
-func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDeckDTO) (*DeckInfo, error) {
+func (s *DeckStorage) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*DeckInfo, error) {
 	// Get old object
 	oldDeck, err := s.getDeck(gameID, collectionID, deckID)
 	if err != nil {
@@ -112,13 +113,13 @@ func (s *DeckStorage) Update(gameID, collectionID, deckID string, dto *UpdateDec
 	}
 
 	// Create deck object
-	if dto.Type == "" {
-		dto.Type = oldDeck.Deck.Type.String()
+	if dtoObject.Type == "" {
+		dtoObject.Type = oldDeck.Deck.Type.String()
 	}
-	deck := NewDeckInfo(dto.Type, dto.BacksideImage)
+	deck := NewDeckInfo(dtoObject.Type, dtoObject.BacksideImage)
 	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(dto.Type)
+		return nil, errors.BadName.AddMessage(dtoObject.Type)
 	}
 
 	// If the id has been changed, rename the object

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/games"
@@ -121,7 +122,7 @@ func (s *CollectionStorage) GetAll(gameID string) ([]*CollectionInfo, error) {
 
 	return collections, nil
 }
-func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateCollectionDTO) (*CollectionInfo, error) {
+func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*CollectionInfo, error) {
 	// Get old object
 	oldCollection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
@@ -129,13 +130,13 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dto *UpdateColle
 	}
 
 	// Create collection object
-	if dto.Name == "" {
-		dto.Name = oldCollection.Name.String()
+	if dtoObject.Name == "" {
+		dtoObject.Name = oldCollection.Name.String()
 	}
-	collection := NewCollectionInfo(dto.Name, dto.Description, dto.Image)
+	collection := NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	collection.CreatedAt = oldCollection.CreatedAt
 	if collection.ID == "" {
-		return nil, errors.BadName.AddMessage(dto.Name)
+		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
 
 	// If the id has been changed, rename the object

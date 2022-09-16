@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/games"
 )
 
@@ -46,7 +47,7 @@ type RequestCreateGame struct {
 	// In: body
 	// Required: true
 	Body struct {
-		games.CreateGameDTO
+		dto.CreateGameDTO
 	}
 }
 
@@ -126,7 +127,7 @@ type RequestDuplicateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		games.DuplicateGameDTO
+		dto.DuplicateGameDTO
 	}
 }
 
@@ -328,7 +329,7 @@ type RequestUpdateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		games.UpdateGameDTO
+		dto.UpdateGameDTO
 	}
 }
 

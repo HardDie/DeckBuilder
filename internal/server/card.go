@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/network"
 )
@@ -21,13 +22,13 @@ func (s *CardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	dto := &cards.CreateCardDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.CreateCardDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := cards.NewService().Create(gameID, collectionID, deckID, dto)
+	item, e := cards.NewService().Create(gameID, collectionID, deckID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -85,13 +86,13 @@ func (s *CardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	dto := &cards.UpdateCardDTO{}
-	e = network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.UpdateCardDTO{}
+	e = network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := cards.NewService().Update(gameID, collectionID, deckID, cardID, dto)
+	item, e := cards.NewService().Update(gameID, collectionID, deckID, cardID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

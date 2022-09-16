@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/network"
@@ -19,14 +20,14 @@ func NewGameServer() *GameServer {
 }
 
 func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
-	dto := &games.CreateGameDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.CreateGameDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := games.NewService().Create(dto)
+	item, e := games.NewService().Create(dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -43,14 +44,14 @@ func (s *GameServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	dto := &games.DuplicateGameDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.DuplicateGameDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := games.NewService().Duplicate(gameID, dto)
+	item, e := games.NewService().Duplicate(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -123,14 +124,14 @@ func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	dto := &games.UpdateGameDTO{}
-	e := network.RequestToObject(r.Body, &dto)
+	dtoObject := &dto.UpdateGameDTO{}
+	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := games.NewService().Update(gameID, dto)
+	item, e := games.NewService().Update(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

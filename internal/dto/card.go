@@ -1,4 +1,4 @@
-package cards
+package dto
 
 type CreateCardDTO struct {
 	Title       string            `json:"title"`

@@ -1,4 +1,4 @@
-package decks
+package dto
 
 type CreateDeckDTO struct {
 	Type          string `json:"type"`

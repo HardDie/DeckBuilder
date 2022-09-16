@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/generator"
+	"tts_deck_build/internal/dto"
 )
 
 type IGeneratorServer interface {
@@ -35,7 +35,7 @@ type RequestGameGenerate struct {
 	// In: body
 	// Required: false
 	Body struct {
-		generator.GenerateGameDTO
+		dto.GenerateGameDTO
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	er "tts_deck_build/internal/errors"
 	"tts_deck_build/internal/utils"
 )
@@ -22,7 +23,7 @@ func testCreate(t *testing.T) {
 	desc := "best game ever"
 
 	// Create game
-	game, err := service.Create(&CreateGameDTO{
+	game, err := service.Create(&dto.CreateGameDTO{
 		Name:        gameName,
 		Description: desc,
 	})
@@ -37,7 +38,7 @@ func testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name: gameName,
 	})
 	if err == nil {
@@ -68,7 +69,7 @@ func testDelete(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name: gameName,
 	})
 	if err != nil {
@@ -97,7 +98,7 @@ func testUpdate(t *testing.T) {
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to update non-existing game
-	_, err := service.Update(gameID[0], &UpdateGameDTO{})
+	_, err := service.Update(gameID[0], &dto.UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -106,7 +107,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Create game
-	game, err := service.Create(&CreateGameDTO{
+	game, err := service.Create(&dto.CreateGameDTO{
 		Name:        gameName[0],
 		Description: desc[0],
 	})
@@ -121,7 +122,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Update game
-	game, err = service.Update(gameID[0], &UpdateGameDTO{
+	game, err = service.Update(gameID[0], &dto.UpdateGameDTO{
 		Name:        gameName[1],
 		Description: desc[1],
 	})
@@ -142,7 +143,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Try to update non-existing game
-	_, err = service.Update(gameID[1], &UpdateGameDTO{})
+	_, err = service.Update(gameID[1], &dto.UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -165,7 +166,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create first game
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -182,7 +183,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create second game
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name: gameName[1],
 	})
 	if err != nil {
@@ -285,7 +286,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -308,7 +309,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Rename game
-	_, err = service.Update(gameID[0], &UpdateGameDTO{Name: gameName[1]})
+	_, err = service.Update(gameID[0], &dto.UpdateGameDTO{Name: gameName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,7 +352,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&CreateGameDTO{
+	_, err = service.Create(&dto.CreateGameDTO{
 		Name:  gameName,
 		Image: pngImage,
 	})
@@ -369,7 +370,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameID, &UpdateGameDTO{
+	_, err = service.Update(gameID, &dto.UpdateGameDTO{
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -386,7 +387,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameID, &UpdateGameDTO{
+	_, err = service.Update(gameID, &dto.UpdateGameDTO{
 		Image: "",
 	})
 	if err != nil {
@@ -474,7 +475,7 @@ func fuzzItem(t *testing.T, service *GameService, gameID, name, desc string) err
 	return nil
 }
 func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*GameInfo, error) {
-	game, err := service.Create(&CreateGameDTO{
+	game, err := service.Create(&dto.CreateGameDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -492,7 +493,7 @@ func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*GameInf
 	return game, nil
 }
 func fuzzUpdate(t *testing.T, service *GameService, gameID, name, desc string) (*GameInfo, error) {
-	game, err := service.Update(gameID, &UpdateGameDTO{
+	game, err := service.Update(gameID, &dto.UpdateGameDTO{
 		Name:        name,
 		Description: desc,
 	})

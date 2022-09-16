@@ -3,6 +3,7 @@ package decks
 import (
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/utils"
 )
 
@@ -16,8 +17,8 @@ func NewService() *DeckService {
 	}
 }
 
-func (s *DeckService) Create(gameID, collectionID string, dto *CreateDeckDTO) (*DeckInfo, error) {
-	return s.storage.Create(gameID, collectionID, NewDeckInfo(dto.Type, dto.BacksideImage))
+func (s *DeckService) Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*DeckInfo, error) {
+	return s.storage.Create(gameID, collectionID, NewDeckInfo(dtoObject.Type, dtoObject.BacksideImage))
 }
 
 func (s *DeckService) Item(gameID, collectionID, deckID string) (*DeckInfo, error) {
@@ -33,8 +34,8 @@ func (s *DeckService) List(gameID, collectionID, sortField string) ([]*DeckInfo,
 	return items, nil
 }
 
-func (s *DeckService) Update(gameID, collectionID, deckID string, dto *UpdateDeckDTO) (*DeckInfo, error) {
-	return s.storage.Update(gameID, collectionID, deckID, dto)
+func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*DeckInfo, error) {
+	return s.storage.Update(gameID, collectionID, deckID, dtoObject)
 }
 
 func (s *DeckService) Delete(gameID, collectionID, deckID string) error {

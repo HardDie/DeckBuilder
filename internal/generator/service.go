@@ -13,6 +13,7 @@ import (
 	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
@@ -36,10 +37,10 @@ func NewService() *GeneratorService {
 	return &GeneratorService{}
 }
 
-func (s *GeneratorService) GenerateGame(gameID string, dto *GenerateGameDTO) error {
+func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error {
 	pr := progress.GetProgress()
 
-	deckArray, totalCountOfCards, err := s.getListOfCards(gameID, dto.SortOrder)
+	deckArray, totalCountOfCards, err := s.getListOfCards(gameID, dtoObject.SortOrder)
 	if err != nil {
 		return err
 	}

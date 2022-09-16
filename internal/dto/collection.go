@@ -1,4 +1,4 @@
-package collections
+package dto
 
 type CreateCollectionDTO struct {
 	Name        string `json:"name"`

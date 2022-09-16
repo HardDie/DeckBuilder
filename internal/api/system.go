@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/system"
 )
 
@@ -100,7 +101,7 @@ type RequestUpdateSettings struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		system.UpdateSettingsDTO
+		dto.UpdateSettingsDTO
 	}
 }
 

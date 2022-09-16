@@ -6,6 +6,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/decks"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -95,7 +96,7 @@ func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*CardInfo, 
 	}
 	return cards, nil
 }
-func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, dto *UpdateCardDTO) (*CardInfo, error) {
+func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*CardInfo, error) {
 	// Check if the deck exists
 	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
 	if err != nil {
@@ -115,7 +116,7 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 	}
 
 	// Create card object
-	card := NewCardInfo(dto.Title, dto.Description, dto.Image, dto.Variables, dto.Count)
+	card := NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 	card.ID = oldCard.ID
 	card.CreatedAt = oldCard.CreatedAt
 

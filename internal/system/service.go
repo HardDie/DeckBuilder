@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 )
 
 type SystemService struct {
@@ -41,16 +42,16 @@ func (s *SystemService) GetSettings() (*SettingInfo, error) {
 	return settings, nil
 }
 
-func (s *SystemService) UpdateSettings(dto *UpdateSettingsDTO) (*SettingInfo, error) {
+func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*SettingInfo, error) {
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err
 	}
 	isUpdated := false
-	switch dto.Lang {
+	switch dtoObject.Lang {
 	case "en", "ru":
-		if set.Lang != dto.Lang {
-			set.Lang = dto.Lang
+		if set.Lang != dtoObject.Lang {
+			set.Lang = dtoObject.Lang
 			isUpdated = true
 		}
 	}

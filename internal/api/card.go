@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/dto"
 )
 
 type ICardServer interface {
@@ -50,7 +51,7 @@ type RequestCreateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		cards.CreateCardDTO
+		dto.CreateCardDTO
 	}
 }
 
@@ -247,7 +248,7 @@ type RequestUpdateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		cards.UpdateCardDTO
+		dto.UpdateCardDTO
 	}
 }
 

@@ -2,6 +2,7 @@ package games
 
 import (
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/utils"
 )
 
@@ -15,8 +16,8 @@ func NewService() *GameService {
 	}
 }
 
-func (s *GameService) Create(dto *CreateGameDTO) (*GameInfo, error) {
-	return s.storage.Create(NewGameInfo(dto.Name, dto.Description, dto.Image))
+func (s *GameService) Create(dtoObject *dto.CreateGameDTO) (*GameInfo, error) {
+	return s.storage.Create(NewGameInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image))
 }
 
 func (s *GameService) Item(gameID string) (*GameInfo, error) {
@@ -32,8 +33,8 @@ func (s *GameService) List(sortField string) ([]*GameInfo, error) {
 	return items, nil
 }
 
-func (s *GameService) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, error) {
-	return s.storage.Update(gameID, dto)
+func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*GameInfo, error) {
+	return s.storage.Update(gameID, dtoObject)
 }
 
 func (s *GameService) Delete(gameID string) error {
@@ -44,8 +45,8 @@ func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
 	return s.storage.GetImage(gameID)
 }
 
-func (s *GameService) Duplicate(gameID string, dto *DuplicateGameDTO) (*GameInfo, error) {
-	return s.storage.Duplicate(gameID, dto)
+func (s *GameService) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*GameInfo, error) {
+	return s.storage.Duplicate(gameID, dtoObject)
 }
 
 func (s *GameService) Export(gameID string) ([]byte, error) {

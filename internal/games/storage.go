@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
@@ -115,7 +116,7 @@ func (s *GameStorage) GetAll() ([]*GameInfo, error) {
 
 	return games, nil
 }
-func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, error) {
+func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*GameInfo, error) {
 	// Get old object
 	oldGame, err := s.GetByID(gameID)
 	if err != nil {
@@ -123,13 +124,13 @@ func (s *GameStorage) Update(gameID string, dto *UpdateGameDTO) (*GameInfo, erro
 	}
 
 	// Create game object
-	if dto.Name == "" {
-		dto.Name = oldGame.Name.String()
+	if dtoObject.Name == "" {
+		dtoObject.Name = oldGame.Name.String()
 	}
-	game := NewGameInfo(dto.Name, dto.Description, dto.Image)
+	game := NewGameInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	game.CreatedAt = oldGame.CreatedAt
 	if game.ID == "" {
-		return nil, errors.BadName.AddMessage(dto.Name)
+		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
 
 	// If the id has been changed, rename the object
@@ -241,7 +242,7 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Write image to file
 	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }
-func (s *GameStorage) Duplicate(gameID string, dto *DuplicateGameDTO) (*GameInfo, error) {
+func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*GameInfo, error) {
 	// Check if the game exists
 	oldGame, _ := s.GetByID(gameID)
 	if oldGame == nil {
@@ -249,7 +250,7 @@ func (s *GameStorage) Duplicate(gameID string, dto *DuplicateGameDTO) (*GameInfo
 	}
 
 	// New game object
-	game := NewGameInfo(dto.Name, oldGame.Description.String(), oldGame.Image)
+	game := NewGameInfo(dtoObject.Name, oldGame.Description.String(), oldGame.Image)
 
 	// Check ID
 	if game.ID == "" {
