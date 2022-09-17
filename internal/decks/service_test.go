@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -20,17 +19,33 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-var (
-	gameID       = "test_game"
-	collectionID = "test_collection"
-)
+type deckTest struct {
+	gameID, collectionID string
+	cfg                  *config.Config
+	gameService          *games.GameService
+	collectionService    *collections.CollectionService
+	deckService          *DeckService
+}
 
-func testCreate(t *testing.T) {
-	service := NewService(config.GetConfig())
+func newDeckTest(dataPath string) *deckTest {
+	cfg := config.GetConfig()
+	cfg.SetDataPath(dataPath)
+
+	return &deckTest{
+		gameID:            "test_deck__game",
+		collectionID:      "test_deck__collection",
+		cfg:               cfg,
+		gameService:       games.NewService(cfg),
+		collectionService: collections.NewService(cfg),
+		deckService:       NewService(cfg),
+	}
+}
+
+func (tt *deckTest) testCreate(t *testing.T) {
 	deckType := "one"
 
 	// Create deck
-	deck, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	deck, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -41,7 +56,7 @@ func testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
 	if err == nil {
@@ -52,18 +67,17 @@ func testCreate(t *testing.T) {
 	}
 
 	// Delete deck
-	err = service.Delete(gameID, collectionID, deck.ID)
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deck.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testDelete(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *deckTest) testDelete(t *testing.T) {
 	deckType := "one"
 	deckID := utils.NameToID(deckType)
 
 	// Try to remove non-existing deck
-	err := service.Delete(gameID, collectionID, deckID)
+	err := tt.deckService.Delete(tt.gameID, tt.collectionID, deckID)
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -72,7 +86,7 @@ func testDelete(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -80,13 +94,13 @@ func testDelete(t *testing.T) {
 	}
 
 	// Delete deck
-	err = service.Delete(gameID, collectionID, deckID)
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to delete deck twice
-	err = service.Delete(gameID, collectionID, deckID)
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID)
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -94,13 +108,12 @@ func testDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testUpdate(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *deckTest) testUpdate(t *testing.T) {
 	deckType := []string{"one", "two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Try to update non-existing deck
-	_, err := service.Update(gameID, collectionID, deckID[0], &dto.UpdateDeckDTO{})
+	_, err := tt.deckService.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{})
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -109,7 +122,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Create deck
-	deck, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	deck, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType[0],
 	})
 	if err != nil {
@@ -120,7 +133,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Update deck
-	deck, err = service.Update(gameID, collectionID, deckID[0], &dto.UpdateDeckDTO{
+	deck, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{
 		Type: deckType[1],
 	})
 	if err != nil {
@@ -131,13 +144,13 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Delete deck
-	err = service.Delete(gameID, collectionID, deckID[1])
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to update non-existing deck
-	_, err = service.Update(gameID, collectionID, deckID[1], &dto.UpdateDeckDTO{})
+	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID[1], &dto.UpdateDeckDTO{})
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -145,13 +158,12 @@ func testUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testList(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *deckTest) testList(t *testing.T) {
 	deckType := []string{"B deck", "A deck"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Empty list
-	items, err := service.List(gameID, collectionID, "")
+	items, err := tt.deckService.List(tt.gameID, tt.collectionID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +172,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create first deck
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType[0],
 	})
 	if err != nil {
@@ -168,7 +180,7 @@ func testList(t *testing.T) {
 	}
 
 	// One deck
-	items, err = service.List(gameID, collectionID, "")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +189,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create second deck
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType[1],
 	})
 	if err != nil {
@@ -185,7 +197,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = service.List(gameID, collectionID, "name")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "name")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +212,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = service.List(gameID, collectionID, "name_desc")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "name_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +227,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = service.List(gameID, collectionID, "created")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "created")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +242,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = service.List(gameID, collectionID, "created_desc")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "created_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,19 +257,19 @@ func testList(t *testing.T) {
 	}
 
 	// Delete first deck
-	err = service.Delete(gameID, collectionID, deckID[0])
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Delete second deck
-	err = service.Delete(gameID, collectionID, deckID[1])
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Empty list
-	items, err = service.List(gameID, collectionID, "")
+	items, err = tt.deckService.List(tt.gameID, tt.collectionID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -265,13 +277,12 @@ func testList(t *testing.T) {
 		t.Fatal("List should be empty")
 	}
 }
-func testItem(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *deckTest) testItem(t *testing.T) {
 	deckType := []string{"one", "two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Try to get non-existing deck
-	_, err := service.Item(gameID, collectionID, deckID[0])
+	_, err := tt.deckService.Item(tt.gameID, tt.collectionID, deckID[0])
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -280,7 +291,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType[0],
 	})
 	if err != nil {
@@ -288,13 +299,13 @@ func testItem(t *testing.T) {
 	}
 
 	// Get valid deck
-	_, err = service.Item(gameID, collectionID, deckID[0])
+	_, err = tt.deckService.Item(tt.gameID, tt.collectionID, deckID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid deck
-	_, err = service.Item(gameID, collectionID, deckID[1])
+	_, err = tt.deckService.Item(tt.gameID, tt.collectionID, deckID[1])
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -303,19 +314,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Rename deck
-	_, err = service.Update(gameID, collectionID, deckID[0], &dto.UpdateDeckDTO{Type: deckType[1]})
+	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{Type: deckType[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get valid deck
-	_, err = service.Item(gameID, collectionID, deckID[1])
+	_, err = tt.deckService.Item(tt.gameID, tt.collectionID, deckID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid deck
-	_, err = service.Item(gameID, collectionID, deckID[0])
+	_, err = tt.deckService.Item(tt.gameID, tt.collectionID, deckID[0])
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -324,20 +335,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Delete deck
-	err = service.Delete(gameID, collectionID, deckID[1])
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testImage(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *deckTest) testImage(t *testing.T) {
 	deckType := "one"
 	deckID := utils.NameToID(deckType)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
 
 	// Check no deck
-	_, _, err := service.GetImage(gameID, collectionID, deckID)
+	_, _, err := tt.deckService.GetImage(tt.gameID, tt.collectionID, deckID)
 	if err == nil {
 		t.Fatal("Error, deck not exists")
 	}
@@ -346,7 +356,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type:          deckType,
 		BacksideImage: pngImage,
 	})
@@ -355,7 +365,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err := service.GetImage(gameID, collectionID, deckID)
+	_, imgType, err := tt.deckService.GetImage(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -364,7 +374,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = service.Update(gameID, collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
 		BacksideImage: jpegImage,
 	})
 	if err != nil {
@@ -372,7 +382,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err = service.GetImage(gameID, collectionID, deckID)
+	_, imgType, err = tt.deckService.GetImage(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -381,7 +391,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = service.Update(gameID, collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
 		BacksideImage: "",
 	})
 	if err != nil {
@@ -389,7 +399,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check no image
-	_, _, err = service.GetImage(gameID, collectionID, deckID)
+	_, _, err = tt.deckService.GetImage(tt.gameID, tt.collectionID, deckID)
 	if err == nil {
 		t.Fatal("Error, deck don't have image")
 	}
@@ -398,7 +408,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Delete deck
-	err = service.Delete(gameID, collectionID, deckID)
+	err = tt.deckService.Delete(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -412,12 +422,10 @@ func TestDeck(t *testing.T) {
 	if dataPath == "" {
 		t.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "deck_test"))
-
-	service := NewService(config.GetConfig())
+	tt := newDeckTest(filepath.Join(dataPath, "deck_test"))
 
 	// Game not exist error
-	_, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -425,16 +433,15 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Create game
-	gameService := games.NewService(config.GetConfig())
-	_, err = gameService.Create(&dto.CreateGameDTO{
-		Name: gameID,
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
+		Name: tt.gameID,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Collection not exist error
-	_, err = service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: "test",
 	})
 	if !errors.Is(err, er.CollectionNotExists) {
@@ -442,27 +449,26 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Create collection
-	collectionService := collections.NewService(config.GetConfig())
-	_, err = collectionService.Create(gameID, &dto.CreateCollectionDTO{
-		Name: collectionID,
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
+		Name: tt.collectionID,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Run("create", testCreate)
-	t.Run("delete", testDelete)
-	t.Run("update", testUpdate)
-	t.Run("list", testList)
-	t.Run("item", testItem)
-	t.Run("image", testImage)
+	t.Run("create", tt.testCreate)
+	t.Run("delete", tt.testDelete)
+	t.Run("update", tt.testUpdate)
+	t.Run("list", tt.testList)
+	t.Run("item", tt.testItem)
+	t.Run("image", tt.testImage)
 }
 
-func fuzzCleanup(path string) {
-	_ = os.RemoveAll(path)
+func (tt *deckTest) fuzzCleanup() {
+	_ = os.RemoveAll(tt.cfg.Data)
 }
-func fuzzList(t *testing.T, service *DeckService, waitItems int) error {
-	items, err := service.List(gameID, collectionID, "")
+func (tt *deckTest) fuzzList(t *testing.T, service *DeckService, waitItems int) error {
+	items, err := service.List(tt.gameID, tt.collectionID, "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -479,8 +485,8 @@ func fuzzList(t *testing.T, service *DeckService, waitItems int) error {
 	}
 	return nil
 }
-func fuzzItem(t *testing.T, service *DeckService, deckID, deckType string) error {
-	deck, err := service.Item(gameID, collectionID, deckID)
+func (tt *deckTest) fuzzItem(t *testing.T, service *DeckService, deckID, deckType string) error {
+	deck, err := service.Item(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -497,8 +503,8 @@ func fuzzItem(t *testing.T, service *DeckService, deckID, deckType string) error
 	}
 	return nil
 }
-func fuzzCreate(t *testing.T, service *DeckService, deckType string) (*entity.DeckInfo, error) {
-	deck, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
+func (tt *deckTest) fuzzCreate(t *testing.T, service *DeckService, deckType string) (*entity.DeckInfo, error) {
+	deck, err := service.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -514,8 +520,8 @@ func fuzzCreate(t *testing.T, service *DeckService, deckType string) (*entity.De
 	}
 	return deck, nil
 }
-func fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*entity.DeckInfo, error) {
-	deck, err := service.Update(gameID, collectionID, deckID, &dto.UpdateDeckDTO{
+func (tt *deckTest) fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*entity.DeckInfo, error) {
+	deck, err := service.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -531,8 +537,8 @@ func fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*e
 	}
 	return deck, nil
 }
-func fuzzDelete(t *testing.T, service *DeckService, deckID string) error {
-	err := service.Delete(gameID, collectionID, deckID)
+func (tt *deckTest) fuzzDelete(t *testing.T, service *DeckService, deckID string) error {
+	err := service.Delete(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -549,30 +555,25 @@ func FuzzDeck(f *testing.F) {
 	if dataPath == "" {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "deck_fuzz_"+uuid.New().String()))
+	tt := newDeckTest(filepath.Join(dataPath, "deck_fuzz_"+uuid.New().String()))
 
-	gameService := games.NewService(config.GetConfig())
-	collectionService := collections.NewService(config.GetConfig())
-	service := NewService(config.GetConfig())
-
-	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, type1, type2 string) {
-		gameItems, err := gameService.List("")
+		gameItems, err := tt.gameService.List("")
 		if err != nil {
 			t.Fatal(err)
 		}
 		if len(gameItems) == 0 {
 			// Create game
-			_, err = gameService.Create(&dto.CreateGameDTO{
-				Name: gameID,
+			_, err = tt.gameService.Create(&dto.CreateGameDTO{
+				Name: tt.gameID,
 			})
 			if err != nil {
 				f.Fatal(err)
 			}
 
 			// Create collection
-			_, err = collectionService.Create(gameID, &dto.CreateCollectionDTO{
-				Name: collectionID,
+			_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
+				Name: tt.collectionID,
 			})
 			if err != nil {
 				f.Fatal(err)
@@ -584,69 +585,65 @@ func FuzzDeck(f *testing.F) {
 			return
 		}
 
-		// Only one test at once
-		msync.Lock()
-		defer msync.Unlock()
-
 		// Empty list
-		err = fuzzList(t, service, 0)
+		err = tt.fuzzList(t, tt.deckService, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Create deck
-		deck1, err := fuzzCreate(t, service, type1)
+		deck1, err := tt.fuzzCreate(t, tt.deckService, type1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with deck
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, tt.deckService, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, deck1.ID, type1)
+		err = tt.fuzzItem(t, tt.deckService, deck1.ID, type1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Update collection
-		collection2, err := fuzzUpdate(t, service, utils.NameToID(type1), type2)
+		collection2, err := tt.fuzzUpdate(t, tt.deckService, utils.NameToID(type1), type2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with collection
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, tt.deckService, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, collection2.ID, type2)
+		err = tt.fuzzItem(t, tt.deckService, collection2.ID, type2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Delete collection
-		err = fuzzDelete(t, service, utils.NameToID(type2))
+		err = tt.fuzzDelete(t, tt.deckService, utils.NameToID(type2))
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Empty list
-		err = fuzzList(t, service, 0)
+		err = tt.fuzzList(t, tt.deckService, 0)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 	})

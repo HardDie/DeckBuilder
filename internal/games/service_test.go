@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -18,13 +17,27 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-func testCreate(t *testing.T) {
-	service := NewService(config.GetConfig())
+type gameTest struct {
+	cfg         *config.Config
+	gameService *GameService
+}
+
+func newGameTest(dataPath string) *gameTest {
+	cfg := config.GetConfig()
+	cfg.SetDataPath(dataPath)
+
+	return &gameTest{
+		cfg:         cfg,
+		gameService: NewService(cfg),
+	}
+}
+
+func (tt *gameTest) testCreate(t *testing.T) {
 	gameName := "one"
 	desc := "best game ever"
 
 	// Create game
-	game, err := service.Create(&dto.CreateGameDTO{
+	game, err := tt.gameService.Create(&dto.CreateGameDTO{
 		Name:        gameName,
 		Description: desc,
 	})
@@ -39,7 +52,7 @@ func testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name: gameName,
 	})
 	if err == nil {
@@ -50,18 +63,17 @@ func testCreate(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(game.ID)
+	err = tt.gameService.Delete(game.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testDelete(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *gameTest) testDelete(t *testing.T) {
 	gameName := "one"
 	gameID := utils.NameToID(gameName)
 
 	// Try to remove non-existing game
-	err := service.Delete(gameID)
+	err := tt.gameService.Delete(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -70,7 +82,7 @@ func testDelete(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name: gameName,
 	})
 	if err != nil {
@@ -78,13 +90,13 @@ func testDelete(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameID)
+	err = tt.gameService.Delete(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to delete game twice
-	err = service.Delete(gameID)
+	err = tt.gameService.Delete(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -92,14 +104,13 @@ func testDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testUpdate(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *gameTest) testUpdate(t *testing.T) {
 	gameName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to update non-existing game
-	_, err := service.Update(gameID[0], &dto.UpdateGameDTO{})
+	_, err := tt.gameService.Update(gameID[0], &dto.UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -108,7 +119,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Create game
-	game, err := service.Create(&dto.CreateGameDTO{
+	game, err := tt.gameService.Create(&dto.CreateGameDTO{
 		Name:        gameName[0],
 		Description: desc[0],
 	})
@@ -123,7 +134,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Update game
-	game, err = service.Update(gameID[0], &dto.UpdateGameDTO{
+	game, err = tt.gameService.Update(gameID[0], &dto.UpdateGameDTO{
 		Name:        gameName[1],
 		Description: desc[1],
 	})
@@ -138,13 +149,13 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameID[1])
+	err = tt.gameService.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to update non-existing game
-	_, err = service.Update(gameID[1], &dto.UpdateGameDTO{})
+	_, err = tt.gameService.Update(gameID[1], &dto.UpdateGameDTO{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -152,13 +163,12 @@ func testUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testList(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *gameTest) testList(t *testing.T) {
 	gameName := []string{"B game", "A game"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Empty list
-	items, err := service.List("")
+	items, err := tt.gameService.List("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +177,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create first game
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -175,7 +185,7 @@ func testList(t *testing.T) {
 	}
 
 	// One game
-	items, err = service.List("")
+	items, err = tt.gameService.List("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +194,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create second game
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name: gameName[1],
 	})
 	if err != nil {
@@ -192,7 +202,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = service.List("name")
+	items, err = tt.gameService.List("name")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +217,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = service.List("name_desc")
+	items, err = tt.gameService.List("name_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +232,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = service.List("created")
+	items, err = tt.gameService.List("created")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,7 +247,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = service.List("created_desc")
+	items, err = tt.gameService.List("created_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,19 +262,19 @@ func testList(t *testing.T) {
 	}
 
 	// Delete first game
-	err = service.Delete(gameID[0])
+	err = tt.gameService.Delete(gameID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Delete second game
-	err = service.Delete(gameID[1])
+	err = tt.gameService.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Empty list
-	items, err = service.List("")
+	items, err = tt.gameService.List("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,13 +282,12 @@ func testList(t *testing.T) {
 		t.Fatal("List should be empty")
 	}
 }
-func testItem(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *gameTest) testItem(t *testing.T) {
 	gameName := []string{"one", "two"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to get non-existing game
-	_, err := service.Item(gameID[0])
+	_, err := tt.gameService.Item(gameID[0])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -287,7 +296,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -295,13 +304,13 @@ func testItem(t *testing.T) {
 	}
 
 	// Get valid game
-	_, err = service.Item(gameID[0])
+	_, err = tt.gameService.Item(gameID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid game
-	_, err = service.Item(gameID[1])
+	_, err = tt.gameService.Item(gameID[1])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -310,19 +319,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Rename game
-	_, err = service.Update(gameID[0], &dto.UpdateGameDTO{Name: gameName[1]})
+	_, err = tt.gameService.Update(gameID[0], &dto.UpdateGameDTO{Name: gameName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get valid game
-	_, err = service.Item(gameID[1])
+	_, err = tt.gameService.Item(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid game
-	_, err = service.Item(gameID[0])
+	_, err = tt.gameService.Item(gameID[0])
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -331,20 +340,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameID[1])
+	err = tt.gameService.Delete(gameID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testImage(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *gameTest) testImage(t *testing.T) {
 	gameName := "one"
 	gameID := utils.NameToID(gameName)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
 
 	// Check no game
-	_, _, err := service.GetImage(gameID)
+	_, _, err := tt.gameService.GetImage(gameID)
 	if err == nil {
 		t.Fatal("Error, game not exists")
 	}
@@ -353,7 +361,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Create game
-	_, err = service.Create(&dto.CreateGameDTO{
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
 		Name:  gameName,
 		Image: pngImage,
 	})
@@ -362,7 +370,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err := service.GetImage(gameID)
+	_, imgType, err := tt.gameService.GetImage(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -371,7 +379,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -379,7 +387,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err = service.GetImage(gameID)
+	_, imgType, err = tt.gameService.GetImage(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -388,7 +396,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = service.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
 		Image: "",
 	})
 	if err != nil {
@@ -396,7 +404,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check no image
-	_, _, err = service.GetImage(gameID)
+	_, _, err = tt.gameService.GetImage(gameID)
 	if err == nil {
 		t.Fatal("Error, game don't have image")
 	}
@@ -405,7 +413,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Delete game
-	err = service.Delete(gameID)
+	err = tt.gameService.Delete(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -419,21 +427,21 @@ func TestGame(t *testing.T) {
 	if dataPath == "" {
 		t.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "game_test"))
+	tt := newGameTest(filepath.Join(dataPath, "game_test"))
 
-	t.Run("create", testCreate)
-	t.Run("delete", testDelete)
-	t.Run("update", testUpdate)
-	t.Run("list", testList)
-	t.Run("item", testItem)
-	t.Run("image", testImage)
+	t.Run("create", tt.testCreate)
+	t.Run("delete", tt.testDelete)
+	t.Run("update", tt.testUpdate)
+	t.Run("list", tt.testList)
+	t.Run("item", tt.testItem)
+	t.Run("image", tt.testImage)
 }
 
-func fuzzCleanup(path string) {
-	_ = os.RemoveAll(path)
+func (tt *gameTest) fuzzCleanup() {
+	_ = os.RemoveAll(tt.cfg.Data)
 }
-func fuzzList(t *testing.T, service *GameService, waitItems int) error {
-	items, err := service.List("")
+func (tt *gameTest) fuzzList(t *testing.T, waitItems int) error {
+	items, err := tt.gameService.List("")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -450,8 +458,8 @@ func fuzzList(t *testing.T, service *GameService, waitItems int) error {
 	}
 	return nil
 }
-func fuzzItem(t *testing.T, service *GameService, gameID, name, desc string) error {
-	game, err := service.Item(gameID)
+func (tt *gameTest) fuzzItem(t *testing.T, gameID, name, desc string) error {
+	game, err := tt.gameService.Item(gameID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -475,8 +483,8 @@ func fuzzItem(t *testing.T, service *GameService, gameID, name, desc string) err
 	}
 	return nil
 }
-func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*entity.GameInfo, error) {
-	game, err := service.Create(&dto.CreateGameDTO{
+func (tt *gameTest) fuzzCreate(t *testing.T, name, desc string) (*entity.GameInfo, error) {
+	game, err := tt.gameService.Create(&dto.CreateGameDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -493,8 +501,8 @@ func fuzzCreate(t *testing.T, service *GameService, name, desc string) (*entity.
 	}
 	return game, nil
 }
-func fuzzUpdate(t *testing.T, service *GameService, gameID, name, desc string) (*entity.GameInfo, error) {
-	game, err := service.Update(gameID, &dto.UpdateGameDTO{
+func (tt *gameTest) fuzzUpdate(t *testing.T, gameID, name, desc string) (*entity.GameInfo, error) {
+	game, err := tt.gameService.Update(gameID, &dto.UpdateGameDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -511,8 +519,8 @@ func fuzzUpdate(t *testing.T, service *GameService, gameID, name, desc string) (
 	}
 	return game, nil
 }
-func fuzzDelete(t *testing.T, service *GameService, gameID string) error {
-	err := service.Delete(gameID)
+func (tt *gameTest) fuzzDelete(t *testing.T, gameID string) error {
+	err := tt.gameService.Delete(gameID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -529,80 +537,73 @@ func FuzzGame(f *testing.F) {
 	if dataPath == "" {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "game_fuzz_"+uuid.New().String()))
+	tt := newGameTest(filepath.Join(dataPath, "game_fuzz_"+uuid.New().String()))
 
-	service := NewService(config.GetConfig())
-
-	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
 		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
 			// skip
 			return
 		}
 
-		// Only one test at once
-		msync.Lock()
-		defer msync.Unlock()
-
 		// Empty list
-		err := fuzzList(t, service, 0)
+		err := tt.fuzzList(t, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Create game
-		game1, err := fuzzCreate(t, service, name1, desc1)
+		game1, err := tt.fuzzCreate(t, name1, desc1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with game
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, game1.ID, name1, desc1)
+		err = tt.fuzzItem(t, game1.ID, name1, desc1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Update game
-		game2, err := fuzzUpdate(t, service, utils.NameToID(name1), name2, desc2)
+		game2, err := tt.fuzzUpdate(t, utils.NameToID(name1), name2, desc2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with game
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, game2.ID, name2, desc2)
+		err = tt.fuzzItem(t, game2.ID, name2, desc2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Delete game
-		err = fuzzDelete(t, service, utils.NameToID(name2))
+		err = tt.fuzzDelete(t, utils.NameToID(name2))
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Empty list
-		err = fuzzList(t, service, 0)
+		err = tt.fuzzList(t, 0)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 	})

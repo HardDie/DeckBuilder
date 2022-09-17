@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -19,17 +18,31 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-var (
-	gameID = "test_game"
-)
+type collectionTest struct {
+	gameID            string
+	cfg               *config.Config
+	gameService       *games.GameService
+	collectionService *CollectionService
+}
 
-func testCreate(t *testing.T) {
-	service := NewService(config.GetConfig())
+func newCollectionTest(dataPath string) *collectionTest {
+	cfg := config.GetConfig()
+	cfg.SetDataPath(dataPath)
+
+	return &collectionTest{
+		gameID:            "test_collection__game",
+		cfg:               cfg,
+		gameService:       games.NewService(cfg),
+		collectionService: NewService(cfg),
+	}
+}
+
+func (tt *collectionTest) testCreate(t *testing.T) {
 	collectionName := "one"
 	desc := "best game ever"
 
 	// Create collection
-	collection, err := service.Create(gameID, &dto.CreateCollectionDTO{
+	collection, err := tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name:        collectionName,
 		Description: desc,
 	})
@@ -44,7 +57,7 @@ func testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: collectionName,
 	})
 	if err == nil {
@@ -55,18 +68,17 @@ func testCreate(t *testing.T) {
 	}
 
 	// Delete collection
-	err = service.Delete(gameID, collection.ID)
+	err = tt.collectionService.Delete(tt.gameID, collection.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testDelete(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *collectionTest) testDelete(t *testing.T) {
 	collectionName := "one"
 	collectionID := utils.NameToID(collectionName)
 
 	// Try to remove non-existing collection
-	err := service.Delete(gameID, collectionID)
+	err := tt.collectionService.Delete(tt.gameID, collectionID)
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -75,7 +87,7 @@ func testDelete(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: collectionName,
 	})
 	if err != nil {
@@ -83,13 +95,13 @@ func testDelete(t *testing.T) {
 	}
 
 	// Delete collection
-	err = service.Delete(gameID, collectionID)
+	err = tt.collectionService.Delete(tt.gameID, collectionID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to delete collection twice
-	err = service.Delete(gameID, collectionID)
+	err = tt.collectionService.Delete(tt.gameID, collectionID)
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -97,14 +109,13 @@ func testDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testUpdate(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *collectionTest) testUpdate(t *testing.T) {
 	collectionName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Try to update non-existing collection
-	_, err := service.Update(gameID, collectionID[0], &dto.UpdateCollectionDTO{})
+	_, err := tt.collectionService.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{})
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -113,7 +124,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Create collection
-	collection, err := service.Create(gameID, &dto.CreateCollectionDTO{
+	collection, err := tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name:        collectionName[0],
 		Description: desc[0],
 	})
@@ -128,7 +139,7 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Update collection
-	collection, err = service.Update(gameID, collectionID[0], &dto.UpdateCollectionDTO{
+	collection, err = tt.collectionService.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{
 		Name:        collectionName[1],
 		Description: desc[1],
 	})
@@ -143,13 +154,13 @@ func testUpdate(t *testing.T) {
 	}
 
 	// Delete collection
-	err = service.Delete(gameID, collectionID[1])
+	err = tt.collectionService.Delete(tt.gameID, collectionID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Try to update non-existing collection
-	_, err = service.Update(gameID, collectionID[1], &dto.UpdateCollectionDTO{})
+	_, err = tt.collectionService.Update(tt.gameID, collectionID[1], &dto.UpdateCollectionDTO{})
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -157,13 +168,12 @@ func testUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func testList(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *collectionTest) testList(t *testing.T) {
 	collectionName := []string{"B collection", "A collection"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Empty list
-	items, err := service.List(gameID, "")
+	items, err := tt.collectionService.List(tt.gameID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +182,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create first collection
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: collectionName[0],
 	})
 	if err != nil {
@@ -180,7 +190,7 @@ func testList(t *testing.T) {
 	}
 
 	// One collection
-	items, err = service.List(gameID, "")
+	items, err = tt.collectionService.List(tt.gameID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +199,7 @@ func testList(t *testing.T) {
 	}
 
 	// Create second collection
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: collectionName[1],
 	})
 	if err != nil {
@@ -197,7 +207,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = service.List(gameID, "name")
+	items, err = tt.collectionService.List(tt.gameID, "name")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +222,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = service.List(gameID, "name_desc")
+	items, err = tt.collectionService.List(tt.gameID, "name_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +237,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = service.List(gameID, "created")
+	items, err = tt.collectionService.List(tt.gameID, "created")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +252,7 @@ func testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = service.List(gameID, "created_desc")
+	items, err = tt.collectionService.List(tt.gameID, "created_desc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,19 +267,19 @@ func testList(t *testing.T) {
 	}
 
 	// Delete first collection
-	err = service.Delete(gameID, collectionID[0])
+	err = tt.collectionService.Delete(tt.gameID, collectionID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Delete second collection
-	err = service.Delete(gameID, collectionID[1])
+	err = tt.collectionService.Delete(tt.gameID, collectionID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Empty list
-	items, err = service.List(gameID, "")
+	items, err = tt.collectionService.List(tt.gameID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,13 +287,12 @@ func testList(t *testing.T) {
 		t.Fatal("List should be empty")
 	}
 }
-func testItem(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *collectionTest) testItem(t *testing.T) {
 	collectionName := []string{"one", "two"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Try to get non-existing collection
-	_, err := service.Item(gameID, collectionID[0])
+	_, err := tt.collectionService.Item(tt.gameID, collectionID[0])
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -292,7 +301,7 @@ func testItem(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: collectionName[0],
 	})
 	if err != nil {
@@ -300,13 +309,13 @@ func testItem(t *testing.T) {
 	}
 
 	// Get valid collection
-	_, err = service.Item(gameID, collectionID[0])
+	_, err = tt.collectionService.Item(tt.gameID, collectionID[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid collection
-	_, err = service.Item(gameID, collectionID[1])
+	_, err = tt.collectionService.Item(tt.gameID, collectionID[1])
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -315,19 +324,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Rename collection
-	_, err = service.Update(gameID, collectionID[0], &dto.UpdateCollectionDTO{Name: collectionName[1]})
+	_, err = tt.collectionService.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{Name: collectionName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get valid collection
-	_, err = service.Item(gameID, collectionID[1])
+	_, err = tt.collectionService.Item(tt.gameID, collectionID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get invalid collection
-	_, err = service.Item(gameID, collectionID[0])
+	_, err = tt.collectionService.Item(tt.gameID, collectionID[0])
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -336,20 +345,19 @@ func testItem(t *testing.T) {
 	}
 
 	// Delete collection
-	err = service.Delete(gameID, collectionID[1])
+	err = tt.collectionService.Delete(tt.gameID, collectionID[1])
 	if err != nil {
 		t.Fatal(err)
 	}
 }
-func testImage(t *testing.T) {
-	service := NewService(config.GetConfig())
+func (tt *collectionTest) testImage(t *testing.T) {
 	collectionName := "one"
 	collectionID := utils.NameToID(collectionName)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
 
 	// Check no collection
-	_, _, err := service.GetImage(gameID, collectionID)
+	_, _, err := tt.collectionService.GetImage(tt.gameID, collectionID)
 	if err == nil {
 		t.Fatal("Error, collection not exists")
 	}
@@ -358,7 +366,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name:  collectionName,
 		Image: pngImage,
 	})
@@ -367,7 +375,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err := service.GetImage(gameID, collectionID)
+	_, imgType, err := tt.collectionService.GetImage(tt.gameID, collectionID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +384,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = service.Update(gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -384,7 +392,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check image type
-	_, imgType, err = service.GetImage(gameID, collectionID)
+	_, imgType, err = tt.collectionService.GetImage(tt.gameID, collectionID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -393,7 +401,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = service.Update(gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
 		Image: "",
 	})
 	if err != nil {
@@ -401,7 +409,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Check no image
-	_, _, err = service.GetImage(gameID, collectionID)
+	_, _, err = tt.collectionService.GetImage(tt.gameID, collectionID)
 	if err == nil {
 		t.Fatal("Error, collection don't have image")
 	}
@@ -410,7 +418,7 @@ func testImage(t *testing.T) {
 	}
 
 	// Delete collection
-	err = service.Delete(gameID, collectionID)
+	err = tt.collectionService.Delete(tt.gameID, collectionID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -424,12 +432,10 @@ func TestCollection(t *testing.T) {
 	if dataPath == "" {
 		t.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_test"))
-
-	service := NewService(config.GetConfig())
+	tt := newCollectionTest(filepath.Join(dataPath, "collection_test"))
 
 	// Game not exist error
-	_, err := service.Create(gameID, &dto.CreateCollectionDTO{
+	_, err := tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -437,27 +443,26 @@ func TestCollection(t *testing.T) {
 	}
 
 	// Create game
-	gameService := games.NewService(config.GetConfig())
-	_, err = gameService.Create(&dto.CreateGameDTO{
-		Name: gameID,
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
+		Name: tt.gameID,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Run("create", testCreate)
-	t.Run("delete", testDelete)
-	t.Run("update", testUpdate)
-	t.Run("list", testList)
-	t.Run("item", testItem)
-	t.Run("image", testImage)
+	t.Run("create", tt.testCreate)
+	t.Run("delete", tt.testDelete)
+	t.Run("update", tt.testUpdate)
+	t.Run("list", tt.testList)
+	t.Run("item", tt.testItem)
+	t.Run("image", tt.testImage)
 }
 
-func fuzzCleanup(path string) {
-	_ = os.RemoveAll(path)
+func (tt *collectionTest) fuzzCleanup() {
+	_ = os.RemoveAll(tt.cfg.Data)
 }
-func fuzzList(t *testing.T, service *CollectionService, waitItems int) error {
-	items, err := service.List(gameID, "")
+func (tt *collectionTest) fuzzList(t *testing.T, waitItems int) error {
+	items, err := tt.collectionService.List(tt.gameID, "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -474,8 +479,8 @@ func fuzzList(t *testing.T, service *CollectionService, waitItems int) error {
 	}
 	return nil
 }
-func fuzzItem(t *testing.T, service *CollectionService, collectionID, name, desc string) error {
-	collection, err := service.Item(gameID, collectionID)
+func (tt *collectionTest) fuzzItem(t *testing.T, collectionID, name, desc string) error {
+	collection, err := tt.collectionService.Item(tt.gameID, collectionID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -499,8 +504,8 @@ func fuzzItem(t *testing.T, service *CollectionService, collectionID, name, desc
 	}
 	return nil
 }
-func fuzzCreate(t *testing.T, service *CollectionService, name, desc string) (*entity.CollectionInfo, error) {
-	collection, err := service.Create(gameID, &dto.CreateCollectionDTO{
+func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CollectionInfo, error) {
+	collection, err := tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -517,8 +522,8 @@ func fuzzCreate(t *testing.T, service *CollectionService, name, desc string) (*e
 	}
 	return collection, nil
 }
-func fuzzUpdate(t *testing.T, service *CollectionService, collectionID, name, desc string) (*entity.CollectionInfo, error) {
-	collection, err := service.Update(gameID, collectionID, &dto.UpdateCollectionDTO{
+func (tt *collectionTest) fuzzUpdate(t *testing.T, collectionID, name, desc string) (*entity.CollectionInfo, error) {
+	collection, err := tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
 		Name:        name,
 		Description: desc,
 	})
@@ -535,8 +540,8 @@ func fuzzUpdate(t *testing.T, service *CollectionService, collectionID, name, de
 	}
 	return collection, nil
 }
-func fuzzDelete(t *testing.T, service *CollectionService, collectionID string) error {
-	err := service.Delete(gameID, collectionID)
+func (tt *collectionTest) fuzzDelete(t *testing.T, collectionID string) error {
+	err := tt.collectionService.Delete(tt.gameID, collectionID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -553,21 +558,17 @@ func FuzzCollection(f *testing.F) {
 	if dataPath == "" {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
-	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
+	tt := newCollectionTest(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
 
-	gameService := games.NewService(config.GetConfig())
-	service := NewService(config.GetConfig())
-
-	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
-		items, err := gameService.List("")
+		items, err := tt.gameService.List("")
 		if err != nil {
 			t.Fatal(err)
 		}
 		if len(items) == 0 {
 			// Create game
-			_, err := gameService.Create(&dto.CreateGameDTO{
-				Name: gameID,
+			_, err := tt.gameService.Create(&dto.CreateGameDTO{
+				Name: tt.gameID,
 			})
 			if err != nil {
 				f.Fatal(err)
@@ -580,69 +581,65 @@ func FuzzCollection(f *testing.F) {
 			return
 		}
 
-		// Only one test at once
-		msync.Lock()
-		defer msync.Unlock()
-
 		// Empty list
-		err = fuzzList(t, service, 0)
+		err = tt.fuzzList(t, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Create collection
-		collection1, err := fuzzCreate(t, service, name1, desc1)
+		collection1, err := tt.fuzzCreate(t, name1, desc1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with collection
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, collection1.ID, name1, desc1)
+		err = tt.fuzzItem(t, collection1.ID, name1, desc1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Update collection
-		collection2, err := fuzzUpdate(t, service, utils.NameToID(name1), name2, desc2)
+		collection2, err := tt.fuzzUpdate(t, utils.NameToID(name1), name2, desc2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with collection
-		err = fuzzList(t, service, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = fuzzItem(t, service, collection2.ID, name2, desc2)
+		err = tt.fuzzItem(t, collection2.ID, name2, desc2)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Delete collection
-		err = fuzzDelete(t, service, utils.NameToID(name2))
+		err = tt.fuzzDelete(t, utils.NameToID(name2))
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Empty list
-		err = fuzzList(t, service, 0)
+		err = tt.fuzzList(t, 0)
 		if err != nil {
-			fuzzCleanup(dataPath) // Cleanup - just in case
+			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 	})
