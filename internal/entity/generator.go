@@ -1,11 +1,7 @@
 package entity
 
-const (
-	MinWidth  = 2
-	MinHeight = 2
-	MaxWidth  = 10
-	MaxHeight = 7
-	MaxCount  = MaxWidth*MaxHeight - 1
+import (
+	"tts_deck_build/internal/config"
 )
 
 type PageInfo struct {
@@ -44,7 +40,7 @@ func NewCardArray() *CardArray {
 func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64) {
 	// Get the index of the last element in the array
 	lastArray := len(cArr.Pages) - 1
-	if len(cArr.Pages[lastArray]) == MaxCount {
+	if len(cArr.Pages[lastArray]) == config.MaxCount {
 		// If the card array has reached the limit of the number of cards per page,
 		// create a new page.
 		cArr.Pages = append(cArr.Pages, make(CardPage, 0))

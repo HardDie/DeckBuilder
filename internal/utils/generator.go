@@ -1,16 +1,16 @@
-package generator
+package utils
 
 import (
-	"tts_deck_build/internal/entity"
+	"tts_deck_build/internal/config"
 )
 
 // Allows you to find the minimum image size for all cards on the page
-func calculateGridSize(cardsNumber int) (cols, rows int) {
+func CalculateGridSize(cardsNumber int) (cols, rows int) {
 	cols = 10
 	rows = 7
 	maxCards := cols * rows
-	for r := entity.MinHeight; r <= entity.MaxHeight; r++ {
-		for c := entity.MinWidth; c <= entity.MaxWidth; c++ {
+	for r := config.MinHeight; r <= config.MaxHeight; r++ {
+		for c := config.MinWidth; c <= config.MaxWidth; c++ {
 			possible := c * r
 			if possible < maxCards && possible >= cardsNumber {
 				maxCards = possible
@@ -23,7 +23,7 @@ func calculateGridSize(cardsNumber int) (cols, rows int) {
 }
 
 // Allows you to calculate the position of the card on the page by its identifier
-func cardIdToPageCoordinates(id, columns int) (column, row int) {
+func CardIdToPageCoordinates(id, columns int) (column, row int) {
 	row = id / columns
 	column = id % columns
 	return

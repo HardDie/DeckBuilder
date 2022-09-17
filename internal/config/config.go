@@ -3,8 +3,13 @@ package config
 import "path/filepath"
 
 const (
-	MaxCardsOnPage    = 69
 	MaxFilenameLength = 200
+
+	MinWidth  = 2
+	MinHeight = 2
+	MaxWidth  = 10
+	MaxHeight = 7
+	MaxCount  = MaxWidth*MaxHeight - 1
 )
 
 type Config struct {

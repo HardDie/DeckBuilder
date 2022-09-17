@@ -1,4 +1,4 @@
-package generator
+package service
 
 import (
 	"crypto/md5"
@@ -27,7 +27,7 @@ type GeneratorService struct {
 	cfg *config.Config
 }
 
-func NewService(cfg *config.Config) *GeneratorService {
+func NewGeneratorService(cfg *config.Config) *GeneratorService {
 	return &GeneratorService{
 		cfg: cfg,
 	}
@@ -61,6 +61,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 
 	return nil
 }
+
 func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, int, error) {
 	deckArray := entity.NewDeckArray()
 	totalCountOfCards := 0
@@ -177,7 +178,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 				if pageInfo == nil {
 					// Calculation the optimal proportion of the image.
 					// Add one card to the bottom right place for the backside image.
-					columns, rows := calculateGridSize(len(page) + 1)
+					columns, rows := utils.CalculateGridSize(len(page) + 1)
 					// Extracting the size of the card
 					imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 					if err != nil {
@@ -220,7 +221,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					return err
 				}
 				// Calculate the position of the image on the page
-				column, row := cardIdToPageCoordinates(cardId, pageInfo.Columns)
+				column, row := utils.CardIdToPageCoordinates(cardId, pageInfo.Columns)
 				// Draw an image on the page
 				images.Draw(pageImage, column, row, cardImg)
 

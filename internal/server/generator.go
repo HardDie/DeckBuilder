@@ -7,8 +7,8 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/generator"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/service"
 )
 
 type GeneratorServer struct {
@@ -30,7 +30,7 @@ func (s *GeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := mux.Vars(r)["game"]
-	e = generator.NewService(s.cfg).GenerateGame(gameID, dtoObject)
+	e = service.NewGeneratorService(s.cfg).GenerateGame(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
