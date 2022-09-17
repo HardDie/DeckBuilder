@@ -1,4 +1,4 @@
-package games
+package repository
 
 import (
 	"log"
@@ -16,17 +16,29 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-type GameStorage struct {
-	Config *config.Config
+type IGameRepository interface {
+	Create(game *entity.GameInfo) (*entity.GameInfo, error)
+	GetByID(gameID string) (*entity.GameInfo, error)
+	GetAll() ([]*entity.GameInfo, error)
+	Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error)
+	DeleteByID(gameID string) error
+	GetImage(gameID string) ([]byte, string, error)
+	CreateImage(gameID, imageURL string) error
+	Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error)
+	Export(gameID string) ([]byte, error)
+	Import(data []byte, name string) error
+}
+type GameRepository struct {
+	cfg *config.Config
 }
 
-func NewGameStorage(config *config.Config) *GameStorage {
-	return &GameStorage{
-		Config: config,
+func NewGameRepository(cfg *config.Config) *GameRepository {
+	return &GameRepository{
+		cfg: cfg,
 	}
 }
 
-func (s *GameStorage) Create(game *entity.GameInfo) (*entity.GameInfo, error) {
+func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error) {
 	// Check ID
 	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(game.Name.String())
@@ -60,7 +72,7 @@ func (s *GameStorage) Create(game *entity.GameInfo) (*entity.GameInfo, error) {
 
 	return game, nil
 }
-func (s *GameStorage) GetByID(gameID string) (*entity.GameInfo, error) {
+func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
 	game := entity.GameInfo{ID: gameID}
 
 	// Check if such an object exists
@@ -89,8 +101,8 @@ func (s *GameStorage) GetByID(gameID string) (*entity.GameInfo, error) {
 
 	return retGame, nil
 }
-func (s *GameStorage) GetAll() ([]*entity.GameInfo, error) {
-	isExist, err := fs.IsFolderExist(s.Config.Games())
+func (s *GameRepository) GetAll() ([]*entity.GameInfo, error) {
+	isExist, err := fs.IsFolderExist(s.cfg.Games())
 	if err != nil {
 		return make([]*entity.GameInfo, 0), err
 	}
@@ -99,7 +111,7 @@ func (s *GameStorage) GetAll() ([]*entity.GameInfo, error) {
 	}
 
 	// Get list of objects
-	folders, err := fs.ListOfFolders(s.Config.Games())
+	folders, err := fs.ListOfFolders(s.cfg.Games())
 	if err != nil {
 		return make([]*entity.GameInfo, 0), err
 	}
@@ -117,7 +129,7 @@ func (s *GameStorage) GetAll() ([]*entity.GameInfo, error) {
 
 	return games, nil
 }
-func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
+func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
 	// Get old object
 	oldGame, err := s.GetByID(gameID)
 	if err != nil {
@@ -181,7 +193,7 @@ func (s *GameStorage) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*enti
 
 	return game, nil
 }
-func (s *GameStorage) DeleteByID(gameID string) error {
+func (s *GameRepository) DeleteByID(gameID string) error {
 	game := entity.GameInfo{ID: gameID}
 
 	// Check if such an object exists
@@ -192,7 +204,7 @@ func (s *GameStorage) DeleteByID(gameID string) error {
 	// Remove object
 	return fs.RemoveFolder(game.Path())
 }
-func (s *GameStorage) GetImage(gameID string) ([]byte, string, error) {
+func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	// Check if such an object exists
 	game, err := s.GetByID(gameID)
 	if err != nil {
@@ -221,7 +233,7 @@ func (s *GameStorage) GetImage(gameID string) ([]byte, string, error) {
 
 	return data, imgType, nil
 }
-func (s *GameStorage) CreateImage(gameID, imageURL string) error {
+func (s *GameRepository) CreateImage(gameID, imageURL string) error {
 	// Check if such an object exists
 	game, _ := s.GetByID(gameID)
 	if game == nil {
@@ -243,7 +255,7 @@ func (s *GameStorage) CreateImage(gameID, imageURL string) error {
 	// Write image to file
 	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
 }
-func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
+func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
 	// Check if the game exists
 	oldGame, _ := s.GetByID(gameID)
 	if oldGame == nil {
@@ -280,7 +292,7 @@ func (s *GameStorage) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) 
 
 	return game, nil
 }
-func (s *GameStorage) Export(gameID string) ([]byte, error) {
+func (s *GameRepository) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
 	game, _ := s.GetByID(gameID)
 	if game == nil {
@@ -289,7 +301,7 @@ func (s *GameStorage) Export(gameID string) ([]byte, error) {
 
 	return fs.ArchiveFolder(game.Path(), game.ID)
 }
-func (s *GameStorage) Import(data []byte, name string) error {
+func (s *GameRepository) Import(data []byte, name string) error {
 	gameID := utils.NameToID(name)
 	if name != "" && gameID == "" {
 		return errors.BadName
@@ -305,7 +317,7 @@ func (s *GameStorage) Import(data []byte, name string) error {
 	game, err := s.GetByID(resultGameID)
 	if err != nil {
 		// Build a full relative path to the root game folder
-		gameRootPath := filepath.Join(config.GetConfig().Games(), resultGameID)
+		gameRootPath := filepath.Join(s.cfg.Games(), resultGameID)
 		// If an error occurs during unzipping, delete the created folder with the game
 		errors.IfErrorLog(fs.RemoveFolder(gameRootPath))
 		return err

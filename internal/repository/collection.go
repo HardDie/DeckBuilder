@@ -1,4 +1,4 @@
-package collections
+package repository
 
 import (
 	"log"
@@ -10,32 +10,40 @@ import (
 	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/utils"
 )
 
-type CollectionStorage struct {
-	Config      *config.Config
-	GameService *games.GameService
+type ICollectionRepository interface {
+	Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error)
+	GetByID(gameID, collectionID string) (*entity.CollectionInfo, error)
+	GetAll(gameID string) ([]*entity.CollectionInfo, error)
+	Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error)
+	DeleteByID(gameID, collectionID string) error
+	GetImage(gameID, collectionID string) ([]byte, string, error)
+	CreateImage(gameID, collectionID, imageURL string) error
+}
+type CollectionRepository struct {
+	cfg            *config.Config
+	gameRepository IGameRepository
 }
 
-func NewCollectionStorage(config *config.Config, gameService *games.GameService) *CollectionStorage {
-	return &CollectionStorage{
-		Config:      config,
-		GameService: gameService,
+func NewCollectionRepository(cfg *config.Config, gameRepository IGameRepository) *CollectionRepository {
+	return &CollectionRepository{
+		cfg:            cfg,
+		gameRepository: gameRepository,
 	}
 }
 
-func (s *CollectionStorage) Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error) {
+func (s *CollectionRepository) Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error) {
 	// Check ID
 	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(collection.Name.String())
 	}
 
 	// Check if game exist
-	if _, err := s.GameService.Item(gameID); err != nil {
+	if _, err := s.gameRepository.GetByID(gameID); err != nil {
 		return nil, err
 	}
 
@@ -67,9 +75,9 @@ func (s *CollectionStorage) Create(gameID string, collection *entity.CollectionI
 
 	return collection, nil
 }
-func (s *CollectionStorage) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
+func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
 	// Check if the game exists
-	_, err := s.GameService.Item(gameID)
+	_, err := s.gameRepository.GetByID(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +105,9 @@ func (s *CollectionStorage) GetByID(gameID, collectionID string) (*entity.Collec
 	// Read info from file
 	return fs.OpenAndProcess(collection.InfoPath(gameID), fs.JsonFromReader[entity.CollectionInfo])
 }
-func (s *CollectionStorage) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
+func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
 	// Check if the game exists
-	game, err := s.GameService.Item(gameID)
+	game, err := s.gameRepository.GetByID(gameID)
 	if err != nil {
 		return make([]*entity.CollectionInfo, 0), err
 	}
@@ -123,7 +131,7 @@ func (s *CollectionStorage) GetAll(gameID string) ([]*entity.CollectionInfo, err
 
 	return collections, nil
 }
-func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
+func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
 	// Get old object
 	oldCollection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
@@ -187,7 +195,7 @@ func (s *CollectionStorage) Update(gameID, collectionID string, dtoObject *dto.U
 
 	return collection, nil
 }
-func (s *CollectionStorage) DeleteByID(gameID, collectionID string) error {
+func (s *CollectionRepository) DeleteByID(gameID, collectionID string) error {
 	collection := entity.CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
@@ -198,7 +206,7 @@ func (s *CollectionStorage) DeleteByID(gameID, collectionID string) error {
 	// Remove object
 	return fs.RemoveFolder(collection.Path(gameID))
 }
-func (s *CollectionStorage) GetImage(gameID, collectionID string) ([]byte, string, error) {
+func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, string, error) {
 	// Check if such an object exists
 	collection, err := s.GetByID(gameID, collectionID)
 	if err != nil {
@@ -227,7 +235,7 @@ func (s *CollectionStorage) GetImage(gameID, collectionID string) ([]byte, strin
 
 	return data, imgType, nil
 }
-func (s *CollectionStorage) CreateImage(gameID, collectionID, imageURL string) error {
+func (s *CollectionRepository) CreateImage(gameID, collectionID, imageURL string) error {
 	// Check if such an object exists
 	collection, _ := s.GetByID(gameID, collectionID)
 	if collection == nil {

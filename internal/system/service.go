@@ -6,28 +6,28 @@ import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
+	"tts_deck_build/internal/repository"
 )
 
 type SystemService struct {
-	storage *SystemStorage
+	rep repository.ISystemRepository
 }
 
 func NewService() *SystemService {
 	return &SystemService{
-		storage: NewSystemStorage(config.GetConfig()),
+		rep: repository.NewSystemRepository(config.GetConfig()),
 	}
 }
 
 func (s *SystemService) Quit() {
 	os.Exit(0)
 }
-
 func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 	// Load default value
 	settings := entity.NewSettings()
 
 	// Try to read settings from file
-	set, err := s.storage.GetSettings()
+	set, err := s.rep.GetSettings()
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,6 @@ func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 	settings.Lang = set.Lang
 	return settings, nil
 }
-
 func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error) {
 	set, err := s.GetSettings()
 	if err != nil {
@@ -57,7 +56,7 @@ func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entit
 		}
 	}
 	if isUpdated {
-		err = s.storage.SaveSettings(*set)
+		err = s.rep.SaveSettings(*set)
 		if err != nil {
 			return nil, err
 		}

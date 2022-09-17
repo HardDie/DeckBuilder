@@ -1,11 +1,10 @@
-package cards
+package repository
 
 import (
 	"net/http"
 	"time"
 
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/errors"
@@ -15,21 +14,30 @@ import (
 	"tts_deck_build/internal/utils"
 )
 
-type CardStorage struct {
-	Config      *config.Config
-	DeckService *decks.DeckService
+type ICardRepository interface {
+	Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error)
+	GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error)
+	GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error)
+	Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error)
+	DeleteByID(gameID, collectionID, deckID string, cardID int64) error
+	GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error)
+	CreateImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error
+}
+type CardRepository struct {
+	cfg            *config.Config
+	deckRepository IDeckRepository
 }
 
-func NewCardStorage(config *config.Config, deckService *decks.DeckService) *CardStorage {
-	return &CardStorage{
-		Config:      config,
-		DeckService: deckService,
+func NewCardRepository(cfg *config.Config, deckRepository IDeckRepository) *CardRepository {
+	return &CardRepository{
+		cfg:            cfg,
+		deckRepository: deckRepository,
 	}
 }
 
-func (s *CardStorage) Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error) {
+func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error) {
 	// Check if the deck exists
-	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
+	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +76,7 @@ func (s *CardStorage) Create(gameID, collectionID, deckID string, card *entity.C
 
 	return card, nil
 }
-func (s *CardStorage) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
+func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
 	// Read map of cards
 	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
 	if err != nil {
@@ -83,7 +91,7 @@ func (s *CardStorage) GetByID(gameID, collectionID, deckID string, cardID int64)
 
 	return card, nil
 }
-func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
+func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
 	// Read map of cards
 	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
 	if err != nil {
@@ -97,9 +105,9 @@ func (s *CardStorage) GetAll(gameID, collectionID, deckID string) ([]*entity.Car
 	}
 	return cards, nil
 }
-func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
+func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
 	// Check if the deck exists
-	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
+	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -159,9 +167,9 @@ func (s *CardStorage) Update(gameID, collectionID, deckID string, cardID int64, 
 
 	return card, nil
 }
-func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
+func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
 	// Check if the deck exists
-	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
+	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
@@ -186,7 +194,7 @@ func (s *CardStorage) DeleteByID(gameID, collectionID, deckID string, cardID int
 	}
 	return nil
 }
-func (s *CardStorage) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
+func (s *CardRepository) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
 	// Check if such an object exists
 	card, err := s.GetByID(gameID, collectionID, deckID, cardID)
 	if err != nil {
@@ -215,7 +223,7 @@ func (s *CardStorage) GetImage(gameID, collectionID, deckID string, cardID int64
 
 	return data, imgType, nil
 }
-func (s *CardStorage) CreateImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error {
+func (s *CardRepository) CreateImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error {
 	// Check if such an object exists
 	card, _ := s.GetByID(gameID, collectionID, deckID, cardID)
 	if card == nil {
@@ -239,9 +247,9 @@ func (s *CardStorage) CreateImage(gameID, collectionID, deckID string, cardID in
 }
 
 // Internal function. Get map of cards inside deck
-func (s *CardStorage) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
+func (s *CardRepository) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
 	// Check if the deck exists
-	deck, err := s.DeckService.Item(gameID, collectionID, deckID)
+	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
