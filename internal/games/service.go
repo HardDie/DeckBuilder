@@ -12,9 +12,9 @@ type GameService struct {
 	rep repository.IGameRepository
 }
 
-func NewService() *GameService {
+func NewService(cfg *config.Config) *GameService {
 	return &GameService{
-		rep: repository.NewGameRepository(config.GetConfig()),
+		rep: repository.NewGameRepository(cfg),
 	}
 }
 

@@ -13,9 +13,9 @@ type SystemService struct {
 	rep repository.ISystemRepository
 }
 
-func NewService() *SystemService {
+func NewService(cfg *config.Config) *SystemService {
 	return &SystemService{
-		rep: repository.NewSystemRepository(config.GetConfig()),
+		rep: repository.NewSystemRepository(cfg),
 	}
 }
 

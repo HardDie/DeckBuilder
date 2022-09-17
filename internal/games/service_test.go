@@ -19,7 +19,7 @@ import (
 )
 
 func testCreate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := "one"
 	desc := "best game ever"
 
@@ -56,7 +56,7 @@ func testCreate(t *testing.T) {
 	}
 }
 func testDelete(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := "one"
 	gameID := utils.NameToID(gameName)
 
@@ -93,7 +93,7 @@ func testDelete(t *testing.T) {
 	}
 }
 func testUpdate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
@@ -153,7 +153,7 @@ func testUpdate(t *testing.T) {
 	}
 }
 func testList(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := []string{"B game", "A game"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
@@ -273,7 +273,7 @@ func testList(t *testing.T) {
 	}
 }
 func testItem(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := []string{"one", "two"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
@@ -337,7 +337,7 @@ func testItem(t *testing.T) {
 	}
 }
 func testImage(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	gameName := "one"
 	gameID := utils.NameToID(gameName)
 	pngImage := "https://github.com/fluidicon.png"
@@ -531,7 +531,7 @@ func FuzzGame(f *testing.F) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "game_fuzz_"+uuid.New().String()))
 
-	service := NewService()
+	service := NewService(config.GetConfig())
 
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {

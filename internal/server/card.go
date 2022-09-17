@@ -6,16 +6,20 @@ import (
 	"github.com/gorilla/mux"
 
 	"tts_deck_build/internal/cards"
+	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/network"
 )
 
 type CardServer struct {
+	cfg *config.Config
 }
 
-func NewCardServer() *CardServer {
-	return &CardServer{}
+func NewCardServer(cfg *config.Config) *CardServer {
+	return &CardServer{
+		cfg: cfg,
+	}
 }
 
 func (s *CardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +32,7 @@ func (s *CardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := cards.NewService().Create(gameID, collectionID, deckID, dtoObject)
+	item, e := cards.NewService(s.cfg).Create(gameID, collectionID, deckID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -44,7 +48,7 @@ func (s *CardServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	e = cards.NewService().Delete(gameID, collectionID, deckID, cardID)
+	e = cards.NewService(s.cfg).Delete(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -58,7 +62,7 @@ func (s *CardServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := cards.NewService().Item(gameID, collectionID, deckID, cardID)
+	item, e := cards.NewService(s.cfg).Item(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -70,7 +74,7 @@ func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
 	sort := r.URL.Query().Get("sort")
-	items, e := cards.NewService().List(gameID, collectionID, deckID, sort)
+	items, e := cards.NewService(s.cfg).List(gameID, collectionID, deckID, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -92,7 +96,7 @@ func (s *CardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := cards.NewService().Update(gameID, collectionID, deckID, cardID, dtoObject)
+	item, e := cards.NewService(s.cfg).Update(gameID, collectionID, deckID, cardID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

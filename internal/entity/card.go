@@ -46,7 +46,6 @@ func NewCardInfo(title, desc, image string, variables map[string]string, count i
 func (i *CardInfo) ImagePath(gameID, collectionID, deckID string, cfg *config.Config) string {
 	return filepath.Join(cfg.Games(), gameID, collectionID, deckID, fs.Int64ToString(i.ID)+".bin")
 }
-
 func (i *CardInfo) Compare(val *CardInfo) bool {
 	if i.Title != val.Title {
 		return false
@@ -74,23 +73,19 @@ func (i *CardInfo) Compare(val *CardInfo) bool {
 	}
 	return true
 }
-
 func (i *CardInfo) GetName() string {
 	return i.Title.String()
 }
-
 func (i *CardInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
 		return *i.CreatedAt
 	}
 	return time.Time{}
 }
-
 func (i *CardInfo) SetQuotedOutput() {
 	i.Title.SetQuotedOutput()
 	i.Description.SetQuotedOutput()
 }
-
 func (i *CardInfo) SetRawOutput() {
 	i.Title.SetRawOutput()
 	i.Description.SetRawOutput()

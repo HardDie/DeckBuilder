@@ -7,6 +7,7 @@ import (
 
 	"tts_deck_build/api/web"
 	"tts_deck_build/internal/api"
+	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/server"
 )
 
@@ -15,14 +16,16 @@ func GetRoutes() *mux.Router {
 
 	web.Init(routes)
 
-	api.RegisterGameServer(routes, server.NewGameServer())
-	api.RegisterCollectionServer(routes, server.NewCollectionServer())
-	api.RegisterDeckServer(routes, server.NewDeckServer())
-	api.RegisterCardServer(routes, server.NewCardServer())
+	cfg := config.GetConfig()
 
-	api.RegisterImageServer(routes, server.NewImageServer())
-	api.RegisterSystemServer(routes, server.NewSystemServer())
-	api.RegisterGeneratorServer(routes, server.NewGeneratorServer())
+	api.RegisterGameServer(routes, server.NewGameServer(cfg))
+	api.RegisterCollectionServer(routes, server.NewCollectionServer(cfg))
+	api.RegisterDeckServer(routes, server.NewDeckServer(cfg))
+	api.RegisterCardServer(routes, server.NewCardServer(cfg))
+
+	api.RegisterImageServer(routes, server.NewImageServer(cfg))
+	api.RegisterSystemServer(routes, server.NewSystemServer(cfg))
+	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(cfg))
 
 	routes.Use(corsMiddleware)
 	return routes

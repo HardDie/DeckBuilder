@@ -24,10 +24,13 @@ import (
 )
 
 type GeneratorService struct {
+	cfg *config.Config
 }
 
-func NewService() *GeneratorService {
-	return &GeneratorService{}
+func NewService(cfg *config.Config) *GeneratorService {
+	return &GeneratorService{
+		cfg: cfg,
+	}
 }
 
 func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error {
@@ -39,13 +42,13 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	}
 
 	// Cleanup before generation
-	err = fs.RemoveFolder(config.GetConfig().Results())
+	err = fs.RemoveFolder(s.cfg.Results())
 	if err != nil {
 		return err
 	}
 
 	// Create result folder
-	err = fs.CreateFolder(config.GetConfig().Results())
+	err = fs.CreateFolder(s.cfg.Results())
 	if err != nil {
 		return err
 	}
@@ -58,28 +61,27 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 
 	return nil
 }
-
 func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, int, error) {
 	deckArray := entity.NewDeckArray()
 	totalCountOfCards := 0
 
 	// Check if the game exists
-	gameService := games.NewService()
+	gameService := games.NewService(s.cfg)
 	gameItem, err := gameService.Item(gameID)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Get collection list
-	collectionService := collections.NewService()
+	collectionService := collections.NewService(s.cfg)
 	collectionItems, err := collectionService.List(gameItem.ID, sortField)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Create deck and card service
-	deckService := decks.NewService()
-	cardService := cards.NewService()
+	deckService := decks.NewService(s.cfg)
+	cardService := cards.NewService(s.cfg)
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
@@ -104,7 +106,6 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 	}
 	return deckArray, totalCountOfCards, nil
 }
-
 func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountOfCards int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
@@ -112,8 +113,8 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 	var err error
 
 	// Create deck and card service
-	deckService := decks.NewService()
-	cardService := cards.NewService()
+	deckService := decks.NewService(s.cfg)
+	cardService := cards.NewService(s.cfg)
 
 	transform := tts_entity.Transform{
 		ScaleX: 1,
@@ -168,7 +169,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 
 					hash := md5.Sum([]byte(deckItem.BacksideImage))
 					deckBacksideImageName = "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
-					err = fs.CreateAndProcess(filepath.Join(config.GetConfig().Results(), deckBacksideImageName), deckBacksideImage, fs.BinToWriter)
+					err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), deckBacksideImageName), deckBacksideImage, fs.BinToWriter)
 					if err != nil {
 						return err
 					}
@@ -282,7 +283,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 			images.Draw(pageImage, pageInfo.Columns-1, pageInfo.Rows-1, deckBacksideImageDarker)
 			// Save the image page to file
 			pr.SetMessage("Saving the resulting page to disk...")
-			err = fs.CreateAndProcess[image.Image](filepath.Join(config.GetConfig().Results(), pageInfo.Name), pageImage, images.SaveToWriter)
+			err = fs.CreateAndProcess[image.Image](filepath.Join(s.cfg.Results(), pageInfo.Name), pageImage, images.SaveToWriter)
 			if err != nil {
 				return err
 			}
@@ -305,7 +306,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 			bag,
 		},
 	}
-	err = fs.CreateAndProcess(filepath.Join(config.GetConfig().Results(), "decks.json"), root, fs.JsonToWriter[tts_entity.RootObjects])
+	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), "decks.json"), root, fs.JsonToWriter[tts_entity.RootObjects])
 	if err != nil {
 		return err
 	}

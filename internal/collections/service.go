@@ -12,8 +12,7 @@ type CollectionService struct {
 	rep repository.ICollectionRepository
 }
 
-func NewService() *CollectionService {
-	cfg := config.GetConfig()
+func NewService(cfg *config.Config) *CollectionService {
 	return &CollectionService{
 		rep: repository.NewCollectionRepository(cfg, repository.NewGameRepository(cfg)),
 	}

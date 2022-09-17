@@ -12,8 +12,7 @@ type CardService struct {
 	rep repository.ICardRepository
 }
 
-func NewService() *CardService {
-	cfg := config.GetConfig()
+func NewService(cfg *config.Config) *CardService {
 	return &CardService{
 		rep: repository.NewCardRepository(cfg,
 			repository.NewDeckRepository(cfg,

@@ -24,7 +24,7 @@ var (
 )
 
 func testCreate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := "one"
 	desc := "best game ever"
 
@@ -61,7 +61,7 @@ func testCreate(t *testing.T) {
 	}
 }
 func testDelete(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := "one"
 	collectionID := utils.NameToID(collectionName)
 
@@ -98,7 +98,7 @@ func testDelete(t *testing.T) {
 	}
 }
 func testUpdate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
@@ -158,7 +158,7 @@ func testUpdate(t *testing.T) {
 	}
 }
 func testList(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := []string{"B collection", "A collection"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
@@ -278,7 +278,7 @@ func testList(t *testing.T) {
 	}
 }
 func testItem(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := []string{"one", "two"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
@@ -342,7 +342,7 @@ func testItem(t *testing.T) {
 	}
 }
 func testImage(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	collectionName := "one"
 	collectionID := utils.NameToID(collectionName)
 	pngImage := "https://github.com/fluidicon.png"
@@ -426,7 +426,7 @@ func TestCollection(t *testing.T) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_test"))
 
-	service := NewService()
+	service := NewService(config.GetConfig())
 
 	// Game not exist error
 	_, err := service.Create(gameID, &dto.CreateCollectionDTO{
@@ -437,7 +437,7 @@ func TestCollection(t *testing.T) {
 	}
 
 	// Create game
-	gameService := games.NewService()
+	gameService := games.NewService(config.GetConfig())
 	_, err = gameService.Create(&dto.CreateGameDTO{
 		Name: gameID,
 	})
@@ -555,8 +555,8 @@ func FuzzCollection(f *testing.F) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
 
-	gameService := games.NewService()
-	service := NewService()
+	gameService := games.NewService(config.GetConfig())
+	service := NewService(config.GetConfig())
 
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {

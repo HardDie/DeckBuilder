@@ -12,8 +12,7 @@ type DeckService struct {
 	rep repository.IDeckRepository
 }
 
-func NewService() *DeckService {
-	cfg := config.GetConfig()
+func NewService(cfg *config.Config) *DeckService {
 	return &DeckService{
 		rep: repository.NewDeckRepository(
 			cfg,

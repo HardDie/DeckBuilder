@@ -26,7 +26,7 @@ var (
 )
 
 func testCreate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := "one"
 
 	// Create deck
@@ -58,7 +58,7 @@ func testCreate(t *testing.T) {
 	}
 }
 func testDelete(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := "one"
 	deckID := utils.NameToID(deckType)
 
@@ -95,7 +95,7 @@ func testDelete(t *testing.T) {
 	}
 }
 func testUpdate(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := []string{"one", "two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
@@ -146,7 +146,7 @@ func testUpdate(t *testing.T) {
 	}
 }
 func testList(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := []string{"B deck", "A deck"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
@@ -266,7 +266,7 @@ func testList(t *testing.T) {
 	}
 }
 func testItem(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := []string{"one", "two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
@@ -330,7 +330,7 @@ func testItem(t *testing.T) {
 	}
 }
 func testImage(t *testing.T) {
-	service := NewService()
+	service := NewService(config.GetConfig())
 	deckType := "one"
 	deckID := utils.NameToID(deckType)
 	pngImage := "https://github.com/fluidicon.png"
@@ -414,7 +414,7 @@ func TestDeck(t *testing.T) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "deck_test"))
 
-	service := NewService()
+	service := NewService(config.GetConfig())
 
 	// Game not exist error
 	_, err := service.Create(gameID, collectionID, &dto.CreateDeckDTO{
@@ -425,7 +425,7 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Create game
-	gameService := games.NewService()
+	gameService := games.NewService(config.GetConfig())
 	_, err = gameService.Create(&dto.CreateGameDTO{
 		Name: gameID,
 	})
@@ -442,7 +442,7 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Create collection
-	collectionService := collections.NewService()
+	collectionService := collections.NewService(config.GetConfig())
 	_, err = collectionService.Create(gameID, &dto.CreateCollectionDTO{
 		Name: collectionID,
 	})
@@ -551,9 +551,9 @@ func FuzzDeck(f *testing.F) {
 	}
 	config.GetConfig().SetDataPath(filepath.Join(dataPath, "deck_fuzz_"+uuid.New().String()))
 
-	gameService := games.NewService()
-	collectionService := collections.NewService()
-	service := NewService()
+	gameService := games.NewService(config.GetConfig())
+	collectionService := collections.NewService(config.GetConfig())
+	service := NewService(config.GetConfig())
 
 	msync := sync.Mutex{}
 	f.Fuzz(func(t *testing.T, type1, type2 string) {
