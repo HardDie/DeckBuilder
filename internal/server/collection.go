@@ -5,19 +5,18 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/collections"
-	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/service"
 )
 
 type CollectionServer struct {
-	cfg *config.Config
+	collectionService service.ICollectionService
 }
 
-func NewCollectionServer(cfg *config.Config) *CollectionServer {
+func NewCollectionServer(collectionService service.ICollectionService) *CollectionServer {
 	return &CollectionServer{
-		cfg: cfg,
+		collectionService: collectionService,
 	}
 }
 
@@ -30,7 +29,7 @@ func (s *CollectionServer) CreateHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	item, e := collections.NewService(s.cfg).Create(gameID, dtoObject)
+	item, e := s.collectionService.Create(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -41,7 +40,7 @@ func (s *CollectionServer) CreateHandler(w http.ResponseWriter, r *http.Request)
 func (s *CollectionServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	e := collections.NewService(s.cfg).Delete(gameID, collectionID)
+	e := s.collectionService.Delete(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -49,7 +48,7 @@ func (s *CollectionServer) DeleteHandler(w http.ResponseWriter, r *http.Request)
 func (s *CollectionServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	item, e := collections.NewService(s.cfg).Item(gameID, collectionID)
+	item, e := s.collectionService.Item(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -59,7 +58,7 @@ func (s *CollectionServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	sort := r.URL.Query().Get("sort")
-	items, e := collections.NewService(s.cfg).List(gameID, sort)
+	items, e := s.collectionService.List(gameID, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -76,7 +75,7 @@ func (s *CollectionServer) UpdateHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	item, e := collections.NewService(s.cfg).Update(gameID, collectionID, dtoObject)
+	item, e := s.collectionService.Update(gameID, collectionID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

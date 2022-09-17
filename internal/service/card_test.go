@@ -1,4 +1,4 @@
-package cards
+package service
 
 import (
 	"encoding/json"
@@ -10,37 +10,39 @@ import (
 
 	"github.com/google/uuid"
 
-	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	er "tts_deck_build/internal/errors"
-	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/repository"
 )
 
 type cardTest struct {
 	gameID, collectionID, deckID string
 	cfg                          *config.Config
-	gameService                  *games.GameService
-	collectionService            *collections.CollectionService
-	deckService                  *decks.DeckService
-	cardService                  *CardService
+	gameService                  IGameService
+	collectionService            ICollectionService
+	deckService                  IDeckService
+	cardService                  ICardService
 }
 
 func newCardTest(dataPath string) *cardTest {
 	cfg := config.GetConfig()
 	cfg.SetDataPath(dataPath)
 
+	gameRepository := repository.NewGameRepository(cfg)
+	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
+	deckRepository := repository.NewDeckRepository(cfg, collectionRepository)
+
 	return &cardTest{
 		gameID:            "test_card__game",
 		collectionID:      "test_card__collection",
 		deckID:            "test_card__deck",
 		cfg:               cfg,
-		gameService:       games.NewService(cfg),
-		collectionService: collections.NewService(cfg),
-		deckService:       decks.NewService(cfg),
-		cardService:       NewService(cfg),
+		gameService:       NewGameService(gameRepository),
+		collectionService: NewCollectionService(collectionRepository),
+		deckService:       NewDeckService(deckRepository),
+		cardService:       NewCardService(repository.NewCardRepository(cfg, deckRepository)),
 	}
 }
 

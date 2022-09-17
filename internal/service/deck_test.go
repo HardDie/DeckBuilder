@@ -1,4 +1,4 @@
-package decks
+package service
 
 import (
 	"encoding/json"
@@ -10,34 +10,36 @@ import (
 
 	"github.com/google/uuid"
 
-	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	er "tts_deck_build/internal/errors"
-	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/utils"
 )
 
 type deckTest struct {
 	gameID, collectionID string
 	cfg                  *config.Config
-	gameService          *games.GameService
-	collectionService    *collections.CollectionService
-	deckService          *DeckService
+	gameService          IGameService
+	collectionService    ICollectionService
+	deckService          IDeckService
 }
 
 func newDeckTest(dataPath string) *deckTest {
 	cfg := config.GetConfig()
 	cfg.SetDataPath(dataPath)
 
+	gameRepository := repository.NewGameRepository(cfg)
+	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
+
 	return &deckTest{
 		gameID:            "test_deck__game",
 		collectionID:      "test_deck__collection",
 		cfg:               cfg,
-		gameService:       games.NewService(cfg),
-		collectionService: collections.NewService(cfg),
-		deckService:       NewService(cfg),
+		gameService:       NewGameService(gameRepository),
+		collectionService: NewCollectionService(collectionRepository),
+		deckService:       NewDeckService(repository.NewDeckRepository(cfg, collectionRepository)),
 	}
 }
 
@@ -467,8 +469,8 @@ func TestDeck(t *testing.T) {
 func (tt *deckTest) fuzzCleanup() {
 	_ = os.RemoveAll(tt.cfg.Data)
 }
-func (tt *deckTest) fuzzList(t *testing.T, service *DeckService, waitItems int) error {
-	items, err := service.List(tt.gameID, tt.collectionID, "")
+func (tt *deckTest) fuzzList(t *testing.T, waitItems int) error {
+	items, err := tt.deckService.List(tt.gameID, tt.collectionID, "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -485,8 +487,8 @@ func (tt *deckTest) fuzzList(t *testing.T, service *DeckService, waitItems int) 
 	}
 	return nil
 }
-func (tt *deckTest) fuzzItem(t *testing.T, service *DeckService, deckID, deckType string) error {
-	deck, err := service.Item(tt.gameID, tt.collectionID, deckID)
+func (tt *deckTest) fuzzItem(t *testing.T, deckID, deckType string) error {
+	deck, err := tt.deckService.Item(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -503,8 +505,8 @@ func (tt *deckTest) fuzzItem(t *testing.T, service *DeckService, deckID, deckTyp
 	}
 	return nil
 }
-func (tt *deckTest) fuzzCreate(t *testing.T, service *DeckService, deckType string) (*entity.DeckInfo, error) {
-	deck, err := service.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+func (tt *deckTest) fuzzCreate(t *testing.T, deckType string) (*entity.DeckInfo, error) {
+	deck, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -520,8 +522,8 @@ func (tt *deckTest) fuzzCreate(t *testing.T, service *DeckService, deckType stri
 	}
 	return deck, nil
 }
-func (tt *deckTest) fuzzUpdate(t *testing.T, service *DeckService, deckID, deckType string) (*entity.DeckInfo, error) {
-	deck, err := service.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+func (tt *deckTest) fuzzUpdate(t *testing.T, deckID, deckType string) (*entity.DeckInfo, error) {
+	deck, err := tt.deckService.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
 		Type: deckType,
 	})
 	if err != nil {
@@ -537,8 +539,8 @@ func (tt *deckTest) fuzzUpdate(t *testing.T, service *DeckService, deckID, deckT
 	}
 	return deck, nil
 }
-func (tt *deckTest) fuzzDelete(t *testing.T, service *DeckService, deckID string) error {
-	err := service.Delete(tt.gameID, tt.collectionID, deckID)
+func (tt *deckTest) fuzzDelete(t *testing.T, deckID string) error {
+	err := tt.deckService.Delete(tt.gameID, tt.collectionID, deckID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -586,62 +588,62 @@ func FuzzDeck(f *testing.F) {
 		}
 
 		// Empty list
-		err = tt.fuzzList(t, tt.deckService, 0)
+		err = tt.fuzzList(t, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Create deck
-		deck1, err := tt.fuzzCreate(t, tt.deckService, type1)
+		deck1, err := tt.fuzzCreate(t, type1)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with deck
-		err = tt.fuzzList(t, tt.deckService, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = tt.fuzzItem(t, tt.deckService, deck1.ID, type1)
+		err = tt.fuzzItem(t, deck1.ID, type1)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Update collection
-		collection2, err := tt.fuzzUpdate(t, tt.deckService, utils.NameToID(type1), type2)
+		collection2, err := tt.fuzzUpdate(t, utils.NameToID(type1), type2)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// List with collection
-		err = tt.fuzzList(t, tt.deckService, 1)
+		err = tt.fuzzList(t, 1)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Check item
-		err = tt.fuzzItem(t, tt.deckService, collection2.ID, type2)
+		err = tt.fuzzItem(t, collection2.ID, type2)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Delete collection
-		err = tt.fuzzDelete(t, tt.deckService, utils.NameToID(type2))
+		err = tt.fuzzDelete(t, utils.NameToID(type2))
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)
 		}
 
 		// Empty list
-		err = tt.fuzzList(t, tt.deckService, 0)
+		err = tt.fuzzList(t, 0)
 		if err != nil {
 			tt.fuzzCleanup() // Cleanup - just in case
 			t.Fatal(err)

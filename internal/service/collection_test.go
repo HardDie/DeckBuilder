@@ -1,4 +1,4 @@
-package collections
+package service
 
 import (
 	"encoding/json"
@@ -14,26 +14,28 @@ import (
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	er "tts_deck_build/internal/errors"
-	"tts_deck_build/internal/games"
+	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/utils"
 )
 
 type collectionTest struct {
 	gameID            string
 	cfg               *config.Config
-	gameService       *games.GameService
-	collectionService *CollectionService
+	gameService       IGameService
+	collectionService ICollectionService
 }
 
 func newCollectionTest(dataPath string) *collectionTest {
 	cfg := config.GetConfig()
 	cfg.SetDataPath(dataPath)
 
+	gameRepository := repository.NewGameRepository(cfg)
+
 	return &collectionTest{
 		gameID:            "test_collection__game",
 		cfg:               cfg,
-		gameService:       games.NewService(cfg),
-		collectionService: NewService(cfg),
+		gameService:       NewGameService(gameRepository),
+		collectionService: NewCollectionService(repository.NewCollectionRepository(cfg, gameRepository)),
 	}
 }
 

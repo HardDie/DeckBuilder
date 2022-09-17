@@ -1,4 +1,4 @@
-package games
+package service
 
 import (
 	"encoding/json"
@@ -14,12 +14,13 @@ import (
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	er "tts_deck_build/internal/errors"
+	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/utils"
 )
 
 type gameTest struct {
 	cfg         *config.Config
-	gameService *GameService
+	gameService IGameService
 }
 
 func newGameTest(dataPath string) *gameTest {
@@ -28,7 +29,7 @@ func newGameTest(dataPath string) *gameTest {
 
 	return &gameTest{
 		cfg:         cfg,
-		gameService: NewService(cfg),
+		gameService: NewGameService(repository.NewGameRepository(cfg)),
 	}
 }
 

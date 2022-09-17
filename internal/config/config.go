@@ -25,24 +25,19 @@ type Config struct {
 	ImageFilename string `json:"imageFilename"`
 }
 
-var config *Config
-
 func GetConfig() *Config {
-	if config == nil {
-		config = &Config{
-			Debug: false,
+	return &Config{
+		Debug: false,
 
-			Data:   "data",
-			Game:   "games",
-			Cache:  "cache",
-			Result: "result",
+		Data:   "data",
+		Game:   "games",
+		Cache:  "cache",
+		Result: "result",
 
-			Setting:       "settings.json",
-			InfoFilename:  ".info.json",
-			ImageFilename: ".image.bin",
-		}
+		Setting:       "settings.json",
+		InfoFilename:  ".info.json",
+		ImageFilename: ".image.bin",
 	}
-	return config
 }
 
 func (c *Config) Settings() string {

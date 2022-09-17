@@ -5,25 +5,24 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/service"
 )
 
 type DeckServer struct {
-	cfg *config.Config
+	deckService service.IDeckService
 }
 
-func NewDeckServer(cfg *config.Config) *DeckServer {
+func NewDeckServer(deckService service.IDeckService) *DeckServer {
 	return &DeckServer{
-		cfg: cfg,
+		deckService: deckService,
 	}
 }
 
 func (s *DeckServer) AllDecksHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	items, e := decks.NewService(s.cfg).ListAllUnique(gameID)
+	items, e := s.deckService.ListAllUnique(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -40,7 +39,7 @@ func (s *DeckServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := decks.NewService(s.cfg).Create(gameID, collectionID, dtoObject)
+	item, e := s.deckService.Create(gameID, collectionID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -52,7 +51,7 @@ func (s *DeckServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	e := decks.NewService(s.cfg).Delete(gameID, collectionID, deckID)
+	e := s.deckService.Delete(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -61,7 +60,7 @@ func (s *DeckServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	item, e := decks.NewService(s.cfg).Item(gameID, collectionID, deckID)
+	item, e := s.deckService.Item(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -72,7 +71,7 @@ func (s *DeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
-	items, e := decks.NewService(s.cfg).List(gameID, collectionID, sort)
+	items, e := s.deckService.List(gameID, collectionID, sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -90,7 +89,7 @@ func (s *DeckServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := decks.NewService(s.cfg).Update(gameID, collectionID, deckID, dtoObject)
+	item, e := s.deckService.Update(gameID, collectionID, deckID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

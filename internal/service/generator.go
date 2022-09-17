@@ -9,27 +9,34 @@ import (
 
 	"github.com/disintegration/imaging"
 
-	"tts_deck_build/internal/cards"
-	"tts_deck_build/internal/collections"
 	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/images"
 	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/tts_entity"
 	"tts_deck_build/internal/utils"
 )
 
+type IGeneratorService interface {
+	GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error
+}
 type GeneratorService struct {
-	cfg *config.Config
+	cfg               *config.Config
+	gameService       IGameService
+	collectionService ICollectionService
+	deckService       IDeckService
+	cardService       ICardService
 }
 
-func NewGeneratorService(cfg *config.Config) *GeneratorService {
+func NewGeneratorService(cfg *config.Config, gameService IGameService, collectionService ICollectionService, deckService IDeckService, cardService ICardService) *GeneratorService {
 	return &GeneratorService{
-		cfg: cfg,
+		cfg:               cfg,
+		gameService:       gameService,
+		collectionService: collectionService,
+		deckService:       deckService,
+		cardService:       cardService,
 	}
 }
 
@@ -67,26 +74,20 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 	totalCountOfCards := 0
 
 	// Check if the game exists
-	gameService := games.NewService(s.cfg)
-	gameItem, err := gameService.Item(gameID)
+	gameItem, err := s.gameService.Item(gameID)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Get collection list
-	collectionService := collections.NewService(s.cfg)
-	collectionItems, err := collectionService.List(gameItem.ID, sortField)
+	collectionItems, err := s.collectionService.List(gameItem.ID, sortField)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// Create deck and card service
-	deckService := decks.NewService(s.cfg)
-	cardService := cards.NewService(s.cfg)
-
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
-		deckItems, err := deckService.List(gameItem.ID, collectionItem.ID, sortField)
+		deckItems, err := s.deckService.List(gameItem.ID, collectionItem.ID, sortField)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -94,7 +95,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
 			deckArray.SelectDeck(deckItem.ID, deckItem.BacksideImage)
-			cardItems, err := cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, sortField)
+			cardItems, err := s.cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, sortField)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -112,10 +113,6 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 	pr.SetMessage("Reading a list of cards from the disk...")
 
 	var err error
-
-	// Create deck and card service
-	deckService := decks.NewService(s.cfg)
-	cardService := cards.NewService(s.cfg)
 
 	transform := tts_entity.Transform{
 		ScaleX: 1,
@@ -152,12 +149,12 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 
 				if deckBacksideImage == nil {
 					// Getting an deck item
-					deckItem, err = deckService.Item(card.GameID, card.CollectionID, deckInfo.DeckID)
+					deckItem, err = s.deckService.Item(card.GameID, card.CollectionID, deckInfo.DeckID)
 					if err != nil {
 						return err
 					}
 					// Getting an image of the backside
-					deckBacksideImage, _, err = deckService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID)
+					deckBacksideImage, _, err = s.deckService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID)
 					if err != nil {
 						return err
 					}
@@ -180,7 +177,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					// Add one card to the bottom right place for the backside image.
 					columns, rows := utils.CalculateGridSize(len(page) + 1)
 					// Extracting the size of the card
-					imgBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
+					imgBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 					if err != nil {
 						return err
 					}
@@ -211,7 +208,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 				// Processing image
 
 				// Get card image
-				cardImageBin, _, err := cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
+				cardImageBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 				if err != nil {
 					return err
 				}
@@ -252,7 +249,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					}
 				}
 				// Get information about the card
-				cardItem, err := cardService.Item(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
+				cardItem, err := s.cardService.Item(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 				if err != nil {
 					return err
 				}

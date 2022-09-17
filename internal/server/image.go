@@ -5,23 +5,25 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/cards"
-	"tts_deck_build/internal/collections"
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/decks"
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/service"
 )
 
 type ImageServer struct {
-	cfg *config.Config
+	gameService       service.IGameService
+	collectionService service.ICollectionService
+	deckService       service.IDeckService
+	cardService       service.ICardService
 }
 
-func NewImageServer(cfg *config.Config) *ImageServer {
+func NewImageServer(gameService service.IGameService, collectionService service.ICollectionService, deckService service.IDeckService, cardService service.ICardService) *ImageServer {
 	return &ImageServer{
-		cfg: cfg,
+		gameService:       gameService,
+		collectionService: collectionService,
+		deckService:       deckService,
+		cardService:       cardService,
 	}
 }
 
@@ -34,7 +36,7 @@ func (s *ImageServer) CardHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	img, imgType, e := cards.NewService(s.cfg).GetImage(gameID, collectionID, deckID, cardID)
+	img, imgType, e := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -47,7 +49,7 @@ func (s *ImageServer) CardHandler(w http.ResponseWriter, r *http.Request) {
 func (s *ImageServer) CollectionHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	img, imgType, e := collections.NewService(s.cfg).GetImage(gameID, collectionID)
+	img, imgType, e := s.collectionService.GetImage(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -61,7 +63,7 @@ func (s *ImageServer) DeckHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	img, imgType, e := decks.NewService(s.cfg).GetImage(gameID, collectionID, deckID)
+	img, imgType, e := s.deckService.GetImage(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -73,7 +75,7 @@ func (s *ImageServer) DeckHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *ImageServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	img, imgType, e := games.NewService(s.cfg).GetImage(gameID)
+	img, imgType, e := s.gameService.GetImage(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

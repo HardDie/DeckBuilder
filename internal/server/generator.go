@@ -5,19 +5,18 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/service"
 )
 
 type GeneratorServer struct {
-	cfg *config.Config
+	generatorService service.IGeneratorService
 }
 
-func NewGeneratorServer(cfg *config.Config) *GeneratorServer {
+func NewGeneratorServer(generatorService service.IGeneratorService) *GeneratorServer {
 	return &GeneratorServer{
-		cfg: cfg,
+		generatorService: generatorService,
 	}
 }
 
@@ -30,7 +29,7 @@ func (s *GeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := mux.Vars(r)["game"]
-	e = service.NewGeneratorService(s.cfg).GenerateGame(gameID, dtoObject)
+	e = s.generatorService.GenerateGame(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

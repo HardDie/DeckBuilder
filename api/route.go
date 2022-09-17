@@ -8,7 +8,9 @@ import (
 	"tts_deck_build/api/web"
 	"tts_deck_build/internal/api"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/server"
+	"tts_deck_build/internal/service"
 )
 
 func GetRoutes() *mux.Router {
@@ -18,14 +20,34 @@ func GetRoutes() *mux.Router {
 
 	cfg := config.GetConfig()
 
-	api.RegisterGameServer(routes, server.NewGameServer(cfg))
-	api.RegisterCollectionServer(routes, server.NewCollectionServer(cfg))
-	api.RegisterDeckServer(routes, server.NewDeckServer(cfg))
-	api.RegisterCardServer(routes, server.NewCardServer(cfg))
+	// game
+	gameRepository := repository.NewGameRepository(cfg)
+	gameService := service.NewGameService(gameRepository)
+	api.RegisterGameServer(routes, server.NewGameServer(gameService))
 
-	api.RegisterImageServer(routes, server.NewImageServer(cfg))
+	// collection
+	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
+	collectionService := service.NewCollectionService(collectionRepository)
+	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService))
+
+	// deck
+	deckRepository := repository.NewDeckRepository(cfg, collectionRepository)
+	deckService := service.NewDeckService(deckRepository)
+	api.RegisterDeckServer(routes, server.NewDeckServer(deckService))
+
+	// card
+	cardService := service.NewCardService(repository.NewCardRepository(cfg, deckRepository))
+	api.RegisterCardServer(routes, server.NewCardServer(cardService))
+
+	// image
+	api.RegisterImageServer(routes, server.NewImageServer(gameService, collectionService, deckService, cardService))
+
+	// system
 	api.RegisterSystemServer(routes, server.NewSystemServer(cfg))
-	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(cfg))
+
+	// generator
+	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService)
+	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
 
 	routes.Use(corsMiddleware)
 	return routes

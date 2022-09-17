@@ -6,20 +6,19 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/games"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/service"
 )
 
 type GameServer struct {
-	cfg *config.Config
+	gameService service.IGameService
 }
 
-func NewGameServer(cfg *config.Config) *GameServer {
+func NewGameServer(gameService service.IGameService) *GameServer {
 	return &GameServer{
-		cfg: cfg,
+		gameService: gameService,
 	}
 }
 
@@ -31,7 +30,7 @@ func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := games.NewService(s.cfg).Create(dtoObject)
+	item, e := s.gameService.Create(dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -41,7 +40,7 @@ func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	e := games.NewService(s.cfg).Delete(gameID)
+	e := s.gameService.Delete(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -55,7 +54,7 @@ func (s *GameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := games.NewService(s.cfg).Duplicate(gameID, dtoObject)
+	item, e := s.gameService.Duplicate(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -65,7 +64,7 @@ func (s *GameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	archive, e := games.NewService(s.cfg).Export(gameID)
+	archive, e := s.gameService.Export(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -102,7 +101,7 @@ func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e = games.NewService(s.cfg).Import(data, name)
+	e = s.gameService.Import(data, name)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -110,7 +109,7 @@ func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	item, e := games.NewService(s.cfg).Item(gameID)
+	item, e := s.gameService.Item(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -119,7 +118,7 @@ func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	sort := r.URL.Query().Get("sort")
-	items, e := games.NewService(s.cfg).List(sort)
+	items, e := s.gameService.List(sort)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -135,7 +134,7 @@ func (s *GameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := games.NewService(s.cfg).Update(gameID, dtoObject)
+	item, e := s.gameService.Update(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
