@@ -43,8 +43,8 @@ func NewCardInfo(title, desc, image string, variables map[string]string, count i
 	}
 }
 
-func (i *CardInfo) ImagePath(gameID, collectionID, deckID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, deckID, fs.Int64ToString(i.ID)+".bin")
+func (i *CardInfo) ImagePath(gameID, collectionID, deckID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, collectionID, deckID, fs.Int64ToString(i.ID)+".bin")
 }
 
 func (i *CardInfo) Compare(val *CardInfo) bool {

@@ -58,12 +58,12 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 	defer deck.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
 		return nil, err
 	}
 
 	// Create folder for card images
-	if err := fs.CreateFolder(deck.CardImagesPath(gameID, collectionID)); err != nil {
+	if err := fs.CreateFolder(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo
 	}
 
 	// Get list of objects
-	folders, err := fs.ListOfFiles(collection.Path(gameID))
+	folders, err := fs.ListOfFiles(collection.Path(gameID, s.cfg))
 	if err != nil {
 		return decks, err
 	}
@@ -141,20 +141,20 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 		// If image exist, rename
 		if data, _, _ := s.GetImage(gameID, collectionID, oldDeck.Deck.ID); data != nil {
-			err = fs.MoveFolder(oldDeck.Deck.ImagePath(gameID, collectionID), deck.ImagePath(gameID, collectionID))
+			err = fs.MoveFolder(oldDeck.Deck.ImagePath(gameID, collectionID, s.cfg), deck.ImagePath(gameID, collectionID, s.cfg))
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		// Rename object
-		err = fs.MoveFolder(oldDeck.Deck.Path(gameID, collectionID), deck.Path(gameID, collectionID))
+		err = fs.MoveFolder(oldDeck.Deck.Path(gameID, collectionID, s.cfg), deck.Path(gameID, collectionID, s.cfg))
 		if err != nil {
 			return nil, err
 		}
 
 		// Rename card images folder
-		err = fs.MoveFolder(oldDeck.Deck.CardImagesPath(gameID, collectionID), deck.CardImagesPath(gameID, collectionID))
+		err = fs.MoveFolder(oldDeck.Deck.CardImagesPath(gameID, collectionID, s.cfg), deck.CardImagesPath(gameID, collectionID, s.cfg))
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +168,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 		deck.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
 			return nil, err
 		}
 	}
@@ -177,7 +177,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	if deck.BacksideImage != oldDeck.Deck.BacksideImage {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
-			err = fs.RemoveFile(deck.ImagePath(gameID, collectionID))
+			err = fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
 			if err != nil {
 				return nil, err
 			}
@@ -203,18 +203,18 @@ func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
 	}
 
 	// Remove object
-	if err := fs.RemoveFile(deck.Path(gameID, collectionID)); err != nil {
+	if err := fs.RemoveFile(deck.Path(gameID, collectionID, s.cfg)); err != nil {
 		return err
 	}
 
 	// Remove card images
-	if err := fs.RemoveFile(deck.CardImagesPath(gameID, collectionID)); err != nil {
+	if err := fs.RemoveFile(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
 		return err
 	}
 
 	// Remove image
 	if val.BacksideImage != "" {
-		return fs.RemoveFile(deck.ImagePath(gameID, collectionID))
+		return fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
 	}
 	return nil
 }
@@ -226,7 +226,7 @@ func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, 
 	}
 
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(deck.ImagePath(gameID, collectionID))
+	isExist, err := fs.IsFileExist(deck.ImagePath(gameID, collectionID, s.cfg))
 	if err != nil {
 		return nil, "", err
 	}
@@ -235,7 +235,7 @@ func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, 
 	}
 
 	// Read an image from a file
-	data, err := fs.OpenAndProcess(deck.ImagePath(gameID, collectionID), fs.BinFromReader)
+	data, err := fs.OpenAndProcess(deck.ImagePath(gameID, collectionID, s.cfg), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -267,7 +267,7 @@ func (s *DeckRepository) CreateImage(gameID, collectionID, deckID, imageURL stri
 	}
 
 	// Write image to file
-	return fs.CreateAndProcess(deck.ImagePath(gameID, collectionID), imageBytes, fs.BinToWriter)
+	return fs.CreateAndProcess(deck.ImagePath(gameID, collectionID, s.cfg), imageBytes, fs.BinToWriter)
 }
 func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 	// Get all collections in selected game
@@ -312,7 +312,7 @@ func (s *DeckRepository) getDeck(gameID, collectionID, deckID string) (*entity.D
 	deck := entity.DeckInfo{ID: deckID}
 
 	// Check if such an object exists
-	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID))
+	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID, s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +321,7 @@ func (s *DeckRepository) getDeck(gameID, collectionID, deckID string) (*entity.D
 	}
 
 	// Read info from file
-	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Deck])
+	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Deck])
 	if err != nil {
 		return nil, err
 	}

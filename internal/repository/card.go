@@ -43,7 +43,7 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entit
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entit
 	}
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 		}
 
 		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
+		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 			return nil, err
 		}
 	}
@@ -151,7 +151,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	if card.Image != oldCard.Image {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameID, collectionID, deckID, card.ID); data != nil {
-			err = fs.RemoveFile(card.ImagePath(gameID, collectionID, deckID))
+			err = fs.RemoveFile(card.ImagePath(gameID, collectionID, deckID, s.cfg))
 			if err != nil {
 				return nil, err
 			}
@@ -175,7 +175,7 @@ func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID 
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID 
 	delete(readCard.Cards, cardID)
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
 		return err
 	}
 	return nil
@@ -202,7 +202,7 @@ func (s *CardRepository) GetImage(gameID, collectionID, deckID string, cardID in
 	}
 
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(card.ImagePath(gameID, collectionID, deckID))
+	isExist, err := fs.IsFileExist(card.ImagePath(gameID, collectionID, deckID, s.cfg))
 	if err != nil {
 		return nil, "", err
 	}
@@ -211,7 +211,7 @@ func (s *CardRepository) GetImage(gameID, collectionID, deckID string, cardID in
 	}
 
 	// Read an image from a file
-	data, err := fs.OpenAndProcess(card.ImagePath(gameID, collectionID, deckID), fs.BinFromReader)
+	data, err := fs.OpenAndProcess(card.ImagePath(gameID, collectionID, deckID, s.cfg), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -243,7 +243,7 @@ func (s *CardRepository) CreateImage(gameID, collectionID, deckID string, cardID
 	}
 
 	// Write image to file
-	return fs.CreateAndProcess(card.ImagePath(gameID, collectionID, deckID), imageBytes, fs.BinToWriter)
+	return fs.CreateAndProcess(card.ImagePath(gameID, collectionID, deckID, s.cfg), imageBytes, fs.BinToWriter)
 }
 
 // Internal function. Get map of cards inside deck
@@ -255,7 +255,7 @@ func (s *CardRepository) getCardsMap(gameID, collectionID, deckID string) (map[i
 	}
 
 	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID), fs.JsonFromReader[entity.Card])
+	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
 	if err != nil {
 		return nil, err
 	}

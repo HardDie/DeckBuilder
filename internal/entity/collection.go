@@ -27,18 +27,15 @@ func NewCollectionInfo(name, desc, image string) *CollectionInfo {
 	}
 }
 
-func (i *CollectionInfo) Path(gameID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, i.ID)
+func (i *CollectionInfo) Path(gameID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, i.ID)
 }
-
-func (i *CollectionInfo) InfoPath(gameID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, i.ID, config.GetConfig().InfoFilename)
+func (i *CollectionInfo) InfoPath(gameID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, i.ID, cfg.InfoFilename)
 }
-
-func (i *CollectionInfo) ImagePath(gameID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, i.ID, config.GetConfig().ImageFilename)
+func (i *CollectionInfo) ImagePath(gameID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, i.ID, cfg.ImageFilename)
 }
-
 func (i *CollectionInfo) Compare(val *CollectionInfo) bool {
 	if i.ID != val.ID {
 		return false
@@ -54,23 +51,19 @@ func (i *CollectionInfo) Compare(val *CollectionInfo) bool {
 	}
 	return true
 }
-
 func (i *CollectionInfo) GetName() string {
 	return i.Name.String()
 }
-
 func (i *CollectionInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
 		return *i.CreatedAt
 	}
 	return time.Time{}
 }
-
 func (i *CollectionInfo) SetQuotedOutput() {
 	i.Name.SetQuotedOutput()
 	i.Description.SetQuotedOutput()
 }
-
 func (i *CollectionInfo) SetRawOutput() {
 	i.Name.SetRawOutput()
 	i.Description.SetRawOutput()

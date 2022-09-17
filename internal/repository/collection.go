@@ -53,7 +53,7 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 	}
 
 	// Create folder
-	if err := fs.CreateFolder(collection.Path(gameID)); err != nil {
+	if err := fs.CreateFolder(collection.Path(gameID, s.cfg)); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 	defer collection.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
+	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.Col
 	collection := entity.CollectionInfo{ID: collectionID}
 
 	// Check if such an object exists
-	isExist, err := fs.IsFolderExist(collection.Path(gameID))
+	isExist, err := fs.IsFolderExist(collection.Path(gameID, s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.Col
 	}
 
 	// Check if such an object exists
-	isExist, err = fs.IsFileExist(collection.InfoPath(gameID))
+	isExist, err = fs.IsFileExist(collection.InfoPath(gameID, s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.Col
 	}
 
 	// Read info from file
-	return fs.OpenAndProcess(collection.InfoPath(gameID), fs.JsonFromReader[entity.CollectionInfo])
+	return fs.OpenAndProcess(collection.InfoPath(gameID, s.cfg), fs.JsonFromReader[entity.CollectionInfo])
 }
 func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
 	// Check if the game exists
@@ -113,7 +113,7 @@ func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, 
 	}
 
 	// Get list of objects
-	folders, err := fs.ListOfFolders(game.Path())
+	folders, err := fs.ListOfFolders(game.Path(s.cfg))
 	if err != nil {
 		return make([]*entity.CollectionInfo, 0), err
 	}
@@ -156,7 +156,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 		}
 
 		// Rename object
-		err = fs.MoveFolder(oldCollection.Path(gameID), collection.Path(gameID))
+		err = fs.MoveFolder(oldCollection.Path(gameID, s.cfg), collection.Path(gameID, s.cfg))
 		if err != nil {
 			return nil, err
 		}
@@ -170,7 +170,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 
 		collection.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.CreateAndProcess(collection.InfoPath(gameID), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
+		if err = fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -179,7 +179,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	if collection.Image != oldCollection.Image {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameID, collection.ID); data != nil {
-			err = fs.RemoveFile(collection.ImagePath(gameID))
+			err = fs.RemoveFile(collection.ImagePath(gameID, s.cfg))
 			if err != nil {
 				return nil, err
 			}
@@ -204,7 +204,7 @@ func (s *CollectionRepository) DeleteByID(gameID, collectionID string) error {
 	}
 
 	// Remove object
-	return fs.RemoveFolder(collection.Path(gameID))
+	return fs.RemoveFolder(collection.Path(gameID, s.cfg))
 }
 func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, string, error) {
 	// Check if such an object exists
@@ -214,7 +214,7 @@ func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, st
 	}
 
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(collection.ImagePath(gameID))
+	isExist, err := fs.IsFileExist(collection.ImagePath(gameID, s.cfg))
 	if err != nil {
 		return nil, "", err
 	}
@@ -223,7 +223,7 @@ func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, st
 	}
 
 	// Read an image from a file
-	data, err := fs.OpenAndProcess(collection.ImagePath(gameID), fs.BinFromReader)
+	data, err := fs.OpenAndProcess(collection.ImagePath(gameID, s.cfg), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -255,5 +255,5 @@ func (s *CollectionRepository) CreateImage(gameID, collectionID, imageURL string
 	}
 
 	// Write image to file
-	return fs.CreateAndProcess(collection.ImagePath(gameID), imageBytes, fs.BinToWriter)
+	return fs.CreateAndProcess(collection.ImagePath(gameID, s.cfg), imageBytes, fs.BinToWriter)
 }

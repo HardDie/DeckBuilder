@@ -30,18 +30,15 @@ func NewDeckInfo(deckType, image string) *DeckInfo {
 	}
 }
 
-func (i *DeckInfo) Path(gameID, collectionID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".json")
+func (i *DeckInfo) Path(gameID, collectionID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, collectionID, i.ID+".json")
 }
-
-func (i *DeckInfo) CardImagesPath(gameID, collectionID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID)
+func (i *DeckInfo) CardImagesPath(gameID, collectionID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, collectionID, i.ID)
 }
-
-func (i *DeckInfo) ImagePath(gameID, collectionID string) string {
-	return filepath.Join(config.GetConfig().Games(), gameID, collectionID, i.ID+".bin")
+func (i *DeckInfo) ImagePath(gameID, collectionID string, cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), gameID, collectionID, i.ID+".bin")
 }
-
 func (i *DeckInfo) Compare(val *DeckInfo) bool {
 	if i.ID != val.ID {
 		return false
@@ -54,22 +51,18 @@ func (i *DeckInfo) Compare(val *DeckInfo) bool {
 	}
 	return true
 }
-
 func (i *DeckInfo) GetName() string {
 	return i.Type.String()
 }
-
 func (i *DeckInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
 		return *i.CreatedAt
 	}
 	return time.Time{}
 }
-
 func (i *DeckInfo) SetQuotedOutput() {
 	i.Type.SetQuotedOutput()
 }
-
 func (i *DeckInfo) SetRawOutput() {
 	i.Type.SetRawOutput()
 }

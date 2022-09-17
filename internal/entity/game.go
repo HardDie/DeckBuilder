@@ -27,18 +27,15 @@ func NewGameInfo(name, desc, image string) *GameInfo {
 	}
 }
 
-func (i *GameInfo) Path() string {
-	return filepath.Join(config.GetConfig().Games(), i.ID)
+func (i *GameInfo) Path(cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), i.ID)
 }
-
-func (i *GameInfo) InfoPath() string {
-	return filepath.Join(config.GetConfig().Games(), i.ID, config.GetConfig().InfoFilename)
+func (i *GameInfo) InfoPath(cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), i.ID, cfg.InfoFilename)
 }
-
-func (i *GameInfo) ImagePath() string {
-	return filepath.Join(config.GetConfig().Games(), i.ID, config.GetConfig().ImageFilename)
+func (i *GameInfo) ImagePath(cfg *config.Config) string {
+	return filepath.Join(cfg.Games(), i.ID, cfg.ImageFilename)
 }
-
 func (i *GameInfo) Compare(val *GameInfo) bool {
 	if i.ID != val.ID {
 		return false
@@ -54,23 +51,19 @@ func (i *GameInfo) Compare(val *GameInfo) bool {
 	}
 	return true
 }
-
 func (i *GameInfo) GetName() string {
 	return i.Name.String()
 }
-
 func (i *GameInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
 		return *i.CreatedAt
 	}
 	return time.Time{}
 }
-
 func (i *GameInfo) SetQuotedOutput() {
 	i.Name.SetQuotedOutput()
 	i.Description.SetQuotedOutput()
 }
-
 func (i *GameInfo) SetRawOutput() {
 	i.Name.SetRawOutput()
 	i.Description.SetRawOutput()

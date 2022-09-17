@@ -50,7 +50,7 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 	}
 
 	// Create folder
-	if err := fs.CreateFolder(game.Path()); err != nil {
+	if err := fs.CreateFolder(game.Path(s.cfg)); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 	defer game.SetRawOutput()
 
 	// Writing info to file
-	if err := fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+	if err := fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
 	game := entity.GameInfo{ID: gameID}
 
 	// Check if such an object exists
-	isExist, err := fs.IsFolderExist(game.Path())
+	isExist, err := fs.IsFolderExist(game.Path(s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
 	}
 
 	// Check if such an object exists
-	isExist, err = fs.IsFileExist(game.InfoPath())
+	isExist, err = fs.IsFileExist(game.InfoPath(s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
 	}
 
 	// Read info from file
-	retGame, err := fs.OpenAndProcess(game.InfoPath(), fs.JsonFromReader[entity.GameInfo])
+	retGame, err := fs.OpenAndProcess(game.InfoPath(s.cfg), fs.JsonFromReader[entity.GameInfo])
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 		}
 
 		// Rename object
-		err = fs.MoveFolder(oldGame.Path(), game.Path())
+		err = fs.MoveFolder(oldGame.Path(s.cfg), game.Path(s.cfg))
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +168,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 
 		game.UpdatedAt = utils.Allocate(time.Now())
 		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+		if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 			return nil, err
 		}
 	}
@@ -177,7 +177,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	if game.Image != oldGame.Image {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(game.ID); data != nil {
-			err = fs.RemoveFile(game.ImagePath())
+			err = fs.RemoveFile(game.ImagePath(s.cfg))
 			if err != nil {
 				return nil, err
 			}
@@ -202,7 +202,7 @@ func (s *GameRepository) DeleteByID(gameID string) error {
 	}
 
 	// Remove object
-	return fs.RemoveFolder(game.Path())
+	return fs.RemoveFolder(game.Path(s.cfg))
 }
 func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	// Check if such an object exists
@@ -212,7 +212,7 @@ func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	}
 
 	// Check if an image exists
-	isExist, err := fs.IsFileExist(game.ImagePath())
+	isExist, err := fs.IsFileExist(game.ImagePath(s.cfg))
 	if err != nil {
 		return nil, "", err
 	}
@@ -221,7 +221,7 @@ func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	}
 
 	// Read an image from a file
-	data, err := fs.OpenAndProcess(game.ImagePath(), fs.BinFromReader)
+	data, err := fs.OpenAndProcess(game.ImagePath(s.cfg), fs.BinFromReader)
 	if err != nil {
 		return nil, "", err
 	}
@@ -253,7 +253,7 @@ func (s *GameRepository) CreateImage(gameID, imageURL string) error {
 	}
 
 	// Write image to file
-	return fs.CreateAndProcess(game.ImagePath(), imageBytes, fs.BinToWriter)
+	return fs.CreateAndProcess(game.ImagePath(s.cfg), imageBytes, fs.BinToWriter)
 }
 func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
 	// Check if the game exists
@@ -276,7 +276,7 @@ func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDT
 	}
 
 	// Create a copy of the game
-	err := fs.CopyFolder(oldGame.Path(), game.Path())
+	err := fs.CopyFolder(oldGame.Path(s.cfg), game.Path(s.cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDT
 	defer game.SetRawOutput()
 
 	// Writing info to file
-	if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+	if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 		return nil, err
 	}
 
@@ -299,7 +299,7 @@ func (s *GameRepository) Export(gameID string) ([]byte, error) {
 		return nil, errors.GameNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	return fs.ArchiveFolder(game.Path(), game.ID)
+	return fs.ArchiveFolder(game.Path(s.cfg), game.ID)
 }
 func (s *GameRepository) Import(data []byte, name string) error {
 	gameID := utils.NameToID(name)
@@ -342,7 +342,7 @@ func (s *GameRepository) Import(data []byte, name string) error {
 		defer game.SetRawOutput()
 
 		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+		if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 			return err
 		}
 	}
