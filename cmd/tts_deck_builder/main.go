@@ -22,27 +22,23 @@
 package main
 
 import (
-	"log"
-
 	"tts_deck_build/internal/application"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/network"
 )
 
 func main() {
-	// Setup logs
-	log.SetFlags(log.Llongfile | log.Ltime)
+	app, err := application.Get()
+	if err != nil {
+		logger.Error.Fatal(err.Error())
+	}
 
 	if false {
 		network.OpenBrowser("http://localhost:5000")
 	}
 
-	app, err := application.Get()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
 	err = app.Run()
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.Error.Fatal(err.Error())
 	}
 }

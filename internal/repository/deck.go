@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/utils"
 )
@@ -103,11 +103,11 @@ func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo
 		deckID := fs.GetFilenameWithoutExt(deckFileName)
 		deck, err := s.GetByID(gameID, collectionID, deckID)
 		if err != nil {
-			log.Println(err.Error())
+			logger.Error.Println(err.Error())
 			continue
 		}
 		if deck == nil {
-			log.Println("Invalid deck file:", deckFileName)
+			logger.Warn.Println("Invalid deck file:", deckFileName)
 			continue
 		}
 		decks = append(decks, deck)

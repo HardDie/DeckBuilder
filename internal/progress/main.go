@@ -1,8 +1,9 @@
 package progress
 
 import (
-	"log"
 	"sync"
+
+	"tts_deck_build/internal/logger"
 )
 
 var progressSingleton *progress
@@ -36,7 +37,7 @@ func (p *progress) SetType(value string) {
 	defer p.m.Unlock()
 	p.Type = value
 
-	log.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
+	logger.Debug.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
 }
 
 func (p *progress) SetMessage(value string) {
@@ -44,7 +45,7 @@ func (p *progress) SetMessage(value string) {
 	defer p.m.Unlock()
 	p.Message = value
 
-	log.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
+	logger.Debug.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
 }
 
 func (p *progress) SetProgress(value float32) {
@@ -52,5 +53,5 @@ func (p *progress) SetProgress(value float32) {
 	defer p.m.Unlock()
 	p.Progress = value
 
-	log.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
+	logger.Debug.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
 }

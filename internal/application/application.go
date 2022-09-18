@@ -1,7 +1,6 @@
 package application
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -9,6 +8,7 @@ import (
 	"tts_deck_build/internal/api"
 	"tts_deck_build/internal/api/web"
 	"tts_deck_build/internal/config"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/server"
 	"tts_deck_build/internal/service"
@@ -62,7 +62,7 @@ func Get() (*Application, error) {
 
 func (app *Application) Run() error {
 	http.Handle("/", app.router)
-	log.Println("Listening on :5000...")
+	logger.Info.Println("Listening on :5000...")
 	return http.ListenAndServe(":5000", nil)
 }
 

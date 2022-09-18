@@ -2,8 +2,9 @@ package errors
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+
+	"tts_deck_build/internal/logger"
 )
 
 var (
@@ -87,6 +88,6 @@ func (e *Err) GetMessage() string { return e.Message }
 
 func IfErrorLog(err error) {
 	if err != nil {
-		_ = log.Output(2, err.Error())
+		_ = logger.Error.Output(2, err.Error())
 	}
 }

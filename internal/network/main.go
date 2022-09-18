@@ -3,7 +3,6 @@ package network
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -11,6 +10,7 @@ import (
 
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
+	"tts_deck_build/internal/logger"
 )
 
 type JSONResponse struct {
@@ -36,7 +36,7 @@ func openBrowser(url string) {
 	args = append(args, url)
 	err := exec.Command(cmd, args...).Start()
 	if err != nil {
-		log.Fatal("Can't run browser")
+		logger.Error.Fatal("Can't run browser")
 	}
 }
 func OpenBrowser(url string) {
@@ -45,12 +45,12 @@ func OpenBrowser(url string) {
 			time.Sleep(time.Millisecond)
 			resp, err := http.Get(url)
 			if err != nil {
-				log.Println("Failed:", err)
+				logger.Info.Println("Failed:", err)
 				continue
 			}
 			errors.IfErrorLog(resp.Body.Close())
 			if resp.StatusCode != http.StatusOK {
-				log.Println("Not OK:", resp.StatusCode)
+				logger.Info.Println("Not OK:", resp.StatusCode)
 				continue
 			}
 
@@ -90,7 +90,7 @@ func ResponseError(w http.ResponseWriter, e error) {
 			httpCode = val.GetCode()
 		}
 	} else {
-		log.Println("unhandled error: " + e.Error())
+		logger.Warn.Println("unhandled error: " + e.Error())
 	}
 
 	_ = response(w, httpCode, resp)

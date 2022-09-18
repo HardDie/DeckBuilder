@@ -2,13 +2,14 @@ package web
 
 import (
 	"embed"
-	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
+
+	"tts_deck_build/internal/logger"
 )
 
 var (
@@ -26,7 +27,7 @@ func servePages(w http.ResponseWriter, r *http.Request) {
 	}
 	file, err := res.ReadFile(page)
 	if err != nil {
-		log.Printf("page %s not found in pages cache...", r.RequestURI)
+		logger.Error.Printf("page %s not found in pages cache...", r.RequestURI)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -42,7 +43,7 @@ func servePages(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = w.Write(file)
 	if err != nil {
-		log.Println(err.Error())
+		logger.Error.Println(err.Error())
 	}
 }
 

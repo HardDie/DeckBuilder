@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"tts_deck_build/internal/errors"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/utils"
 )
@@ -123,7 +123,7 @@ func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, 
 	for _, collectionID := range folders {
 		collection, err := s.GetByID(gameID, collectionID)
 		if err != nil {
-			log.Println(err.Error())
+			logger.Error.Println(err.Error())
 			continue
 		}
 		collections = append(collections, collection)
