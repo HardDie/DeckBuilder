@@ -1,24 +1,29 @@
-package api
+package application
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/api/web"
 	"tts_deck_build/internal/api"
+	"tts_deck_build/internal/api/web"
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/repository"
 	"tts_deck_build/internal/server"
 	"tts_deck_build/internal/service"
 )
 
-func GetRoutes() *mux.Router {
+type Application struct {
+	router *mux.Router
+}
+
+func Get() (*Application, error) {
+	cfg := config.Get()
+
 	routes := mux.NewRouter().StrictSlash(false)
 
 	web.Init(routes)
-
-	cfg := config.GetConfig()
 
 	// game
 	gameRepository := repository.NewGameRepository(cfg)
@@ -50,7 +55,15 @@ func GetRoutes() *mux.Router {
 	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
 
 	routes.Use(corsMiddleware)
-	return routes
+	return &Application{
+		router: routes,
+	}, nil
+}
+
+func (app *Application) Run() error {
+	http.Handle("/", app.router)
+	log.Println("Listening on :5000...")
+	return http.ListenAndServe(":5000", nil)
 }
 
 // CORS headers

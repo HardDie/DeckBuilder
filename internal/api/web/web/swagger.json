@@ -1641,7 +1641,7 @@
           "x-go-name": "Variables"
         }
       },
-      "x-go-package": "tts_deck_build/internal/cards"
+      "x-go-package": "tts_deck_build/internal/entity"
     },
     "CollectionInfo": {
       "type": "object",
@@ -1671,7 +1671,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/collections"
+      "x-go-package": "tts_deck_build/internal/entity"
     },
     "DeckInfo": {
       "type": "object",
@@ -1698,7 +1698,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/decks"
+      "x-go-package": "tts_deck_build/internal/entity"
     },
     "Err": {
       "type": "object",
@@ -1745,7 +1745,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/games"
+      "x-go-package": "tts_deck_build/internal/entity"
     },
     "QuotedString": {
       "type": "object",
@@ -1759,7 +1759,7 @@
           "x-go-name": "Lang"
         }
       },
-      "x-go-package": "tts_deck_build/internal/system"
+      "x-go-package": "tts_deck_build/internal/entity"
     }
   },
   "responses": {

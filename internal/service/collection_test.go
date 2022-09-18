@@ -26,7 +26,7 @@ type collectionTest struct {
 }
 
 func newCollectionTest(dataPath string) *collectionTest {
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	cfg.SetDataPath(dataPath)
 
 	gameRepository := repository.NewGameRepository(cfg)

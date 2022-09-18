@@ -5,7 +5,7 @@ build-windows:
 	cd cmd/tts_deck_builder && go generate && GOOS=windows go build -o TTS_Deck_Builder.exe .
 
 swagger-spec:
-	./swagger generate spec -m -o api/web/web/swagger.json
+	./swagger generate spec -m -o internal/api/web/web/swagger.json
 
 swagger-lin:
 	curl -o swagger -L https://github.com/go-swagger/go-swagger/releases/download/v0.29.0/swagger_linux_amd64 && chmod +x swagger

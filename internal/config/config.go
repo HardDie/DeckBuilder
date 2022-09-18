@@ -25,7 +25,7 @@ type Config struct {
 	ImageFilename string `json:"imageFilename"`
 }
 
-func GetConfig() *Config {
+func Get() *Config {
 	return &Config{
 		Debug: false,
 

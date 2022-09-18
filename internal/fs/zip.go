@@ -44,7 +44,7 @@ func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {
 	return buf.Bytes(), nil
 }
 
-func UnarchiveFolder(data []byte, gameID string) (resultGameID string, err error) {
+func UnarchiveFolder(data []byte, gameID string, cfg *config.Config) (resultGameID string, err error) {
 	zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
 		errors.IfErrorLog(err)
@@ -92,7 +92,7 @@ func UnarchiveFolder(data []byte, gameID string) (resultGameID string, err error
 	}
 
 	// Build a full relative path to the root game folder
-	gameRootPath := filepath.Join(config.GetConfig().Games(), resultGameID)
+	gameRootPath := filepath.Join(cfg.Games(), resultGameID)
 	// Create the root folder of the game
 	err = CreateFolder(gameRootPath)
 	if err != nil {
@@ -119,7 +119,7 @@ func UnarchiveFolder(data []byte, gameID string) (resultGameID string, err error
 		}
 
 		// Build a full relative path to the game folder
-		resultPath := filepath.Join(config.GetConfig().Games(), zipFilePath)
+		resultPath := filepath.Join(cfg.Games(), zipFilePath)
 
 		if file.FileInfo().IsDir() {
 			err = CreateFolderIfNotExist(resultPath)

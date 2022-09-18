@@ -308,7 +308,7 @@ func (s *GameRepository) Import(data []byte, name string) error {
 	}
 
 	// Unpack the archive
-	resultGameID, err := fs.UnarchiveFolder(data, gameID)
+	resultGameID, err := fs.UnarchiveFolder(data, gameID, s.cfg)
 	if err != nil {
 		return err
 	}

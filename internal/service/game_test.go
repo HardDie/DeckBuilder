@@ -24,7 +24,7 @@ type gameTest struct {
 }
 
 func newGameTest(dataPath string) *gameTest {
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	cfg.SetDataPath(dataPath)
 
 	return &gameTest{

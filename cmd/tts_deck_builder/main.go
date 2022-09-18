@@ -23,9 +23,8 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"tts_deck_build/api"
+	"tts_deck_build/internal/application"
 	"tts_deck_build/internal/network"
 )
 
@@ -33,14 +32,16 @@ func main() {
 	// Setup logs
 	log.SetFlags(log.Llongfile | log.Ltime)
 
-	log.Println("Listening on :5000...")
-
 	if false {
 		network.OpenBrowser("http://localhost:5000")
 	}
 
-	http.Handle("/", api.GetRoutes())
-	err := http.ListenAndServe(":5000", nil)
+	app, err := application.Get()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = app.Run()
 	if err != nil {
 		log.Fatal(err.Error())
 	}

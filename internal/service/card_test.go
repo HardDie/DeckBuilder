@@ -27,7 +27,7 @@ type cardTest struct {
 }
 
 func newCardTest(dataPath string) *cardTest {
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	cfg.SetDataPath(dataPath)
 
 	gameRepository := repository.NewGameRepository(cfg)
