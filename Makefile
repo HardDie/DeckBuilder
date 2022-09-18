@@ -1,6 +1,9 @@
 run-server:
 	go run cmd/tts_deck_builder/main.go
 
+build-windows:
+	cd cmd/tts_deck_builder && GOOS=windows go build -o TTS_Deck_Builder.exe .
+
 swagger-spec:
 	./swagger generate spec -m -o api/web/web/swagger.json
 
