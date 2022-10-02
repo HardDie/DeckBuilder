@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -67,11 +68,20 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 		return nil, err
 	}
 
-	if len(deck.Image) > 0 {
-		// Download image
-		if err := s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-			return nil, err
-		}
+	if deck.Image == "" {
+		return deck, nil
+	}
+
+	// Download image
+	if err := s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
+		return nil, err
+	}
+
+	deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
+
+	// Writing info to file
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
+		return nil, err
 	}
 
 	return deck, nil
@@ -173,22 +183,33 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 		}
 	}
 
-	// If the image has been changed
-	if deck.Image != oldDeck.Deck.Image {
-		// If image exist, delete
-		if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
-			err = fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
-			if err != nil {
-				return nil, err
-			}
-		}
+	// If the image has not been changed
+	if deck.Image == oldDeck.Deck.Image {
+		return deck, nil
+	}
 
-		if len(deck.Image) > 0 {
-			// Download image
-			if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-				return nil, err
-			}
+	// If image exist, delete
+	if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
+		err = fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
+		if err != nil {
+			return nil, err
 		}
+	}
+
+	if deck.Image == "" {
+		return deck, nil
+	}
+
+	// Download image
+	if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
+		return nil, err
+	}
+
+	deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
+
+	// Writing info to file
+	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
+		return nil, err
 	}
 
 	return deck, nil

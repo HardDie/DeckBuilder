@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -51,6 +52,12 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entit
 	// Init map of cards
 	if readCard.Cards == nil {
 		readCard.Cards = make(map[int64]*entity.CardInfo)
+	}
+
+	if card.Image != "" {
+		card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, card.ID)
+	} else {
+		card.CachedImage = ""
 	}
 
 	// Add card to deck
@@ -128,6 +135,12 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	card := entity.NewCardInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 	card.ID = oldCard.ID
 	card.CreatedAt = oldCard.CreatedAt
+
+	if card.Image != "" {
+		card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, card.ID)
+	} else {
+		card.CachedImage = ""
+	}
 
 	// If the object has been changed, update the object file
 	if !oldCard.Compare(card) {

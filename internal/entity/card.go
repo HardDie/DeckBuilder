@@ -19,6 +19,7 @@ type CardInfo struct {
 	Name        utils.QuotedString `json:"name"`
 	Description utils.QuotedString `json:"description"`
 	Image       string             `json:"image"`
+	CachedImage string             `json:"cachedImage"`
 	Variables   map[string]string  `json:"variables"`
 	Count       int                `json:"count"`
 	CreatedAt   *time.Time         `json:"createdAt"`

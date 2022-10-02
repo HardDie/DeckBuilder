@@ -14,11 +14,12 @@ type Deck struct {
 }
 
 type DeckInfo struct {
-	ID        string             `json:"id"`
-	Name      utils.QuotedString `json:"name"`
-	Image     string             `json:"image"`
-	CreatedAt *time.Time         `json:"createdAt"`
-	UpdatedAt *time.Time         `json:"updatedAt"`
+	ID          string             `json:"id"`
+	Name        utils.QuotedString `json:"name"`
+	Image       string             `json:"image"`
+	CachedImage string             `json:"cachedImage"`
+	CreatedAt   *time.Time         `json:"createdAt"`
+	UpdatedAt   *time.Time         `json:"updatedAt"`
 }
 
 func NewDeckInfo(name, image string) *DeckInfo {
