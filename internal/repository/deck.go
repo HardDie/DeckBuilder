@@ -208,7 +208,7 @@ func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
 	}
 
 	// Remove card images
-	if err := fs.RemoveFile(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
+	if err := fs.RemoveFolder(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
 		return err
 	}
 
