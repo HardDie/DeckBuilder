@@ -1,7 +1,7 @@
 package dto
 
 type CreateCardDTO struct {
-	Title       string            `json:"title"`
+	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Image       string            `json:"image"`
 	Variables   map[string]string `json:"variables"`
@@ -9,7 +9,7 @@ type CreateCardDTO struct {
 }
 
 type UpdateCardDTO struct {
-	Title       string            `json:"title"`
+	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Image       string            `json:"image"`
 	Variables   map[string]string `json:"variables"`

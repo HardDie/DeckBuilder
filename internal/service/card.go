@@ -26,7 +26,7 @@ func NewCardService(cardRepository repository.ICardRepository) *CardService {
 }
 
 func (s *CardService) Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*entity.CardInfo, error) {
-	card := entity.NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
+	card := entity.NewCardInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 
 	// Get all cards in deck
 	allCards, err := s.List(gameID, collectionID, deckID, "")

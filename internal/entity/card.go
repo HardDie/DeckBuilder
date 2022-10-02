@@ -16,7 +16,7 @@ type Card struct {
 
 type CardInfo struct {
 	ID          int64              `json:"id"`
-	Title       utils.QuotedString `json:"title"`
+	Name        utils.QuotedString `json:"name"`
 	Description utils.QuotedString `json:"description"`
 	Image       string             `json:"image"`
 	Variables   map[string]string  `json:"variables"`
@@ -25,7 +25,7 @@ type CardInfo struct {
 	UpdatedAt   *time.Time         `json:"updatedAt"`
 }
 
-func NewCardInfo(title, desc, image string, variables map[string]string, count int) *CardInfo {
+func NewCardInfo(name, desc, image string, variables map[string]string, count int) *CardInfo {
 	if variables == nil {
 		variables = make(map[string]string)
 	}
@@ -34,7 +34,7 @@ func NewCardInfo(title, desc, image string, variables map[string]string, count i
 	}
 	return &CardInfo{
 		ID:          0,
-		Title:       utils.NewQuotedString(title),
+		Name:        utils.NewQuotedString(name),
 		Description: utils.NewQuotedString(desc),
 		Image:       image,
 		Variables:   variables,
@@ -47,7 +47,7 @@ func (i *CardInfo) ImagePath(gameID, collectionID, deckID string, cfg *config.Co
 	return filepath.Join(cfg.Games(), gameID, collectionID, deckID, fs.Int64ToString(i.ID)+".bin")
 }
 func (i *CardInfo) Compare(val *CardInfo) bool {
-	if i.Title != val.Title {
+	if i.Name != val.Name {
 		return false
 	}
 	if i.Description != val.Description {
@@ -74,7 +74,7 @@ func (i *CardInfo) Compare(val *CardInfo) bool {
 	return true
 }
 func (i *CardInfo) GetName() string {
-	return i.Title.String()
+	return i.Name.String()
 }
 func (i *CardInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
@@ -83,10 +83,10 @@ func (i *CardInfo) GetCreatedAt() time.Time {
 	return time.Time{}
 }
 func (i *CardInfo) SetQuotedOutput() {
-	i.Title.SetQuotedOutput()
+	i.Name.SetQuotedOutput()
 	i.Description.SetQuotedOutput()
 }
 func (i *CardInfo) SetRawOutput() {
-	i.Title.SetRawOutput()
+	i.Name.SetRawOutput()
 	i.Description.SetRawOutput()
 }

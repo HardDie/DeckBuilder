@@ -47,21 +47,21 @@ func newCardTest(dataPath string) *cardTest {
 }
 
 func (tt *cardTest) testCreate(t *testing.T) {
-	cardTitle := "one"
+	cardName := "one"
 	desc := "best card ever"
 	count := 2
 
 	// Create card
 	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title:       cardTitle,
+		Name:        cardName,
 		Description: desc,
 		Count:       count,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if card.Title.String() != cardTitle {
-		t.Fatal("Bad title [got]", card.Title, "[want]", cardTitle)
+	if card.Name.String() != cardName {
+		t.Fatal("Bad name [got]", card.Name, "[want]", cardName)
 	}
 	if card.Description.String() != desc {
 		t.Fatal("Bad description [got]", card.Description, "[want]", desc)
@@ -77,7 +77,7 @@ func (tt *cardTest) testCreate(t *testing.T) {
 	}
 }
 func (tt *cardTest) testDelete(t *testing.T) {
-	cardTitle := "one"
+	cardName := "one"
 
 	// Try to remove non-existing card
 	err := tt.cardService.Delete(tt.gameID, tt.collectionID, tt.deckID, 1)
@@ -90,7 +90,7 @@ func (tt *cardTest) testDelete(t *testing.T) {
 
 	// Create card
 	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: cardTitle,
+		Name: cardName,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -112,7 +112,7 @@ func (tt *cardTest) testDelete(t *testing.T) {
 	}
 }
 func (tt *cardTest) testUpdate(t *testing.T) {
-	cardTitle := []string{"one", "two"}
+	cardName := []string{"one", "two"}
 	desc := []string{"first description", "second description"}
 	count := []int{5, 12}
 
@@ -127,15 +127,15 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 
 	// Create card
 	card1, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title:       cardTitle[0],
+		Name:        cardName[0],
 		Description: desc[0],
 		Count:       count[0],
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if card1.Title.String() != cardTitle[0] {
-		t.Fatal("Bad title [got]", card1.Title, "[want]", cardTitle[0])
+	if card1.Name.String() != cardName[0] {
+		t.Fatal("Bad name [got]", card1.Name, "[want]", cardName[0])
 	}
 	if card1.Description.String() != desc[0] {
 		t.Fatal("Bad description [got]", card1.Description, "[want]", desc[0])
@@ -146,15 +146,15 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 
 	// Update card
 	card2, err := tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID, card1.ID, &dto.UpdateCardDTO{
-		Title:       cardTitle[1],
+		Name:        cardName[1],
 		Description: desc[1],
 		Count:       count[1],
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if card2.Title.String() != cardTitle[1] {
-		t.Fatal("Bad title [got]", card2.Title, "[want]", cardTitle[1])
+	if card2.Name.String() != cardName[1] {
+		t.Fatal("Bad name [got]", card2.Name, "[want]", cardName[1])
 	}
 	if card2.Description.String() != desc[1] {
 		t.Fatal("Bad description [got]", card2.Description, "[want]", desc[1])
@@ -179,7 +179,7 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 	}
 }
 func (tt *cardTest) testList(t *testing.T) {
-	cardTitle := []string{"B card", "A card"}
+	cardName := []string{"B card", "A card"}
 
 	// Empty list
 	items, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID, "")
@@ -192,7 +192,7 @@ func (tt *cardTest) testList(t *testing.T) {
 
 	// Create first card
 	card1, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: cardTitle[0],
+		Name: cardName[0],
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -209,7 +209,7 @@ func (tt *cardTest) testList(t *testing.T) {
 
 	// Create second card
 	card2, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: cardTitle[1],
+		Name: cardName[1],
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -223,11 +223,11 @@ func (tt *cardTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Title.String() != cardTitle[1] {
-		t.Fatal("Bad name order: [got]", items[0].Title, "[want]", cardTitle[1])
+	if items[0].Name.String() != cardName[1] {
+		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", cardName[1])
 	}
-	if items[1].Title.String() != cardTitle[0] {
-		t.Fatal("Bad name order: [got]", items[1].Title, "[want]", cardTitle[0])
+	if items[1].Name.String() != cardName[0] {
+		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", cardName[0])
 	}
 
 	// Sort by name_desc
@@ -238,11 +238,11 @@ func (tt *cardTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Title.String() != cardTitle[0] {
-		t.Fatal("Bad name order: [got]", items[0].Title, "[want]", cardTitle[0])
+	if items[0].Name.String() != cardName[0] {
+		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", cardName[0])
 	}
-	if items[1].Title.String() != cardTitle[1] {
-		t.Fatal("Bad name order: [got]", items[1].Title, "[want]", cardTitle[1])
+	if items[1].Name.String() != cardName[1] {
+		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", cardName[1])
 	}
 
 	// Sort by created date
@@ -253,11 +253,11 @@ func (tt *cardTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Title.String() != cardTitle[0] {
-		t.Fatal("Bad name order: [got]", items[0].Title, "[want]", cardTitle[0])
+	if items[0].Name.String() != cardName[0] {
+		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", cardName[0])
 	}
-	if items[1].Title.String() != cardTitle[1] {
-		t.Fatal("Bad name order: [got]", items[1].Title, "[want]", cardTitle[1])
+	if items[1].Name.String() != cardName[1] {
+		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", cardName[1])
 	}
 
 	// Sort by created_desc
@@ -268,11 +268,11 @@ func (tt *cardTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Title.String() != cardTitle[1] {
-		t.Fatal("Bad name order: [got]", items[0].Title, "[want]", cardTitle[1])
+	if items[0].Name.String() != cardName[1] {
+		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", cardName[1])
 	}
-	if items[1].Title.String() != cardTitle[0] {
-		t.Fatal("Bad name order: [got]", items[1].Title, "[want]", cardTitle[0])
+	if items[1].Name.String() != cardName[0] {
+		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", cardName[0])
 	}
 
 	// Delete first card
@@ -297,7 +297,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 }
 func (tt *cardTest) testItem(t *testing.T) {
-	cardTitle := []string{"one", "two"}
+	cardName := []string{"one", "two"}
 
 	// Try to get non-existing card
 	_, err := tt.cardService.Item(tt.gameID, tt.collectionID, tt.deckID, 1)
@@ -310,7 +310,7 @@ func (tt *cardTest) testItem(t *testing.T) {
 
 	// Create card
 	card1, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: cardTitle[0],
+		Name: cardName[0],
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -332,7 +332,7 @@ func (tt *cardTest) testItem(t *testing.T) {
 	}
 
 	// Rename card
-	card2, err := tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID, card1.ID, &dto.UpdateCardDTO{Title: cardTitle[1]})
+	card2, err := tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID, card1.ID, &dto.UpdateCardDTO{Name: cardName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -371,7 +371,7 @@ func (tt *cardTest) testImage(t *testing.T) {
 
 	// Create card
 	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: cardTitle,
+		Name:  cardTitle,
 		Image: pngImage,
 	})
 	if err != nil {
@@ -440,7 +440,7 @@ func TestCard(t *testing.T) {
 
 	// Game not exist error
 	_, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: "test",
+		Name: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
 		t.Fatal(err)
@@ -456,7 +456,7 @@ func TestCard(t *testing.T) {
 
 	// Collection not exist error
 	_, err = tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: "test",
+		Name: "test",
 	})
 	if !errors.Is(err, er.CollectionNotExists) {
 		t.Fatal(err)
@@ -472,7 +472,7 @@ func TestCard(t *testing.T) {
 
 	// Deck not exist error
 	_, err = tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title: "test",
+		Name: "test",
 	})
 	if !errors.Is(err, er.DeckNotExists) {
 		t.Fatal(err)
@@ -528,12 +528,12 @@ func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) erro
 		}
 		return err
 	}
-	if collection.Title.String() != name {
+	if collection.Name.String() != name {
 		{
 			data, _ := json.MarshalIndent(collection, "", "	")
 			t.Log(string(data))
 		}
-		return fmt.Errorf("title: [wait] %s [got] %s", name, collection.Title)
+		return fmt.Errorf("title: [wait] %s [got] %s", name, collection.Name)
 	}
 	if collection.Description.String() != desc {
 		{
@@ -546,7 +546,7 @@ func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) erro
 }
 func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInfo, error) {
 	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
-		Title:       name,
+		Name:        name,
 		Description: desc,
 	})
 	if err != nil {
@@ -564,7 +564,7 @@ func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInf
 }
 func (tt *cardTest) fuzzUpdate(t *testing.T, cardID int64, name, desc string) (*entity.CardInfo, error) {
 	card, err := tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID, cardID, &dto.UpdateCardDTO{
-		Title:       name,
+		Name:        name,
 		Description: desc,
 	})
 	if err != nil {

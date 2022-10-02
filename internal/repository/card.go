@@ -125,7 +125,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	}
 
 	// Create card object
-	card := entity.NewCardInfo(dtoObject.Title, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
+	card := entity.NewCardInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
 	card.ID = oldCard.ID
 	card.CreatedAt = oldCard.CreatedAt
 
