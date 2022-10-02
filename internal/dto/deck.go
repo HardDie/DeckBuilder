@@ -1,11 +1,11 @@
 package dto
 
 type CreateDeckDTO struct {
-	Type          string `json:"type"`
-	BacksideImage string `json:"backside"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
 }
 
 type UpdateDeckDTO struct {
-	Type          string `json:"type"`
-	BacksideImage string `json:"backside"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
 }

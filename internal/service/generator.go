@@ -94,7 +94,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 		// Get a list of cards for each deck
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
-			deckArray.SelectDeck(deckItem.ID, deckItem.BacksideImage)
+			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
 			cardItems, err := s.cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, sortField)
 			if err != nil {
 				return nil, 0, err
@@ -165,7 +165,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					// Make the backside image slightly darker than the original image
 					deckBacksideImageDarker = imaging.AdjustBrightness(deckBacksideImg, -30)
 
-					hash := md5.Sum([]byte(deckItem.BacksideImage))
+					hash := md5.Sum([]byte(deckItem.Image))
 					deckBacksideImageName = "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
 					err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), deckBacksideImageName), deckBacksideImage, fs.BinToWriter)
 					if err != nil {
@@ -241,7 +241,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					// Create a new deck object
 					deck = tts_entity.DeckObject{
 						Name:     "Deck",
-						Nickname: deckItem.Type.String(),
+						Nickname: deckItem.Name.String(),
 						CustomDeck: map[int]tts_entity.DeckDescription{
 							pageId + 1: deckDesc,
 						},

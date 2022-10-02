@@ -480,7 +480,7 @@ func TestCard(t *testing.T) {
 
 	// Create deck
 	_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
-		Type: tt.deckID,
+		Name: tt.deckID,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -624,7 +624,7 @@ func FuzzCard(f *testing.F) {
 
 			// Create deck
 			_, err = tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
-				Type: tt.deckID,
+				Name: tt.deckID,
 			})
 			if err != nil {
 				f.Fatal(err)

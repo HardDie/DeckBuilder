@@ -14,19 +14,19 @@ type Deck struct {
 }
 
 type DeckInfo struct {
-	ID            string             `json:"id"`
-	Type          utils.QuotedString `json:"type"`
-	BacksideImage string             `json:"backside"`
-	CreatedAt     *time.Time         `json:"createdAt"`
-	UpdatedAt     *time.Time         `json:"updatedAt"`
+	ID        string             `json:"id"`
+	Name      utils.QuotedString `json:"name"`
+	Image     string             `json:"image"`
+	CreatedAt *time.Time         `json:"createdAt"`
+	UpdatedAt *time.Time         `json:"updatedAt"`
 }
 
-func NewDeckInfo(deckType, image string) *DeckInfo {
+func NewDeckInfo(name, image string) *DeckInfo {
 	return &DeckInfo{
-		ID:            utils.NameToID(deckType),
-		Type:          utils.NewQuotedString(deckType),
-		BacksideImage: image,
-		CreatedAt:     utils.Allocate(time.Now()),
+		ID:        utils.NameToID(name),
+		Name:      utils.NewQuotedString(name),
+		Image:     image,
+		CreatedAt: utils.Allocate(time.Now()),
 	}
 }
 
@@ -43,16 +43,16 @@ func (i *DeckInfo) Compare(val *DeckInfo) bool {
 	if i.ID != val.ID {
 		return false
 	}
-	if i.Type != val.Type {
+	if i.Name != val.Name {
 		return false
 	}
-	if i.BacksideImage != val.BacksideImage {
+	if i.Image != val.Image {
 		return false
 	}
 	return true
 }
 func (i *DeckInfo) GetName() string {
-	return i.Type.String()
+	return i.Name.String()
 }
 func (i *DeckInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
@@ -61,8 +61,8 @@ func (i *DeckInfo) GetCreatedAt() time.Time {
 	return time.Time{}
 }
 func (i *DeckInfo) SetQuotedOutput() {
-	i.Type.SetQuotedOutput()
+	i.Name.SetQuotedOutput()
 }
 func (i *DeckInfo) SetRawOutput() {
-	i.Type.SetRawOutput()
+	i.Name.SetRawOutput()
 }

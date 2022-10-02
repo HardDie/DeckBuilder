@@ -40,7 +40,7 @@ func NewDeckRepository(cfg *config.Config, collectionRepository ICollectionRepos
 func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckInfo) (*entity.DeckInfo, error) {
 	// Check ID
 	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(deck.Type.String())
+		return nil, errors.BadName.AddMessage(deck.Name.String())
 	}
 
 	// Check if collection exist
@@ -67,9 +67,9 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 		return nil, err
 	}
 
-	if len(deck.BacksideImage) > 0 {
+	if len(deck.Image) > 0 {
 		// Download image
-		if err := s.CreateImage(gameID, collectionID, deck.ID, deck.BacksideImage); err != nil {
+		if err := s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
 			return nil, err
 		}
 	}
@@ -123,13 +123,13 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	}
 
 	// Create deck object
-	if dtoObject.Type == "" {
-		dtoObject.Type = oldDeck.Deck.Type.String()
+	if dtoObject.Name == "" {
+		dtoObject.Name = oldDeck.Deck.Name.String()
 	}
-	deck := entity.NewDeckInfo(dtoObject.Type, dtoObject.BacksideImage)
+	deck := entity.NewDeckInfo(dtoObject.Name, dtoObject.Image)
 	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(dtoObject.Type)
+		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
 
 	// If the id has been changed, rename the object
@@ -174,7 +174,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	}
 
 	// If the image has been changed
-	if deck.BacksideImage != oldDeck.Deck.BacksideImage {
+	if deck.Image != oldDeck.Deck.Image {
 		// If image exist, delete
 		if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
 			err = fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
@@ -183,9 +183,9 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 			}
 		}
 
-		if len(deck.BacksideImage) > 0 {
+		if len(deck.Image) > 0 {
 			// Download image
-			if err = s.CreateImage(gameID, collectionID, deck.ID, deck.BacksideImage); err != nil {
+			if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
 				return nil, err
 			}
 		}
@@ -213,7 +213,7 @@ func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
 	}
 
 	// Remove image
-	if val.BacksideImage != "" {
+	if val.Image != "" {
 		return fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
 	}
 	return nil
@@ -290,12 +290,12 @@ func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, e
 
 		// Go through all decks and keep only unique decks
 		for _, deck := range collectionDecks {
-			if _, ok := uniqueDecks[deck.Type.String()+deck.BacksideImage]; ok {
+			if _, ok := uniqueDecks[deck.Name.String()+deck.Image]; ok {
 				// If we have already seen such a deck, we skip it
 				continue
 			}
 			// If deck unique, put mark in map
-			uniqueDecks[deck.Type.String()+deck.BacksideImage] = struct{}{}
+			uniqueDecks[deck.Name.String()+deck.Image] = struct{}{}
 			decks = append(decks, deck)
 		}
 	}
