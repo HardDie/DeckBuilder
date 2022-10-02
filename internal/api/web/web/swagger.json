@@ -607,13 +607,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "backside": {
+                "image": {
                   "type": "string",
-                  "x-go-name": "BacksideImage"
+                  "x-go-name": "Image"
                 },
-                "type": {
+                "name": {
                   "type": "string",
-                  "x-go-name": "Type"
+                  "x-go-name": "Name"
                 }
               }
             }
@@ -771,13 +771,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "backside": {
+                "image": {
                   "type": "string",
-                  "x-go-name": "BacksideImage"
+                  "x-go-name": "Image"
                 },
-                "type": {
+                "name": {
                   "type": "string",
-                  "x-go-name": "Type"
+                  "x-go-name": "Name"
                 }
               }
             }
@@ -906,9 +906,9 @@
                   "type": "string",
                   "x-go-name": "Image"
                 },
-                "title": {
+                "name": {
                   "type": "string",
-                  "x-go-name": "Title"
+                  "x-go-name": "Name"
                 },
                 "variables": {
                   "type": "object",
@@ -1108,9 +1108,9 @@
                   "type": "string",
                   "x-go-name": "Image"
                 },
-                "title": {
+                "name": {
                   "type": "string",
-                  "x-go-name": "Title"
+                  "x-go-name": "Name"
                 },
                 "variables": {
                   "type": "object",
@@ -1625,7 +1625,7 @@
           "type": "string",
           "x-go-name": "Image"
         },
-        "title": {
+        "name": {
           "$ref": "#/definitions/QuotedString"
         },
         "updatedAt": {
@@ -1676,10 +1676,6 @@
     "DeckInfo": {
       "type": "object",
       "properties": {
-        "backside": {
-          "type": "string",
-          "x-go-name": "BacksideImage"
-        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1689,7 +1685,11 @@
           "type": "string",
           "x-go-name": "ID"
         },
-        "type": {
+        "image": {
+          "type": "string",
+          "x-go-name": "Image"
+        },
+        "name": {
           "$ref": "#/definitions/QuotedString"
         },
         "updatedAt": {
