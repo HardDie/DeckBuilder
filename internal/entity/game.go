@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -68,4 +69,7 @@ func (i *GameInfo) SetQuotedOutput() {
 func (i *GameInfo) SetRawOutput() {
 	i.Name.SetRawOutput()
 	i.Description.SetRawOutput()
+}
+func (i *GameInfo) FillCachedImage(cfg *config.Config) {
+	i.CachedImage = fmt.Sprintf(cfg.GameImagePath, i.ID)
 }

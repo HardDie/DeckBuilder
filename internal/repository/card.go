@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -75,6 +74,7 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entit
 		}
 	}
 
+	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
 func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
@@ -90,7 +90,7 @@ func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int
 		return nil, errors.CardNotExists
 	}
 
-	card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, cardID)
+	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
 func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
@@ -103,7 +103,7 @@ func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.
 	// Convert map to list
 	cards := make([]*entity.CardInfo, 0)
 	for _, card := range cardsMap {
-		card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, card.ID)
+		card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 		cards = append(cards, card)
 	}
 	return cards, nil
@@ -168,6 +168,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 		}
 	}
 
+	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
 func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {

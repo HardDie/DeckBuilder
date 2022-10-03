@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -73,4 +74,7 @@ func (i *DeckInfo) SetQuotedOutput() {
 func (i *DeckInfo) SetRawOutput() {
 	i.Name.SetRawOutput()
 	i.Description.SetRawOutput()
+}
+func (i *DeckInfo) FillCachedImage(cfg *config.Config, gameID, collectionID string) {
+	i.CachedImage = fmt.Sprintf(cfg.DeckImagePath, gameID, collectionID, i.ID)
 }

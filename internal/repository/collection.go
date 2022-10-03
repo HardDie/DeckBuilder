@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -66,6 +65,7 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 		return nil, err
 	}
+	collection.FillCachedImage(s.cfg, gameID)
 
 	if collection.Image == "" {
 		return collection, nil
@@ -116,7 +116,7 @@ func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.Col
 		return nil, err
 	}
 
-	retCollection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collectionID)
+	retCollection.FillCachedImage(s.cfg, gameID)
 	return retCollection, nil
 }
 func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
@@ -188,6 +188,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 			return nil, err
 		}
 	}
+	collection.FillCachedImage(s.cfg, gameID)
 
 	// If the image has not been changed
 	if collection.Image == oldCollection.Image {

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -62,6 +61,7 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
 		return nil, err
 	}
+	deck.FillCachedImage(s.cfg, gameID, collectionID)
 
 	// Create folder for card images
 	if err := fs.CreateFolder(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
@@ -77,11 +77,6 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 		return nil, err
 	}
 
-	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
-		return nil, err
-	}
-
 	return deck, nil
 }
 func (s *DeckRepository) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
@@ -89,7 +84,7 @@ func (s *DeckRepository) GetByID(gameID, collectionID, deckID string) (*entity.D
 	if err != nil {
 		return nil, err
 	}
-	deck.Deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deckID)
+	deck.Deck.FillCachedImage(s.cfg, gameID, collectionID)
 	return deck.Deck, nil
 }
 func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
