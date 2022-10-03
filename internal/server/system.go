@@ -7,6 +7,7 @@ import (
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/network"
 	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/system"
@@ -30,6 +31,7 @@ func (s *SystemServer) QuitHandler(w http.ResponseWriter, r *http.Request) {
 	if quitTimer != nil {
 		return
 	}
+	logger.Debug.Println("Start destroy timer")
 	quitCtx, quitCancel = context.WithCancel(context.Background())
 	quitTimer = time.NewTimer(time.Second * 5)
 	go func() {
@@ -37,6 +39,7 @@ func (s *SystemServer) QuitHandler(w http.ResponseWriter, r *http.Request) {
 		case <-quitTimer.C:
 			break
 		case <-quitCtx.Done():
+			logger.Debug.Println("Cancel destroy timer")
 			quitTimer = nil
 			return
 		}
