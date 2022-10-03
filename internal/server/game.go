@@ -118,6 +118,8 @@ func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
+	NewSystemServer(nil).StopQuit()
+
 	sort := r.URL.Query().Get("sort")
 	items, e := s.gameService.List(sort)
 	if e != nil {

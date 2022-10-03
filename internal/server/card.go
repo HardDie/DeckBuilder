@@ -69,6 +69,8 @@ func (s *CardServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
+	NewSystemServer(nil).StopQuit()
+
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]

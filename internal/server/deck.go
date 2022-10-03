@@ -68,6 +68,8 @@ func (s *DeckServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *DeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {
+	NewSystemServer(nil).StopQuit()
+
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
