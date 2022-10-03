@@ -14,6 +14,7 @@ import (
 	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/fs"
 	"tts_deck_build/internal/images"
+	"tts_deck_build/internal/logger"
 	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/tts_entity"
 	"tts_deck_build/internal/utils"
@@ -61,10 +62,12 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	}
 
 	pr.SetType("Image generation")
-	err = s.generateBody(deckArray, totalCountOfCards)
-	if err != nil {
-		return err
-	}
+	go func() {
+		err = s.generateBody(deckArray, totalCountOfCards)
+		if err != nil {
+			logger.Error.Println("Generator:", err.Error())
+		}
+	}()
 
 	return nil
 }
