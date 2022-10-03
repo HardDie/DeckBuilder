@@ -1611,6 +1611,10 @@
     "CardInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "count": {
           "type": "integer",
           "format": "int64",
@@ -1654,6 +1658,10 @@
     "CollectionInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1684,6 +1692,10 @@
     "DeckInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1731,6 +1743,10 @@
     "GameInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
