@@ -1818,15 +1818,18 @@
     "Status": {
       "type": "object",
       "properties": {
-        "Message": {
-          "type": "string"
+        "message": {
+          "type": "string",
+          "x-go-name": "Message"
         },
-        "Progress": {
+        "progress": {
           "type": "number",
-          "format": "float"
+          "format": "float",
+          "x-go-name": "Progress"
         },
-        "Type": {
-          "type": "string"
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
         }
       },
       "x-go-package": "tts_deck_build/internal/entity"

@@ -11,7 +11,7 @@ func NewSettings() *SettingInfo {
 }
 
 type Status struct {
-	Type     string
-	Message  string
-	Progress float32
+	Type     string  `json:"type"`
+	Message  string  `json:"message"`
+	Progress float32 `json:"progress"`
 }
