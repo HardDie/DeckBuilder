@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -110,7 +111,13 @@ func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.Col
 	}
 
 	// Read info from file
-	return fs.OpenAndProcess(collection.InfoPath(gameID, s.cfg), fs.JsonFromReader[entity.CollectionInfo])
+	retCollection, err := fs.OpenAndProcess(collection.InfoPath(gameID, s.cfg), fs.JsonFromReader[entity.CollectionInfo])
+	if err != nil {
+		return nil, err
+	}
+
+	retCollection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collectionID)
+	return retCollection, nil
 }
 func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
 	// Check if the game exists

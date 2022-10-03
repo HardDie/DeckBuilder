@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -88,6 +89,7 @@ func (s *DeckRepository) GetByID(gameID, collectionID, deckID string) (*entity.D
 	if err != nil {
 		return nil, err
 	}
+	deck.Deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deckID)
 	return deck.Deck, nil
 }
 func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {

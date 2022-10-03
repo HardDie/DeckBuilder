@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -106,6 +107,7 @@ func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
 		return nil, err
 	}
 
+	retGame.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, gameID)
 	return retGame, nil
 }
 func (s *GameRepository) GetAll() ([]*entity.GameInfo, error) {

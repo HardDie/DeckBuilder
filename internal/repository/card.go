@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -89,6 +90,7 @@ func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int
 		return nil, errors.CardNotExists
 	}
 
+	card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, cardID)
 	return card, nil
 }
 func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
@@ -101,6 +103,7 @@ func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.
 	// Convert map to list
 	cards := make([]*entity.CardInfo, 0)
 	for _, card := range cardsMap {
+		card.CachedImage = fmt.Sprintf(s.cfg.CardImagePath, gameID, collectionID, deckID, card.ID)
 		cards = append(cards, card)
 	}
 	return cards, nil
