@@ -26,7 +26,7 @@ type IGameRepository interface {
 	CreateImage(gameID, imageURL string) error
 	Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error)
 	Export(gameID string) ([]byte, error)
-	Import(data []byte, name string) error
+	Import(data []byte, name string) (*entity.GameInfo, error)
 }
 type GameRepository struct {
 	cfg *config.Config
@@ -312,16 +312,16 @@ func (s *GameRepository) Export(gameID string) ([]byte, error) {
 
 	return fs.ArchiveFolder(game.Path(s.cfg), game.ID)
 }
-func (s *GameRepository) Import(data []byte, name string) error {
+func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, error) {
 	gameID := utils.NameToID(name)
 	if name != "" && gameID == "" {
-		return errors.BadName
+		return nil, errors.BadName
 	}
 
 	// Unpack the archive
 	resultGameID, err := fs.UnarchiveFolder(data, gameID, s.cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Check if the root folder contains information about the game
@@ -331,7 +331,7 @@ func (s *GameRepository) Import(data []byte, name string) error {
 		gameRootPath := filepath.Join(s.cfg.Games(), resultGameID)
 		// If an error occurs during unzipping, delete the created folder with the game
 		errors.IfErrorLog(fs.RemoveFolder(gameRootPath))
-		return err
+		return nil, err
 	}
 
 	// If the user skipped passing a new name for the game,
@@ -354,9 +354,9 @@ func (s *GameRepository) Import(data []byte, name string) error {
 
 		// Writing info to file
 		if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return game, nil
 }

@@ -16,7 +16,7 @@ type IGameService interface {
 	GetImage(gameID string) ([]byte, string, error)
 	Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error)
 	Export(gameID string) ([]byte, error)
-	Import(data []byte, name string) error
+	Import(data []byte, name string) (*entity.GameInfo, error)
 }
 type GameService struct {
 	gameRepository repository.IGameRepository
@@ -57,6 +57,6 @@ func (s *GameService) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) 
 func (s *GameService) Export(gameID string) ([]byte, error) {
 	return s.gameRepository.Export(gameID)
 }
-func (s *GameService) Import(data []byte, name string) error {
+func (s *GameService) Import(data []byte, name string) (*entity.GameInfo, error) {
 	return s.gameRepository.Import(data, name)
 }

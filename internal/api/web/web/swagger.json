@@ -1980,7 +1980,18 @@
       }
     },
     "ResponseGameImport": {
-      "description": "Import game"
+      "description": "Import game",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/GameInfo"
+          }
+        }
+      }
     },
     "ResponseListOfAllDecks": {
       "description": "List of decks",

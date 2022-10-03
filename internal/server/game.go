@@ -101,11 +101,12 @@ func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e = s.gameService.Import(data, name)
+	item, e := s.gameService.Import(data, name)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
+	network.Response(w, item)
 }
 func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]

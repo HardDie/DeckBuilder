@@ -217,6 +217,11 @@ type RequestImportGame struct {
 //
 // swagger:response ResponseGameImport
 type ResponseGameImport struct {
+	// In: body
+	Body struct {
+		// Required: true
+		Data entity.GameInfo `json:"data"`
+	}
 }
 
 // swagger:route POST /api/games/import Games RequestImportGame
