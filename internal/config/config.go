@@ -23,11 +23,6 @@ type Config struct {
 	Setting       string `json:"settings"`
 	InfoFilename  string `json:"infoFilename"`
 	ImageFilename string `json:"imageFilename"`
-
-	CardImagePath       string `json:"cardImagePath"`
-	DeckImagePath       string `json:"deckImagePath"`
-	CollectionImagePath string `json:"collectionImagePath"`
-	GameImagePath       string `json:"gameImagePath"`
 }
 
 func Get() *Config {
@@ -42,11 +37,6 @@ func Get() *Config {
 		Setting:       "settings.json",
 		InfoFilename:  ".info.json",
 		ImageFilename: ".image.bin",
-
-		CardImagePath:       "/api/games/%s/collections/%s/decks/%s/cards/%d/image",
-		DeckImagePath:       "/api/games/%s/collections/%s/decks/%s/image",
-		CollectionImagePath: "/api/games/%s/collections/%s/image",
-		GameImagePath:       "/api/games/%s/image",
 	}
 }
 
