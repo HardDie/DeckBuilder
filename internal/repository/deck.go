@@ -136,7 +136,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	if dtoObject.Name == "" {
 		dtoObject.Name = oldDeck.Deck.Name.String()
 	}
-	deck := entity.NewDeckInfo(dtoObject.Name, dtoObject.Image)
+	deck := entity.NewDeckInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	deck.CreatedAt = oldDeck.Deck.CreatedAt
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)

@@ -27,7 +27,7 @@ func NewDeckService(deckRepository repository.IDeckRepository) *DeckService {
 }
 
 func (s *DeckService) Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
-	return s.deckRepository.Create(gameID, collectionID, entity.NewDeckInfo(dtoObject.Name, dtoObject.Image))
+	return s.deckRepository.Create(gameID, collectionID, entity.NewDeckInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image))
 }
 func (s *DeckService) Item(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
 	return s.deckRepository.GetByID(gameID, collectionID, deckID)

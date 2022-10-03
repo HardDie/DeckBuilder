@@ -607,6 +607,10 @@
             "schema": {
               "type": "object",
               "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
                 "image": {
                   "type": "string",
                   "x-go-name": "Image"
@@ -771,6 +775,10 @@
             "schema": {
               "type": "object",
               "properties": {
+                "description": {
+                  "type": "string",
+                  "x-go-name": "Description"
+                },
                 "image": {
                   "type": "string",
                   "x-go-name": "Image"
@@ -1680,6 +1688,9 @@
           "type": "string",
           "format": "date-time",
           "x-go-name": "CreatedAt"
+        },
+        "description": {
+          "$ref": "#/definitions/QuotedString"
         },
         "id": {
           "type": "string",
