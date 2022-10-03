@@ -155,6 +155,9 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
+	if game.Image == oldGame.Image {
+		game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
+	}
 
 	// If the id has been changed, rename the object
 	if game.ID != oldGame.ID {

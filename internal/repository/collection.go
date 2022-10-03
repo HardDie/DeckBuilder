@@ -157,6 +157,9 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
+	if collection.Image == oldCollection.Image {
+		collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
+	}
 
 	// If the id has been changed, rename the object
 	if collection.ID != oldCollection.ID {

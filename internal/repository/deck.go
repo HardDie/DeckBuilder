@@ -141,6 +141,9 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
+	if deck.Image == oldDeck.Deck.Image {
+		deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
+	}
 
 	// If the id has been changed, rename the object
 	if deck.ID != oldDeck.Deck.ID {
