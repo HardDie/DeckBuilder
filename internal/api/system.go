@@ -13,6 +13,7 @@ type ISystemServer interface {
 	QuitHandler(w http.ResponseWriter, r *http.Request)
 	GetSettingsHandler(w http.ResponseWriter, r *http.Request)
 	UpdateSettingsHandler(w http.ResponseWriter, r *http.Request)
+	StatusHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func RegisterSystemServer(route *mux.Router, srv ISystemServer) {
@@ -20,6 +21,7 @@ func RegisterSystemServer(route *mux.Router, srv ISystemServer) {
 	SettingsRoute.HandleFunc("/quit", srv.QuitHandler).Methods(http.MethodDelete)
 	SettingsRoute.HandleFunc("/settings", srv.GetSettingsHandler).Methods(http.MethodGet)
 	SettingsRoute.HandleFunc("/settings", srv.UpdateSettingsHandler).Methods(http.MethodPatch)
+	SettingsRoute.HandleFunc("/status", srv.StatusHandler).Methods(http.MethodGet)
 }
 
 type UnimplementedSystemServer struct {
@@ -134,3 +136,37 @@ type ResponseUpdateSettings struct {
 //       200: ResponseUpdateSettings
 //       default: ResponseError
 func (s *UnimplementedSystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {}
+
+// swagger:parameters RequestStatus
+type RequestStatus struct {
+}
+
+// Status
+//
+// swagger:response ResponseStatus
+type ResponseStatus struct {
+	// In: body
+	Body struct {
+		// Required: true
+		Data entity.Status `json:"data"`
+	}
+}
+
+// swagger:route GET /api/system/status System RequestStatus
+//
+// Get progress status
+//
+// API to get status of process
+//
+//    Consumes:
+//    - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Responses:
+//       200: ResponseStatus
+//       default: ResponseError
+func (s *UnimplementedSystemServer) StatusHandler(w http.ResponseWriter, r *http.Request) {}

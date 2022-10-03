@@ -8,6 +8,7 @@ import (
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
 	"tts_deck_build/internal/network"
+	"tts_deck_build/internal/progress"
 	"tts_deck_build/internal/system"
 )
 
@@ -71,4 +72,8 @@ func (s *SystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	network.Response(w, setting)
+}
+func (s *SystemServer) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	status := progress.GetProgress().GetStatus()
+	network.Response(w, status)
 }

@@ -3,6 +3,7 @@ package progress
 import (
 	"sync"
 
+	"tts_deck_build/internal/entity"
 	"tts_deck_build/internal/logger"
 )
 
@@ -54,4 +55,12 @@ func (p *progress) SetProgress(value float32) {
 	p.Progress = value
 
 	logger.Debug.Printf("Progress: [%s] %s - %0.2f\n", p.Type, p.Message, p.Progress)
+}
+
+func (p *progress) GetStatus() entity.Status {
+	return entity.Status{
+		Type:     p.Type,
+		Message:  p.Message,
+		Progress: p.Progress,
+	}
 }

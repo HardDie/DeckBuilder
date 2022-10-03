@@ -9,3 +9,9 @@ func NewSettings() *SettingInfo {
 		Lang: "en",
 	}
 }
+
+type Status struct {
+	Type     string
+	Message  string
+	Progress float32
+}
