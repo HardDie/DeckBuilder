@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -75,8 +74,6 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 	if err := s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
 		return nil, err
 	}
-
-	collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
 
 	// Writing info to file
 	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
@@ -157,9 +154,6 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	if collection.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
-	if collection.Image == oldCollection.Image {
-		collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
-	}
 
 	// If the id has been changed, rename the object
 	if collection.ID != oldCollection.ID {
@@ -207,13 +201,6 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 
 	// Download image
 	if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
-		return nil, err
-	}
-
-	collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
-
-	// Writing info to file
-	if err = fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
 		return nil, err
 	}
 

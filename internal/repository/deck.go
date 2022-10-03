@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -77,8 +76,6 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 		return nil, err
 	}
 
-	deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
-
 	// Writing info to file
 	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
 		return nil, err
@@ -141,9 +138,6 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	if deck.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
-	if deck.Image == oldDeck.Deck.Image {
-		deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
-	}
 
 	// If the id has been changed, rename the object
 	if deck.ID != oldDeck.Deck.ID {
@@ -205,13 +199,6 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 	// Download image
 	if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-		return nil, err
-	}
-
-	deck.CachedImage = fmt.Sprintf(s.cfg.DeckImagePath, gameID, collectionID, deck.ID)
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
 		return nil, err
 	}
 

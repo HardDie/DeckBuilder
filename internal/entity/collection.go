@@ -13,7 +13,6 @@ type CollectionInfo struct {
 	Name        utils.QuotedString `json:"name"`
 	Description utils.QuotedString `json:"description"`
 	Image       string             `json:"image"`
-	CachedImage string             `json:"cachedImage"`
 	CreatedAt   *time.Time         `json:"createdAt"`
 	UpdatedAt   *time.Time         `json:"updatedAt"`
 }

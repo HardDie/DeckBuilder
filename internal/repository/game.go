@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -72,8 +71,6 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 	if err := s.CreateImage(game.ID, game.Image); err != nil {
 		return nil, err
 	}
-
-	game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
 
 	// Writing info to file
 	if err := fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
@@ -155,9 +152,6 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	if game.ID == "" {
 		return nil, errors.BadName.AddMessage(dtoObject.Name)
 	}
-	if game.Image == oldGame.Image {
-		game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
-	}
 
 	// If the id has been changed, rename the object
 	if game.ID != oldGame.ID {
@@ -205,13 +199,6 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 
 	// Download image
 	if err = s.CreateImage(game.ID, game.Image); err != nil {
-		return nil, err
-	}
-
-	game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
-
-	// Writing info to file
-	if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
 		return nil, err
 	}
 
