@@ -1605,12 +1605,43 @@
           }
         }
       }
+    },
+    "/api/system/status": {
+      "get": {
+        "description": "API to get status of process",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "Get progress status",
+        "operationId": "RequestStatus",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseStatus"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
     }
   },
   "definitions": {
     "CardInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "count": {
           "type": "integer",
           "format": "int64",
@@ -1654,6 +1685,10 @@
     "CollectionInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1684,6 +1719,10 @@
     "DeckInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1731,6 +1770,10 @@
     "GameInfo": {
       "type": "object",
       "properties": {
+        "cachedImage": {
+          "type": "string",
+          "x-go-name": "CachedImage"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -1768,6 +1811,22 @@
         "lang": {
           "type": "string",
           "x-go-name": "Lang"
+        }
+      },
+      "x-go-package": "tts_deck_build/internal/entity"
+    },
+    "Status": {
+      "type": "object",
+      "properties": {
+        "Message": {
+          "type": "string"
+        },
+        "Progress": {
+          "type": "number",
+          "format": "float"
+        },
+        "Type": {
+          "type": "string"
         }
       },
       "x-go-package": "tts_deck_build/internal/entity"
@@ -2096,6 +2155,20 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/SettingInfo"
+          }
+        }
+      }
+    },
+    "ResponseStatus": {
+      "description": "Status",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/definitions/Status"
           }
         }
       }
