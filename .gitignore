@@ -1,6 +1,7 @@
 .idea/
 /data/
 /swagger
-/api/web/web/
 /bin/
 cmd/tts_deck_builder/resource.syso
+/internal/api/web/web/*
+!/internal/api/web/web/swagger.json
