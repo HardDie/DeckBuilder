@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -66,11 +67,20 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 		return nil, err
 	}
 
-	if len(collection.Image) > 0 {
-		// Download image
-		if err := s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
-			return nil, err
-		}
+	if collection.Image == "" {
+		return collection, nil
+	}
+
+	// Download image
+	if err := s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
+		return nil, err
+	}
+
+	collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
+
+	// Writing info to file
+	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
+		return nil, err
 	}
 
 	return collection, nil
@@ -175,22 +185,33 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 		}
 	}
 
-	// If the image has been changed
-	if collection.Image != oldCollection.Image {
-		// If image exist, delete
-		if data, _, _ := s.GetImage(gameID, collection.ID); data != nil {
-			err = fs.RemoveFile(collection.ImagePath(gameID, s.cfg))
-			if err != nil {
-				return nil, err
-			}
-		}
+	// If the image has not been changed
+	if collection.Image == oldCollection.Image {
+		return collection, nil
+	}
 
-		if len(collection.Image) > 0 {
-			// Download image
-			if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
-				return nil, err
-			}
+	// If image exist, delete
+	if data, _, _ := s.GetImage(gameID, collection.ID); data != nil {
+		err = fs.RemoveFile(collection.ImagePath(gameID, s.cfg))
+		if err != nil {
+			return nil, err
 		}
+	}
+
+	if collection.Image == "" {
+		return collection, nil
+	}
+
+	// Download image
+	if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
+		return nil, err
+	}
+
+	collection.CachedImage = fmt.Sprintf(s.cfg.CollectionImagePath, gameID, collection.ID)
+
+	// Writing info to file
+	if err = fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
+		return nil, err
 	}
 
 	return collection, nil

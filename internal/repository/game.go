@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -63,11 +64,20 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 		return nil, err
 	}
 
-	if len(game.Image) > 0 {
-		// Download image
-		if err := s.CreateImage(game.ID, game.Image); err != nil {
-			return nil, err
-		}
+	if game.Image == "" {
+		return game, nil
+	}
+
+	// Download image
+	if err := s.CreateImage(game.ID, game.Image); err != nil {
+		return nil, err
+	}
+
+	game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
+
+	// Writing info to file
+	if err := fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+		return nil, err
 	}
 
 	return game, nil
@@ -174,21 +184,32 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	}
 
 	// If the image has been changed
-	if game.Image != oldGame.Image {
-		// If image exist, delete
-		if data, _, _ := s.GetImage(game.ID); data != nil {
-			err = fs.RemoveFile(game.ImagePath(s.cfg))
-			if err != nil {
-				return nil, err
-			}
-		}
+	if game.Image == oldGame.Image {
+		return game, nil
+	}
 
-		if len(game.Image) > 0 {
-			// Download image
-			if err = s.CreateImage(game.ID, game.Image); err != nil {
-				return nil, err
-			}
+	// If image exist, delete
+	if data, _, _ := s.GetImage(game.ID); data != nil {
+		err = fs.RemoveFile(game.ImagePath(s.cfg))
+		if err != nil {
+			return nil, err
 		}
+	}
+
+	if game.Image == "" {
+		return game, nil
+	}
+
+	// Download image
+	if err = s.CreateImage(game.ID, game.Image); err != nil {
+		return nil, err
+	}
+
+	game.CachedImage = fmt.Sprintf(s.cfg.GameImagePath, game.ID)
+
+	// Writing info to file
+	if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+		return nil, err
 	}
 
 	return game, nil
