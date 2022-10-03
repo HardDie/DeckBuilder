@@ -299,6 +299,7 @@ func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDT
 		return nil, err
 	}
 
+	game.FillCachedImage(s.cfg)
 	return game, nil
 }
 func (s *GameRepository) Export(gameID string) ([]byte, error) {
@@ -356,5 +357,6 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 		}
 	}
 
+	game.FillCachedImage(s.cfg)
 	return game, nil
 }
