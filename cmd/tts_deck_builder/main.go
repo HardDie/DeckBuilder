@@ -33,9 +33,7 @@ func main() {
 		logger.Error.Fatal(err.Error())
 	}
 
-	if false {
-		network.OpenBrowser("http://localhost:5000")
-	}
+	network.OpenBrowser("http://localhost:5000")
 
 	err = app.Run()
 	if err != nil {
