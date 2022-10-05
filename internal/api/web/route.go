@@ -64,6 +64,11 @@ func registerFiles(dirName string) {
 	}
 }
 
+func forwarder(w http.ResponseWriter, r *http.Request) {
+	r.URL.Path = "/"
+	servePages(w, r)
+}
+
 func Init(route *mux.Router) {
 	registerFiles("web")
 	for page := range pages {
@@ -74,4 +79,9 @@ func Init(route *mux.Router) {
 	redocHandler := middleware.Redoc(middleware.RedocOpts{SpecURL: "/swagger.json"}, nil)
 	route.Handle("/docs", redocHandler)
 	// DEVELOP PURPOSE ONLY
+
+	// Workaround: if page we reloaded, forward request to index.html
+	route.HandleFunc("/game/{id}", forwarder)
+	route.HandleFunc("/game/{id}/collection/{id}", forwarder)
+	route.HandleFunc("/game/{id}/collection/{id}/deck/{id}", forwarder)
 }
