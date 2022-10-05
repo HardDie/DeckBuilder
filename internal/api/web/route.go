@@ -51,9 +51,9 @@ func registerFiles(dirName string) {
 	files, _ := res.ReadDir(dirName)
 	for _, file := range files {
 		if file.IsDir() {
-			registerFiles(filepath.Join(dirName, file.Name()))
+			registerFiles(strings.Join([]string{dirName, file.Name()}, "/"))
 		} else {
-			fullName := filepath.Join(dirName, file.Name())
+			fullName := strings.Join([]string{dirName, file.Name()}, "/")
 			src := strings.TrimPrefix(fullName, "web")
 			if src == "/index.html" {
 				pages["/"] = fullName
