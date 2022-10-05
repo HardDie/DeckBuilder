@@ -63,7 +63,7 @@ func Get() (*Application, error) {
 func (app *Application) Run() error {
 	http.Handle("/", app.router)
 	logger.Info.Println("Listening on :5000...")
-	return http.ListenAndServe(":5000", nil)
+	return http.ListenAndServe("127.0.0.1:5000", nil)
 }
 
 // CORS headers
