@@ -73,12 +73,7 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 
 	// Download image
 	if err := s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
-		return nil, err
-	}
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
 	}
 
 	return collection, nil
@@ -209,7 +204,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 
 	// Download image
 	if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
 	}
 
 	return collection, nil

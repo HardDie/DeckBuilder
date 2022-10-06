@@ -3,6 +3,7 @@ package repository
 import (
 	"net/http"
 	"time"
+	"tts_deck_build/internal/logger"
 
 	"tts_deck_build/internal/config"
 	"tts_deck_build/internal/dto"
@@ -70,7 +71,7 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entit
 	if len(card.Image) > 0 {
 		// Download image
 		if err := s.CreateImage(gameID, collectionID, deck.ID, card.ID, card.Image); err != nil {
-			return nil, err
+			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
 		}
 	}
 
@@ -163,7 +164,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 		if len(card.Image) > 0 {
 			// Download image
 			if err = s.CreateImage(gameID, collectionID, deckID, card.ID, card.Image); err != nil {
-				return nil, err
+				logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
 			}
 		}
 	}

@@ -74,7 +74,7 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 
 	// Download image
 	if err := s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
 	return deck, nil
@@ -196,7 +196,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 	// Download image
 	if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
 	return deck, nil

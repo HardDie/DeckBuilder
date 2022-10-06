@@ -70,7 +70,7 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 
 	// Download image
 	if err := s.CreateImage(game.ID, game.Image); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 	}
 
 	return game, nil
@@ -197,7 +197,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 
 	// Download image
 	if err = s.CreateImage(game.ID, game.Image); err != nil {
-		return nil, err
+		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 	}
 
 	return game, nil
