@@ -1,6 +1,11 @@
 package config
 
-import "path/filepath"
+import (
+	"os"
+	"path/filepath"
+	"runtime"
+	"tts_deck_build/internal/logger"
+)
 
 const (
 	MaxFilenameLength = 200
@@ -31,10 +36,21 @@ type Config struct {
 }
 
 func Get() *Config {
+	data := "DeckBuilderData"
+	if runtime.GOOS == "darwin" {
+		// We cannot create a data folder next to an executable file on the macOS system.
+		// So create a data folder in home directory.
+		home, err := os.UserHomeDir()
+		if err != nil {
+			logger.Error.Fatal("Unable to define a user's home directory")
+		}
+		data = filepath.Join(home, data)
+	}
+
 	return &Config{
 		Debug: false,
 
-		Data:   "data",
+		Data:   data,
 		Game:   "games",
 		Cache:  "cache",
 		Result: "result",

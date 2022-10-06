@@ -1,5 +1,5 @@
 .idea/
-/data/
+/DeckBuilderData/
 /swagger
 /bin/
 cmd/tts_deck_builder/resource.syso
