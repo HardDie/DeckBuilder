@@ -1,8 +1,8 @@
 run-server:
-	go run cmd/tts_deck_builder/main.go
+	go run cmd/deck_builder/main.go
 
 build-windows:
-	cd cmd/tts_deck_builder && go generate &&\
+	cd cmd/deck_builder && go generate &&\
 		CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -a -o ../../bin/DeckBuilder_amd64.exe -v .
 
 swagger-spec:
