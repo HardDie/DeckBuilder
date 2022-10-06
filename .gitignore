@@ -2,6 +2,7 @@
 /DeckBuilderData/
 /swagger
 /bin/
-cmd/deck_builder/resource.syso
+/deployment/out/
+/cmd/deck_builder/resource.syso
 /internal/api/web/web/*
 !/internal/api/web/web/swagger.json
