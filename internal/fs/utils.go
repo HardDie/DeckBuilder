@@ -8,6 +8,7 @@ import (
 	"github.com/otiai10/copy"
 
 	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -175,4 +176,13 @@ func OpenAndProcess[T any](path string, cb func(r io.Reader) (T, error)) (res T,
 	defer func() { errors.IfErrorLog(file.Close()) }()
 
 	return cb(file)
+}
+
+func PathToAbsolutePath(path string) string {
+	res, err := filepath.Abs(path)
+	if err != nil {
+		logger.Error.Printf("Can't transform path %q to absolute path. %q", path, err.Error())
+		return path
+	}
+	return res
 }

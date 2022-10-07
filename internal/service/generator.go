@@ -200,8 +200,8 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					pageImage = images.CreateImage(pageInfo.Width, pageInfo.Height)
 
 					deckDesc = tts_entity.DeckDescription{
-						FaceURL:   "file:///" + filepath.Join("home", "user", "data", pageInfo.Name),
-						BackURL:   "file:///" + filepath.Join("home", "user", "data", deckBacksideImageName),
+						FaceURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), pageInfo.Name)),
+						BackURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), deckBacksideImageName)),
 						NumWidth:  pageInfo.Columns,
 						NumHeight: pageInfo.Rows,
 					}
