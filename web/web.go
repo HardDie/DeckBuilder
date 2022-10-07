@@ -16,6 +16,7 @@ var (
 )
 
 func ServeSwagger(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	_, err := w.Write(swagger)
 	if err != nil {
 		logger.Error.Println(err.Error())

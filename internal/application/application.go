@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/api"
-	"github.com/HardDie/DeckBuilder/internal/api/web"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/repository"
@@ -23,7 +22,8 @@ func Get() (*Application, error) {
 
 	routes := mux.NewRouter().StrictSlash(false)
 
-	web.Init(routes)
+	// static files
+	api.RegisterStaticServer(routes)
 
 	// game
 	gameRepository := repository.NewGameRepository(cfg)
