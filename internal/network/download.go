@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 func DownloadBytes(source string) ([]byte, error) {

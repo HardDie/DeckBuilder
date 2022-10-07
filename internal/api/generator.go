@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 )
 
 type IGeneratorServer interface {

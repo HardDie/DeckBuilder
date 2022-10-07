@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"tts_deck_build/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/config"
 )
 
 var (

@@ -1,10 +1,10 @@
 package service
 
 import (
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/entity"
-	"tts_deck_build/internal/repository"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/repository"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IGameService interface {

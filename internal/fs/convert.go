@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 func StringToInt64(in string) (int64, error) {

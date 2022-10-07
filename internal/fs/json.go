@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 func JsonFromReader[T any](r io.Reader) (data *T, err error) {

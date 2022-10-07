@@ -3,8 +3,8 @@ package progress
 import (
 	"sync"
 
-	"tts_deck_build/internal/entity"
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 var progressSingleton *progress

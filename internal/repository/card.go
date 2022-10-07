@@ -3,16 +3,16 @@ package repository
 import (
 	"net/http"
 	"time"
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/entity"
-	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/images"
-	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/images"
+	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type ICardRepository interface {

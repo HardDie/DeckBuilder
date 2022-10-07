@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 func ArchiveFolder(gamePath, gameID string) (data []byte, err error) {

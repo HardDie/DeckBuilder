@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (

@@ -9,15 +9,15 @@ import (
 
 	"github.com/disintegration/imaging"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/entity"
-	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/images"
-	"tts_deck_build/internal/logger"
-	"tts_deck_build/internal/progress"
-	"tts_deck_build/internal/tts_entity"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/images"
+	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/progress"
+	"github.com/HardDie/DeckBuilder/internal/tts_entity"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IGeneratorService interface {

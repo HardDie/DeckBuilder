@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"tts_deck_build/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/config"
 )
 
 // Allows you to find the minimum image size for all cards on the page

@@ -5,10 +5,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/service"
 )
 
 type ImageServer struct {

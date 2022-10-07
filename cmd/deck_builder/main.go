@@ -1,6 +1,6 @@
 //go:generate goversioninfo -icon=../../win_icon/icon.ico -64
 
-// Package main TTS_deck_builder
+// Package main DeckBuilder
 //
 // Entry point for the application.
 //
@@ -22,9 +22,9 @@
 package main
 
 import (
-	"tts_deck_build/internal/application"
-	"tts_deck_build/internal/logger"
-	"tts_deck_build/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/application"
+	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 func main() {

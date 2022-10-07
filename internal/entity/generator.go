@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"tts_deck_build/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/config"
 )
 
 type PageInfo struct {

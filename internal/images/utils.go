@@ -9,7 +9,7 @@ import (
 	"image/png"
 	"io"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 func ValidateImage(input []byte) (string, error) {

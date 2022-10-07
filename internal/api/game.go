@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
 type IGameServer interface {

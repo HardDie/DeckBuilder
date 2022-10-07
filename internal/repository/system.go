@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/entity"
-	"tts_deck_build/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/fs"
 )
 
 type ISystemRepository interface {

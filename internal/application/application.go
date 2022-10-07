@@ -5,13 +5,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/api"
-	"tts_deck_build/internal/api/web"
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/logger"
-	"tts_deck_build/internal/repository"
-	"tts_deck_build/internal/server"
-	"tts_deck_build/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/api"
+	"github.com/HardDie/DeckBuilder/internal/api/web"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/repository"
+	"github.com/HardDie/DeckBuilder/internal/server"
+	"github.com/HardDie/DeckBuilder/internal/service"
 )
 
 type Application struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 var (

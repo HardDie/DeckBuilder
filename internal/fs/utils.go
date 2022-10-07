@@ -7,7 +7,7 @@ import (
 
 	"github.com/otiai10/copy"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 const (

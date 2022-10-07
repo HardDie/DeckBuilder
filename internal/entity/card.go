@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type Card struct {

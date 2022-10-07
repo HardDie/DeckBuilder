@@ -3,7 +3,7 @@ package fs
 import (
 	"io"
 
-	"tts_deck_build/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 func BinFromReader(r io.Reader) ([]byte, error) {

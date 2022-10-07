@@ -1,6 +1,6 @@
-module tts_deck_build
+module github.com/HardDie/DeckBuilder
 
-go 1.18
+go 1.19
 
 require (
 	github.com/disintegration/imaging v1.6.2
@@ -8,7 +8,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.8.0
 	github.com/otiai10/copy v1.7.0
-	golang.org/x/exp v0.0.0-20220321173239-a90fa8a75705
 )
 
 require (

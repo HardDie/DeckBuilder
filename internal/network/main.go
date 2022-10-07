@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"time"
 
-	"tts_deck_build/internal/errors"
-	"tts_deck_build/internal/fs"
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 type JSONResponse struct {

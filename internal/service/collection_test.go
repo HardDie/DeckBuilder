@@ -10,12 +10,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/entity"
-	er "tts_deck_build/internal/errors"
-	"tts_deck_build/internal/repository"
-	"tts_deck_build/internal/utils"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/entity"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/repository"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type collectionTest struct {

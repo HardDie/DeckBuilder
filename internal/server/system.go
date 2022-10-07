@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"tts_deck_build/internal/config"
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/logger"
-	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/progress"
-	"tts_deck_build/internal/system"
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/progress"
+	"github.com/HardDie/DeckBuilder/internal/system"
 )
 
 var quitTimer *time.Timer

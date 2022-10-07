@@ -1,6 +1,6 @@
 package swaggerheaders
 
-import "tts_deck_build/internal/errors"
+import "github.com/HardDie/DeckBuilder/internal/errors"
 
 // Default error response
 //

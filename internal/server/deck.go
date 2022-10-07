@@ -5,9 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"tts_deck_build/internal/dto"
-	"tts_deck_build/internal/network"
-	"tts_deck_build/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/service"
 )
 
 type DeckServer struct {

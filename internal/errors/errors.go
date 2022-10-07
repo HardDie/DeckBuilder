@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"tts_deck_build/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 var (
