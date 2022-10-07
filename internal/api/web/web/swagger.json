@@ -12,7 +12,7 @@
   "swagger": "2.0",
   "info": {
     "description": "Entry point for the application.",
-    "title": "TTS_deck_builder",
+    "title": "DeckBuilder",
     "version": "1.0.0"
   },
   "host": "localhost:5000",
@@ -1680,7 +1680,7 @@
           "x-go-name": "Variables"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
     "CollectionInfo": {
       "type": "object",
@@ -1714,7 +1714,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
     "DeckInfo": {
       "type": "object",
@@ -1748,7 +1748,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
     "Err": {
       "type": "object",
@@ -1765,7 +1765,7 @@
           "x-go-name": "Message"
         }
       },
-      "x-go-package": "tts_deck_build/internal/errors"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/errors"
     },
     "GameInfo": {
       "type": "object",
@@ -1799,11 +1799,11 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
     "QuotedString": {
       "type": "object",
-      "x-go-package": "tts_deck_build/internal/utils"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/utils"
     },
     "SettingInfo": {
       "type": "object",
@@ -1813,7 +1813,7 @@
           "x-go-name": "Lang"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
     "Status": {
       "type": "object",
@@ -1832,7 +1832,7 @@
           "x-go-name": "Type"
         }
       },
-      "x-go-package": "tts_deck_build/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     }
   },
   "responses": {
