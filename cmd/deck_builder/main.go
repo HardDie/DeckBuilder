@@ -6,17 +6,17 @@
 //
 // Terms Of Service:
 //
-//     Schemes: http
-//     Host: localhost:5000
-//     BasePath: /
-//     Version: 1.0.0
+//	Schemes: http
+//	Host: localhost:5000
+//	BasePath: /
+//	Version: 1.0.0
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
-//     - binary
+//	Produces:
+//	- application/json
+//	- binary
 //
 // swagger:meta
 package main

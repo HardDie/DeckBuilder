@@ -4,5 +4,4 @@
 /bin/
 /deployment/out/
 /cmd/deck_builder/resource.syso
-/internal/api/web/web/*
-!/internal/api/web/web/swagger.json
+/web/dist/

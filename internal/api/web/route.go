@@ -1,10 +1,11 @@
 package web
 
 import (
-	"embed"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/HardDie/DeckBuilder/web"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
@@ -13,9 +14,6 @@ import (
 )
 
 var (
-	//go:embed web
-	res embed.FS
-
 	pages = map[string]string{}
 )
 
@@ -25,7 +23,7 @@ func servePages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	file, err := res.ReadFile(page)
+	file, err := web.GetWeb().ReadFile(page)
 	if err != nil {
 		logger.Error.Printf("page %s not found in pages cache...", r.RequestURI)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -48,13 +46,13 @@ func servePages(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerFiles(dirName string) {
-	files, _ := res.ReadDir(dirName)
+	files, _ := web.GetWeb().ReadDir(dirName)
 	for _, file := range files {
 		if file.IsDir() {
 			registerFiles(strings.Join([]string{dirName, file.Name()}, "/"))
 		} else {
 			fullName := strings.Join([]string{dirName, file.Name()}, "/")
-			src := strings.TrimPrefix(fullName, "web")
+			src := strings.TrimPrefix(fullName, "dist")
 			if src == "/index.html" {
 				pages["/"] = fullName
 				continue
@@ -70,10 +68,13 @@ func forwarder(w http.ResponseWriter, r *http.Request) {
 }
 
 func Init(route *mux.Router) {
-	registerFiles("web")
+	registerFiles("dist")
 	for page := range pages {
 		route.HandleFunc(page, servePages)
 	}
+
+	// Swagger
+	route.HandleFunc("/swagger.json", web.ServeSwagger)
 
 	// DEVELOP PURPOSE ONLY
 	redocHandler := middleware.Redoc(middleware.RedocOpts{SpecURL: "/swagger.json"}, nil)

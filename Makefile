@@ -7,7 +7,7 @@ help: ## help information about make commands
 
 .PHONY: swagger
 swagger: ## generate swagger json file
-	./swagger generate spec -m -o internal/api/web/web/swagger.json
+	./swagger generate spec -m -o web/swagger.json
 
 .PHONY: swagger-install-linux
 swagger-install-linux: ## install swagger for linux
