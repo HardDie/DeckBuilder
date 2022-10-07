@@ -1,4 +1,4 @@
-//go:generate goversioninfo -icon=../../win_icon/icon.ico -64
+//go:generate goversioninfo -icon=../../deployment/win_icon.ico -64
 
 // Package main DeckBuilder
 //
