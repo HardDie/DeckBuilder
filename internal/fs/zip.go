@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -56,6 +57,7 @@ func UnarchiveFolder(data []byte, gameID string, cfg *config.Config) (resultGame
 
 	// Validation
 	for _, file := range zipReader.File {
+		file.Name = convertPathToPlatform(file.Name)
 		// Split the full path to the file into parts
 		pathList := strings.Split(file.Name, string(filepath.Separator))
 
@@ -108,6 +110,8 @@ func UnarchiveFolder(data []byte, gameID string, cfg *config.Config) (resultGame
 
 	// Unzip files
 	for _, file := range zipReader.File {
+		file.Name = convertPathToPlatform(file.Name)
+
 		// Backing up the original file path
 		zipFilePath := file.Name
 
@@ -223,4 +227,16 @@ func createFileFromArchive(filePath string, f *zip.File) error {
 	}
 
 	return nil
+}
+
+// Converting the file path inside a zip archive to platform specific.
+// Because windows uses "\" and unix uses "/", we get errors when unzipping.
+func convertPathToPlatform(path string) string {
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		return strings.ReplaceAll(path, "\\", "/")
+	case "windows":
+		return strings.ReplaceAll(path, "/", "\\")
+	}
+	return path
 }
