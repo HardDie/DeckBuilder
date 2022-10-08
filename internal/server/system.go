@@ -28,6 +28,10 @@ func NewSystemServer(cfg *config.Config) *SystemServer {
 }
 
 func (s *SystemServer) QuitHandler(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Debug {
+		return
+	}
+
 	if quitTimer != nil {
 		return
 	}

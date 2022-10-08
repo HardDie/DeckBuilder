@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
@@ -35,7 +36,7 @@ type Config struct {
 	GameImagePath       string `json:"gameImagePath"`
 }
 
-func Get() *Config {
+func Get(debugFlag bool) *Config {
 	data := "DeckBuilderData"
 	if runtime.GOOS == "darwin" {
 		// We cannot create a data folder next to an executable file on the macOS system.
@@ -48,7 +49,7 @@ func Get() *Config {
 	}
 
 	return &Config{
-		Debug: false,
+		Debug: debugFlag,
 
 		Data:   data,
 		Game:   "games",

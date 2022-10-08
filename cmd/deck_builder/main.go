@@ -22,18 +22,28 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 func main() {
-	app, err := application.Get()
+	// If the flag is set, run the game in debug mode.
+	// - Do not request the url and don't open the browser
+	// - Do not close the application when /system/quit is requested
+	debugFlag := flag.Bool("debug", false, "")
+	flag.Parse()
+
+	app, err := application.Get(*debugFlag)
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}
 
-	network.OpenBrowser("http://127.0.0.1:5000")
+	if !*debugFlag {
+		network.OpenBrowser("http://127.0.0.1:5000")
+	}
 
 	err = app.Run()
 	if err != nil {

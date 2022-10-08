@@ -17,8 +17,8 @@ type Application struct {
 	router *mux.Router
 }
 
-func Get() (*Application, error) {
-	cfg := config.Get()
+func Get(debugFlag bool) (*Application, error) {
+	cfg := config.Get(debugFlag)
 
 	routes := mux.NewRouter().StrictSlash(false)
 
