@@ -104,7 +104,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 			}
 			for _, cardItem := range cardItems {
 				// Add card a card to the linked unique deck
-				deckArray.AddCard(gameItem.ID, collectionItem.ID, cardItem.ID)
+				deckArray.AddCard(gameItem.ID, collectionItem.ID, cardItem.ID, cardItem.Count)
 				totalCountOfCards++
 			}
 		}
@@ -256,25 +256,30 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 				if err != nil {
 					return err
 				}
-				// Place the card ID in the list of cards inside the deck object
-				deck.DeckIDs = append(deck.DeckIDs, (pageId+1)*100+cardId)
 				// Converting lua variables into strings
 				var variables []string
 				for key, value := range cardItem.Variables {
 					variables = append(variables, key+"="+value)
 				}
-				// Create a card and place it in the list of cards inside the deck
-				deck.ContainedObjects = append(deck.ContainedObjects, tts_entity.Card{
-					Name:        "Card",
-					Nickname:    utils.Allocate(cardItem.Name.String()),
-					Description: utils.Allocate(cardItem.Description.String()),
-					CardID:      (pageId+1)*100 + cardId,
-					LuaScript:   strings.Join(variables, "\n"),
-					CustomDeck: map[int]tts_entity.DeckDescription{
-						pageId + 1: deckDesc,
-					},
-					Transform: &transform,
-				})
+
+				// Add a card to the deck as many times as set in the count variable
+				for i := 0; i < cardItem.Count; i++ {
+					// Place the card ID in the list of cards inside the deck object
+					deck.DeckIDs = append(deck.DeckIDs, (pageId+1)*100+cardId)
+
+					// Create a card and place it in the list of cards inside the deck
+					deck.ContainedObjects = append(deck.ContainedObjects, tts_entity.Card{
+						Name:        "Card",
+						Nickname:    utils.Allocate(cardItem.Name.String()),
+						Description: utils.Allocate(cardItem.Description.String()),
+						CardID:      (pageId+1)*100 + cardId,
+						LuaScript:   strings.Join(variables, "\n"),
+						CustomDeck: map[int]tts_entity.DeckDescription{
+							pageId + 1: deckDesc,
+						},
+						Transform: &transform,
+					})
+				}
 
 				processedCards++
 				pr.SetProgress(float32(processedCards) / float32(totalCountOfCards) * 100)

@@ -22,6 +22,7 @@ type CardDescription struct {
 	GameID       string
 	CollectionID string
 	CardID       int64
+	Count        int
 }
 
 // CardPage Image page for cards with max size 10x7
@@ -37,7 +38,7 @@ func NewCardArray() *CardArray {
 		Pages: []CardPage{make(CardPage, 0)},
 	}
 }
-func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64) {
+func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64, count int) {
 	// Get the index of the last element in the array
 	lastArray := len(cArr.Pages) - 1
 	if len(cArr.Pages[lastArray]) == config.MaxCount {
@@ -51,6 +52,7 @@ func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64) {
 		GameID:       gameID,
 		CollectionID: collectionID,
 		CardID:       cardID,
+		Count:        count,
 	})
 }
 
@@ -79,6 +81,6 @@ func (dArr *DeckArray) SelectDeck(title, image string) {
 }
 
 // AddCard Allows you to add a card to the selected deck
-func (dArr *DeckArray) AddCard(gameID, collectionID string, cardID int64) {
-	dArr.Decks[dArr.selectedDeck].AddCard(gameID, collectionID, cardID)
+func (dArr *DeckArray) AddCard(gameID, collectionID string, cardID int64, count int) {
+	dArr.Decks[dArr.selectedDeck].AddCard(gameID, collectionID, cardID, count)
 }
