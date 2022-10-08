@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -54,7 +55,7 @@ func (i *GameInfo) Compare(val *GameInfo) bool {
 	return true
 }
 func (i *GameInfo) GetName() string {
-	return i.Name.String()
+	return strings.ToLower(i.Name.String())
 }
 func (i *GameInfo) GetCreatedAt() time.Time {
 	if i.CreatedAt != nil {
