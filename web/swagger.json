@@ -1526,7 +1526,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Close application",
+        "summary": "# Close application",
         "operationId": "RequestQuit",
         "responses": {
           "200": {
@@ -1553,7 +1553,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Get settings",
+        "summary": "# Get settings",
         "operationId": "RequestSettings",
         "responses": {
           "200": {
@@ -1578,7 +1578,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Update settings",
+        "summary": "# Update settings",
         "operationId": "RequestUpdateSettings",
         "parameters": [
           {
@@ -1621,11 +1621,38 @@
         "tags": [
           "System"
         ],
-        "summary": "Get progress status",
+        "summary": "# Get progress status",
         "operationId": "RequestStatus",
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseStatus"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/system/version": {
+      "get": {
+        "description": "API to get version of application",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "System"
+        ],
+        "summary": "# Get app version",
+        "operationId": "RequestVersion",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseVersion"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -2246,6 +2273,21 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/SettingInfo"
+          }
+        }
+      }
+    },
+    "ResponseVersion": {
+      "description": "Version",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "string",
+            "x-go-name": "Data"
           }
         }
       }

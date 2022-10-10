@@ -27,7 +27,7 @@ func NewSystemServer(cfg *config.Config) *SystemServer {
 	}
 }
 
-func (s *SystemServer) QuitHandler(w http.ResponseWriter, r *http.Request) {
+func (s *SystemServer) QuitHandler(w http.ResponseWriter, _ *http.Request) {
 	if s.cfg.Debug {
 		return
 	}
@@ -56,7 +56,7 @@ func (s *SystemServer) StopQuit() {
 	}
 	quitCancel()
 }
-func (s *SystemServer) GetSettingsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *SystemServer) GetSettingsHandler(w http.ResponseWriter, _ *http.Request) {
 	setting, e := system.NewService(s.cfg).GetSettings()
 	if e != nil {
 		network.ResponseError(w, e)
@@ -80,10 +80,13 @@ func (s *SystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Requ
 
 	network.Response(w, setting)
 }
-func (s *SystemServer) StatusHandler(w http.ResponseWriter, r *http.Request) {
+func (s *SystemServer) StatusHandler(w http.ResponseWriter, _ *http.Request) {
 	status := progress.GetProgress().GetStatus()
 	if status.Status == progress.StatusError || status.Status == progress.StatusDone {
 		progress.GetProgress().Flush()
 	}
 	network.Response(w, status)
+}
+func (s *SystemServer) GetVersionHandler(w http.ResponseWriter, _ *http.Request) {
+	network.Response(w, s.cfg.Version)
 }
