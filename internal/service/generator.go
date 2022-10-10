@@ -62,11 +62,15 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	}
 
 	pr.SetType("Image generation")
+	pr.SetStatus(progress.StatusInProgress)
 	go func() {
 		err = s.generateBody(deckArray, totalCountOfCards)
 		if err != nil {
+			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
+			return
 		}
+		pr.SetStatus(progress.StatusDone)
 	}()
 
 	return nil

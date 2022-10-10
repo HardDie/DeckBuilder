@@ -1827,6 +1827,10 @@
           "format": "float",
           "x-go-name": "Progress"
         },
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        },
         "type": {
           "type": "string",
           "x-go-name": "Type"

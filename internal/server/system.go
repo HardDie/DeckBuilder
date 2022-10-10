@@ -82,5 +82,8 @@ func (s *SystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Requ
 }
 func (s *SystemServer) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	status := progress.GetProgress().GetStatus()
+	if status.Status == progress.StatusError || status.Status == progress.StatusDone {
+		progress.GetProgress().Flush()
+	}
 	network.Response(w, status)
 }
