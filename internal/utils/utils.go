@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	reg = regexp.MustCompile("[^a-zA-Z0-9_]+")
+	reg = regexp.MustCompile("[^a-zA-ZА-Яа-я0-9_]+")
 )
 
 func NameToID(in string) string {
