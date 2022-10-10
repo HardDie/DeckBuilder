@@ -199,6 +199,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
+	deck.FillCachedImage(s.cfg, gameID, collectionID)
 	return deck, nil
 }
 func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
