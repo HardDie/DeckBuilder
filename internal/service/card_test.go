@@ -37,7 +37,7 @@ func newCardTest(dataPath string) *cardTest {
 	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
 
 	gameRepository := repository.NewGameRepository(cfg, builderDB)
-	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
+	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
 	deckRepository := repository.NewDeckRepository(cfg, collectionRepository)
 
 	return &cardTest{
@@ -46,7 +46,7 @@ func newCardTest(dataPath string) *cardTest {
 		deckID:            "test_card__deck",
 		cfg:               cfg,
 		gameService:       NewGameService(cfg, gameRepository),
-		collectionService: NewCollectionService(collectionRepository),
+		collectionService: NewCollectionService(cfg, collectionRepository),
 		deckService:       NewDeckService(deckRepository),
 		cardService:       NewCardService(repository.NewCardRepository(cfg, deckRepository)),
 		db:                builderDB,

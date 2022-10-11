@@ -221,3 +221,176 @@ func (s *DB) GameDuplicate(srcName, dstName string) (*entity.GameInfo, error) {
 func (s *DB) GameUpdateInfo(name, newName string) error {
 	return s.db.UpdateFolderNameWithoutTimestamp(name, newName)
 }
+
+func (s *DB) CollectionCreate(gameID, name, description, image string) (*entity.CollectionInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.CreateFolder(name, &commonInfo{
+		Description: fsentry_types.QS(description),
+		Image:       fsentry_types.QS(image),
+	}, game.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorExist) {
+			return nil, er.CollectionExist
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return &entity.CollectionInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: description,
+		Image:       image,
+	}, nil
+}
+func (s *DB) CollectionGet(gameID, name string) (*entity.CollectionInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.GetFolder(name, game.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var cInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &cInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.CollectionInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: cInfo.Description.String(),
+		Image:       cInfo.Image.String(),
+	}, nil
+}
+func (s *DB) CollectionList(gameID string) ([]*entity.CollectionInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.db.List(game.ID)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	var collections []*entity.CollectionInfo
+	for _, folder := range list.Folders {
+		collection, err := s.CollectionGet(game.ID, folder)
+		if err != nil {
+			logger.Error.Println(folder, err.Error())
+			continue
+		}
+		collections = append(collections, collection)
+	}
+	return collections, nil
+}
+func (s *DB) CollectionMove(gameID, oldName, newName string) (*entity.CollectionInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.MoveFolder(oldName, newName, game.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var cInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &cInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.CollectionInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: cInfo.Description.String(),
+		Image:       cInfo.Image.String(),
+	}, nil
+}
+func (s *DB) CollectionUpdate(gameID, name, description, image string) (*entity.CollectionInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.UpdateFolder(name, &commonInfo{
+		Description: fsentry_types.QS(description),
+		Image:       fsentry_types.QS(image),
+	}, game.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var cInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &cInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.CollectionInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: cInfo.Description.String(),
+		Image:       cInfo.Image.String(),
+	}, nil
+}
+func (s *DB) CollectionDelete(gameID, name string) error {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return err
+	}
+
+	err = s.db.RemoveFolder(name, game.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return er.BadName
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return nil
+}

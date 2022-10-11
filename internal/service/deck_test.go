@@ -37,14 +37,14 @@ func newDeckTest(dataPath string) *deckTest {
 	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
 
 	gameRepository := repository.NewGameRepository(cfg, builderDB)
-	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
+	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
 
 	return &deckTest{
 		gameID:            "test_deck__game",
 		collectionID:      "test_deck__collection",
 		cfg:               cfg,
 		gameService:       NewGameService(cfg, gameRepository),
-		collectionService: NewCollectionService(collectionRepository),
+		collectionService: NewCollectionService(cfg, collectionRepository),
 		deckService:       NewDeckService(repository.NewDeckRepository(cfg, collectionRepository)),
 		db:                builderDB,
 	}

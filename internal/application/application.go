@@ -36,8 +36,8 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterGameServer(routes, server.NewGameServer(gameService))
 
 	// collection
-	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
-	collectionService := service.NewCollectionService(collectionRepository)
+	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
+	collectionService := service.NewCollectionService(cfg, collectionRepository)
 	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService))
 
 	// deck

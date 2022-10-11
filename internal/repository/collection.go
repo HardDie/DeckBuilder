@@ -2,9 +2,9 @@ package repository
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/errors"
@@ -12,11 +12,10 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type ICollectionRepository interface {
-	Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error)
+	Create(gameID string, req *dto.CreateCollectionDTO) (*entity.CollectionInfo, error)
 	GetByID(gameID, collectionID string) (*entity.CollectionInfo, error)
 	GetAll(gameID string) ([]*entity.CollectionInfo, error)
 	Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error)
@@ -25,47 +24,22 @@ type ICollectionRepository interface {
 	CreateImage(gameID, collectionID, imageURL string) error
 }
 type CollectionRepository struct {
-	cfg            *config.Config
-	gameRepository IGameRepository
+	cfg *config.Config
+	db  *db.DB
 }
 
-func NewCollectionRepository(cfg *config.Config, gameRepository IGameRepository) *CollectionRepository {
+func NewCollectionRepository(cfg *config.Config, db *db.DB) *CollectionRepository {
 	return &CollectionRepository{
-		cfg:            cfg,
-		gameRepository: gameRepository,
+		cfg: cfg,
+		db:  db,
 	}
 }
 
-func (s *CollectionRepository) Create(gameID string, collection *entity.CollectionInfo) (*entity.CollectionInfo, error) {
-	// Check ID
-	if collection.ID == "" {
-		return nil, errors.BadName.AddMessage(collection.Name.String())
-	}
-
-	// Check if game exist
-	if _, err := s.gameRepository.GetByID(gameID); err != nil {
+func (s *CollectionRepository) Create(gameID string, req *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
+	collection, err := s.db.CollectionCreate(gameID, req.Name, req.Description, req.Image)
+	if err != nil {
 		return nil, err
 	}
-
-	// Check if such an object already exists
-	if val, _ := s.GetByID(gameID, collection.ID); val != nil {
-		return nil, errors.CollectionExist
-	}
-
-	// Create folder
-	if err := fs.CreateFolder(collection.Path(gameID, s.cfg)); err != nil {
-		return nil, err
-	}
-
-	// Quote values before write to file
-	collection.SetQuotedOutput()
-	defer collection.SetRawOutput()
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
-		return nil, err
-	}
-	collection.FillCachedImage(s.cfg, gameID)
 
 	if collection.Image == "" {
 		return collection, nil
@@ -79,146 +53,66 @@ func (s *CollectionRepository) Create(gameID string, collection *entity.Collecti
 	return collection, nil
 }
 func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
-	// Check if the game exists
-	_, err := s.gameRepository.GetByID(gameID)
-	if err != nil {
-		return nil, err
-	}
-
-	collection := entity.CollectionInfo{ID: collectionID}
-
-	// Check if such an object exists
-	isExist, err := fs.IsFolderExist(collection.Path(gameID, s.cfg))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.CollectionNotExists
-	}
-
-	// Check if such an object exists
-	isExist, err = fs.IsFileExist(collection.InfoPath(gameID, s.cfg))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.CollectionInfoNotExists
-	}
-
-	// Read info from file
-	retCollection, err := fs.OpenAndProcess(collection.InfoPath(gameID, s.cfg), fs.JsonFromReader[entity.CollectionInfo])
-	if err != nil {
-		return nil, err
-	}
-
-	retCollection.FillCachedImage(s.cfg, gameID)
-	return retCollection, nil
+	return s.db.CollectionGet(gameID, collectionID)
 }
 func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
-	// Check if the game exists
-	game, err := s.gameRepository.GetByID(gameID)
-	if err != nil {
-		return make([]*entity.CollectionInfo, 0), err
-	}
-
-	// Get list of objects
-	folders, err := fs.ListOfFolders(game.Path(s.cfg))
-	if err != nil {
-		return make([]*entity.CollectionInfo, 0), err
-	}
-
-	// Get each collection
-	collections := make([]*entity.CollectionInfo, 0)
-	for _, collectionID := range folders {
-		collection, err := s.GetByID(gameID, collectionID)
-		if err != nil {
-			logger.Error.Println(err.Error())
-			continue
-		}
-		collections = append(collections, collection)
-	}
-
-	return collections, nil
+	return s.db.CollectionList(gameID)
 }
 func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
-	// Get old object
-	oldCollection, err := s.GetByID(gameID, collectionID)
+	oldCollection, err := s.db.CollectionGet(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create collection object
-	if dtoObject.Name == "" {
-		dtoObject.Name = oldCollection.Name.String()
-	}
-	collection := entity.NewCollectionInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
-	collection.CreatedAt = oldCollection.CreatedAt
-	if collection.ID == "" {
-		return nil, errors.BadName.AddMessage(dtoObject.Name)
-	}
-
-	// If the id has been changed, rename the object
-	if collection.ID != oldCollection.ID {
-		// Check if such an object already exists
-		if val, _ := s.GetByID(gameID, collection.ID); val != nil {
-			return nil, errors.CollectionExist
-		}
-
-		// Rename object
-		err = fs.MoveFolder(oldCollection.Path(gameID, s.cfg), collection.Path(gameID, s.cfg))
+	var newCollection *entity.CollectionInfo
+	if oldCollection.Name != dtoObject.Name {
+		// Rename folder
+		newCollection, err = s.db.CollectionMove(gameID, oldCollection.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// If the object has been changed, update the info file
-	if !oldCollection.Compare(collection) {
-		// Quote values before write to file
-		collection.SetQuotedOutput()
-		defer collection.SetRawOutput()
-
-		collection.UpdatedAt = utils.Allocate(time.Now())
-		// Writing info to file
-		if err = fs.CreateAndProcess(collection.InfoPath(gameID, s.cfg), collection, fs.JsonToWriter[*entity.CollectionInfo]); err != nil {
+	if oldCollection.Description != dtoObject.Description ||
+		oldCollection.Image != dtoObject.Image {
+		// Update data
+		newCollection, err = s.db.CollectionUpdate(gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		if err != nil {
 			return nil, err
 		}
 	}
-	collection.FillCachedImage(s.cfg, gameID)
+
+	if newCollection == nil {
+		// If nothing has changed
+		newCollection = oldCollection
+	}
 
 	// If the image has not been changed
-	if collection.Image == oldCollection.Image {
-		return collection, nil
+	if newCollection.Image == oldCollection.Image {
+		return newCollection, nil
 	}
 
 	// If image exist, delete
-	if data, _, _ := s.GetImage(gameID, collection.ID); data != nil {
-		err = fs.RemoveFile(collection.ImagePath(gameID, s.cfg))
+	if data, _, _ := s.GetImage(gameID, newCollection.ID); data != nil {
+		err = fs.RemoveFile(newCollection.ImagePath(gameID, s.cfg))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if collection.Image == "" {
-		return collection, nil
+	if newCollection.Image == "" {
+		return newCollection, nil
 	}
 
 	// Download image
-	if err = s.CreateImage(gameID, collection.ID, collection.Image); err != nil {
+	if err = s.CreateImage(gameID, newCollection.ID, newCollection.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
 	}
 
-	return collection, nil
+	return newCollection, nil
 }
 func (s *CollectionRepository) DeleteByID(gameID, collectionID string) error {
-	collection := entity.CollectionInfo{ID: collectionID}
-
-	// Check if such an object exists
-	if val, _ := s.GetByID(gameID, collectionID); val == nil {
-		return errors.CollectionNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Remove object
-	return fs.RemoveFolder(collection.Path(gameID, s.cfg))
+	return s.db.CollectionDelete(gameID, collectionID)
 }
 func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, string, error) {
 	// Check if such an object exists

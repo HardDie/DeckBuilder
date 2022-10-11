@@ -41,13 +41,13 @@ func newCollectionTest(dataPath string) *collectionTest {
 		gameID:            "test_collection__game",
 		cfg:               cfg,
 		gameService:       NewGameService(cfg, gameRepository),
-		collectionService: NewCollectionService(repository.NewCollectionRepository(cfg, gameRepository)),
+		collectionService: NewCollectionService(cfg, repository.NewCollectionRepository(cfg, builderDB)),
 		db:                builderDB,
 	}
 }
 
 func (tt *collectionTest) testCreate(t *testing.T) {
-	collectionName := "one"
+	collectionName := "create_one"
 	desc := "best game ever"
 
 	// Create collection
@@ -58,10 +58,10 @@ func (tt *collectionTest) testCreate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if collection.Name.String() != collectionName {
+	if collection.Name != collectionName {
 		t.Fatal("Bad name [got]", collection.Name, "[want]", collectionName)
 	}
-	if collection.Description.String() != desc {
+	if collection.Description != desc {
 		t.Fatal("Bad description [got]", collection.Description, "[want]", desc)
 	}
 
@@ -83,7 +83,7 @@ func (tt *collectionTest) testCreate(t *testing.T) {
 	}
 }
 func (tt *collectionTest) testDelete(t *testing.T) {
-	collectionName := "one"
+	collectionName := "delete_one"
 	collectionID := utils.NameToID(collectionName)
 
 	// Try to remove non-existing collection
@@ -119,7 +119,7 @@ func (tt *collectionTest) testDelete(t *testing.T) {
 	}
 }
 func (tt *collectionTest) testUpdate(t *testing.T) {
-	collectionName := []string{"one", "two"}
+	collectionName := []string{"update_one", "update_two"}
 	desc := []string{"first description", "second description"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
@@ -140,10 +140,10 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if collection.Name.String() != collectionName[0] {
+	if collection.Name != collectionName[0] {
 		t.Fatal("Bad name [got]", collection.Name, "[want]", collectionName[0])
 	}
-	if collection.Description.String() != desc[0] {
+	if collection.Description != desc[0] {
 		t.Fatal("Bad description [got]", collection.Description, "[want]", desc[0])
 	}
 
@@ -155,10 +155,10 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if collection.Name.String() != collectionName[1] {
+	if collection.Name != collectionName[1] {
 		t.Fatal("Bad name [got]", collection.Name, "[want]", collectionName[1])
 	}
-	if collection.Description.String() != desc[1] {
+	if collection.Description != desc[1] {
 		t.Fatal("Bad description [got]", collection.Description, "[want]", desc[1])
 	}
 
@@ -223,10 +223,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != collectionName[1] {
+	if items[0].Name != collectionName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[1])
 	}
-	if items[1].Name.String() != collectionName[0] {
+	if items[1].Name != collectionName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[0])
 	}
 
@@ -238,10 +238,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != collectionName[0] {
+	if items[0].Name != collectionName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[0])
 	}
-	if items[1].Name.String() != collectionName[1] {
+	if items[1].Name != collectionName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[1])
 	}
 
@@ -253,10 +253,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != collectionName[0] {
+	if items[0].Name != collectionName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[0])
 	}
-	if items[1].Name.String() != collectionName[1] {
+	if items[1].Name != collectionName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[1])
 	}
 
@@ -268,10 +268,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != collectionName[1] {
+	if items[0].Name != collectionName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[1])
 	}
-	if items[1].Name.String() != collectionName[0] {
+	if items[1].Name != collectionName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[0])
 	}
 
@@ -297,7 +297,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 }
 func (tt *collectionTest) testItem(t *testing.T) {
-	collectionName := []string{"one", "two"}
+	collectionName := []string{"item_one", "item_two"}
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Try to get non-existing collection
@@ -360,7 +360,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	}
 }
 func (tt *collectionTest) testImage(t *testing.T) {
-	collectionName := "one"
+	collectionName := "image_one"
 	collectionID := utils.NameToID(collectionName)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
@@ -394,6 +394,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 
 	// Update collection
 	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name:  collectionName,
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -411,6 +412,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 
 	// Update collection
 	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name:  collectionName,
 		Image: "",
 	})
 	if err != nil {
@@ -477,7 +479,8 @@ func TestCollection(t *testing.T) {
 }
 
 func (tt *collectionTest) fuzzCleanup() {
-	_ = os.RemoveAll(tt.cfg.Data)
+	_ = tt.db.Drop()
+	_ = tt.db.Init()
 }
 func (tt *collectionTest) fuzzList(t *testing.T, waitItems int) error {
 	items, err := tt.collectionService.List(tt.gameID, "")
@@ -506,14 +509,14 @@ func (tt *collectionTest) fuzzItem(t *testing.T, collectionID, name, desc string
 		}
 		return err
 	}
-	if collection.Name.String() != name {
+	if collection.Name != name {
 		{
 			data, _ := json.MarshalIndent(collection, "", "	")
 			t.Log(string(data))
 		}
 		return fmt.Errorf("name: [wait] %s [got] %s", name, collection.Name)
 	}
-	if collection.Description.String() != desc {
+	if collection.Description != desc {
 		{
 			data, _ := json.MarshalIndent(collection, "", "	")
 			t.Log("item:", string(data))
@@ -603,7 +606,8 @@ func FuzzCollection(f *testing.F) {
 
 		}
 
-		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
+		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" ||
+			utils.NameToID(name1) == utils.NameToID(name2) {
 			// skip
 			return
 		}
