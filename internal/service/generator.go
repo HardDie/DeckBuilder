@@ -248,7 +248,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					// Create a new deck object
 					deck = tts_entity.DeckObject{
 						Name:     "Deck",
-						Nickname: deckItem.Name.String(),
+						Nickname: deckItem.Name,
 						CustomDeck: map[int]tts_entity.DeckDescription{
 							pageId + 1: deckDesc,
 						},

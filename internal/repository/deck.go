@@ -2,9 +2,9 @@ package repository
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/errors"
@@ -12,11 +12,10 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IDeckRepository interface {
-	Create(gameID, collectionID string, deck *entity.DeckInfo) (*entity.DeckInfo, error)
+	Create(gameID, collectionID string, req *dto.CreateDeckDTO) (*entity.DeckInfo, error)
 	GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error)
 	GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error)
 	Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error)
@@ -26,45 +25,20 @@ type IDeckRepository interface {
 	GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error)
 }
 type DeckRepository struct {
-	cfg                  *config.Config
-	collectionRepository ICollectionRepository
+	cfg *config.Config
+	db  *db.DB
 }
 
-func NewDeckRepository(cfg *config.Config, collectionRepository ICollectionRepository) *DeckRepository {
+func NewDeckRepository(cfg *config.Config, db *db.DB) *DeckRepository {
 	return &DeckRepository{
-		cfg:                  cfg,
-		collectionRepository: collectionRepository,
+		cfg: cfg,
+		db:  db,
 	}
 }
 
-func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckInfo) (*entity.DeckInfo, error) {
-	// Check ID
-	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(deck.Name.String())
-	}
-
-	// Check if collection exist
-	if _, err := s.collectionRepository.GetByID(gameID, collectionID); err != nil {
-		return nil, err
-	}
-
-	// Check if such an object already exists
-	if val, _ := s.GetByID(gameID, collectionID, deck.ID); val != nil {
-		return nil, errors.DeckExist
-	}
-
-	// Quote values before write to file
-	deck.SetQuotedOutput()
-	defer deck.SetRawOutput()
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck}, fs.JsonToWriter[entity.Deck]); err != nil {
-		return nil, err
-	}
-	deck.FillCachedImage(s.cfg, gameID, collectionID)
-
-	// Create folder for card images
-	if err := fs.CreateFolder(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
+func (s *DeckRepository) Create(gameID, collectionID string, req *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
+	deck, err := s.db.DeckCreate(gameID, collectionID, req.Name, req.Description, req.Image)
+	if err != nil {
 		return nil, err
 	}
 
@@ -80,152 +54,66 @@ func (s *DeckRepository) Create(gameID, collectionID string, deck *entity.DeckIn
 	return deck, nil
 }
 func (s *DeckRepository) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
-	deck, err := s.getDeck(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-	deck.Deck.FillCachedImage(s.cfg, gameID, collectionID)
-	return deck.Deck, nil
+	return s.db.DeckGet(gameID, collectionID, deckID)
 }
 func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
-	decks := make([]*entity.DeckInfo, 0)
-
-	// Check if the collection exists
-	collection, err := s.collectionRepository.GetByID(gameID, collectionID)
-	if err != nil {
-		return decks, err
-	}
-
-	// Get list of objects
-	folders, err := fs.ListOfFiles(collection.Path(gameID, s.cfg))
-	if err != nil {
-		return decks, err
-	}
-
-	// Get each deck
-	for _, deckFileName := range folders {
-		deckID := fs.GetFilenameWithoutExt(deckFileName)
-		deck, err := s.GetByID(gameID, collectionID, deckID)
-		if err != nil {
-			logger.Error.Println(err.Error())
-			continue
-		}
-		if deck == nil {
-			logger.Warn.Println("Invalid deck file:", deckFileName)
-			continue
-		}
-		decks = append(decks, deck)
-	}
-
-	return decks, nil
+	return s.db.DeckList(gameID, collectionID)
 }
 func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
-	// Get old object
-	oldDeck, err := s.getDeck(gameID, collectionID, deckID)
+	oldDeck, err := s.db.DeckGet(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create deck object
-	if dtoObject.Name == "" {
-		dtoObject.Name = oldDeck.Deck.Name.String()
-	}
-	deck := entity.NewDeckInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
-	deck.CreatedAt = oldDeck.Deck.CreatedAt
-	if deck.ID == "" {
-		return nil, errors.BadName.AddMessage(dtoObject.Name)
-	}
-
-	// If the id has been changed, rename the object
-	if deck.ID != oldDeck.Deck.ID {
-		// Check if such an object already exists
-		if val, _ := s.GetByID(gameID, collectionID, deck.ID); val != nil {
-			return nil, errors.DeckExist
-		}
-
-		// If image exist, rename
-		if data, _, _ := s.GetImage(gameID, collectionID, oldDeck.Deck.ID); data != nil {
-			err = fs.MoveFolder(oldDeck.Deck.ImagePath(gameID, collectionID, s.cfg), deck.ImagePath(gameID, collectionID, s.cfg))
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// Rename object
-		err = fs.MoveFolder(oldDeck.Deck.Path(gameID, collectionID, s.cfg), deck.Path(gameID, collectionID, s.cfg))
-		if err != nil {
-			return nil, err
-		}
-
-		// Rename card images folder
-		err = fs.MoveFolder(oldDeck.Deck.CardImagesPath(gameID, collectionID, s.cfg), deck.CardImagesPath(gameID, collectionID, s.cfg))
+	var newDeck *entity.DeckInfo
+	if oldDeck.Name != dtoObject.Name {
+		// Rename folder
+		newDeck, err = s.db.DeckMove(gameID, collectionID, oldDeck.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// If the object has been changed, update the object file
-	if !oldDeck.Deck.Compare(deck) {
-		// Quote values before write to file
-		deck.SetQuotedOutput()
-		defer deck.SetRawOutput()
-
-		deck.UpdatedAt = utils.Allocate(time.Now())
-		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), entity.Deck{Deck: deck, Cards: oldDeck.Cards}, fs.JsonToWriter[entity.Deck]); err != nil {
+	if oldDeck.Description != dtoObject.Description ||
+		oldDeck.Image != dtoObject.Image {
+		// Update data
+		newDeck, err = s.db.DeckUpdate(gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		if err != nil {
 			return nil, err
 		}
+	}
+
+	if newDeck == nil {
+		// If nothing has changed
+		newDeck = oldDeck
 	}
 
 	// If the image has not been changed
-	if deck.Image == oldDeck.Deck.Image {
-		return deck, nil
+	if newDeck.Image == oldDeck.Image {
+		return newDeck, nil
 	}
 
 	// If image exist, delete
-	if data, _, _ := s.GetImage(gameID, collectionID, deck.ID); data != nil {
-		err = fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
+	if data, _, _ := s.GetImage(gameID, collectionID, newDeck.ID); data != nil {
+		err = fs.RemoveFile(newDeck.ImagePath(gameID, collectionID, s.cfg))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if deck.Image == "" {
-		return deck, nil
+	if newDeck.Image == "" {
+		return newDeck, nil
 	}
 
 	// Download image
-	if err = s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
+	if err = s.CreateImage(gameID, collectionID, newDeck.ID, newDeck.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
-	deck.FillCachedImage(s.cfg, gameID, collectionID)
-	return deck, nil
+	return newDeck, nil
 }
 func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
-	deck := entity.DeckInfo{ID: deckID}
-
-	// Check if such an object exists
-	val, _ := s.GetByID(gameID, collectionID, deckID)
-	if val == nil {
-		return errors.DeckNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Remove object
-	if err := fs.RemoveFile(deck.Path(gameID, collectionID, s.cfg)); err != nil {
-		return err
-	}
-
-	// Remove card images
-	if err := fs.RemoveFolder(deck.CardImagesPath(gameID, collectionID, s.cfg)); err != nil {
-		return err
-	}
-
-	// Remove image
-	if val.Image != "" {
-		return fs.RemoveFile(deck.ImagePath(gameID, collectionID, s.cfg))
-	}
-	return nil
+	return s.db.DeckDelete(gameID, collectionID, deckID)
 }
 func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
 	// Check if such an object exists
@@ -280,7 +168,7 @@ func (s *DeckRepository) CreateImage(gameID, collectionID, deckID, imageURL stri
 }
 func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 	// Get all collections in selected game
-	listCollections, err := s.collectionRepository.GetAll(gameID)
+	listCollections, err := s.db.CollectionList(gameID)
 	if err != nil {
 		return make([]*entity.DeckInfo, 0), err
 	}
@@ -299,40 +187,15 @@ func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, e
 
 		// Go through all decks and keep only unique decks
 		for _, deck := range collectionDecks {
-			if _, ok := uniqueDecks[deck.Name.String()+deck.Image]; ok {
+			if _, ok := uniqueDecks[deck.Name+deck.Image]; ok {
 				// If we have already seen such a deck, we skip it
 				continue
 			}
 			// If deck unique, put mark in map
-			uniqueDecks[deck.Name.String()+deck.Image] = struct{}{}
+			uniqueDecks[deck.Name+deck.Image] = struct{}{}
+			deck.FillCachedImage(s.cfg, gameID, collection.ID)
 			decks = append(decks, deck)
 		}
 	}
 	return decks, nil
-}
-
-func (s *DeckRepository) getDeck(gameID, collectionID, deckID string) (*entity.Deck, error) {
-	// Check if the collection exists
-	_, err := s.collectionRepository.GetByID(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	deck := entity.DeckInfo{ID: deckID}
-
-	// Check if such an object exists
-	isExist, err := fs.IsFileExist(deck.Path(gameID, collectionID, s.cfg))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.DeckNotExists
-	}
-
-	// Read info from file
-	readDeck, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Deck])
-	if err != nil {
-		return nil, err
-	}
-	return readDeck, nil
 }

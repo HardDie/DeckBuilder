@@ -41,8 +41,8 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService))
 
 	// deck
-	deckRepository := repository.NewDeckRepository(cfg, collectionRepository)
-	deckService := service.NewDeckService(deckRepository)
+	deckRepository := repository.NewDeckRepository(cfg, builderDB)
+	deckService := service.NewDeckService(cfg, deckRepository)
 	api.RegisterDeckServer(routes, server.NewDeckServer(deckService))
 
 	// card

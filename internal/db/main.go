@@ -394,3 +394,200 @@ func (s *DB) CollectionDelete(gameID, name string) error {
 	}
 	return nil
 }
+
+func (s *DB) DeckCreate(gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.CreateFolder(name, &commonInfo{
+		Description: fsentry_types.QS(description),
+		Image:       fsentry_types.QS(image),
+	}, game.ID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorExist) {
+			return nil, er.DeckExist
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return &entity.DeckInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: description,
+		Image:       image,
+	}, nil
+}
+func (s *DB) DeckGet(gameID, collectionID, name string) (*entity.DeckInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.GetFolder(name, game.ID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var dInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &dInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.DeckInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: dInfo.Description.String(),
+		Image:       dInfo.Image.String(),
+	}, nil
+}
+func (s *DB) DeckList(gameID, collectionID string) ([]*entity.DeckInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.db.List(game.ID, collection.ID)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	var decks []*entity.DeckInfo
+	for _, folder := range list.Folders {
+		deck, err := s.DeckGet(game.ID, collection.ID, folder)
+		if err != nil {
+			logger.Error.Println(folder, err.Error())
+			continue
+		}
+		decks = append(decks, deck)
+	}
+	return decks, nil
+}
+func (s *DB) DeckMove(gameID, collectionID, oldName, newName string) (*entity.DeckInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.MoveFolder(oldName, newName, game.ID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var dInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &dInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.DeckInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: dInfo.Description.String(),
+		Image:       dInfo.Image.String(),
+	}, nil
+}
+func (s *DB) DeckUpdate(gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := s.db.UpdateFolder(name, &commonInfo{
+		Description: fsentry_types.QS(description),
+		Image:       fsentry_types.QS(image),
+	}, game.ID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	var dInfo commonInfo
+
+	err = json.Unmarshal(info.Data, &dInfo)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return &entity.DeckInfo{
+		ID:        info.Id,
+		Name:      info.Name.String(),
+		CreatedAt: info.CreatedAt,
+		UpdatedAt: info.UpdatedAt,
+
+		Description: dInfo.Description.String(),
+		Image:       dInfo.Image.String(),
+	}, nil
+}
+func (s *DB) DeckDelete(gameID, collectionID, name string) error {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return err
+	}
+
+	err = s.db.RemoveFolder(name, game.ID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return er.BadName
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return nil
+}

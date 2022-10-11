@@ -45,13 +45,13 @@ func newDeckTest(dataPath string) *deckTest {
 		cfg:               cfg,
 		gameService:       NewGameService(cfg, gameRepository),
 		collectionService: NewCollectionService(cfg, collectionRepository),
-		deckService:       NewDeckService(repository.NewDeckRepository(cfg, collectionRepository)),
+		deckService:       NewDeckService(cfg, repository.NewDeckRepository(cfg, builderDB)),
 		db:                builderDB,
 	}
 }
 
 func (tt *deckTest) testCreate(t *testing.T) {
-	deckType := "one"
+	deckType := "create_one"
 
 	// Create deck
 	deck, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
@@ -60,7 +60,7 @@ func (tt *deckTest) testCreate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if deck.Name.String() != deckType {
+	if deck.Name != deckType {
 		t.Fatal("Bad type [got]", deck.Name, "[want]", deckType)
 	}
 
@@ -82,7 +82,7 @@ func (tt *deckTest) testCreate(t *testing.T) {
 	}
 }
 func (tt *deckTest) testDelete(t *testing.T) {
-	deckType := "one"
+	deckType := "delete_one"
 	deckID := utils.NameToID(deckType)
 
 	// Try to remove non-existing deck
@@ -118,7 +118,7 @@ func (tt *deckTest) testDelete(t *testing.T) {
 	}
 }
 func (tt *deckTest) testUpdate(t *testing.T) {
-	deckType := []string{"one", "two"}
+	deckType := []string{"update_one", "update_two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Try to update non-existing deck
@@ -137,7 +137,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if deck.Name.String() != deckType[0] {
+	if deck.Name != deckType[0] {
 		t.Fatal("Bad type [got]", deck.Name, "[want]", deckType[0])
 	}
 
@@ -148,7 +148,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if deck.Name.String() != deckType[1] {
+	if deck.Name != deckType[1] {
 		t.Fatal("Bad type [got]", deck.Name, "[want]", deckType[1])
 	}
 
@@ -213,10 +213,10 @@ func (tt *deckTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != deckType[1] {
+	if items[0].Name != deckType[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[1])
 	}
-	if items[1].Name.String() != deckType[0] {
+	if items[1].Name != deckType[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[0])
 	}
 
@@ -228,10 +228,10 @@ func (tt *deckTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != deckType[0] {
+	if items[0].Name != deckType[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[0])
 	}
-	if items[1].Name.String() != deckType[1] {
+	if items[1].Name != deckType[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[1])
 	}
 
@@ -243,10 +243,10 @@ func (tt *deckTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != deckType[0] {
+	if items[0].Name != deckType[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[0])
 	}
-	if items[1].Name.String() != deckType[1] {
+	if items[1].Name != deckType[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[1])
 	}
 
@@ -258,10 +258,10 @@ func (tt *deckTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != deckType[1] {
+	if items[0].Name != deckType[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[1])
 	}
-	if items[1].Name.String() != deckType[0] {
+	if items[1].Name != deckType[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[0])
 	}
 
@@ -287,7 +287,7 @@ func (tt *deckTest) testList(t *testing.T) {
 	}
 }
 func (tt *deckTest) testItem(t *testing.T) {
-	deckType := []string{"one", "two"}
+	deckType := []string{"item_one", "item_two"}
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Try to get non-existing deck
@@ -350,7 +350,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	}
 }
 func (tt *deckTest) testImage(t *testing.T) {
-	deckType := "one"
+	deckType := "image_one"
 	deckID := utils.NameToID(deckType)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
@@ -384,6 +384,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 
 	// Update deck
 	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+		Name:  deckType,
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -401,6 +402,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 
 	// Update deck
 	_, err = tt.deckService.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+		Name:  deckType,
 		Image: "",
 	})
 	if err != nil {
@@ -483,7 +485,8 @@ func TestDeck(t *testing.T) {
 }
 
 func (tt *deckTest) fuzzCleanup() {
-	_ = os.RemoveAll(tt.cfg.Data)
+	_ = tt.db.Drop()
+	_ = tt.db.Init()
 }
 func (tt *deckTest) fuzzList(t *testing.T, waitItems int) error {
 	items, err := tt.deckService.List(tt.gameID, tt.collectionID, "")
@@ -512,7 +515,7 @@ func (tt *deckTest) fuzzItem(t *testing.T, deckID, deckName string) error {
 		}
 		return err
 	}
-	if deck.Name.String() != deckName {
+	if deck.Name != deckName {
 		{
 			data, _ := json.MarshalIndent(deck, "", "	")
 			t.Log(string(data))
@@ -607,7 +610,8 @@ func FuzzDeck(f *testing.F) {
 			}
 		}
 
-		if utils.NameToID(type1) == "" || utils.NameToID(type2) == "" {
+		if utils.NameToID(type1) == "" || utils.NameToID(type2) == "" ||
+			utils.NameToID(type1) == utils.NameToID(type2) {
 			// skip
 			return
 		}
