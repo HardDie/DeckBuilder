@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/HardDie/fsentry"
 	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -24,13 +26,17 @@ type cardTest struct {
 	collectionService            ICollectionService
 	deckService                  IDeckService
 	cardService                  ICardService
+	db                           *db.DB
 }
 
 func newCardTest(dataPath string) *cardTest {
-	cfg := config.Get()
+	cfg := config.Get(false, "")
 	cfg.SetDataPath(dataPath)
 
-	gameRepository := repository.NewGameRepository(cfg)
+	// fsentry db
+	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+
+	gameRepository := repository.NewGameRepository(cfg, builderDB)
 	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
 	deckRepository := repository.NewDeckRepository(cfg, collectionRepository)
 
@@ -39,10 +45,11 @@ func newCardTest(dataPath string) *cardTest {
 		collectionID:      "test_card__collection",
 		deckID:            "test_card__deck",
 		cfg:               cfg,
-		gameService:       NewGameService(gameRepository),
+		gameService:       NewGameService(cfg, gameRepository),
 		collectionService: NewCollectionService(collectionRepository),
 		deckService:       NewDeckService(deckRepository),
 		cardService:       NewCardService(repository.NewCardRepository(cfg, deckRepository)),
+		db:                builderDB,
 	}
 }
 
@@ -438,6 +445,15 @@ func TestCard(t *testing.T) {
 	}
 	tt := newCardTest(filepath.Join(dataPath, "card_test"))
 
+	if err := tt.db.Init(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
 	// Game not exist error
 	_, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
 		Name: "test",
@@ -599,6 +615,15 @@ func FuzzCard(f *testing.F) {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
 	tt := newCardTest(filepath.Join(dataPath, "card_fuzz_"+uuid.New().String()))
+
+	if err := tt.db.Init(); err != nil {
+		f.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			f.Fatal(err)
+		}
+	}()
 
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
 		items, err := tt.gameService.List("")

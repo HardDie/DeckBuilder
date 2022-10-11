@@ -3,10 +3,12 @@ package application
 import (
 	"net/http"
 
+	"github.com/HardDie/fsentry"
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/server"
@@ -25,9 +27,12 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// static files
 	api.RegisterStaticServer(routes)
 
+	// fsentry db
+	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+
 	// game
-	gameRepository := repository.NewGameRepository(cfg)
-	gameService := service.NewGameService(gameRepository)
+	gameRepository := repository.NewGameRepository(cfg, builderDB)
+	gameService := service.NewGameService(cfg, gameRepository)
 	api.RegisterGameServer(routes, server.NewGameServer(gameService))
 
 	// collection

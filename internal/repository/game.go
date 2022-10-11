@@ -3,9 +3,9 @@ package repository
 import (
 	"net/http"
 	"path/filepath"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/errors"
@@ -17,7 +17,7 @@ import (
 )
 
 type IGameRepository interface {
-	Create(game *entity.GameInfo) (*entity.GameInfo, error)
+	Create(req *dto.CreateGameDTO) (*entity.GameInfo, error)
 	GetByID(gameID string) (*entity.GameInfo, error)
 	GetAll() ([]*entity.GameInfo, error)
 	Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error)
@@ -30,39 +30,21 @@ type IGameRepository interface {
 }
 type GameRepository struct {
 	cfg *config.Config
+	db  *db.DB
 }
 
-func NewGameRepository(cfg *config.Config) *GameRepository {
+func NewGameRepository(cfg *config.Config, db *db.DB) *GameRepository {
 	return &GameRepository{
 		cfg: cfg,
+		db:  db,
 	}
 }
 
-func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error) {
-	// Check ID
-	if game.ID == "" {
-		return nil, errors.BadName.AddMessage(game.Name.String())
-	}
-
-	// Check if such an object already exists
-	if val, _ := s.GetByID(game.ID); val != nil {
-		return nil, errors.GameExist
-	}
-
-	// Create folder
-	if err := fs.CreateFolder(game.Path(s.cfg)); err != nil {
+func (s *GameRepository) Create(req *dto.CreateGameDTO) (*entity.GameInfo, error) {
+	game, err := s.db.GameCreate(req.Name, req.Description, req.Image)
+	if err != nil {
 		return nil, err
 	}
-
-	// Quote values before write to file
-	game.SetQuotedOutput()
-	defer game.SetRawOutput()
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
-		return nil, err
-	}
-	game.FillCachedImage(s.cfg)
 
 	if game.Image == "" {
 		return game, nil
@@ -76,142 +58,66 @@ func (s *GameRepository) Create(game *entity.GameInfo) (*entity.GameInfo, error)
 	return game, nil
 }
 func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
-	game := entity.GameInfo{ID: gameID}
-
-	// Check if such an object exists
-	isExist, err := fs.IsFolderExist(game.Path(s.cfg))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.GameNotExists
-	}
-
-	// Check if such an object exists
-	isExist, err = fs.IsFileExist(game.InfoPath(s.cfg))
-	if err != nil {
-		return nil, err
-	}
-	if !isExist {
-		return nil, errors.GameInfoNotExists
-	}
-
-	// Read info from file
-	retGame, err := fs.OpenAndProcess(game.InfoPath(s.cfg), fs.JsonFromReader[entity.GameInfo])
-	if err != nil {
-		return nil, err
-	}
-
-	retGame.FillCachedImage(s.cfg)
-	return retGame, nil
+	return s.db.GameGet(gameID)
 }
 func (s *GameRepository) GetAll() ([]*entity.GameInfo, error) {
-	isExist, err := fs.IsFolderExist(s.cfg.Games())
-	if err != nil {
-		return make([]*entity.GameInfo, 0), err
-	}
-	if !isExist {
-		return make([]*entity.GameInfo, 0), nil
-	}
-
-	// Get list of objects
-	folders, err := fs.ListOfFolders(s.cfg.Games())
-	if err != nil {
-		return make([]*entity.GameInfo, 0), err
-	}
-
-	// Get each game
-	games := make([]*entity.GameInfo, 0)
-	for _, gameID := range folders {
-		game, err := s.GetByID(gameID)
-		if err != nil {
-			logger.Error.Println(err.Error())
-			continue
-		}
-		games = append(games, game)
-	}
-
-	return games, nil
+	return s.db.GameList()
 }
 func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
-	// Get old object
-	oldGame, err := s.GetByID(gameID)
+	oldGame, err := s.db.GameGet(gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create game object
-	if dtoObject.Name == "" {
-		dtoObject.Name = oldGame.Name.String()
-	}
-	game := entity.NewGameInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image)
-	game.CreatedAt = oldGame.CreatedAt
-	if game.ID == "" {
-		return nil, errors.BadName.AddMessage(dtoObject.Name)
-	}
-
-	// If the id has been changed, rename the object
-	if game.ID != oldGame.ID {
-		// Check if such an object already exists
-		if val, _ := s.GetByID(game.ID); val != nil {
-			return nil, errors.GameExist
-		}
-
-		// Rename object
-		err = fs.MoveFolder(oldGame.Path(s.cfg), game.Path(s.cfg))
+	var newGame *entity.GameInfo
+	if oldGame.Name != dtoObject.Name {
+		// Rename folder
+		newGame, err = s.db.GameMove(oldGame.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// If the object has been changed, update the info file
-	if !oldGame.Compare(game) {
-		// Quote values before write to file
-		game.SetQuotedOutput()
-		defer game.SetRawOutput()
-
-		game.UpdatedAt = utils.Allocate(time.Now())
-		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+	if oldGame.Description != dtoObject.Description ||
+		oldGame.Image != dtoObject.Image {
+		// Update data
+		newGame, err = s.db.GameUpdate(dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		if err != nil {
 			return nil, err
 		}
 	}
-	game.FillCachedImage(s.cfg)
 
-	// If the image has been changed
-	if game.Image == oldGame.Image {
-		return game, nil
+	if newGame == nil {
+		// If nothing has changed
+		newGame = oldGame
+	}
+
+	// If the image has not been changed
+	if newGame.Image == oldGame.Image {
+		return newGame, nil
 	}
 
 	// If image exist, delete
-	if data, _, _ := s.GetImage(game.ID); data != nil {
-		err = fs.RemoveFile(game.ImagePath(s.cfg))
+	if data, _, _ := s.GetImage(newGame.ID); data != nil {
+		err = fs.RemoveFile(newGame.ImagePath(s.cfg))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if game.Image == "" {
-		return game, nil
+	if newGame.Image == "" {
+		return newGame, nil
 	}
 
 	// Download image
-	if err = s.CreateImage(game.ID, game.Image); err != nil {
+	if err = s.CreateImage(newGame.ID, newGame.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 	}
 
-	return game, nil
+	return newGame, nil
 }
 func (s *GameRepository) DeleteByID(gameID string) error {
-	game := entity.GameInfo{ID: gameID}
-
-	// Check if such an object exists
-	if val, _ := s.GetByID(gameID); val == nil {
-		return errors.GameNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Remove object
-	return fs.RemoveFolder(game.Path(s.cfg))
+	return s.db.GameDelete(gameID)
 }
 func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	// Check if such an object exists
@@ -265,48 +171,17 @@ func (s *GameRepository) CreateImage(gameID, imageURL string) error {
 	return fs.CreateAndProcess(game.ImagePath(s.cfg), imageBytes, fs.BinToWriter)
 }
 func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
-	// Check if the game exists
-	oldGame, _ := s.GetByID(gameID)
-	if oldGame == nil {
-		return nil, errors.GameNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// New game object
-	game := entity.NewGameInfo(dtoObject.Name, oldGame.Description.String(), oldGame.Image)
-
-	// Check ID
-	if game.ID == "" {
-		return nil, errors.BadName.AddMessage(game.Name.String())
-	}
-
-	// Check if such an object already exists
-	if val, _ := s.GetByID(game.ID); val != nil {
-		return nil, errors.GameExist
-	}
-
-	// Create a copy of the game
-	err := fs.CopyFolder(oldGame.Path(s.cfg), game.Path(s.cfg))
+	game, err := s.db.GameDuplicate(gameID, dtoObject.Name)
 	if err != nil {
 		return nil, err
 	}
-
-	// Quote values before write to file
-	game.SetQuotedOutput()
-	defer game.SetRawOutput()
-
-	// Writing info to file
-	if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
-		return nil, err
-	}
-
-	game.FillCachedImage(s.cfg)
 	return game, nil
 }
 func (s *GameRepository) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
-	game, _ := s.GetByID(gameID)
-	if game == nil {
-		return nil, errors.GameNotExists.HTTP(http.StatusBadRequest)
+	game, err := s.GetByID(gameID)
+	if err != nil {
+		return nil, err
 	}
 
 	return fs.ArchiveFolder(game.Path(s.cfg), game.ID)
@@ -345,18 +220,12 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 	if name != "" {
 		// Update the title of the game
 		game.ID = gameID
-		game.Name = utils.NewQuotedString(name)
+		game.Name = name
 
-		// Quote values before write to file
-		game.SetQuotedOutput()
-		defer game.SetRawOutput()
-
-		// Writing info to file
-		if err = fs.CreateAndProcess(game.InfoPath(s.cfg), game, fs.JsonToWriter[*entity.GameInfo]); err != nil {
+		if err = s.db.GameUpdateInfo(game.ID, name); err != nil {
 			return nil, err
 		}
 	}
 
-	game.FillCachedImage(s.cfg)
 	return game, nil
 }

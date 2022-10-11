@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/HardDie/fsentry"
 	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -21,20 +23,25 @@ import (
 type gameTest struct {
 	cfg         *config.Config
 	gameService IGameService
+	db          *db.DB
 }
 
 func newGameTest(dataPath string) *gameTest {
-	cfg := config.Get()
+	cfg := config.Get(false, "")
 	cfg.SetDataPath(dataPath)
+
+	// fsentry db
+	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
 
 	return &gameTest{
 		cfg:         cfg,
-		gameService: NewGameService(repository.NewGameRepository(cfg)),
+		gameService: NewGameService(cfg, repository.NewGameRepository(cfg, builderDB)),
+		db:          builderDB,
 	}
 }
 
 func (tt *gameTest) testCreate(t *testing.T) {
-	gameName := "one"
+	gameName := "create_one"
 	desc := "best game ever"
 
 	// Create game
@@ -45,10 +52,10 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name.String() != gameName {
+	if game.Name != gameName {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName)
 	}
-	if game.Description.String() != desc {
+	if game.Description != desc {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc)
 	}
 
@@ -70,7 +77,7 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	}
 }
 func (tt *gameTest) testDelete(t *testing.T) {
-	gameName := "one"
+	gameName := "delete_one"
 	gameID := utils.NameToID(gameName)
 
 	// Try to remove non-existing game
@@ -106,7 +113,7 @@ func (tt *gameTest) testDelete(t *testing.T) {
 	}
 }
 func (tt *gameTest) testUpdate(t *testing.T) {
-	gameName := []string{"one", "two"}
+	gameName := []string{"update_one", "update_two"}
 	desc := []string{"first description", "second description"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
@@ -127,10 +134,10 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name.String() != gameName[0] {
+	if game.Name != gameName[0] {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[0])
 	}
-	if game.Description.String() != desc[0] {
+	if game.Description != desc[0] {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc[0])
 	}
 
@@ -142,10 +149,10 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if game.Name.String() != gameName[1] {
+	if game.Name != gameName[1] {
 		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[1])
 	}
-	if game.Description.String() != desc[1] {
+	if game.Description != desc[1] {
 		t.Fatal("Bad description [got]", game.Description, "[want]", desc[1])
 	}
 
@@ -210,10 +217,10 @@ func (tt *gameTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != gameName[1] {
+	if items[0].Name != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
 	}
-	if items[1].Name.String() != gameName[0] {
+	if items[1].Name != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
 	}
 
@@ -225,10 +232,10 @@ func (tt *gameTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != gameName[0] {
+	if items[0].Name != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
 	}
-	if items[1].Name.String() != gameName[1] {
+	if items[1].Name != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
@@ -240,10 +247,10 @@ func (tt *gameTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != gameName[0] {
+	if items[0].Name != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
 	}
-	if items[1].Name.String() != gameName[1] {
+	if items[1].Name != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
@@ -255,10 +262,10 @@ func (tt *gameTest) testList(t *testing.T) {
 	if len(items) != 2 {
 		t.Fatal("List should with 2 value")
 	}
-	if items[0].Name.String() != gameName[1] {
+	if items[0].Name != gameName[1] {
 		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
 	}
-	if items[1].Name.String() != gameName[0] {
+	if items[1].Name != gameName[0] {
 		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
 	}
 
@@ -284,7 +291,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 }
 func (tt *gameTest) testItem(t *testing.T) {
-	gameName := []string{"one", "two"}
+	gameName := []string{"item_one", "item_two"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to get non-existing game
@@ -346,6 +353,60 @@ func (tt *gameTest) testItem(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *gameTest) testDuplicate(t *testing.T) {
+	gameName := []string{"duplicate_one", "duplicate_two"}
+	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
+
+	// Create games
+	_, err := tt.gameService.Create(&dto.CreateGameDTO{
+		Name: gameName[0],
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
+		Name: gameName[1],
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Try to duplicate not exist game
+	_, err = tt.gameService.Duplicate("not_exist_game", &dto.DuplicateGameDTO{
+		Name: "new_game",
+	})
+	if !errors.Is(err, er.GameNotExists) {
+		t.Fatal("Game not exist")
+	}
+
+	// Try to duplicate to exist game
+	_, err = tt.gameService.Duplicate(gameID[0], &dto.DuplicateGameDTO{
+		Name: gameID[1],
+	})
+	if !errors.Is(err, er.GameExist) {
+		t.Fatal("Game already exist")
+	}
+
+	_, err = tt.gameService.Duplicate(gameID[0], &dto.DuplicateGameDTO{
+		Name: "good_duplicate",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = tt.gameService.Delete(gameID[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tt.gameService.Delete(gameID[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tt.gameService.Delete("good_duplicate")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 func (tt *gameTest) testImage(t *testing.T) {
 	gameName := "one"
 	gameID := utils.NameToID(gameName)
@@ -381,6 +442,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 
 	// Update game
 	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name:  gameName,
 		Image: jpegImage,
 	})
 	if err != nil {
@@ -398,6 +460,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 
 	// Update game
 	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name:  gameName,
 		Image: "",
 	})
 	if err != nil {
@@ -430,16 +493,27 @@ func TestGame(t *testing.T) {
 	}
 	tt := newGameTest(filepath.Join(dataPath, "game_test"))
 
+	if err := tt.db.Init(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
 	t.Run("create", tt.testCreate)
 	t.Run("delete", tt.testDelete)
 	t.Run("update", tt.testUpdate)
 	t.Run("list", tt.testList)
 	t.Run("item", tt.testItem)
+	t.Run("duplicate", tt.testDuplicate)
 	t.Run("image", tt.testImage)
 }
 
 func (tt *gameTest) fuzzCleanup() {
-	_ = os.RemoveAll(tt.cfg.Data)
+	_ = tt.db.Drop()
+	_ = tt.db.Init()
 }
 func (tt *gameTest) fuzzList(t *testing.T, waitItems int) error {
 	items, err := tt.gameService.List("")
@@ -468,14 +542,14 @@ func (tt *gameTest) fuzzItem(t *testing.T, gameID, name, desc string) error {
 		}
 		return err
 	}
-	if game.Name.String() != name {
+	if game.Name != name {
 		{
 			data, _ := json.MarshalIndent(game, "", "	")
 			t.Log(string(data))
 		}
 		return fmt.Errorf("name: [wait] %s [got] %s", name, game.Name)
 	}
-	if game.Description.String() != desc {
+	if game.Description != desc {
 		{
 			data, _ := json.MarshalIndent(game, "", "	")
 			t.Log("item:", string(data))
@@ -540,8 +614,18 @@ func FuzzGame(f *testing.F) {
 	}
 	tt := newGameTest(filepath.Join(dataPath, "game_fuzz_"+uuid.New().String()))
 
+	if err := tt.db.Init(); err != nil {
+		f.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			f.Fatal(err)
+		}
+	}()
+
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
-		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
+		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" ||
+			utils.NameToID(name1) == utils.NameToID(name2) {
 			// skip
 			return
 		}

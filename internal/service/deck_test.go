@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/HardDie/fsentry"
 	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -24,22 +26,27 @@ type deckTest struct {
 	gameService          IGameService
 	collectionService    ICollectionService
 	deckService          IDeckService
+	db                   *db.DB
 }
 
 func newDeckTest(dataPath string) *deckTest {
-	cfg := config.Get()
+	cfg := config.Get(false, "")
 	cfg.SetDataPath(dataPath)
 
-	gameRepository := repository.NewGameRepository(cfg)
+	// fsentry db
+	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+
+	gameRepository := repository.NewGameRepository(cfg, builderDB)
 	collectionRepository := repository.NewCollectionRepository(cfg, gameRepository)
 
 	return &deckTest{
 		gameID:            "test_deck__game",
 		collectionID:      "test_deck__collection",
 		cfg:               cfg,
-		gameService:       NewGameService(gameRepository),
+		gameService:       NewGameService(cfg, gameRepository),
 		collectionService: NewCollectionService(collectionRepository),
 		deckService:       NewDeckService(repository.NewDeckRepository(cfg, collectionRepository)),
+		db:                builderDB,
 	}
 }
 
@@ -426,6 +433,15 @@ func TestDeck(t *testing.T) {
 	}
 	tt := newDeckTest(filepath.Join(dataPath, "deck_test"))
 
+	if err := tt.db.Init(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
 	// Game not exist error
 	_, err := tt.deckService.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
 		Name: "test",
@@ -558,6 +574,15 @@ func FuzzDeck(f *testing.F) {
 		f.Fatal("TEST_DATA_PATH must be set")
 	}
 	tt := newDeckTest(filepath.Join(dataPath, "deck_fuzz_"+uuid.New().String()))
+
+	if err := tt.db.Init(); err != nil {
+		f.Fatal(err)
+	}
+	defer func() {
+		if err := tt.db.Drop(); err != nil {
+			f.Fatal(err)
+		}
+	}()
 
 	f.Fuzz(func(t *testing.T, type1, type2 string) {
 		gameItems, err := tt.gameService.List("")
