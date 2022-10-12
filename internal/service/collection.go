@@ -53,6 +53,9 @@ func (s *CollectionService) List(gameID, sortField string) ([]*entity.Collection
 	for i := 0; i < len(items); i++ {
 		items[i].FillCachedImage(s.cfg, gameID)
 	}
+	if items == nil {
+		items = make([]*entity.CollectionInfo, 0)
+	}
 	return items, nil
 }
 func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {

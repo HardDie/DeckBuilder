@@ -56,6 +56,9 @@ func (s *GameService) List(sortField string) ([]*entity.GameInfo, error) {
 	for i := 0; i < len(items); i++ {
 		items[i].FillCachedImage(s.cfg)
 	}
+	if items == nil {
+		items = make([]*entity.GameInfo, 0)
+	}
 	return items, nil
 }
 func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {

@@ -54,6 +54,9 @@ func (s *DeckService) List(gameID, collectionID, sortField string) ([]*entity.De
 	for i := 0; i < len(items); i++ {
 		items[i].FillCachedImage(s.cfg, gameID, collectionID)
 	}
+	if items == nil {
+		items = make([]*entity.DeckInfo, 0)
+	}
 	return items, nil
 }
 func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {

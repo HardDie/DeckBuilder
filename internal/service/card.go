@@ -58,6 +58,9 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField string) ([]*e
 		return make([]*entity.CardInfo, 0), err
 	}
 	utils.Sort(&items, sortField)
+	if items == nil {
+		items = make([]*entity.CardInfo, 0)
+	}
 	return items, nil
 }
 func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
