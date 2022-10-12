@@ -14,17 +14,19 @@ go generate
 
 CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -ldflags \
 	"-X main.BackendCommit=${BACKEND} -X main.FrontendCommit=${FRONTEND}" \
-	-a -o ../../deployment/DeckBuilder_amd64.exe -v .
+	-a -o ../../deployment/DeckBuilder.exe -v .
+
+cd ../../deployment
+zip out/deckbuilder.windows-amd64.zip DeckBuilder.exe
+rm DeckBuilder.exe
+
+cd ../cmd/deck_builder
 
 CGO_ENABLED=0 GOARCH=386 GOOS=windows go build -ldflags \
 	"-X main.BackendCommit=${BACKEND} -X main.FrontendCommit=${FRONTEND}" \
-	-a -o ../../deployment/DeckBuilder_386.exe -v .
+	-a -o ../../deployment/DeckBuilder.exe -v .
 rm resource.syso
 
 cd ../../deployment
-
-zip out/deckbuilder_windows_amd64.zip DeckBuilder_amd64.exe
-zip out/deckbuilder_windows_386.zip DeckBuilder_386.exe
-
-rm DeckBuilder_amd64.exe
-rm DeckBuilder_386.exe
+zip out/deckbuilder.windows-386.zip DeckBuilder.exe
+rm DeckBuilder.exe
