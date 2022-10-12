@@ -233,10 +233,10 @@ func (tt *gameTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != gameName[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
+		t.Fatal("Bad name_desc order: [got]", items[0].Name, "[want]", gameName[0])
 	}
 	if items[1].Name != gameName[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
+		t.Fatal("Bad name_desc order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
 	// Sort by created date
@@ -248,10 +248,10 @@ func (tt *gameTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != gameName[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[0])
+		t.Fatal("Bad created order: [got]", items[0].Name, "[want]", gameName[0])
 	}
 	if items[1].Name != gameName[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[1])
+		t.Fatal("Bad created order: [got]", items[1].Name, "[want]", gameName[1])
 	}
 
 	// Sort by created_desc
@@ -263,10 +263,10 @@ func (tt *gameTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != gameName[1] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
+		t.Fatal("Bad created_desc order: [got]", items[0].Name, "[want]", gameName[1])
 	}
 	if items[1].Name != gameName[0] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
+		t.Fatal("Bad created_desc order: [got]", items[1].Name, "[want]", gameName[0])
 	}
 
 	// Delete first game

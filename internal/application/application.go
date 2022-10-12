@@ -29,6 +29,10 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// fsentry db
 	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+	err := builderDB.Init()
+	if err != nil {
+		logger.Error.Fatal(err)
+	}
 
 	// game
 	gameRepository := repository.NewGameRepository(cfg, builderDB)
@@ -46,7 +50,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterDeckServer(routes, server.NewDeckServer(deckService))
 
 	// card
-	cardService := service.NewCardService(repository.NewCardRepository(cfg, deckRepository))
+	cardService := service.NewCardService(cfg, repository.NewCardRepository(cfg, builderDB))
 	api.RegisterCardServer(routes, server.NewCardServer(cardService))
 
 	// image

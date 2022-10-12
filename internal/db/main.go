@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/HardDie/fsentry"
 	"github.com/HardDie/fsentry/pkg/fsentry_error"
@@ -12,6 +13,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type DB struct {
@@ -29,6 +31,16 @@ func NewFSEntryDB(db fsentry.IFSEntry) *DB {
 type commonInfo struct {
 	Description fsentry_types.QuotedString `json:"description"`
 	Image       fsentry_types.QuotedString `json:"image"`
+}
+type cardInfo struct {
+	ID          int64                                                     `json:"id"`
+	Name        fsentry_types.QuotedString                                `json:"name"`
+	Description fsentry_types.QuotedString                                `json:"description"`
+	Image       fsentry_types.QuotedString                                `json:"image"`
+	Variables   map[fsentry_types.QuotedString]fsentry_types.QuotedString `json:"variables"`
+	Count       int                                                       `json:"count"`
+	CreatedAt   *time.Time                                                `json:"createdAt"`
+	UpdatedAt   *time.Time                                                `json:"updatedAt"`
 }
 
 func (s *DB) Init() error {
@@ -590,4 +602,265 @@ func (s *DB) DeckDelete(gameID, collectionID, name string) error {
 		}
 	}
 	return nil
+}
+
+func (s *DB) CardCreate(gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.rawCardList(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Search for the largest card ID
+	maxID := int64(1)
+	for _, card := range list {
+		if card.ID >= maxID {
+			maxID = card.ID + 1
+		}
+	}
+
+	// Create a card with the found identifier
+	cardInfo := &cardInfo{
+		ID:          maxID,
+		Name:        fsentry_types.QS(name),
+		Description: fsentry_types.QS(description),
+		Image:       fsentry_types.QS(image),
+		Variables:   convertMapString(variables),
+		Count:       count,
+		CreatedAt:   utils.Allocate(time.Now()),
+		UpdatedAt:   nil,
+	}
+
+	// Add a card to the card array
+	list[cardInfo.ID] = cardInfo
+
+	// Writing an array of cards to a file again
+	_, err = s.db.UpdateFolder("cards", list, game.ID, collection.ID, deck.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return &entity.CardInfo{
+		ID:          cardInfo.ID,
+		Name:        cardInfo.Name.String(),
+		Description: cardInfo.Description.String(),
+		Image:       cardInfo.Image.String(),
+		Variables:   convertMapQuotedString(cardInfo.Variables),
+		Count:       cardInfo.Count,
+		CreatedAt:   cardInfo.CreatedAt,
+		UpdatedAt:   nil,
+	}, nil
+}
+func (s *DB) CardGet(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
+	list, err := s.rawCardList(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	card, ok := list[cardID]
+	if !ok {
+		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	return &entity.CardInfo{
+		ID:          card.ID,
+		Name:        card.Name.String(),
+		Description: card.Description.String(),
+		Image:       card.Image.String(),
+		Variables:   convertMapQuotedString(card.Variables),
+		Count:       card.Count,
+		CreatedAt:   card.CreatedAt,
+		UpdatedAt:   card.UpdatedAt,
+	}, nil
+}
+func (s *DB) CardList(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
+	list, err := s.rawCardList(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	var cards []*entity.CardInfo
+	for _, item := range list {
+		cards = append(cards, &entity.CardInfo{
+			ID:          item.ID,
+			Name:        item.Name.String(),
+			Description: item.Description.String(),
+			Image:       item.Image.String(),
+			Variables:   convertMapQuotedString(item.Variables),
+			Count:       item.Count,
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+		})
+	}
+	return cards, nil
+}
+func (s *DB) CardUpdate(gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.rawCardList(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	card, ok := list[cardID]
+	if !ok {
+		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	card.Name = fsentry_types.QS(name)
+	card.Description = fsentry_types.QS(description)
+	card.Image = fsentry_types.QS(image)
+	card.Variables = convertMapString(variables)
+	card.Count = count
+	card.UpdatedAt = utils.Allocate(time.Now())
+
+	list[card.ID] = card
+
+	// Writing an array of cards to a file again
+	_, err = s.db.UpdateFolder("cards", list, game.ID, collection.ID, deck.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return &entity.CardInfo{
+		ID:          card.ID,
+		Name:        card.Name.String(),
+		Description: card.Description.String(),
+		Image:       card.Image.String(),
+		Variables:   convertMapQuotedString(card.Variables),
+		Count:       card.Count,
+		CreatedAt:   card.CreatedAt,
+		UpdatedAt:   card.UpdatedAt,
+	}, nil
+}
+func (s *DB) CardDelete(gameID, collectionID, deckID string, cardID int64) error {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return err
+	}
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
+	if err != nil {
+		return err
+	}
+
+	list, err := s.rawCardList(gameID, collectionID, deckID)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := list[cardID]; !ok {
+		return er.CardNotExists.HTTP(http.StatusBadRequest)
+	}
+
+	delete(list, cardID)
+
+	// Writing an array of cards to a file again
+	_, err = s.db.UpdateFolder("cards", list, game.ID, collection.ID, deck.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return er.BadName
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return nil
+}
+func (s *DB) rawCardList(gameID, collectionID, deckID string) (map[int64]*cardInfo, error) {
+	game, err := s.GameGet(gameID)
+	if err != nil {
+		return nil, err
+	}
+	collection, err := s.CollectionGet(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all the cards
+	info, err := s.db.GetFolder("cards", game.ID, collection.ID, deck.ID)
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			// If folder not exist, create it
+			info, err = s.db.CreateFolder("cards", nil, game.ID, collection.ID, deck.ID)
+			if err != nil {
+				return nil, er.InternalError.AddMessage(err.Error())
+			}
+		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	// Parsing an array of cards from json
+	var list map[int64]*cardInfo
+	err = json.Unmarshal(info.Data, &list)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	if list == nil {
+		list = make(map[int64]*cardInfo)
+	}
+	return list, nil
+}
+
+func convertMapString(in map[string]string) map[fsentry_types.QuotedString]fsentry_types.QuotedString {
+	res := make(map[fsentry_types.QuotedString]fsentry_types.QuotedString)
+	for key, val := range in {
+		res[fsentry_types.QS(key)] = fsentry_types.QS(val)
+	}
+	return res
+}
+func convertMapQuotedString(in map[fsentry_types.QuotedString]fsentry_types.QuotedString) map[string]string {
+	res := make(map[string]string)
+	for key, val := range in {
+		res[key.String()] = val.String()
+	}
+	return res
 }

@@ -274,8 +274,8 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 					// Create a card and place it in the list of cards inside the deck
 					deck.ContainedObjects = append(deck.ContainedObjects, tts_entity.Card{
 						Name:        "Card",
-						Nickname:    utils.Allocate(cardItem.Name.String()),
-						Description: utils.Allocate(cardItem.Description.String()),
+						Nickname:    utils.Allocate(cardItem.Name),
+						Description: utils.Allocate(cardItem.Description),
 						CardID:      (pageId+1)*100 + cardId,
 						LuaScript:   strings.Join(variables, "\n"),
 						CustomDeck: map[int]tts_entity.DeckDescription{

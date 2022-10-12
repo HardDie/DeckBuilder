@@ -2,7 +2,8 @@ package repository
 
 import (
 	"net/http"
-	"time"
+
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -12,11 +13,10 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type ICardRepository interface {
-	Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error)
+	Create(gameID, collectionID, deckID string, req *dto.CreateCardDTO) (*entity.CardInfo, error)
 	GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error)
 	GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error)
 	Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error)
@@ -25,179 +25,89 @@ type ICardRepository interface {
 	CreateImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error
 }
 type CardRepository struct {
-	cfg            *config.Config
-	deckRepository IDeckRepository
+	cfg *config.Config
+	db  *db.DB
 }
 
-func NewCardRepository(cfg *config.Config, deckRepository IDeckRepository) *CardRepository {
+func NewCardRepository(cfg *config.Config, db *db.DB) *CardRepository {
 	return &CardRepository{
-		cfg:            cfg,
-		deckRepository: deckRepository,
+		cfg: cfg,
+		db:  db,
 	}
 }
 
-func (s *CardRepository) Create(gameID, collectionID, deckID string, card *entity.CardInfo) (*entity.CardInfo, error) {
-	// Check if the deck exists
-	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
+func (s *CardRepository) Create(gameID, collectionID, deckID string, req *dto.CreateCardDTO) (*entity.CardInfo, error) {
+	card, err := s.db.CardCreate(gameID, collectionID, deckID, req.Name, req.Description, req.Image, req.Variables, req.Count)
 	if err != nil {
 		return nil, err
 	}
 
-	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
-	if err != nil {
-		return nil, err
+	if card.Image == "" {
+		return card, nil
 	}
 
-	// Init map of cards
-	if readCard.Cards == nil {
-		readCard.Cards = make(map[int64]*entity.CardInfo)
+	// Download image
+	if err := s.CreateImage(gameID, collectionID, deckID, card.ID, card.Image); err != nil {
+		logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
 	}
 
-	// Add card to deck
-	readCard.Cards[card.ID] = card
-
-	// Quote values before write to file
-	defer card.SetRawOutput()
-	for key := range readCard.Cards {
-		readCard.Cards[key].SetQuotedOutput()
-	}
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
-		return nil, err
-	}
-
-	if len(card.Image) > 0 {
-		// Download image
-		if err := s.CreateImage(gameID, collectionID, deck.ID, card.ID, card.Image); err != nil {
-			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
-		}
-	}
-
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
 func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	// Read map of cards
-	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if card exist
-	card, ok := cardsMap[cardID]
-	if !ok {
-		return nil, errors.CardNotExists
-	}
-
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return card, nil
+	return s.db.CardGet(gameID, collectionID, deckID, cardID)
 }
 func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
-	// Read map of cards
-	cardsMap, err := s.getCardsMap(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert map to list
-	cards := make([]*entity.CardInfo, 0)
-	for _, card := range cardsMap {
-		card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-		cards = append(cards, card)
-	}
-	return cards, nil
+	return s.db.CardList(gameID, collectionID, deckID)
 }
-func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
-	// Check if the deck exists
-	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
+func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int64, req *dto.UpdateCardDTO) (*entity.CardInfo, error) {
+	oldCard, err := s.db.CardGet(gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if card exist
-	oldCard, ok := readCard.Cards[cardID]
-	if !ok {
-		return nil, errors.CardNotExists
-	}
-
-	// Create card object
-	card := entity.NewCardInfo(dtoObject.Name, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
-	card.ID = oldCard.ID
-	card.CreatedAt = oldCard.CreatedAt
-
-	// If the object has been changed, update the object file
-	if !oldCard.Compare(card) {
-		card.UpdatedAt = utils.Allocate(time.Now())
-		// Replace old card with new one
-		readCard.Cards[card.ID] = card
-
-		// Quote values before write to file
-		defer card.SetRawOutput()
-		for key := range readCard.Cards {
-			readCard.Cards[key].SetQuotedOutput()
-		}
-
-		// Writing info to file
-		if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
+	var newCard *entity.CardInfo
+	if oldCard.Name != req.Name ||
+		oldCard.Description != req.Description ||
+		oldCard.Image != req.Image ||
+		oldCard.Count != req.Count {
+		// Update data
+		newCard, err = s.db.CardUpdate(gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	// If the image has been changed
-	if card.Image != oldCard.Image {
-		// If image exist, delete
-		if data, _, _ := s.GetImage(gameID, collectionID, deckID, card.ID); data != nil {
-			err = fs.RemoveFile(card.ImagePath(gameID, collectionID, deckID, s.cfg))
-			if err != nil {
-				return nil, err
-			}
-		}
+	if newCard == nil {
+		// If nothing has changed
+		newCard = oldCard
+	}
 
-		if len(card.Image) > 0 {
-			// Download image
-			if err = s.CreateImage(gameID, collectionID, deckID, card.ID, card.Image); err != nil {
-				logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
-			}
+	// If the image has not been changed
+	if newCard.Image == oldCard.Image {
+		return newCard, nil
+	}
+
+	// If image exist, delete
+	if data, _, _ := s.GetImage(gameID, collectionID, deckID, newCard.ID); data != nil {
+		err = fs.RemoveFile(oldCard.ImagePath(gameID, collectionID, deckID, s.cfg))
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return card, nil
+	if newCard.Image == "" {
+		return newCard, nil
+	}
+
+	// Download image
+	if err = s.CreateImage(gameID, collectionID, deckID, newCard.ID, newCard.Image); err != nil {
+		logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
+	}
+
+	return newCard, nil
 }
 func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
-	// Check if the deck exists
-	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
-
-	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
-	if err != nil {
-		return err
-	}
-
-	// Check if card exist
-	if _, ok := readCard.Cards[cardID]; !ok {
-		return errors.CardNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Delete card from deck
-	delete(readCard.Cards, cardID)
-
-	// Writing info to file
-	if err := fs.CreateAndProcess(deck.Path(gameID, collectionID, s.cfg), *readCard, fs.JsonToWriter[entity.Card]); err != nil {
-		return err
-	}
-	return nil
+	return s.db.CardDelete(gameID, collectionID, deckID, cardID)
 }
 func (s *CardRepository) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
 	// Check if such an object exists
@@ -251,18 +161,18 @@ func (s *CardRepository) CreateImage(gameID, collectionID, deckID string, cardID
 	return fs.CreateAndProcess(card.ImagePath(gameID, collectionID, deckID, s.cfg), imageBytes, fs.BinToWriter)
 }
 
-// Internal function. Get map of cards inside deck
-func (s *CardRepository) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
-	// Check if the deck exists
-	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Read info from file
-	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
-	if err != nil {
-		return nil, err
-	}
-	return readCard.Cards, nil
-}
+//// Internal function. Get map of cards inside deck
+//func (s *CardRepository) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
+//	// Check if the deck exists
+//	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// Read info from file
+//	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
+//	if err != nil {
+//		return nil, err
+//	}
+//	return readCard.Cards, nil
+//}

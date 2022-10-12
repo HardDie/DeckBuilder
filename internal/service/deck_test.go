@@ -229,10 +229,10 @@ func (tt *deckTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != deckType[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[0])
+		t.Fatal("Bad name_desc order: [got]", items[0].Name, "[want]", deckType[0])
 	}
 	if items[1].Name != deckType[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[1])
+		t.Fatal("Bad name_desc order: [got]", items[1].Name, "[want]", deckType[1])
 	}
 
 	// Sort by created date
@@ -244,10 +244,10 @@ func (tt *deckTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != deckType[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[0])
+		t.Fatal("Bad created order: [got]", items[0].Name, "[want]", deckType[0])
 	}
 	if items[1].Name != deckType[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[1])
+		t.Fatal("Bad created order: [got]", items[1].Name, "[want]", deckType[1])
 	}
 
 	// Sort by created_desc
@@ -259,10 +259,10 @@ func (tt *deckTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != deckType[1] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", deckType[1])
+		t.Fatal("Bad created_desc order: [got]", items[0].Name, "[want]", deckType[1])
 	}
 	if items[1].Name != deckType[0] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", deckType[0])
+		t.Fatal("Bad created_desc order: [got]", items[1].Name, "[want]", deckType[0])
 	}
 
 	// Delete first deck

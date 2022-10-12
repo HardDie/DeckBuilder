@@ -1,6 +1,6 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/HardDie/fsentry v0.0.2 h1:9nr14QPHVZIwVjg9kRPQqxsj+U50jS+QtXxFlbFZ2Iw=
-github.com/HardDie/fsentry v0.0.2/go.mod h1:1bxhdZgmBt9SR4D3/MqE2VdsWbFOTtEvVadCaPJrXOM=
+github.com/HardDie/fsentry v0.0.3 h1:1XgVDK2ioA/0EVW2GLuEdJ4TVAbrK/4bFRqGW8ngRII=
+github.com/HardDie/fsentry v0.0.3/go.mod h1:1bxhdZgmBt9SR4D3/MqE2VdsWbFOTtEvVadCaPJrXOM=
 github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tNFfI=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=

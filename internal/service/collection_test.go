@@ -239,10 +239,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != collectionName[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[0])
+		t.Fatal("Bad name_desc order: [got]", items[0].Name, "[want]", collectionName[0])
 	}
 	if items[1].Name != collectionName[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[1])
+		t.Fatal("Bad name_desc order: [got]", items[1].Name, "[want]", collectionName[1])
 	}
 
 	// Sort by created date
@@ -254,10 +254,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != collectionName[0] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[0])
+		t.Fatal("Bad created order: [got]", items[0].Name, "[want]", collectionName[0])
 	}
 	if items[1].Name != collectionName[1] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[1])
+		t.Fatal("Bad created order: [got]", items[1].Name, "[want]", collectionName[1])
 	}
 
 	// Sort by created_desc
@@ -269,10 +269,10 @@ func (tt *collectionTest) testList(t *testing.T) {
 		t.Fatal("List should with 2 value")
 	}
 	if items[0].Name != collectionName[1] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", collectionName[1])
+		t.Fatal("Bad created_desc order: [got]", items[0].Name, "[want]", collectionName[1])
 	}
 	if items[1].Name != collectionName[0] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", collectionName[0])
+		t.Fatal("Bad created_desc order: [got]", items[1].Name, "[want]", collectionName[0])
 	}
 
 	// Delete first collection
