@@ -1,4 +1,9 @@
 # DeckBuilder
+
+## About
+The frontend for this application: https://github.com/lmm1ng/DeckBuilderGUI
+
+## Description
 This utility helps you easily create, modify, and export card games for Tabletop Simulator.
 The utility has four logical objects.
 - on the main screen, you can create a game, for example, Munchkin
