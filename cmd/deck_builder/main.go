@@ -1,5 +1,3 @@
-//go:generate goversioninfo -icon=../../deployment/win_icon.ico -64
-
 // Package main DeckBuilder
 //
 // Entry point for the application.
