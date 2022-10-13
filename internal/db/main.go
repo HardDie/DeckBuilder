@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/HardDie/fsentry"
@@ -33,14 +34,14 @@ type commonInfo struct {
 	Image       fsentry_types.QuotedString `json:"image"`
 }
 type cardInfo struct {
-	ID          int64                                                     `json:"id"`
-	Name        fsentry_types.QuotedString                                `json:"name"`
-	Description fsentry_types.QuotedString                                `json:"description"`
-	Image       fsentry_types.QuotedString                                `json:"image"`
-	Variables   map[fsentry_types.QuotedString]fsentry_types.QuotedString `json:"variables"`
-	Count       int                                                       `json:"count"`
-	CreatedAt   *time.Time                                                `json:"createdAt"`
-	UpdatedAt   *time.Time                                                `json:"updatedAt"`
+	ID          int64                                 `json:"id"`
+	Name        fsentry_types.QuotedString            `json:"name"`
+	Description fsentry_types.QuotedString            `json:"description"`
+	Image       fsentry_types.QuotedString            `json:"image"`
+	Variables   map[string]fsentry_types.QuotedString `json:"variables"`
+	Count       int                                   `json:"count"`
+	CreatedAt   *time.Time                            `json:"createdAt"`
+	UpdatedAt   *time.Time                            `json:"updatedAt"`
 }
 
 func (s *DB) Init() error {
@@ -850,17 +851,21 @@ func (s *DB) rawCardList(gameID, collectionID, deckID string) (map[int64]*cardIn
 	return list, nil
 }
 
-func convertMapString(in map[string]string) map[fsentry_types.QuotedString]fsentry_types.QuotedString {
-	res := make(map[fsentry_types.QuotedString]fsentry_types.QuotedString)
+func convertMapString(in map[string]string) map[string]fsentry_types.QuotedString {
+	res := make(map[string]fsentry_types.QuotedString)
 	for key, val := range in {
-		res[fsentry_types.QS(key)] = fsentry_types.QS(val)
+		keyJson, _ := json.Marshal(strconv.Quote(key))
+		res[string(keyJson)] = fsentry_types.QS(val)
 	}
 	return res
 }
-func convertMapQuotedString(in map[fsentry_types.QuotedString]fsentry_types.QuotedString) map[string]string {
+func convertMapQuotedString(in map[string]fsentry_types.QuotedString) map[string]string {
 	res := make(map[string]string)
-	for key, val := range in {
-		res[key.String()] = val.String()
+	for keyJson, val := range in {
+		var key string
+		_ = json.Unmarshal([]byte(keyJson), &key)
+		key, _ = strconv.Unquote(key)
+		res[key] = val.String()
 	}
 	return res
 }
