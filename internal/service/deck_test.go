@@ -610,8 +610,7 @@ func FuzzDeck(f *testing.F) {
 			}
 		}
 
-		if utils.NameToID(type1) == "" || utils.NameToID(type2) == "" ||
-			utils.NameToID(type1) == utils.NameToID(type2) {
+		if utils.NameToID(type1) == "" || utils.NameToID(type2) == "" {
 			// skip
 			return
 		}

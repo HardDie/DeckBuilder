@@ -624,8 +624,7 @@ func FuzzGame(f *testing.F) {
 	}()
 
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
-		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" ||
-			utils.NameToID(name1) == utils.NameToID(name2) {
+		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
 			// skip
 			return
 		}

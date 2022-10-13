@@ -606,8 +606,7 @@ func FuzzCollection(f *testing.F) {
 
 		}
 
-		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" ||
-			utils.NameToID(name1) == utils.NameToID(name2) {
+		if utils.NameToID(name1) == "" || utils.NameToID(name2) == "" {
 			// skip
 			return
 		}
