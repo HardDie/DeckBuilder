@@ -5,6 +5,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -69,7 +70,8 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	if oldCard.Name != req.Name ||
 		oldCard.Description != req.Description ||
 		oldCard.Image != req.Image ||
-		oldCard.Count != req.Count {
+		oldCard.Count != req.Count ||
+		!utils.CompareMaps(oldCard.Variables, req.Variables) {
 		// Update data
 		newCard, err = s.db.CardUpdate(gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
 		if err != nil {
@@ -160,19 +162,3 @@ func (s *CardRepository) CreateImage(gameID, collectionID, deckID string, cardID
 	// Write image to file
 	return fs.CreateAndProcess(card.ImagePath(gameID, collectionID, deckID, s.cfg), imageBytes, fs.BinToWriter)
 }
-
-//// Internal function. Get map of cards inside deck
-//func (s *CardRepository) getCardsMap(gameID, collectionID, deckID string) (map[int64]*entity.CardInfo, error) {
-//	// Check if the deck exists
-//	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// Read info from file
-//	readCard, err := fs.OpenAndProcess(deck.Path(gameID, collectionID, s.cfg), fs.JsonFromReader[entity.Card])
-//	if err != nil {
-//		return nil, err
-//	}
-//	return readCard.Cards, nil
-//}

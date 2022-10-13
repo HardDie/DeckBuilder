@@ -542,7 +542,7 @@ func (tt *cardTest) fuzzList(t *testing.T, waitItems int) error {
 	return nil
 }
 func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) error {
-	collection, err := tt.cardService.Item(tt.gameID, tt.collectionID, tt.deckID, cardID)
+	card, err := tt.cardService.Item(tt.gameID, tt.collectionID, tt.deckID, cardID)
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -550,19 +550,32 @@ func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) erro
 		}
 		return err
 	}
-	if collection.Name != name {
+	if card.Name != name {
 		{
-			data, _ := json.MarshalIndent(collection, "", "	")
+			data, _ := json.MarshalIndent(card, "", "	")
 			t.Log(string(data))
 		}
-		return fmt.Errorf("title: [wait] %s [got] %s", name, collection.Name)
+		return fmt.Errorf("title: [wait] %s [got] %s", name, card.Name)
 	}
-	if collection.Description != desc {
+	if card.Description != desc {
 		{
-			data, _ := json.MarshalIndent(collection, "", "	")
+			data, _ := json.MarshalIndent(card, "", "	")
 			t.Log("item:", string(data))
 		}
-		return fmt.Errorf("description: [wait] %q [got] %q", desc, collection.Description)
+		return fmt.Errorf("description: [wait] %q [got] %q", desc, card.Description)
+	}
+	if val, ok := card.Variables[name]; !ok {
+		{
+			data, _ := json.MarshalIndent(card, "", "	")
+			t.Log("item:", string(data))
+		}
+		return fmt.Errorf("value key not found: %q", name)
+	} else if val != desc {
+		{
+			data, _ := json.MarshalIndent(card, "", "	")
+			t.Log("item:", string(data))
+		}
+		return fmt.Errorf("value: [wait] %q [got] %q", desc, val)
 	}
 	return nil
 }
@@ -570,6 +583,9 @@ func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInf
 	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
 		Name:        name,
 		Description: desc,
+		Variables: map[string]string{
+			name: desc,
+		},
 	})
 	if err != nil {
 		{
@@ -588,6 +604,9 @@ func (tt *cardTest) fuzzUpdate(t *testing.T, cardID int64, name, desc string) (*
 	card, err := tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID, cardID, &dto.UpdateCardDTO{
 		Name:        name,
 		Description: desc,
+		Variables: map[string]string{
+			name: desc,
+		},
 	})
 	if err != nil {
 		{
