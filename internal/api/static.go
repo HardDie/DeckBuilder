@@ -80,9 +80,9 @@ func RegisterStaticServer(route *mux.Router) {
 	}
 
 	// Workaround: if page we reloaded, forward request to index.html
-	route.HandleFunc("/game/{id}", forwarder)
-	route.HandleFunc("/game/{id}/collection/{id}", forwarder)
-	route.HandleFunc("/game/{id}/collection/{id}/deck/{id}", forwarder)
+	route.HandleFunc("/games/{id}", forwarder)
+	route.HandleFunc("/games/{id}/collections/{id}", forwarder)
+	route.HandleFunc("/games/{id}/collections/{id}/decks/{id}", forwarder)
 
 	// Swagger
 	route.HandleFunc("/swagger.json", web.ServeSwagger)
