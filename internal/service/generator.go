@@ -140,6 +140,11 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 	pr.SetMessage("Generating the resulting image pages...")
 	pr.SetProgress(0)
 	for deckInfo, pages := range deckArray.Decks {
+		if len(pages.Pages) == 0 {
+			// If deck is empty, skip
+			continue
+		}
+
 		var collectionType string
 		var deckItem *entity.DeckInfo
 		var deckBacksideImage []byte

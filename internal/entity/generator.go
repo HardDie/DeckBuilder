@@ -35,13 +35,14 @@ type CardArray struct {
 
 func NewCardArray() *CardArray {
 	return &CardArray{
-		Pages: []CardPage{make(CardPage, 0)},
+		Pages: []CardPage{},
 	}
 }
 func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64, count int) {
 	// Get the index of the last element in the array
 	lastArray := len(cArr.Pages) - 1
-	if len(cArr.Pages[lastArray]) == config.MaxCount {
+	if len(cArr.Pages) == 0 ||
+		len(cArr.Pages[lastArray]) == config.MaxCount {
 		// If the card array has reached the limit of the number of cards per page,
 		// create a new page.
 		cArr.Pages = append(cArr.Pages, make(CardPage, 0))
