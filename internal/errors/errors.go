@@ -9,37 +9,41 @@ import (
 
 var (
 	// system
-	InternalError = NewError("internal error").HTTP(http.StatusInternalServerError)
+	InternalError = NewError("internal error")
 
 	// network errors
-	NetworkBadURL      = NewError("bad url")
-	NetworkBadRequest  = NewError("bad http request")
-	NetworkBadResponse = NewError("bad http response")
+	NetworkBadURL      = NewError("bad url", http.StatusBadRequest)
+	NetworkBadRequest  = NewError("bad http request", http.StatusBadRequest)
+	NetworkBadResponse = NewError("bad http response", http.StatusBadRequest)
 
-	BadName = NewError("bad name").HTTP(http.StatusBadRequest)
-	BadId   = NewError("bad id").HTTP(http.StatusBadRequest)
+	BadName = NewError("bad name", http.StatusBadRequest)
+	BadId   = NewError("bad id", http.StatusBadRequest)
 
 	// game
-	GameExist          = NewError("game exist").HTTP(http.StatusBadRequest)
-	GameNotExists      = NewError("game not exists").HTTP(http.StatusNoContent)
+	GameExist          = NewError("game exist", http.StatusBadRequest)
+	GameNotExists      = NewError("game not exists", http.StatusBadRequest)
 	GameInfoNotExists  = NewError("game info not exists")
-	GameImageNotExists = NewError("game image not exists").HTTP(http.StatusNoContent)
+	GameImageExist     = NewError("game image already exists", http.StatusBadRequest)
+	GameImageNotExists = NewError("game image not exists", http.StatusBadRequest)
 
 	// collection
-	CollectionExist          = NewError("collection exist").HTTP(http.StatusBadRequest)
-	CollectionNotExists      = NewError("collection not exists").HTTP(http.StatusNoContent)
+	CollectionExist          = NewError("collection exist", http.StatusBadRequest)
+	CollectionNotExists      = NewError("collection not exists", http.StatusBadRequest)
 	CollectionInfoNotExists  = NewError("collection info not exists")
-	CollectionImageNotExists = NewError("collection image not exists").HTTP(http.StatusNoContent)
+	CollectionImageExist     = NewError("collection image already exists", http.StatusBadRequest)
+	CollectionImageNotExists = NewError("collection image not exists", http.StatusBadRequest)
 
 	// deck
-	DeckExist          = NewError("deck exist").HTTP(http.StatusBadRequest)
-	DeckNotExists      = NewError("deck not exists").HTTP(http.StatusNoContent)
-	DeckImageNotExists = NewError("deck image not exists").HTTP(http.StatusNoContent)
+	DeckExist          = NewError("deck exist", http.StatusBadRequest)
+	DeckNotExists      = NewError("deck not exists", http.StatusBadRequest)
+	DeckImageExist     = NewError("deck image already exists", http.StatusBadRequest)
+	DeckImageNotExists = NewError("deck image not exists", http.StatusBadRequest)
 
 	// card
-	CardExists         = NewError("card exists").HTTP(http.StatusInternalServerError)
-	CardNotExists      = NewError("card not exists").HTTP(http.StatusNoContent)
-	CardImageNotExists = NewError("card image not exists").HTTP(http.StatusNoContent)
+	CardExists         = NewError("card exists", http.StatusBadRequest)
+	CardNotExists      = NewError("card not exists", http.StatusBadRequest)
+	CardImageExist     = NewError("card image already exists", http.StatusBadRequest)
+	CardImageNotExists = NewError("card image not exists", http.StatusBadRequest)
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
@@ -54,11 +58,15 @@ type Err struct {
 	Err     error
 }
 
-func NewError(message string) *Err {
-	return &Err{
+func NewError(message string, code ...int) *Err {
+	err := &Err{
 		Message: message,
-		Code:    http.StatusBadRequest,
+		Code:    http.StatusInternalServerError,
 	}
+	if len(code) > 0 {
+		err.Code = code[0]
+	}
+	return err
 }
 
 func (e Err) Error() string {

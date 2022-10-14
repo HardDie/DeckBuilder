@@ -1,9 +1,6 @@
 package repository
 
 import (
-	"net/http"
-	"path/filepath"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -23,7 +20,6 @@ type IGameRepository interface {
 	Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error)
 	DeleteByID(gameID string) error
 	GetImage(gameID string) ([]byte, string, error)
-	CreateImage(gameID, imageURL string) error
 	Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error)
 	Export(gameID string) ([]byte, error)
 	Import(data []byte, name string) (*entity.GameInfo, error)
@@ -51,7 +47,7 @@ func (s *GameRepository) Create(req *dto.CreateGameDTO) (*entity.GameInfo, error
 	}
 
 	// Download image
-	if err := s.CreateImage(game.ID, game.Image); err != nil {
+	if err := s.createImage(game.ID, game.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 	}
 
@@ -99,7 +95,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(newGame.ID); data != nil {
-		err = fs.RemoveFile(newGame.ImagePath(s.cfg))
+		err = s.db.GameImageDelete(newGame.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +106,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	}
 
 	// Download image
-	if err = s.CreateImage(newGame.ID, newGame.Image); err != nil {
+	if err = s.createImage(newGame.ID, newGame.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 	}
 
@@ -120,23 +116,7 @@ func (s *GameRepository) DeleteByID(gameID string) error {
 	return s.db.GameDelete(gameID)
 }
 func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
-	// Check if such an object exists
-	game, err := s.GetByID(gameID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	// Check if an image exists
-	isExist, err := fs.IsFileExist(game.ImagePath(s.cfg))
-	if err != nil {
-		return nil, "", err
-	}
-	if !isExist {
-		return nil, "", errors.GameImageNotExists
-	}
-
-	// Read an image from a file
-	data, err := fs.OpenAndProcess(game.ImagePath(s.cfg), fs.BinFromReader)
+	data, err := s.db.GameImageGet(gameID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -147,28 +127,6 @@ func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	}
 
 	return data, imgType, nil
-}
-func (s *GameRepository) CreateImage(gameID, imageURL string) error {
-	// Check if such an object exists
-	game, _ := s.GetByID(gameID)
-	if game == nil {
-		return errors.GameNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Download image
-	imageBytes, err := network.DownloadBytes(imageURL)
-	if err != nil {
-		return err
-	}
-
-	// Validate image
-	_, err = images.ValidateImage(imageBytes)
-	if err != nil {
-		return err
-	}
-
-	// Write image to file
-	return fs.CreateAndProcess(game.ImagePath(s.cfg), imageBytes, fs.BinToWriter)
 }
 func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
 	game, err := s.db.GameDuplicate(gameID, dtoObject.Name)
@@ -201,10 +159,8 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 	// Check if the root folder contains information about the game
 	game, err := s.GetByID(resultGameID)
 	if err != nil {
-		// Build a full relative path to the root game folder
-		gameRootPath := filepath.Join(s.cfg.Games(), resultGameID)
 		// If an error occurs during unzipping, delete the created folder with the game
-		errors.IfErrorLog(fs.RemoveFolder(gameRootPath))
+		errors.IfErrorLog(s.db.GameDelete(resultGameID))
 		return nil, err
 	}
 
@@ -228,4 +184,21 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 	}
 
 	return game, nil
+}
+
+func (s *GameRepository) createImage(gameID, imageURL string) error {
+	// Download image
+	imageBytes, err := network.DownloadBytes(imageURL)
+	if err != nil {
+		return err
+	}
+
+	// Validate image
+	_, err = images.ValidateImage(imageBytes)
+	if err != nil {
+		return err
+	}
+
+	// Write image to file
+	return s.db.GameImageCreate(gameID, imageBytes)
 }

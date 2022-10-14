@@ -1,14 +1,10 @@
 package repository
 
 import (
-	"net/http"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
-	"github.com/HardDie/DeckBuilder/internal/errors"
-	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -21,7 +17,6 @@ type IDeckRepository interface {
 	Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error)
 	DeleteByID(gameID, collectionID, deckID string) error
 	GetImage(gameID, collectionID, deckID string) ([]byte, string, error)
-	CreateImage(gameID, collectionID, deckID, imageURL string) error
 	GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error)
 }
 type DeckRepository struct {
@@ -47,7 +42,7 @@ func (s *DeckRepository) Create(gameID, collectionID string, req *dto.CreateDeck
 	}
 
 	// Download image
-	if err := s.CreateImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
+	if err := s.createImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
@@ -95,7 +90,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(gameID, collectionID, newDeck.ID); data != nil {
-		err = fs.RemoveFile(newDeck.ImagePath(gameID, collectionID, s.cfg))
+		err = s.db.DeckImageDelete(gameID, collectionID, deckID)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +101,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	}
 
 	// Download image
-	if err = s.CreateImage(gameID, collectionID, newDeck.ID, newDeck.Image); err != nil {
+	if err = s.createImage(gameID, collectionID, newDeck.ID, newDeck.Image); err != nil {
 		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 	}
 
@@ -116,23 +111,7 @@ func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
 	return s.db.DeckDelete(gameID, collectionID, deckID)
 }
 func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
-	// Check if such an object exists
-	deck, err := s.GetByID(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	// Check if an image exists
-	isExist, err := fs.IsFileExist(deck.ImagePath(gameID, collectionID, s.cfg))
-	if err != nil {
-		return nil, "", err
-	}
-	if !isExist {
-		return nil, "", errors.DeckImageNotExists
-	}
-
-	// Read an image from a file
-	data, err := fs.OpenAndProcess(deck.ImagePath(gameID, collectionID, s.cfg), fs.BinFromReader)
+	data, err := s.db.DeckImageGet(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -143,28 +122,6 @@ func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, 
 	}
 
 	return data, imgType, nil
-}
-func (s *DeckRepository) CreateImage(gameID, collectionID, deckID, imageURL string) error {
-	// Check if such an object exists
-	deck, _ := s.GetByID(gameID, collectionID, deckID)
-	if deck == nil {
-		return errors.DeckNotExists.HTTP(http.StatusBadRequest)
-	}
-
-	// Download image
-	imageBytes, err := network.DownloadBytes(imageURL)
-	if err != nil {
-		return err
-	}
-
-	// Validate image
-	_, err = images.ValidateImage(imageBytes)
-	if err != nil {
-		return err
-	}
-
-	// Write image to file
-	return fs.CreateAndProcess(deck.ImagePath(gameID, collectionID, s.cfg), imageBytes, fs.BinToWriter)
 }
 func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 	// Get all collections in selected game
@@ -198,4 +155,21 @@ func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, e
 		}
 	}
 	return decks, nil
+}
+
+func (s *DeckRepository) createImage(gameID, collectionID, deckID, imageURL string) error {
+	// Download image
+	imageBytes, err := network.DownloadBytes(imageURL)
+	if err != nil {
+		return err
+	}
+
+	// Validate image
+	_, err = images.ValidateImage(imageBytes)
+	if err != nil {
+		return err
+	}
+
+	// Write image to file
+	return s.db.DeckImageCreate(gameID, collectionID, deckID, imageBytes)
 }

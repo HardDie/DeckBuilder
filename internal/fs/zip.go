@@ -63,7 +63,7 @@ func UnarchiveFolder(data []byte, gameID string, cfg *config.Config) (resultGame
 
 		// The archive must not contain files outside the folder
 		if !file.Mode().IsDir() && len(pathList) < 2 {
-			return "", errors.BadArchive.AddMessage("The file is located outside the root folder")
+			return "", errors.BadArchive.AddMessage("Bad zip archive: the root of the zip file must contain only one folder")
 		}
 
 		// If this is the first file, extract the name of the root folder
@@ -73,14 +73,14 @@ func UnarchiveFolder(data []byte, gameID string, cfg *config.Config) (resultGame
 
 			// Check that the folder name matches the required format of the ID
 			if utils.NameToID(importGameID) != importGameID {
-				return "", errors.BadArchive.AddMessage("The root folder of the game has a bad ID")
+				return "", errors.BadArchive.AddMessage("Bad zip archive: the root folder of the game has a invalid ID")
 			}
 			continue
 		}
 
 		// The root folder for all files must be the same
 		if importGameID != pathList[0] {
-			return "", errors.BadArchive.AddMessage("There should only be one folder in the root of the archive")
+			return "", errors.BadArchive.AddMessage("Bad zip archive: there should only be one folder in the root of the archive")
 		}
 	}
 
