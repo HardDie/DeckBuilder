@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/HardDie/DeckBuilder/internal/errors"
@@ -14,8 +13,4 @@ func StringToInt64(in string) (int64, error) {
 		return 0, errors.BadId.AddMessage(err.Error())
 	}
 	return val, nil
-}
-
-func Int64ToString(in int64) string {
-	return fmt.Sprintf("%d", in)
 }

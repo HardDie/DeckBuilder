@@ -36,30 +36,6 @@ func IsFolderExist(path string) (isExist bool, err error) {
 	// folder exists
 	return true, nil
 }
-func IsFileExist(path string) (isExist bool, err error) {
-	stat, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// file not exist
-			return false, nil
-		}
-
-		// other error
-		errors.IfErrorLog(err)
-		err = errors.InternalError.AddMessage(err.Error())
-		return false, err
-	}
-
-	// check if it is a file
-	if stat.IsDir() {
-		err = errors.InternalError.AddMessage("there should be a file, but it's folder")
-		return false, err
-	}
-
-	// file exists
-	return true, nil
-}
-
 func CreateFolder(path string) error {
 	err := os.MkdirAll(path, DirPerm)
 	if err != nil {
@@ -96,15 +72,6 @@ func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error
 	defer func() { errors.IfErrorLog(file.Close()) }()
 
 	return cb(file, in)
-}
-func OpenAndProcess[T any](path string, cb func(r io.Reader) (T, error)) (res T, err error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return
-	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
-
-	return cb(file)
 }
 
 func PathToAbsolutePath(path string) string {
