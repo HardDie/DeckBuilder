@@ -13,12 +13,14 @@ import (
 )
 
 type GameServer struct {
-	gameService service.IGameService
+	gameService  service.IGameService
+	systemServer *SystemServer
 }
 
-func NewGameServer(gameService service.IGameService) *GameServer {
+func NewGameServer(gameService service.IGameService, systemServer *SystemServer) *GameServer {
 	return &GameServer{
-		gameService: gameService,
+		gameService:  gameService,
+		systemServer: systemServer,
 	}
 }
 
@@ -118,7 +120,7 @@ func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
-	NewSystemServer(nil).StopQuit()
+	s.systemServer.StopQuit()
 
 	sort := r.URL.Query().Get("sort")
 	items, e := s.gameService.List(sort)

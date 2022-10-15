@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -19,12 +18,6 @@ type CollectionInfo struct {
 	UpdatedAt   *time.Time `json:"updatedAt"`
 }
 
-func (i *CollectionInfo) Path(gameID string, cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), gameID, i.ID)
-}
-func (i *CollectionInfo) ImagePath(gameID string, cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), gameID, i.ID, cfg.ImageFilename)
-}
 func (i *CollectionInfo) GetName() string {
 	return strings.ToLower(i.Name)
 }

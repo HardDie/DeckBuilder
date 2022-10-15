@@ -45,6 +45,9 @@ var (
 	CardImageExist     = NewError("card image already exists", http.StatusBadRequest)
 	CardImageNotExists = NewError("card image not exists", http.StatusBadRequest)
 
+	// settings
+	SettingsNotExists = NewError("settings file not exists", http.StatusBadRequest)
+
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
 

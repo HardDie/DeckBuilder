@@ -12,11 +12,13 @@ import (
 
 type CollectionServer struct {
 	collectionService service.ICollectionService
+	systemServer      *SystemServer
 }
 
-func NewCollectionServer(collectionService service.ICollectionService) *CollectionServer {
+func NewCollectionServer(collectionService service.ICollectionService, systemServer *SystemServer) *CollectionServer {
 	return &CollectionServer{
 		collectionService: collectionService,
+		systemServer:      systemServer,
 	}
 }
 
@@ -56,7 +58,7 @@ func (s *CollectionServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
-	NewSystemServer(nil).StopQuit()
+	s.systemServer.StopQuit()
 
 	gameID := mux.Vars(r)["game"]
 	sort := r.URL.Query().Get("sort")

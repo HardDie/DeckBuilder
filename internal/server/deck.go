@@ -11,12 +11,14 @@ import (
 )
 
 type DeckServer struct {
-	deckService service.IDeckService
+	deckService  service.IDeckService
+	systemServer *SystemServer
 }
 
-func NewDeckServer(deckService service.IDeckService) *DeckServer {
+func NewDeckServer(deckService service.IDeckService, systemServer *SystemServer) *DeckServer {
 	return &DeckServer{
-		deckService: deckService,
+		deckService:  deckService,
+		systemServer: systemServer,
 	}
 }
 
@@ -68,7 +70,7 @@ func (s *DeckServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *DeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {
-	NewSystemServer(nil).StopQuit()
+	s.systemServer.StopQuit()
 
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]

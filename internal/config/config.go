@@ -27,10 +27,6 @@ type Config struct {
 	Cache  string `json:"cache"`
 	Result string `json:"result"`
 
-	Setting       string `json:"settings"`
-	InfoFilename  string `json:"infoFilename"`
-	ImageFilename string `json:"imageFilename"`
-
 	CardImagePath       string `json:"cardImagePath"`
 	DeckImagePath       string `json:"deckImagePath"`
 	CollectionImagePath string `json:"collectionImagePath"`
@@ -58,10 +54,6 @@ func Get(debugFlag bool, version string) *Config {
 		Cache:  "cache",
 		Result: "result",
 
-		Setting:       "settings.json",
-		InfoFilename:  ".info.json",
-		ImageFilename: ".image.bin",
-
 		CardImagePath:       "/api/games/%s/collections/%s/decks/%s/cards/%d/image",
 		DeckImagePath:       "/api/games/%s/collections/%s/decks/%s/image",
 		CollectionImagePath: "/api/games/%s/collections/%s/image",
@@ -69,14 +61,8 @@ func Get(debugFlag bool, version string) *Config {
 	}
 }
 
-func (c *Config) Settings() string {
-	return filepath.Join(c.Data, c.Setting)
-}
 func (c *Config) Games() string {
 	return filepath.Join(c.Data, c.Game)
-}
-func (c *Config) Caches() string {
-	return filepath.Join(c.Data, c.Cache)
 }
 func (c *Config) Results() string {
 	return filepath.Join(c.Data, c.Result)

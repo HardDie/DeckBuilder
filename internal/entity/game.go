@@ -22,9 +22,6 @@ type GameInfo struct {
 func (i *GameInfo) Path(cfg *config.Config) string {
 	return filepath.Join(cfg.Games(), i.ID)
 }
-func (i *GameInfo) ImagePath(cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), i.ID, cfg.ImageFilename)
-}
 func (i *GameInfo) GetName() string {
 	return strings.ToLower(i.Name)
 }

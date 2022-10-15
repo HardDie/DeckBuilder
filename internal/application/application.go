@@ -34,30 +34,31 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		logger.Error.Fatal(err)
 	}
 
+	// system
+	systemServer := server.NewSystemServer(cfg, service.NewService(cfg, builderDB))
+	api.RegisterSystemServer(routes, systemServer)
+
 	// game
 	gameRepository := repository.NewGameRepository(cfg, builderDB)
 	gameService := service.NewGameService(cfg, gameRepository)
-	api.RegisterGameServer(routes, server.NewGameServer(gameService))
+	api.RegisterGameServer(routes, server.NewGameServer(gameService, systemServer))
 
 	// collection
 	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
 	collectionService := service.NewCollectionService(cfg, collectionRepository)
-	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService))
+	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService, systemServer))
 
 	// deck
 	deckRepository := repository.NewDeckRepository(cfg, builderDB)
 	deckService := service.NewDeckService(cfg, deckRepository)
-	api.RegisterDeckServer(routes, server.NewDeckServer(deckService))
+	api.RegisterDeckServer(routes, server.NewDeckServer(deckService, systemServer))
 
 	// card
 	cardService := service.NewCardService(cfg, repository.NewCardRepository(cfg, builderDB))
-	api.RegisterCardServer(routes, server.NewCardServer(cardService))
+	api.RegisterCardServer(routes, server.NewCardServer(cardService, systemServer))
 
 	// image
 	api.RegisterImageServer(routes, server.NewImageServer(gameService, collectionService, deckService, cardService))
-
-	// system
-	api.RegisterSystemServer(routes, server.NewSystemServer(cfg))
 
 	// generator
 	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService)

@@ -12,12 +12,14 @@ import (
 )
 
 type CardServer struct {
-	cardService service.ICardService
+	cardService  service.ICardService
+	systemServer *SystemServer
 }
 
-func NewCardServer(cardService service.ICardService) *CardServer {
+func NewCardServer(cardService service.ICardService, systemServer *SystemServer) *CardServer {
 	return &CardServer{
-		cardService: cardService,
+		cardService:  cardService,
+		systemServer: systemServer,
 	}
 }
 
@@ -69,7 +71,7 @@ func (s *CardServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	network.Response(w, item)
 }
 func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
-	NewSystemServer(nil).StopQuit()
+	s.systemServer.StopQuit()
 
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]

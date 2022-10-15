@@ -1112,6 +1112,39 @@ func (s *DB) CardImageDelete(gameID, collectionID, deckID string, cardID int64) 
 	return nil
 }
 
+func (s *DB) SettingsGet() (*entity.SettingInfo, error) {
+	info, err := s.db.GetEntry("settings")
+	if err != nil {
+		if errors.Is(err, fsentry_error.ErrorNotExist) {
+			return nil, er.SettingsNotExists.AddMessage(err.Error())
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	setting := &entity.SettingInfo{}
+
+	err = json.Unmarshal(info.Data, setting)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	return setting, nil
+}
+func (s *DB) SettingsSet(data *entity.SettingInfo) error {
+	err := s.db.CreateEntry("settings", data)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, fsentry_error.ErrorExist) {
+		return err
+	}
+	err = s.db.UpdateEntry("settings", data)
+	if err != nil {
+		return er.InternalError.AddMessage(err.Error())
+	}
+	return nil
+}
+
 func convertMapString(in map[string]string) map[string]fsentry_types.QuotedString {
 	res := make(map[string]fsentry_types.QuotedString)
 	for key, val := range in {

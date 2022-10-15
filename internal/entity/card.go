@@ -2,12 +2,10 @@ package entity
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/fs"
 )
 
 type CardInfo struct {
@@ -22,9 +20,6 @@ type CardInfo struct {
 	UpdatedAt   *time.Time        `json:"updatedAt"`
 }
 
-func (i *CardInfo) ImagePath(gameID, collectionID, deckID string, cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), gameID, collectionID, deckID, "cards", fs.Int64ToString(i.ID)+".bin")
-}
 func (i *CardInfo) GetName() string {
 	return strings.ToLower(i.Name)
 }

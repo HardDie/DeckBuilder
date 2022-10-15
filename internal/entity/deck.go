@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -19,12 +18,6 @@ type DeckInfo struct {
 	UpdatedAt   *time.Time `json:"updatedAt"`
 }
 
-func (i *DeckInfo) Path(gameID, collectionID string, cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), gameID, collectionID, i.ID+".json")
-}
-func (i *DeckInfo) ImagePath(gameID, collectionID string, cfg *config.Config) string {
-	return filepath.Join(cfg.Games(), gameID, collectionID, i.ID, cfg.ImageFilename)
-}
 func (i *DeckInfo) GetName() string {
 	return strings.ToLower(i.Name)
 }

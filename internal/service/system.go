@@ -1,21 +1,28 @@
-package system
+package service
 
 import (
+	"log"
 	"os"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 )
 
+type ISystemService interface {
+	Quit()
+	GetSettings() (*entity.SettingInfo, error)
+	UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error)
+}
 type SystemService struct {
 	rep repository.ISystemRepository
 }
 
-func NewService(cfg *config.Config) *SystemService {
+func NewService(cfg *config.Config, db *db.DB) *SystemService {
 	return &SystemService{
-		rep: repository.NewSystemRepository(cfg),
+		rep: repository.NewSystemRepository(cfg, db),
 	}
 }
 
@@ -43,6 +50,7 @@ func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 	return settings, nil
 }
 func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error) {
+	log.Println("Update settings")
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err
@@ -56,7 +64,7 @@ func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entit
 		}
 	}
 	if isUpdated {
-		err = s.rep.SaveSettings(*set)
+		err = s.rep.SaveSettings(set)
 		if err != nil {
 			return nil, err
 		}
