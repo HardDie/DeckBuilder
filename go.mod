@@ -8,7 +8,6 @@ require (
 	github.com/go-openapi/runtime v0.23.3
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.8.0
-	github.com/otiai10/copy v1.7.0
 )
 
 require (
@@ -29,6 +28,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/otiai10/copy v1.7.0 // indirect
 	go.mongodb.org/mongo-driver v1.8.3 // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect

@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/otiai10/copy"
-
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -88,75 +86,6 @@ func RemoveFolder(path string) error {
 		return errors.InternalError.AddMessage(err.Error())
 	}
 	return nil
-}
-func MoveFolder(oldPath, newPath string) error {
-	err := os.Rename(oldPath, newPath)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func CopyFolder(oldPath, newPath string) error {
-	err := copy.Copy(oldPath, newPath)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func ListOfFolders(path string) ([]string, error) {
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-
-	folders := make([]string, 0)
-	for _, file := range files {
-		if !file.IsDir() {
-			continue
-		}
-		folders = append(folders, file.Name())
-	}
-
-	return folders, nil
-}
-
-func RemoveFile(path string) error {
-	err := os.Remove(path)
-	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func ListOfFiles(path string) ([]string, error) {
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return nil, errors.InternalError.AddMessage(err.Error())
-	}
-
-	listFiles := make([]string, 0)
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		if []rune(file.Name())[0] == '.' {
-			// Skip hidden files
-			continue
-		}
-		if filepath.Ext(file.Name()) != ".json" {
-			// Skip non json files
-			continue
-		}
-		listFiles = append(listFiles, file.Name())
-	}
-
-	return listFiles, nil
-}
-
-func GetFilenameWithoutExt(name string) string {
-	return name[:len(name)-len(filepath.Ext(name))]
 }
 
 func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error) error {
