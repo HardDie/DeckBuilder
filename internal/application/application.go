@@ -28,7 +28,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterStaticServer(routes)
 
 	// fsentry db
-	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Data))
 	err := builderDB.Init()
 	if err != nil {
 		logger.Error.Fatal(err)
