@@ -6,6 +6,7 @@ import (
 	"image"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/disintegration/imaging"
 
@@ -44,7 +45,13 @@ func NewGeneratorService(cfg *config.Config, gameService IGameService, collectio
 func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error {
 	pr := progress.GetProgress()
 
-	deckArray, totalCountOfCards, err := s.getListOfCards(gameID, dtoObject.SortOrder)
+	// Check if the game exists
+	gameItem, err := s.gameService.Item(gameID)
+	if err != nil {
+		return err
+	}
+
+	deckArray, totalCountOfCards, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
 	if err != nil {
 		return err
 	}
@@ -64,7 +71,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(deckArray, totalCountOfCards)
+		err = s.generateBody(gameItem, deckArray, totalCountOfCards)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
@@ -80,21 +87,15 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 	deckArray := entity.NewDeckArray()
 	totalCountOfCards := 0
 
-	// Check if the game exists
-	gameItem, err := s.gameService.Item(gameID)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	// Get collection list
-	collectionItems, err := s.collectionService.List(gameItem.ID, sortField)
+	collectionItems, err := s.collectionService.List(gameID, sortField)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
-		deckItems, err := s.deckService.List(gameItem.ID, collectionItem.ID, sortField)
+		deckItems, err := s.deckService.List(gameID, collectionItem.ID, sortField)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -102,20 +103,20 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
 			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
-			cardItems, err := s.cardService.List(gameItem.ID, collectionItem.ID, deckItem.ID, sortField)
+			cardItems, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField)
 			if err != nil {
 				return nil, 0, err
 			}
 			for _, cardItem := range cardItems {
 				// Add card a card to the linked unique deck
-				deckArray.AddCard(gameItem.ID, collectionItem.ID, cardItem.ID, cardItem.Count)
+				deckArray.AddCard(gameID, collectionItem.ID, cardItem.ID, cardItem.Count)
 				totalCountOfCards++
 			}
 		}
 	}
 	return deckArray, totalCountOfCards, nil
 }
-func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountOfCards int) error {
+func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *entity.DeckArray, totalCountOfCards int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
@@ -128,6 +129,7 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 	}
 	bag := tts_entity.Bag{
 		Name:      "Bag",
+		Nickname:  gameItem.Name,
 		Transform: transform,
 	}
 	deck := tts_entity.DeckObject{
@@ -316,12 +318,13 @@ func (s *GeneratorService) generateBody(deckArray *entity.DeckArray, totalCountO
 		}
 	}
 
+	bag.Description = fmt.Sprintf("Created at: %v", time.Now().Format("2006-01-02 15:04:05"))
 	root := tts_entity.RootObjects{
 		ObjectStates: []tts_entity.Bag{
 			bag,
 		},
 	}
-	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), "decks.json"), root, fs.JsonToWriter[tts_entity.RootObjects])
+	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), gameItem.ID+".json"), root, fs.JsonToWriter[tts_entity.RootObjects])
 	if err != nil {
 		return err
 	}
