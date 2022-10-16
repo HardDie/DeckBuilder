@@ -235,8 +235,8 @@ func (s *DB) GameDuplicate(srcName, dstName string) (*entity.GameInfo, error) {
 func (s *DB) GameUpdateInfo(name, newName string) error {
 	return s.db.UpdateFolderNameWithoutTimestamp(name, newName)
 }
-func (s *DB) GameImageCreate(name string, data []byte) error {
-	game, err := s.GameGet(name)
+func (s *DB) GameImageCreate(gameID string, data []byte) error {
+	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
 	}
@@ -251,8 +251,8 @@ func (s *DB) GameImageCreate(name string, data []byte) error {
 	}
 	return nil
 }
-func (s *DB) GameImageGet(name string) ([]byte, error) {
-	game, err := s.GameGet(name)
+func (s *DB) GameImageGet(gameID string) ([]byte, error) {
+	game, err := s.GameGet(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -267,8 +267,8 @@ func (s *DB) GameImageGet(name string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) GameImageDelete(name string) error {
-	game, err := s.GameGet(name)
+func (s *DB) GameImageDelete(gameID string) error {
+	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
 	}
@@ -456,12 +456,12 @@ func (s *DB) CollectionDelete(gameID, name string) error {
 	}
 	return nil
 }
-func (s *DB) CollectionImageCreate(gameID, name string, data []byte) error {
+func (s *DB) CollectionImageCreate(gameID, collectionID string, data []byte) error {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, name)
+	collection, err := s.CollectionGet(gameID, collectionID)
 	if err != nil {
 		return err
 	}
@@ -476,12 +476,12 @@ func (s *DB) CollectionImageCreate(gameID, name string, data []byte) error {
 	}
 	return nil
 }
-func (s *DB) CollectionImageGet(gameID, name string) ([]byte, error) {
+func (s *DB) CollectionImageGet(gameID, collectionID string) ([]byte, error) {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, name)
+	collection, err := s.CollectionGet(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -496,12 +496,12 @@ func (s *DB) CollectionImageGet(gameID, name string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) CollectionImageDelete(gameID, name string) error {
+func (s *DB) CollectionImageDelete(gameID, collectionID string) error {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, name)
+	collection, err := s.CollectionGet(gameID, collectionID)
 	if err != nil {
 		return err
 	}
@@ -719,7 +719,7 @@ func (s *DB) DeckDelete(gameID, collectionID, name string) error {
 	}
 	return nil
 }
-func (s *DB) DeckImageCreate(gameID, collectionID, name string, data []byte) error {
+func (s *DB) DeckImageCreate(gameID, collectionID, deckID string, data []byte) error {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
@@ -728,7 +728,7 @@ func (s *DB) DeckImageCreate(gameID, collectionID, name string, data []byte) err
 	if err != nil {
 		return err
 	}
-	deck, err := s.DeckGet(gameID, collectionID, name)
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
@@ -743,7 +743,7 @@ func (s *DB) DeckImageCreate(gameID, collectionID, name string, data []byte) err
 	}
 	return nil
 }
-func (s *DB) DeckImageGet(gameID, collectionID, name string) ([]byte, error) {
+func (s *DB) DeckImageGet(gameID, collectionID, deckID string) ([]byte, error) {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return nil, err
@@ -752,7 +752,7 @@ func (s *DB) DeckImageGet(gameID, collectionID, name string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	deck, err := s.DeckGet(gameID, collectionID, name)
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -767,7 +767,7 @@ func (s *DB) DeckImageGet(gameID, collectionID, name string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) DeckImageDelete(gameID, collectionID, name string) error {
+func (s *DB) DeckImageDelete(gameID, collectionID, deckID string) error {
 	game, err := s.GameGet(gameID)
 	if err != nil {
 		return err
@@ -776,7 +776,7 @@ func (s *DB) DeckImageDelete(gameID, collectionID, name string) error {
 	if err != nil {
 		return err
 	}
-	deck, err := s.DeckGet(gameID, collectionID, name)
+	deck, err := s.DeckGet(gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
