@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -70,7 +71,7 @@ func (s *DB) Drop() error {
 	return nil
 }
 
-func (s *DB) GameCreate(name, description, image string) (*entity.GameInfo, error) {
+func (s *DB) GameCreate(_ context.Context, name, description, image string) (*entity.GameInfo, error) {
 	info, err := s.db.CreateFolder(name, &commonInfo{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
@@ -95,25 +96,26 @@ func (s *DB) GameCreate(name, description, image string) (*entity.GameInfo, erro
 		Image:       image,
 	}, nil
 }
-func (s *DB) GameGet(name string) (*entity.GameInfo, error) {
+func (s *DB) GameGet(ctx context.Context, name string) (context.Context, *entity.GameInfo, error) {
 	info, err := s.db.GetFolder(name, s.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
-			return nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+			return ctx, nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry_error.ErrorBadName) {
-			return nil, er.BadName
+			return ctx, nil, er.BadName
 		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
+			return ctx, nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 	var gInfo commonInfo
 
 	err = json.Unmarshal(info.Data, &gInfo)
 	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.GameInfo{
+	ctx = context.WithValue(ctx, "gameID", info.Id)
+	return ctx, &entity.GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -123,7 +125,7 @@ func (s *DB) GameGet(name string) (*entity.GameInfo, error) {
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (s *DB) GameList() ([]*entity.GameInfo, error) {
+func (s *DB) GameList(ctx context.Context) ([]*entity.GameInfo, error) {
 	list, err := s.db.List(s.gamesPath)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
@@ -131,7 +133,7 @@ func (s *DB) GameList() ([]*entity.GameInfo, error) {
 
 	var games []*entity.GameInfo
 	for _, folder := range list.Folders {
-		game, err := s.GameGet(folder)
+		_, game, err := s.GameGet(ctx, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -140,7 +142,7 @@ func (s *DB) GameList() ([]*entity.GameInfo, error) {
 	}
 	return games, nil
 }
-func (s *DB) GameMove(oldName, newName string) (*entity.GameInfo, error) {
+func (s *DB) GameMove(_ context.Context, oldName, newName string) (*entity.GameInfo, error) {
 	info, err := s.db.MoveFolder(oldName, newName, s.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -168,7 +170,7 @@ func (s *DB) GameMove(oldName, newName string) (*entity.GameInfo, error) {
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (s *DB) GameUpdate(name, description, image string) (*entity.GameInfo, error) {
+func (s *DB) GameUpdate(_ context.Context, name, description, image string) (*entity.GameInfo, error) {
 	info, err := s.db.UpdateFolder(name, &commonInfo{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
@@ -199,7 +201,7 @@ func (s *DB) GameUpdate(name, description, image string) (*entity.GameInfo, erro
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (s *DB) GameDelete(name string) error {
+func (s *DB) GameDelete(_ context.Context, name string) error {
 	err := s.db.RemoveFolder(name, s.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -212,7 +214,7 @@ func (s *DB) GameDelete(name string) error {
 	}
 	return nil
 }
-func (s *DB) GameDuplicate(srcName, dstName string) (*entity.GameInfo, error) {
+func (s *DB) GameDuplicate(_ context.Context, srcName, dstName string) (*entity.GameInfo, error) {
 	info, err := s.db.DuplicateFolder(srcName, dstName, s.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -242,11 +244,11 @@ func (s *DB) GameDuplicate(srcName, dstName string) (*entity.GameInfo, error) {
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (s *DB) GameUpdateInfo(name, newName string) error {
+func (s *DB) GameUpdateInfo(_ context.Context, name, newName string) error {
 	return s.db.UpdateFolderNameWithoutTimestamp(name, newName, s.gamesPath)
 }
-func (s *DB) GameImageCreate(gameID string, data []byte) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) GameImageCreate(ctx context.Context, gameID string, data []byte) error {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return err
 	}
@@ -261,8 +263,8 @@ func (s *DB) GameImageCreate(gameID string, data []byte) error {
 	}
 	return nil
 }
-func (s *DB) GameImageGet(gameID string) ([]byte, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) GameImageGet(ctx context.Context, gameID string) ([]byte, error) {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -277,8 +279,8 @@ func (s *DB) GameImageGet(gameID string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) GameImageDelete(gameID string) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) GameImageDelete(ctx context.Context, gameID string) error {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return err
 	}
@@ -294,8 +296,8 @@ func (s *DB) GameImageDelete(gameID string) error {
 	return nil
 }
 
-func (s *DB) CollectionCreate(gameID, name, description, image string) (*entity.CollectionInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionCreate(ctx context.Context, gameID, name, description, image string) (*entity.CollectionInfo, error) {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -324,30 +326,31 @@ func (s *DB) CollectionCreate(gameID, name, description, image string) (*entity.
 		Image:       image,
 	}, nil
 }
-func (s *DB) CollectionGet(gameID, name string) (*entity.CollectionInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionGet(ctx context.Context, gameID, name string) (context.Context, *entity.CollectionInfo, error) {
+	ctx, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	info, err := s.db.GetFolder(name, s.gamesPath, game.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
-			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+			return ctx, nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry_error.ErrorBadName) {
-			return nil, er.BadName
+			return ctx, nil, er.BadName
 		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
+			return ctx, nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 	var cInfo commonInfo
 
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.CollectionInfo{
+	ctx = context.WithValue(ctx, "collectionID", info.Id)
+	return ctx, &entity.CollectionInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -357,8 +360,8 @@ func (s *DB) CollectionGet(gameID, name string) (*entity.CollectionInfo, error) 
 		Image:       cInfo.Image.String(),
 	}, nil
 }
-func (s *DB) CollectionList(gameID string) ([]*entity.CollectionInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionList(ctx context.Context, gameID string) ([]*entity.CollectionInfo, error) {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +373,7 @@ func (s *DB) CollectionList(gameID string) ([]*entity.CollectionInfo, error) {
 
 	var collections []*entity.CollectionInfo
 	for _, folder := range list.Folders {
-		collection, err := s.CollectionGet(game.ID, folder)
+		_, collection, err := s.CollectionGet(ctx, game.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -379,8 +382,8 @@ func (s *DB) CollectionList(gameID string) ([]*entity.CollectionInfo, error) {
 	}
 	return collections, nil
 }
-func (s *DB) CollectionMove(gameID, oldName, newName string) (*entity.CollectionInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionMove(ctx context.Context, gameID, oldName, newName string) (*entity.CollectionInfo, error) {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -412,8 +415,8 @@ func (s *DB) CollectionMove(gameID, oldName, newName string) (*entity.Collection
 		Image:       cInfo.Image.String(),
 	}, nil
 }
-func (s *DB) CollectionUpdate(gameID, name, description, image string) (*entity.CollectionInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionUpdate(ctx context.Context, gameID, name, description, image string) (*entity.CollectionInfo, error) {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -448,8 +451,8 @@ func (s *DB) CollectionUpdate(gameID, name, description, image string) (*entity.
 		Image:       cInfo.Image.String(),
 	}, nil
 }
-func (s *DB) CollectionDelete(gameID, name string) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionDelete(ctx context.Context, gameID, name string) error {
+	_, game, err := s.GameGet(ctx, gameID)
 	if err != nil {
 		return err
 	}
@@ -466,17 +469,14 @@ func (s *DB) CollectionDelete(gameID, name string) error {
 	}
 	return nil
 }
-func (s *DB) CollectionImageCreate(gameID, collectionID string, data []byte) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionImageCreate(ctx context.Context, gameID, collectionID string, data []byte) error {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	err = s.db.CreateBinary("image", data, s.gamesPath, game.ID, collection.ID)
+	err = s.db.CreateBinary("image", data, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.CollectionImageExist.AddMessage(err.Error())
@@ -486,17 +486,14 @@ func (s *DB) CollectionImageCreate(gameID, collectionID string, data []byte) err
 	}
 	return nil
 }
-func (s *DB) CollectionImageGet(gameID, collectionID string) ([]byte, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionImageGet(ctx context.Context, gameID, collectionID string) ([]byte, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	data, err := s.db.GetBinary("image", s.gamesPath, game.ID, collection.ID)
+	data, err := s.db.GetBinary("image", s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CollectionImageNotExists.AddMessage(err.Error())
@@ -506,17 +503,14 @@ func (s *DB) CollectionImageGet(gameID, collectionID string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) CollectionImageDelete(gameID, collectionID string) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CollectionImageDelete(ctx context.Context, gameID, collectionID string) error {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	err = s.db.RemoveBinary("image", s.gamesPath, game.ID, collection.ID)
+	err = s.db.RemoveBinary("image", s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CollectionImageNotExists.AddMessage(err.Error())
@@ -527,20 +521,17 @@ func (s *DB) CollectionImageDelete(gameID, collectionID string) error {
 	return nil
 }
 
-func (s *DB) DeckCreate(gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckCreate(ctx context.Context, gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
 	info, err := s.db.CreateFolder(name, &commonInfo{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
-	}, s.gamesPath, game.ID, collection.ID)
+	}, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return nil, er.DeckExist
@@ -552,7 +543,7 @@ func (s *DB) DeckCreate(gameID, collectionID, name, description, image string) (
 	}
 
 	// Create folder for cards
-	_, err = s.db.CreateFolder("cards", nil, s.gamesPath, game.ID, collection.ID, info.Id)
+	_, err = s.db.CreateFolder("cards", nil, s.gamesPath, ctxGameID, collection.ID, info.Id)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
@@ -567,34 +558,32 @@ func (s *DB) DeckCreate(gameID, collectionID, name, description, image string) (
 		Image:       image,
 	}, nil
 }
-func (s *DB) DeckGet(gameID, collectionID, name string) (*entity.DeckInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckGet(ctx context.Context, gameID, collectionID, name string) (context.Context, *entity.DeckInfo, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	info, err := s.db.GetFolder(name, s.gamesPath, game.ID, collection.ID)
+	info, err := s.db.GetFolder(name, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
-			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+			return ctx, nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry_error.ErrorBadName) {
-			return nil, er.BadName
+			return ctx, nil, er.BadName
 		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
+			return ctx, nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 	var dInfo commonInfo
 
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.DeckInfo{
+	ctx = context.WithValue(ctx, "deckID", info.Id)
+	return ctx, &entity.DeckInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -604,24 +593,21 @@ func (s *DB) DeckGet(gameID, collectionID, name string) (*entity.DeckInfo, error
 		Image:       dInfo.Image.String(),
 	}, nil
 }
-func (s *DB) DeckList(gameID, collectionID string) ([]*entity.DeckInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckList(ctx context.Context, gameID, collectionID string) ([]*entity.DeckInfo, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	list, err := s.db.List(s.gamesPath, game.ID, collection.ID)
+	list, err := s.db.List(s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	var decks []*entity.DeckInfo
 	for _, folder := range list.Folders {
-		deck, err := s.DeckGet(game.ID, collection.ID, folder)
+		_, deck, err := s.DeckGet(ctx, ctxGameID, collection.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -630,17 +616,14 @@ func (s *DB) DeckList(gameID, collectionID string) ([]*entity.DeckInfo, error) {
 	}
 	return decks, nil
 }
-func (s *DB) DeckMove(gameID, collectionID, oldName, newName string) (*entity.DeckInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckMove(ctx context.Context, gameID, collectionID, oldName, newName string) (*entity.DeckInfo, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	info, err := s.db.MoveFolder(oldName, newName, s.gamesPath, game.ID, collection.ID)
+	info, err := s.db.MoveFolder(oldName, newName, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -667,20 +650,17 @@ func (s *DB) DeckMove(gameID, collectionID, oldName, newName string) (*entity.De
 		Image:       dInfo.Image.String(),
 	}, nil
 }
-func (s *DB) DeckUpdate(gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckUpdate(ctx context.Context, gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
 	info, err := s.db.UpdateFolder(name, &commonInfo{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
-	}, s.gamesPath, game.ID, collection.ID)
+	}, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -707,17 +687,14 @@ func (s *DB) DeckUpdate(gameID, collectionID, name, description, image string) (
 		Image:       dInfo.Image.String(),
 	}, nil
 }
-func (s *DB) DeckDelete(gameID, collectionID, name string) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckDelete(ctx context.Context, gameID, collectionID, name string) error {
+	ctx, collection, err := s.CollectionGet(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
 
-	err = s.db.RemoveFolder(name, s.gamesPath, game.ID, collection.ID)
+	err = s.db.RemoveFolder(name, s.gamesPath, ctxGameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -729,21 +706,15 @@ func (s *DB) DeckDelete(gameID, collectionID, name string) error {
 	}
 	return nil
 }
-func (s *DB) DeckImageCreate(gameID, collectionID, deckID string, data []byte) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckImageCreate(ctx context.Context, gameID, collectionID, deckID string, data []byte) error {
+	ctx, deck, err := s.DeckGet(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	err = s.db.CreateBinary("image", data, s.gamesPath, game.ID, collection.ID, deck.ID)
+	err = s.db.CreateBinary("image", data, s.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.DeckImageExist.AddMessage(err.Error())
@@ -753,21 +724,15 @@ func (s *DB) DeckImageCreate(gameID, collectionID, deckID string, data []byte) e
 	}
 	return nil
 }
-func (s *DB) DeckImageGet(gameID, collectionID, deckID string) ([]byte, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckImageGet(ctx context.Context, gameID, collectionID, deckID string) ([]byte, error) {
+	ctx, deck, err := s.DeckGet(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	data, err := s.db.GetBinary("image", s.gamesPath, game.ID, collection.ID, deck.ID)
+	data, err := s.db.GetBinary("image", s.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckImageNotExists.AddMessage(err.Error())
@@ -777,21 +742,15 @@ func (s *DB) DeckImageGet(gameID, collectionID, deckID string) ([]byte, error) {
 	}
 	return data, nil
 }
-func (s *DB) DeckImageDelete(gameID, collectionID, deckID string) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) DeckImageDelete(ctx context.Context, gameID, collectionID, deckID string) error {
+	ctx, deck, err := s.DeckGet(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	err = s.db.RemoveBinary("image", s.gamesPath, game.ID, collection.ID, deck.ID)
+	err = s.db.RemoveBinary("image", s.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.DeckImageNotExists.AddMessage(err.Error())
@@ -802,24 +761,14 @@ func (s *DB) DeckImageDelete(gameID, collectionID, deckID string) error {
 	return nil
 }
 
-func (s *DB) CardCreate(gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardCreate(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+	ctx, list, err := s.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	list, err := s.rawCardList(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
 	// Search for the largest card ID
 	maxID := int64(1)
@@ -845,7 +794,7 @@ func (s *DB) CardCreate(gameID, collectionID, deckID, name, description, image s
 	list[cardInfo.ID] = cardInfo
 
 	// Writing an array of cards to a file again
-	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, game.ID, collection.ID, deck.ID)
+	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -867,18 +816,18 @@ func (s *DB) CardCreate(gameID, collectionID, deckID, name, description, image s
 		UpdatedAt:   nil,
 	}, nil
 }
-func (s *DB) CardGet(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	list, err := s.rawCardList(gameID, collectionID, deckID)
+func (s *DB) CardGet(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (context.Context, *entity.CardInfo, error) {
+	ctx, list, err := s.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	card, ok := list[cardID]
 	if !ok {
-		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
+		return ctx, nil, er.CardNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	return &entity.CardInfo{
+	return ctx, &entity.CardInfo{
 		ID:          card.ID,
 		Name:        card.Name.String(),
 		Description: card.Description.String(),
@@ -889,8 +838,8 @@ func (s *DB) CardGet(gameID, collectionID, deckID string, cardID int64) (*entity
 		UpdatedAt:   card.UpdatedAt,
 	}, nil
 }
-func (s *DB) CardList(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
-	list, err := s.rawCardList(gameID, collectionID, deckID)
+func (s *DB) CardList(ctx context.Context, gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
+	ctx, list, err := s.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -910,24 +859,14 @@ func (s *DB) CardList(gameID, collectionID, deckID string) ([]*entity.CardInfo, 
 	}
 	return cards, nil
 }
-func (s *DB) CardUpdate(gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardUpdate(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+	ctx, list, err := s.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	list, err := s.rawCardList(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
 	card, ok := list[cardID]
 	if !ok {
@@ -944,7 +883,7 @@ func (s *DB) CardUpdate(gameID, collectionID, deckID string, cardID int64, name,
 	list[card.ID] = card
 
 	// Writing an array of cards to a file again
-	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, game.ID, collection.ID, deck.ID)
+	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -966,24 +905,14 @@ func (s *DB) CardUpdate(gameID, collectionID, deckID string, cardID int64, name,
 		UpdatedAt:   card.UpdatedAt,
 	}, nil
 }
-func (s *DB) CardDelete(gameID, collectionID, deckID string, cardID int64) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardDelete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
+	ctx, list, err := s.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
-
-	list, err := s.rawCardList(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
 	if _, ok := list[cardID]; !ok {
 		return er.CardNotExists
@@ -992,7 +921,7 @@ func (s *DB) CardDelete(gameID, collectionID, deckID string, cardID int64) error
 	delete(list, cardID)
 
 	// Writing an array of cards to a file again
-	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, game.ID, collection.ID, deck.ID)
+	_, err = s.db.UpdateFolder("cards", list, s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CardNotExists.AddMessage(err.Error())
@@ -1005,57 +934,42 @@ func (s *DB) CardDelete(gameID, collectionID, deckID string, cardID int64) error
 
 	return nil
 }
-func (s *DB) rawCardList(gameID, collectionID, deckID string) (map[int64]*cardInfo, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, map[int64]*cardInfo, error) {
+	ctx, deck, err := s.DeckGet(ctx, gameID, collectionID, deckID)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
 
 	// Get all the cards
-	info, err := s.db.GetFolder("cards", s.gamesPath, game.ID, collection.ID, deck.ID)
+	info, err := s.db.GetFolder("cards", s.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
 	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	// Parsing an array of cards from json
 	var list map[int64]*cardInfo
 	err = json.Unmarshal(info.Data, &list)
 	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	if list == nil {
 		list = make(map[int64]*cardInfo)
 	}
-	return list, nil
+	return ctx, list, nil
 }
-func (s *DB) CardImageCreate(gameID, collectionID, deckID string, cardID int64, data []byte) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardImageCreate(ctx context.Context, gameID, collectionID, deckID string, cardID int64, data []byte) error {
+	ctx, card, err := s.CardGet(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
-	card, err := s.CardGet(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
-	err = s.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, s.gamesPath, game.ID, collection.ID, deck.ID, "cards")
+	err = s.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.CardImageExist.AddMessage(err.Error())
@@ -1065,25 +979,16 @@ func (s *DB) CardImageCreate(gameID, collectionID, deckID string, cardID int64, 
 	}
 	return nil
 }
-func (s *DB) CardImageGet(gameID, collectionID, deckID string, cardID int64) ([]byte, error) {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardImageGet(ctx context.Context, gameID, collectionID, deckID string, cardID int64) ([]byte, error) {
+	ctx, card, err := s.CardGet(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-	card, err := s.CardGet(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return nil, err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
-	data, err := s.db.GetBinary(fmt.Sprintf("%d", card.ID), s.gamesPath, game.ID, collection.ID, deck.ID, "cards")
+	data, err := s.db.GetBinary(fmt.Sprintf("%d", card.ID), s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardImageNotExists.AddMessage(err.Error())
@@ -1093,25 +998,16 @@ func (s *DB) CardImageGet(gameID, collectionID, deckID string, cardID int64) ([]
 	}
 	return data, nil
 }
-func (s *DB) CardImageDelete(gameID, collectionID, deckID string, cardID int64) error {
-	game, err := s.GameGet(gameID)
+func (s *DB) CardImageDelete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
+	ctx, card, err := s.CardGet(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return err
 	}
-	collection, err := s.CollectionGet(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-	deck, err := s.DeckGet(gameID, collectionID, deckID)
-	if err != nil {
-		return err
-	}
-	card, err := s.CardGet(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return err
-	}
+	ctxGameID := ctx.Value("gameID").(string)
+	ctxCollectionID := ctx.Value("collectionID").(string)
+	ctxDeckID := ctx.Value("deckID").(string)
 
-	err = s.db.RemoveBinary(fmt.Sprintf("%d", card.ID), s.gamesPath, game.ID, collection.ID, deck.ID, "cards")
+	err = s.db.RemoveBinary(fmt.Sprintf("%d", card.ID), s.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CardImageNotExists.AddMessage(err.Error())

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -35,7 +36,7 @@ func NewCardRepository(cfg *config.Config, db *db.DB) *CardRepository {
 }
 
 func (s *CardRepository) Create(gameID, collectionID, deckID string, req *dto.CreateCardDTO) (*entity.CardInfo, error) {
-	card, err := s.db.CardCreate(gameID, collectionID, deckID, req.Name, req.Description, req.Image, req.Variables, req.Count)
+	card, err := s.db.CardCreate(context.Background(), gameID, collectionID, deckID, req.Name, req.Description, req.Image, req.Variables, req.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -52,13 +53,14 @@ func (s *CardRepository) Create(gameID, collectionID, deckID string, req *dto.Cr
 	return card, nil
 }
 func (s *CardRepository) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	return s.db.CardGet(gameID, collectionID, deckID, cardID)
+	_, resp, err := s.db.CardGet(context.Background(), gameID, collectionID, deckID, cardID)
+	return resp, err
 }
 func (s *CardRepository) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
-	return s.db.CardList(gameID, collectionID, deckID)
+	return s.db.CardList(context.Background(), gameID, collectionID, deckID)
 }
 func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int64, req *dto.UpdateCardDTO) (*entity.CardInfo, error) {
-	oldCard, err := s.db.CardGet(gameID, collectionID, deckID, cardID)
+	_, oldCard, err := s.db.CardGet(context.Background(), gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 		oldCard.Count != req.Count ||
 		!utils.CompareMaps(oldCard.Variables, req.Variables) {
 		// Update data
-		newCard, err = s.db.CardUpdate(gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
+		newCard, err = s.db.CardUpdate(context.Background(), gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +90,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(gameID, collectionID, deckID, newCard.ID); data != nil {
-		err = s.db.CardImageDelete(gameID, collectionID, deckID, cardID)
+		err = s.db.CardImageDelete(context.Background(), gameID, collectionID, deckID, cardID)
 		if err != nil {
 			return nil, err
 		}
@@ -106,17 +108,17 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	return newCard, nil
 }
 func (s *CardRepository) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
-	err := s.db.CardImageDelete(gameID, collectionID, deckID, cardID)
+	err := s.db.CardImageDelete(context.Background(), gameID, collectionID, deckID, cardID)
 	if err != nil {
 		// Skip if image not exist
 		if !errors.Is(err, er.CardImageNotExists) {
 			return err
 		}
 	}
-	return s.db.CardDelete(gameID, collectionID, deckID, cardID)
+	return s.db.CardDelete(context.Background(), gameID, collectionID, deckID, cardID)
 }
 func (s *CardRepository) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
-	data, err := s.db.CardImageGet(gameID, collectionID, deckID, cardID)
+	data, err := s.db.CardImageGet(context.Background(), gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -143,5 +145,5 @@ func (s *CardRepository) createImage(gameID, collectionID, deckID string, cardID
 	}
 
 	// Write image to file
-	return s.db.CardImageCreate(gameID, collectionID, deckID, cardID, imageBytes)
+	return s.db.CardImageCreate(context.Background(), gameID, collectionID, deckID, cardID, imageBytes)
 }

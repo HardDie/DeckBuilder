@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -32,7 +34,7 @@ func NewDeckRepository(cfg *config.Config, db *db.DB) *DeckRepository {
 }
 
 func (s *DeckRepository) Create(gameID, collectionID string, req *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
-	deck, err := s.db.DeckCreate(gameID, collectionID, req.Name, req.Description, req.Image)
+	deck, err := s.db.DeckCreate(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +51,14 @@ func (s *DeckRepository) Create(gameID, collectionID string, req *dto.CreateDeck
 	return deck, nil
 }
 func (s *DeckRepository) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
-	return s.db.DeckGet(gameID, collectionID, deckID)
+	_, resp, err := s.db.DeckGet(context.Background(), gameID, collectionID, deckID)
+	return resp, err
 }
 func (s *DeckRepository) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
-	return s.db.DeckList(gameID, collectionID)
+	return s.db.DeckList(context.Background(), gameID, collectionID)
 }
 func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
-	oldDeck, err := s.db.DeckGet(gameID, collectionID, deckID)
+	_, oldDeck, err := s.db.DeckGet(context.Background(), gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +66,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	var newDeck *entity.DeckInfo
 	if oldDeck.Name != dtoObject.Name {
 		// Rename folder
-		newDeck, err = s.db.DeckMove(gameID, collectionID, oldDeck.Name, dtoObject.Name)
+		newDeck, err = s.db.DeckMove(context.Background(), gameID, collectionID, oldDeck.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +75,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	if oldDeck.Description != dtoObject.Description ||
 		oldDeck.Image != dtoObject.Image {
 		// Update data
-		newDeck, err = s.db.DeckUpdate(gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newDeck, err = s.db.DeckUpdate(context.Background(), gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +93,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(gameID, collectionID, newDeck.ID); data != nil {
-		err = s.db.DeckImageDelete(gameID, collectionID, deckID)
+		err = s.db.DeckImageDelete(context.Background(), gameID, collectionID, deckID)
 		if err != nil {
 			return nil, err
 		}
@@ -108,10 +111,10 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	return newDeck, nil
 }
 func (s *DeckRepository) DeleteByID(gameID, collectionID, deckID string) error {
-	return s.db.DeckDelete(gameID, collectionID, deckID)
+	return s.db.DeckDelete(context.Background(), gameID, collectionID, deckID)
 }
 func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
-	data, err := s.db.DeckImageGet(gameID, collectionID, deckID)
+	data, err := s.db.DeckImageGet(context.Background(), gameID, collectionID, deckID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -125,7 +128,7 @@ func (s *DeckRepository) GetImage(gameID, collectionID, deckID string) ([]byte, 
 }
 func (s *DeckRepository) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 	// Get all collections in selected game
-	listCollections, err := s.db.CollectionList(gameID)
+	listCollections, err := s.db.CollectionList(context.Background(), gameID)
 	if err != nil {
 		return make([]*entity.DeckInfo, 0), err
 	}
@@ -171,5 +174,5 @@ func (s *DeckRepository) createImage(gameID, collectionID, deckID, imageURL stri
 	}
 
 	// Write image to file
-	return s.db.DeckImageCreate(gameID, collectionID, deckID, imageBytes)
+	return s.db.DeckImageCreate(context.Background(), gameID, collectionID, deckID, imageBytes)
 }

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/db"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -37,7 +39,7 @@ func NewGameRepository(cfg *config.Config, db *db.DB) *GameRepository {
 }
 
 func (s *GameRepository) Create(req *dto.CreateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.db.GameCreate(req.Name, req.Description, req.Image)
+	game, err := s.db.GameCreate(context.Background(), req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +56,14 @@ func (s *GameRepository) Create(req *dto.CreateGameDTO) (*entity.GameInfo, error
 	return game, nil
 }
 func (s *GameRepository) GetByID(gameID string) (*entity.GameInfo, error) {
-	return s.db.GameGet(gameID)
+	_, resp, err := s.db.GameGet(context.Background(), gameID)
+	return resp, err
 }
 func (s *GameRepository) GetAll() ([]*entity.GameInfo, error) {
-	return s.db.GameList()
+	return s.db.GameList(context.Background())
 }
 func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
-	oldGame, err := s.db.GameGet(gameID)
+	_, oldGame, err := s.db.GameGet(context.Background(), gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +71,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	var newGame *entity.GameInfo
 	if oldGame.Name != dtoObject.Name {
 		// Rename folder
-		newGame, err = s.db.GameMove(oldGame.Name, dtoObject.Name)
+		newGame, err = s.db.GameMove(context.Background(), oldGame.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +80,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	if oldGame.Description != dtoObject.Description ||
 		oldGame.Image != dtoObject.Image {
 		// Update data
-		newGame, err = s.db.GameUpdate(dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newGame, err = s.db.GameUpdate(context.Background(), dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +98,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(newGame.ID); data != nil {
-		err = s.db.GameImageDelete(newGame.ID)
+		err = s.db.GameImageDelete(context.Background(), newGame.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -113,10 +116,10 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	return newGame, nil
 }
 func (s *GameRepository) DeleteByID(gameID string) error {
-	return s.db.GameDelete(gameID)
+	return s.db.GameDelete(context.Background(), gameID)
 }
 func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
-	data, err := s.db.GameImageGet(gameID)
+	data, err := s.db.GameImageGet(context.Background(), gameID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -129,7 +132,7 @@ func (s *GameRepository) GetImage(gameID string) ([]byte, string, error) {
 	return data, imgType, nil
 }
 func (s *GameRepository) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.db.GameDuplicate(gameID, dtoObject.Name)
+	game, err := s.db.GameDuplicate(context.Background(), gameID, dtoObject.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +163,7 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 	game, err := s.GetByID(resultGameID)
 	if err != nil {
 		// If an error occurs during unzipping, delete the created folder with the game
-		errors.IfErrorLog(s.db.GameDelete(resultGameID))
+		errors.IfErrorLog(s.db.GameDelete(context.Background(), resultGameID))
 		return nil, err
 	}
 
@@ -178,7 +181,7 @@ func (s *GameRepository) Import(data []byte, name string) (*entity.GameInfo, err
 		game.ID = gameID
 		game.Name = name
 
-		if err = s.db.GameUpdateInfo(game.ID, name); err != nil {
+		if err = s.db.GameUpdateInfo(context.Background(), game.ID, name); err != nil {
 			return nil, err
 		}
 	}
@@ -200,5 +203,5 @@ func (s *GameRepository) createImage(gameID, imageURL string) error {
 	}
 
 	// Write image to file
-	return s.db.GameImageCreate(gameID, imageBytes)
+	return s.db.GameImageCreate(context.Background(), gameID, imageBytes)
 }
