@@ -103,7 +103,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
 			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
-			cardItems, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField)
+			cardItems, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
 				return nil, 0, err
 			}

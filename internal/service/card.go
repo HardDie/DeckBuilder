@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
@@ -11,7 +13,7 @@ import (
 type ICardService interface {
 	Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*entity.CardInfo, error)
 	Item(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error)
-	List(gameID, collectionID, deckID, sortField string) ([]*entity.CardInfo, error)
+	List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, error)
 	Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error)
 	Delete(gameID, collectionID, deckID string, cardID int64) error
 	GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error)
@@ -47,19 +49,38 @@ func (s *CardService) Item(gameID, collectionID, deckID string, cardID int64) (*
 	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
-func (s *CardService) List(gameID, collectionID, deckID, sortField string) ([]*entity.CardInfo, error) {
+func (s *CardService) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, error) {
 	items, err := s.cardRepository.GetAll(gameID, collectionID, deckID)
 	if err != nil {
 		return make([]*entity.CardInfo, 0), err
 	}
-	utils.Sort(&items, sortField)
-	for i := 0; i < len(items); i++ {
-		items[i].FillCachedImage(s.cfg, gameID, collectionID, deckID)
+
+	// Filter
+	var filteredItems []*entity.CardInfo
+	if search != "" {
+		search = strings.ToLower(search)
+		for _, item := range items {
+			if strings.Contains(strings.ToLower(item.Name), search) {
+				filteredItems = append(filteredItems, item)
+			}
+		}
+	} else {
+		filteredItems = items
 	}
-	if items == nil {
-		items = make([]*entity.CardInfo, 0)
+
+	//Sorting
+	utils.Sort(&filteredItems, sortField)
+
+	// Generate field cachedImage
+	for i := 0; i < len(filteredItems); i++ {
+		filteredItems[i].FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	}
-	return items, nil
+
+	// Return empty array if no elements
+	if filteredItems == nil {
+		filteredItems = make([]*entity.CardInfo, 0)
+	}
+	return filteredItems, nil
 }
 func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
 	card, err := s.cardRepository.Update(gameID, collectionID, deckID, cardID, dtoObject)

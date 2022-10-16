@@ -189,7 +189,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	cardName := []string{"B card", "A card"}
 
 	// Empty list
-	items, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "")
+	items, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// One card
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name_desc")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +253,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +268,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created_desc")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -295,7 +295,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Empty list
-	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "")
+	items, err = tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -520,7 +520,7 @@ func (tt *cardTest) fuzzCleanup() {
 	_ = tt.db.Init()
 }
 func (tt *cardTest) fuzzList(t *testing.T, waitItems int) error {
-	items, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID, "")
+	items, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID, "", "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")

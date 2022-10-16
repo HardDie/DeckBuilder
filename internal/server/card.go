@@ -77,7 +77,8 @@ func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
 	sort := r.URL.Query().Get("sort")
-	items, e := s.cardService.List(gameID, collectionID, deckID, sort)
+	search := r.URL.Query().Get("search")
+	items, e := s.cardService.List(gameID, collectionID, deckID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
