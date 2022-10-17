@@ -6,8 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type CollectionServer struct {
@@ -24,11 +26,26 @@ func NewCollectionServer(collectionService service.ICollectionService, systemSer
 
 func (s *CollectionServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	dtoObject := &dto.CreateCollectionDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.CreateCollectionDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.collectionService.Create(gameID, dtoObject)
@@ -73,11 +90,26 @@ func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 func (s *CollectionServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	dtoObject := &dto.UpdateCollectionDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.UpdateCollectionDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.collectionService.Update(gameID, collectionID, dtoObject)

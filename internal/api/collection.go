@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
@@ -41,12 +40,18 @@ type RequestCreateCollection struct {
 	// In: path
 	// Required: true
 	Game string `json:"game"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.CreateCollectionDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of collection creation
@@ -216,12 +221,18 @@ type RequestUpdateCollection struct {
 	// In: path
 	// Required: true
 	Collection string `json:"collection"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.UpdateCollectionDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of collection update

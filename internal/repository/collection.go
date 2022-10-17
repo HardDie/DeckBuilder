@@ -32,19 +32,27 @@ func NewCollectionRepository(cfg *config.Config, db *db.DB) *CollectionRepositor
 	}
 }
 
-func (s *CollectionRepository) Create(gameID string, req *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.db.CollectionCreate(context.Background(), gameID, req.Name, req.Description, req.Image)
+func (s *CollectionRepository) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
+	collection, err := s.db.CollectionCreate(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if collection.Image == "" {
+	if collection.Image == "" && dtoObject.ImageFile == nil {
 		return collection, nil
 	}
 
-	// Download image
-	if err := s.createImage(gameID, collection.ID, collection.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
+	if collection.Image != "" {
+		// Download image
+		err = s.createImage(gameID, collection.ID, collection.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(gameID, collection.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
+		}
 	}
 
 	return collection, nil
@@ -86,7 +94,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	}
 
 	// If the image has not been changed
-	if newCollection.Image == oldCollection.Image {
+	if newCollection.Image == oldCollection.Image && dtoObject.ImageFile == nil {
 		return newCollection, nil
 	}
 
@@ -98,13 +106,21 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 		}
 	}
 
-	if newCollection.Image == "" {
+	if newCollection.Image == "" && dtoObject.ImageFile == nil {
 		return newCollection, nil
 	}
 
-	// Download image
-	if err = s.createImage(gameID, newCollection.ID, newCollection.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
+	if newCollection.Image != "" {
+		// Download image
+		err = s.createImage(gameID, newCollection.ID, newCollection.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(gameID, newCollection.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
+		}
 	}
 
 	return newCollection, nil
@@ -133,12 +149,15 @@ func (s *CollectionRepository) createImage(gameID, collectionID, imageURL string
 		return err
 	}
 
+	return s.createImageFromByte(gameID, collectionID, imageBytes)
+}
+func (s *CollectionRepository) createImageFromByte(gameID, collectionID string, data []byte) error {
 	// Validate image
-	_, err = images.ValidateImage(imageBytes)
+	_, err := images.ValidateImage(data)
 	if err != nil {
 		return err
 	}
 
 	// Write image to file
-	return s.db.CollectionImageCreate(context.Background(), gameID, collectionID, imageBytes)
+	return s.db.CollectionImageCreate(context.Background(), gameID, collectionID, data)
 }
