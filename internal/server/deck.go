@@ -6,8 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type DeckServer struct {
@@ -34,11 +36,26 @@ func (s *DeckServer) AllDecksHandler(w http.ResponseWriter, r *http.Request) {
 func (s *DeckServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	dtoObject := &dto.CreateDeckDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.CreateDeckDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.deckService.Create(gameID, collectionID, dtoObject)
@@ -87,11 +104,26 @@ func (s *DeckServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	dtoObject := &dto.UpdateDeckDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.UpdateDeckDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.deckService.Update(gameID, collectionID, deckID, dtoObject)

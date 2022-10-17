@@ -622,7 +622,7 @@
       "post": {
         "description": "Allows you to create a new deck",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -651,26 +651,34 @@
             "required": true
           },
           {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "description": {
-                  "type": "string",
-                  "x-go-name": "Description"
-                },
-                "image": {
-                  "type": "string",
-                  "x-go-name": "Image"
-                },
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Description",
+            "name": "description",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Image",
+            "name": "image",
+            "in": "formData"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "ImageFile",
+            "name": "imageFile",
+            "in": "formData"
           }
         ],
         "responses": {
@@ -783,7 +791,7 @@
       "patch": {
         "description": "Allows you to update an existing deck",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -819,26 +827,34 @@
             "required": true
           },
           {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "description": {
-                  "type": "string",
-                  "x-go-name": "Description"
-                },
-                "image": {
-                  "type": "string",
-                  "x-go-name": "Image"
-                },
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Description",
+            "name": "description",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Image",
+            "name": "image",
+            "in": "formData"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "ImageFile",
+            "name": "imageFile",
+            "in": "formData"
           }
         ],
         "responses": {

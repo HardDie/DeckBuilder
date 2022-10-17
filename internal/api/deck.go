@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
@@ -86,12 +85,18 @@ type RequestCreateDeck struct {
 	// In: path
 	// Required: true
 	Collection string `json:"collection"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.CreateDeckDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of deck creation
@@ -113,7 +118,7 @@ type ResponseCreateDeck struct {
 // Allows you to create a new deck
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json
@@ -273,12 +278,18 @@ type RequestUpdateDeck struct {
 	// In: path
 	// Required: true
 	Deck string `json:"deck"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.UpdateDeckDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of deck update
@@ -300,7 +311,7 @@ type ResponseUpdateDeck struct {
 // Allows you to update an existing deck
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json

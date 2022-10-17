@@ -33,19 +33,27 @@ func NewDeckRepository(cfg *config.Config, db *db.DB) *DeckRepository {
 	}
 }
 
-func (s *DeckRepository) Create(gameID, collectionID string, req *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
-	deck, err := s.db.DeckCreate(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
+func (s *DeckRepository) Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
+	deck, err := s.db.DeckCreate(context.Background(), gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if deck.Image == "" {
+	if deck.Image == "" && dtoObject.ImageFile == nil {
 		return deck, nil
 	}
 
-	// Download image
-	if err := s.createImage(gameID, collectionID, deck.ID, deck.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
+	if deck.Image != "" {
+		// Download image
+		err = s.createImage(gameID, collectionID, deck.ID, deck.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(gameID, collectionID, deck.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
+		}
 	}
 
 	return deck, nil
@@ -87,7 +95,7 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	}
 
 	// If the image has not been changed
-	if newDeck.Image == oldDeck.Image {
+	if newDeck.Image == oldDeck.Image && dtoObject.ImageFile == nil {
 		return newDeck, nil
 	}
 
@@ -99,13 +107,21 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 		}
 	}
 
-	if newDeck.Image == "" {
+	if newDeck.Image == "" && dtoObject.ImageFile == nil {
 		return newDeck, nil
 	}
 
-	// Download image
-	if err = s.createImage(gameID, collectionID, newDeck.ID, newDeck.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
+	if newDeck.Image != "" {
+		// Download image
+		err = s.createImage(gameID, collectionID, newDeck.ID, newDeck.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(gameID, collectionID, newDeck.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
+		}
 	}
 
 	return newDeck, nil
@@ -167,12 +183,15 @@ func (s *DeckRepository) createImage(gameID, collectionID, deckID, imageURL stri
 		return err
 	}
 
+	return s.createImageFromByte(gameID, collectionID, deckID, imageBytes)
+}
+func (s *DeckRepository) createImageFromByte(gameID, collectionID, deckID string, data []byte) error {
 	// Validate image
-	_, err = images.ValidateImage(imageBytes)
+	_, err := images.ValidateImage(data)
 	if err != nil {
 		return err
 	}
 
 	// Write image to file
-	return s.db.DeckImageCreate(context.Background(), gameID, collectionID, deckID, imageBytes)
+	return s.db.DeckImageCreate(context.Background(), gameID, collectionID, deckID, data)
 }
