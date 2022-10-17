@@ -931,7 +931,7 @@
       "post": {
         "description": "Allows you to create a new card",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -967,38 +967,48 @@
             "required": true
           },
           {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "count": {
-                  "type": "integer",
-                  "format": "int64",
-                  "x-go-name": "Count"
-                },
-                "description": {
-                  "type": "string",
-                  "x-go-name": "Description"
-                },
-                "image": {
-                  "type": "string",
-                  "x-go-name": "Image"
-                },
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                },
-                "variables": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "x-go-name": "Variables"
-                }
-              }
-            }
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Description",
+            "name": "description",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Image",
+            "name": "image",
+            "in": "formData"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Variables",
+            "name": "variables",
+            "in": "formData"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Count",
+            "name": "count",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "ImageFile",
+            "name": "imageFile",
+            "in": "formData"
           }
         ],
         "responses": {
@@ -1126,7 +1136,7 @@
       "patch": {
         "description": "Allows you to update an existing card",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -1169,38 +1179,48 @@
             "required": true
           },
           {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "count": {
-                  "type": "integer",
-                  "format": "int64",
-                  "x-go-name": "Count"
-                },
-                "description": {
-                  "type": "string",
-                  "x-go-name": "Description"
-                },
-                "image": {
-                  "type": "string",
-                  "x-go-name": "Image"
-                },
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                },
-                "variables": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "x-go-name": "Variables"
-                }
-              }
-            }
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Description",
+            "name": "description",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Image",
+            "name": "image",
+            "in": "formData"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Variables",
+            "name": "variables",
+            "in": "formData"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Count",
+            "name": "count",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "ImageFile",
+            "name": "imageFile",
+            "in": "formData"
           }
         ],
         "responses": {

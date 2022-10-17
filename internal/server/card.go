@@ -1,14 +1,17 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type CardServer struct {
@@ -27,12 +30,41 @@ func (s *CardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	dtoObject := &dto.CreateCardDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
+
+	dtoObject := &dto.CreateCardDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		Variables:   nil,
+		Count:       fs.StringToInt(r.FormValue("count")),
+		ImageFile:   data,
+	}
+
+	variablesJson := r.FormValue("variables")
+	if variablesJson != "" {
+		e = json.Unmarshal([]byte(variablesJson), &dtoObject.Variables)
+		if e != nil {
+			er.IfErrorLog(e)
+			e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage("Bad variables json")
+			network.ResponseError(w, e)
+			return
+		}
+	}
+
 	item, e := s.cardService.Create(gameID, collectionID, deckID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
@@ -94,12 +126,41 @@ func (s *CardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	dtoObject := &dto.UpdateCardDTO{}
-	e = network.RequestToObject(r.Body, &dtoObject)
+
+	e = r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
+
+	dtoObject := &dto.UpdateCardDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		Variables:   nil,
+		Count:       fs.StringToInt(r.FormValue("count")),
+		ImageFile:   data,
+	}
+
+	variablesJson := r.FormValue("variables")
+	if variablesJson != "" {
+		e = json.Unmarshal([]byte(variablesJson), &dtoObject.Variables)
+		if e != nil {
+			er.IfErrorLog(e)
+			e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage("Bad variables json")
+			network.ResponseError(w, e)
+			return
+		}
+	}
+
 	item, e := s.cardService.Update(gameID, collectionID, deckID, cardID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)

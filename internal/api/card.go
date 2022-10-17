@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
@@ -47,12 +46,24 @@ type RequestCreateCard struct {
 	// In: path
 	// Required: true
 	Deck string `json:"deck"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.CreateCardDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	Variables string `json:"variables"`
+	// In: formData
+	// Required: true
+	Count int `json:"count"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of card creation
@@ -74,7 +85,7 @@ type ResponseCreateCard struct {
 // Allows you to create a new card
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json
@@ -247,12 +258,24 @@ type RequestUpdateCard struct {
 	// In: path
 	// Required: true
 	Card string `json:"card"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.UpdateCardDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	Variables string `json:"variables"`
+	// In: formData
+	// Required: true
+	Count int `json:"count"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of card update
@@ -274,7 +297,7 @@ type ResponseUpdateCard struct {
 // Allows you to update an existing card
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json

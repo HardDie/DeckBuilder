@@ -14,3 +14,11 @@ func StringToInt64(in string) (int64, error) {
 	}
 	return val, nil
 }
+
+func StringToInt(val string) int {
+	res, err := strconv.Atoi(val)
+	if err != nil {
+		return 1
+	}
+	return res
+}
