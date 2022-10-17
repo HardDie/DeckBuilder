@@ -77,7 +77,7 @@ type ResponseCreateGame struct {
 // Allows you to create a new game
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json
@@ -373,7 +373,7 @@ type ResponseUpdateGame struct {
 // Allows you to update an existing game
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json

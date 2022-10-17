@@ -57,8 +57,8 @@ var (
 
 type Err struct {
 	Message string `json:"message"`
-	Code    int
-	Err     error
+	Code    int    `json:"code"`
+	Err     error  `json:"err"`
 }
 
 func NewError(message string, code ...int) *Err {

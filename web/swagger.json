@@ -61,7 +61,7 @@
       "post": {
         "description": "Allows you to create a new game",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -236,7 +236,7 @@
       "patch": {
         "description": "Allows you to update an existing game",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -348,7 +348,7 @@
       "post": {
         "description": "Allows you to create a new collection",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -496,7 +496,7 @@
       "patch": {
         "description": "Allows you to update an existing collection",
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
         "produces": [
           "application/json"
@@ -1842,12 +1842,14 @@
     "Err": {
       "type": "object",
       "properties": {
-        "Code": {
+        "code": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "x-go-name": "Code"
         },
-        "Err": {
-          "type": "string"
+        "err": {
+          "type": "string",
+          "x-go-name": "Err"
         },
         "message": {
           "type": "string",

@@ -73,7 +73,7 @@ type ResponseCreateCollection struct {
 // Allows you to create a new collection
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json
@@ -254,7 +254,7 @@ type ResponseUpdateCollection struct {
 // Allows you to update an existing collection
 //
 //	Consumes:
-//	- application/json
+//	- multipart/form-data
 //
 //	Produces:
 //	- application/json
