@@ -123,7 +123,8 @@ func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	s.systemServer.StopQuit()
 
 	sort := r.URL.Query().Get("sort")
-	items, e := s.gameService.List(sort)
+	search := r.URL.Query().Get("search")
+	items, e := s.gameService.List(sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

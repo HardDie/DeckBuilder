@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
@@ -11,7 +13,7 @@ import (
 type IGameService interface {
 	Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error)
 	Item(gameID string) (*entity.GameInfo, error)
-	List(sortField string) ([]*entity.GameInfo, error)
+	List(sortField, search string) ([]*entity.GameInfo, error)
 	Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error)
 	Delete(gameID string) error
 	GetImage(gameID string) ([]byte, string, error)
@@ -47,19 +49,38 @@ func (s *GameService) Item(gameID string) (*entity.GameInfo, error) {
 	game.FillCachedImage(s.cfg)
 	return game, nil
 }
-func (s *GameService) List(sortField string) ([]*entity.GameInfo, error) {
+func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, error) {
 	items, err := s.gameRepository.GetAll()
 	if err != nil {
 		return make([]*entity.GameInfo, 0), err
 	}
-	utils.Sort(&items, sortField)
-	for i := 0; i < len(items); i++ {
+
+	// Filter
+	var filteredItems []*entity.GameInfo
+	if search != "" {
+		search = strings.ToLower(search)
+		for _, item := range items {
+			if strings.Contains(strings.ToLower(item.Name), search) {
+				filteredItems = append(filteredItems, item)
+			}
+		}
+	} else {
+		filteredItems = items
+	}
+
+	//Sorting
+	utils.Sort(&filteredItems, sortField)
+
+	// Generate field cachedImage
+	for i := 0; i < len(filteredItems); i++ {
 		items[i].FillCachedImage(s.cfg)
 	}
-	if items == nil {
-		items = make([]*entity.GameInfo, 0)
+
+	// Return empty array if no elements
+	if filteredItems == nil {
+		filteredItems = make([]*entity.GameInfo, 0)
 	}
-	return items, nil
+	return filteredItems, nil
 }
 func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
 	game, err := s.gameRepository.Update(gameID, dtoObject)

@@ -62,7 +62,8 @@ func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 	gameID := mux.Vars(r)["game"]
 	sort := r.URL.Query().Get("sort")
-	items, e := s.collectionService.List(gameID, sort)
+	search := r.URL.Query().Get("search")
+	items, e := s.collectionService.List(gameID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

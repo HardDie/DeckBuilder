@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
@@ -11,7 +13,7 @@ import (
 type ICollectionService interface {
 	Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error)
 	Item(gameID, collectionID string) (*entity.CollectionInfo, error)
-	List(gameID, sortField string) ([]*entity.CollectionInfo, error)
+	List(gameID, sortField, search string) ([]*entity.CollectionInfo, error)
 	Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error)
 	Delete(gameID, collectionID string) error
 	GetImage(gameID, collectionID string) ([]byte, string, error)
@@ -44,19 +46,38 @@ func (s *CollectionService) Item(gameID, collectionID string) (*entity.Collectio
 	collection.FillCachedImage(s.cfg, gameID)
 	return collection, nil
 }
-func (s *CollectionService) List(gameID, sortField string) ([]*entity.CollectionInfo, error) {
+func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.CollectionInfo, error) {
 	items, err := s.collectionRepository.GetAll(gameID)
 	if err != nil {
 		return make([]*entity.CollectionInfo, 0), err
 	}
-	utils.Sort(&items, sortField)
-	for i := 0; i < len(items); i++ {
+
+	// Filter
+	var filteredItems []*entity.CollectionInfo
+	if search != "" {
+		search = strings.ToLower(search)
+		for _, item := range items {
+			if strings.Contains(strings.ToLower(item.Name), search) {
+				filteredItems = append(filteredItems, item)
+			}
+		}
+	} else {
+		filteredItems = items
+	}
+
+	//Sorting
+	utils.Sort(&filteredItems, sortField)
+
+	// Generate field cachedImage
+	for i := 0; i < len(filteredItems); i++ {
 		items[i].FillCachedImage(s.cfg, gameID)
 	}
-	if items == nil {
-		items = make([]*entity.CollectionInfo, 0)
+
+	// Return empty array if no elements
+	if filteredItems == nil {
+		filteredItems = make([]*entity.CollectionInfo, 0)
 	}
-	return items, nil
+	return filteredItems, nil
 }
 func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
 	collection, err := s.collectionRepository.Update(gameID, collectionID, dtoObject)

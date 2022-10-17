@@ -75,7 +75,8 @@ func (s *DeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
-	items, e := s.deckService.List(gameID, collectionID, sort)
+	search := r.URL.Query().Get("search")
+	items, e := s.deckService.List(gameID, collectionID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

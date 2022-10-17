@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
@@ -11,7 +13,7 @@ import (
 type IDeckService interface {
 	Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error)
 	Item(gameID, collectionID, deckID string) (*entity.DeckInfo, error)
-	List(gameID, collectionID, sortField string) ([]*entity.DeckInfo, error)
+	List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, error)
 	Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error)
 	Delete(gameID, collectionID, deckID string) error
 	GetImage(gameID, collectionID, deckID string) ([]byte, string, error)
@@ -45,19 +47,38 @@ func (s *DeckService) Item(gameID, collectionID, deckID string) (*entity.DeckInf
 	deck.FillCachedImage(s.cfg, gameID, collectionID)
 	return deck, nil
 }
-func (s *DeckService) List(gameID, collectionID, sortField string) ([]*entity.DeckInfo, error) {
+func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, error) {
 	items, err := s.deckRepository.GetAll(gameID, collectionID)
 	if err != nil {
 		return make([]*entity.DeckInfo, 0), err
 	}
-	utils.Sort(&items, sortField)
-	for i := 0; i < len(items); i++ {
+
+	// Filter
+	var filteredItems []*entity.DeckInfo
+	if search != "" {
+		search = strings.ToLower(search)
+		for _, item := range items {
+			if strings.Contains(strings.ToLower(item.Name), search) {
+				filteredItems = append(filteredItems, item)
+			}
+		}
+	} else {
+		filteredItems = items
+	}
+
+	//Sorting
+	utils.Sort(&filteredItems, sortField)
+
+	// Generate field cachedImage
+	for i := 0; i < len(filteredItems); i++ {
 		items[i].FillCachedImage(s.cfg, gameID, collectionID)
 	}
-	if items == nil {
-		items = make([]*entity.DeckInfo, 0)
+
+	// Return empty array if no elements
+	if filteredItems == nil {
+		filteredItems = make([]*entity.DeckInfo, 0)
 	}
-	return items, nil
+	return filteredItems, nil
 }
 func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
 	deck, err := s.deckRepository.Update(gameID, collectionID, deckID, dtoObject)

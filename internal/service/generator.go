@@ -88,14 +88,14 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 	totalCountOfCards := 0
 
 	// Get collection list
-	collectionItems, err := s.collectionService.List(gameID, sortField)
+	collectionItems, err := s.collectionService.List(gameID, sortField, "")
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
-		deckItems, err := s.deckService.List(gameID, collectionItem.ID, sortField)
+		deckItems, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
 			return nil, 0, err
 		}
