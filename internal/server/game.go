@@ -1,15 +1,15 @@
 package server
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/service"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type GameServer struct {
@@ -25,11 +25,25 @@ func NewGameServer(gameService service.IGameService, systemServer *SystemServer)
 }
 
 func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
-	dtoObject := &dto.CreateGameDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.CreateGameDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.gameService.Create(dtoObject)
@@ -73,32 +87,27 @@ func (s *GameServer) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := w.Write(archive); err != nil {
-		errors.IfErrorLog(err)
+		er.IfErrorLog(err)
 	}
 }
 func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 	e := r.ParseMultipartForm(0)
 	if e != nil {
-		errors.IfErrorLog(e)
-		e = errors.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
 		network.ResponseError(w, e)
 		return
 	}
 
 	name := r.FormValue("name")
 
-	f, _, e := r.FormFile("file")
+	data, e := utils.GetFileFromMultipart("file", r)
 	if e != nil {
-		errors.IfErrorLog(e)
-		e = errors.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
 		network.ResponseError(w, e)
 		return
 	}
-
-	data, e := io.ReadAll(f)
-	if e != nil {
-		errors.IfErrorLog(e)
-		e = errors.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+	if data == nil {
+		e = er.BadArchive.AddMessage("The file must be passed as an argument")
 		network.ResponseError(w, e)
 		return
 	}
@@ -133,11 +142,26 @@ func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	dtoObject := &dto.UpdateGameDTO{}
-	e := network.RequestToObject(r.Body, &dtoObject)
+
+	e := r.ParseMultipartForm(0)
+	if e != nil {
+		er.IfErrorLog(e)
+		e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage(e.Error())
+		network.ResponseError(w, e)
+		return
+	}
+
+	data, e := utils.GetFileFromMultipart("imageFile", r)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
+	}
+
+	dtoObject := &dto.UpdateGameDTO{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		ImageFile:   data,
 	}
 
 	item, e := s.gameService.Update(gameID, dtoObject)

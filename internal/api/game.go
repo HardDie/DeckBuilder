@@ -44,11 +44,18 @@ var (
 //
 // swagger:parameters RequestCreateGame
 type RequestCreateGame struct {
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		dto.CreateGameDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of game creation
@@ -333,12 +340,18 @@ type RequestUpdateGame struct {
 	// In: path
 	// Required: true
 	Game string `json:"game"`
-	// In: body
+	// In: formData
 	// Required: true
-	Body struct {
-		// Required: true
-		dto.UpdateGameDTO
-	}
+	Name string `json:"name"`
+	// In: formData
+	// Required: true
+	Description string `json:"description"`
+	// In: formData
+	// Required: false
+	Image string `json:"image"`
+	// In: formData
+	// Required: false
+	ImageFile []byte `json:"imageFile"`
 }
 
 // Status of game update

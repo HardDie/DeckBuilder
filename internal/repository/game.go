@@ -38,19 +38,27 @@ func NewGameRepository(cfg *config.Config, db *db.DB) *GameRepository {
 	}
 }
 
-func (s *GameRepository) Create(req *dto.CreateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.db.GameCreate(context.Background(), req.Name, req.Description, req.Image)
+func (s *GameRepository) Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error) {
+	game, err := s.db.GameCreate(context.Background(), dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if game.Image == "" {
+	if game.Image == "" && dtoObject.ImageFile == nil {
 		return game, nil
 	}
 
-	// Download image
-	if err := s.createImage(game.ID, game.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
+	if game.Image != "" {
+		// Download image
+		err = s.createImage(game.ID, game.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(game.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
+		}
 	}
 
 	return game, nil
@@ -92,7 +100,7 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	}
 
 	// If the image has not been changed
-	if newGame.Image == oldGame.Image {
+	if newGame.Image == oldGame.Image && dtoObject.ImageFile == nil {
 		return newGame, nil
 	}
 
@@ -104,13 +112,21 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 		}
 	}
 
-	if newGame.Image == "" {
+	if newGame.Image == "" && dtoObject.ImageFile == nil {
 		return newGame, nil
 	}
 
-	// Download image
-	if err = s.createImage(newGame.ID, newGame.Image); err != nil {
-		logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
+	if newGame.Image != "" {
+		// Download image
+		err = s.createImage(newGame.ID, newGame.Image)
+		if err != nil {
+			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
+		}
+	} else if dtoObject.ImageFile != nil {
+		err = s.createImageFromByte(newGame.ID, dtoObject.ImageFile)
+		if err != nil {
+			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
+		}
 	}
 
 	return newGame, nil
@@ -196,12 +212,15 @@ func (s *GameRepository) createImage(gameID, imageURL string) error {
 		return err
 	}
 
+	return s.createImageFromByte(gameID, imageBytes)
+}
+func (s *GameRepository) createImageFromByte(gameID string, data []byte) error {
 	// Validate image
-	_, err = images.ValidateImage(imageBytes)
+	_, err := images.ValidateImage(data)
 	if err != nil {
 		return err
 	}
 
 	// Write image to file
-	return s.db.GameImageCreate(context.Background(), gameID, imageBytes)
+	return s.db.GameImageCreate(context.Background(), gameID, data)
 }
