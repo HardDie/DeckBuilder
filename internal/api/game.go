@@ -65,21 +65,21 @@ type ResponseCreateGame struct {
 
 // swagger:route POST /api/games Games RequestCreateGame
 //
-// Create game
+// # Create game
 //
 // Allows you to create a new game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCreateGame
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCreateGame
+//	  default: ResponseError
 func (s *UnimplementedGameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to delete a game
@@ -99,21 +99,21 @@ type ResponseDeleteGame struct {
 
 // swagger:route DELETE /api/games/{game} Games RequestDeleteGame
 //
-// Delete game
+// # Delete game
 //
 // Allows you to delete an existing game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDeleteGame
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeleteGame
+//	  default: ResponseError
 func (s *UnimplementedGameServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to duplicate a game
@@ -145,21 +145,21 @@ type ResponseDuplicateGame struct {
 
 // swagger:route POST /api/games/{game}/duplicate Games RequestDuplicateGame
 //
-// Duplicate game
+// # Duplicate game
 //
 // Allows you to create a copy of an existing game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDuplicateGame
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDuplicateGame
+//	  default: ResponseError
 func (s *UnimplementedGameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an existing game archive
@@ -181,22 +181,22 @@ type ResponseGameArchive struct {
 
 // swagger:route GET /api/games/{game}/export Games RequestArchiveGame
 //
-// Export game to archive
+// # Export game to archive
 //
 // Get an existing game archive
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
-//     - application/zip
+//	Produces:
+//	- application/json
+//	- application/zip
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseGameArchive
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseGameArchive
+//	  default: ResponseError
 func (s *UnimplementedGameServer) ExportHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Creating game from archive
@@ -226,21 +226,21 @@ type ResponseGameImport struct {
 
 // swagger:route POST /api/games/import Games RequestImportGame
 //
-// Import game from archive
+// # Import game from archive
 //
 // Creat game from archive
 //
-//     Consumes:
-//     - multipart/form-data
+//	Consumes:
+//	- multipart/form-data
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseGameImport
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseGameImport
+//	  default: ResponseError
 func (s *UnimplementedGameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an existing game
@@ -265,21 +265,21 @@ type ResponseGame struct {
 
 // swagger:route GET /api/games/{game} Games RequestGame
 //
-// Get game
+// # Get game
 //
 // Get an existing game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseGame
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseGame
+//	  default: ResponseError
 func (s *UnimplementedGameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting a list of existing games
@@ -289,6 +289,9 @@ type RequestListOfGames struct {
 	// In: query
 	// Required: false
 	Sort string `json:"sort"`
+	// In: query
+	// Required: false
+	Search string `json:"search"`
 }
 
 // List of games
@@ -305,22 +308,22 @@ type ResponseListOfGames struct {
 
 // swagger:route GET /api/games Games RequestListOfGames
 //
-// Get games list
+// # Get games list
 //
 // Get a list of existing games
 // Sort values: name, name_desc, created, created_desc
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseListOfGames
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseListOfGames
+//	  default: ResponseError
 func (s *UnimplementedGameServer) ListHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to update a game
@@ -352,19 +355,19 @@ type ResponseUpdateGame struct {
 
 // swagger:route PATCH /api/games/{game} Games RequestUpdateGame
 //
-// Update game
+// # Update game
 //
 // Allows you to update an existing game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseUpdateGame
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseUpdateGame
+//	  default: ResponseError
 func (s *UnimplementedGameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {}

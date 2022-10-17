@@ -33,13 +33,19 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get games list",
+        "summary": "# Get games list",
         "operationId": "RequestListOfGames",
         "parameters": [
           {
             "type": "string",
             "x-go-name": "Sort",
             "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
             "in": "query"
           }
         ],
@@ -66,7 +72,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Create game",
+        "summary": "# Create game",
         "operationId": "RequestCreateGame",
         "parameters": [
           {
@@ -117,7 +123,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Import game from archive",
+        "summary": "# Import game from archive",
         "operationId": "RequestImportGame",
         "parameters": [
           {
@@ -165,7 +171,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get game",
+        "summary": "# Get game",
         "operationId": "RequestGame",
         "parameters": [
           {
@@ -199,7 +205,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Delete game",
+        "summary": "# Delete game",
         "operationId": "RequestDeleteGame",
         "parameters": [
           {
@@ -233,7 +239,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Update game",
+        "summary": "# Update game",
         "operationId": "RequestUpdateGame",
         "parameters": [
           {
@@ -291,7 +297,7 @@
         "tags": [
           "Collections"
         ],
-        "summary": "Get collections list",
+        "summary": "# Get collections list",
         "operationId": "RequestListOfCollections",
         "parameters": [
           {
@@ -305,6 +311,12 @@
             "type": "string",
             "x-go-name": "Sort",
             "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
             "in": "query"
           }
         ],
@@ -331,7 +343,7 @@
         "tags": [
           "Collections"
         ],
-        "summary": "Create collection",
+        "summary": "# Create collection",
         "operationId": "RequestCreateCollection",
         "parameters": [
           {
@@ -389,7 +401,7 @@
         "tags": [
           "Collections"
         ],
-        "summary": "Get collection",
+        "summary": "# Get collection",
         "operationId": "RequestCollection",
         "parameters": [
           {
@@ -430,7 +442,7 @@
         "tags": [
           "Collections"
         ],
-        "summary": "Delete collection",
+        "summary": "# Delete collection",
         "operationId": "RequestDeleteCollection",
         "parameters": [
           {
@@ -471,7 +483,7 @@
         "tags": [
           "Collections"
         ],
-        "summary": "Update collection",
+        "summary": "# Update collection",
         "operationId": "RequestUpdateCollection",
         "parameters": [
           {
@@ -536,7 +548,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Get decks list",
+        "summary": "# Get decks list",
         "operationId": "RequestListOfDecks",
         "parameters": [
           {
@@ -557,6 +569,12 @@
             "type": "string",
             "x-go-name": "Sort",
             "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
             "in": "query"
           }
         ],
@@ -583,7 +601,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Create deck",
+        "summary": "# Create deck",
         "operationId": "RequestCreateDeck",
         "parameters": [
           {
@@ -648,7 +666,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Get deck",
+        "summary": "# Get deck",
         "operationId": "RequestDeck",
         "parameters": [
           {
@@ -696,7 +714,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Delete deck",
+        "summary": "# Delete deck",
         "operationId": "RequestDeleteDeck",
         "parameters": [
           {
@@ -744,7 +762,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Update deck",
+        "summary": "# Update deck",
         "operationId": "RequestUpdateDeck",
         "parameters": [
           {
@@ -816,7 +834,7 @@
         "tags": [
           "Cards"
         ],
-        "summary": "Get cards list",
+        "summary": "# Get cards list",
         "operationId": "RequestListOfCard",
         "parameters": [
           {
@@ -845,6 +863,12 @@
             "x-go-name": "Sort",
             "name": "sort",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
+            "in": "query"
           }
         ],
         "responses": {
@@ -870,7 +894,7 @@
         "tags": [
           "Cards"
         ],
-        "summary": "Create card",
+        "summary": "# Create card",
         "operationId": "RequestCreateCard",
         "parameters": [
           {
@@ -954,7 +978,7 @@
         "tags": [
           "Cards"
         ],
-        "summary": "Get card",
+        "summary": "# Get card",
         "operationId": "RequestCard",
         "parameters": [
           {
@@ -1010,7 +1034,7 @@
         "tags": [
           "Cards"
         ],
-        "summary": "Delete card",
+        "summary": "# Delete card",
         "operationId": "RequestDeleteCard",
         "parameters": [
           {
@@ -1065,7 +1089,7 @@
         "tags": [
           "Cards"
         ],
-        "summary": "Update card",
+        "summary": "# Update card",
         "operationId": "RequestUpdateCard",
         "parameters": [
           {
@@ -1315,7 +1339,7 @@
         "tags": [
           "Decks"
         ],
-        "summary": "Get list of all decks in game",
+        "summary": "# Get list of all decks in game",
         "operationId": "RequestListOfAllDecks",
         "parameters": [
           {
@@ -1351,7 +1375,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Duplicate game",
+        "summary": "# Duplicate game",
         "operationId": "RequestDuplicateGame",
         "parameters": [
           {
@@ -1402,7 +1426,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Export game to archive",
+        "summary": "# Export game to archive",
         "operationId": "RequestArchiveGame",
         "parameters": [
           {
@@ -1680,7 +1704,8 @@
           "x-go-name": "CreatedAt"
         },
         "description": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Description"
         },
         "id": {
           "type": "integer",
@@ -1692,7 +1717,8 @@
           "x-go-name": "Image"
         },
         "name": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Name"
         },
         "updatedAt": {
           "type": "string",
@@ -1722,7 +1748,8 @@
           "x-go-name": "CreatedAt"
         },
         "description": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Description"
         },
         "id": {
           "type": "string",
@@ -1733,7 +1760,8 @@
           "x-go-name": "Image"
         },
         "name": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Name"
         },
         "updatedAt": {
           "type": "string",
@@ -1756,7 +1784,8 @@
           "x-go-name": "CreatedAt"
         },
         "description": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Description"
         },
         "id": {
           "type": "string",
@@ -1767,7 +1796,8 @@
           "x-go-name": "Image"
         },
         "name": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Name"
         },
         "updatedAt": {
           "type": "string",
@@ -1807,7 +1837,8 @@
           "x-go-name": "CreatedAt"
         },
         "description": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Description"
         },
         "id": {
           "type": "string",
@@ -1818,7 +1849,8 @@
           "x-go-name": "Image"
         },
         "name": {
-          "$ref": "#/definitions/QuotedString"
+          "type": "string",
+          "x-go-name": "Name"
         },
         "updatedAt": {
           "type": "string",
@@ -1827,10 +1859,6 @@
         }
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
-    },
-    "QuotedString": {
-      "type": "object",
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/utils"
     },
     "SettingInfo": {
       "type": "object",

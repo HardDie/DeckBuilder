@@ -59,21 +59,21 @@ type ResponseListOfAllDecks struct {
 
 // swagger:route GET /api/games/{game}/decks Decks RequestListOfAllDecks
 //
-// Get list of all decks in game
+// # Get list of all decks in game
 //
 // Get a list of all existing decks in game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseListOfAllDecks
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseListOfAllDecks
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) AllDecksHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to create a deck
@@ -108,21 +108,21 @@ type ResponseCreateDeck struct {
 
 // swagger:route POST /api/games/{game}/collections/{collection}/decks Decks RequestCreateDeck
 //
-// Create deck
+// # Create deck
 //
 // Allows you to create a new deck
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCreateDeck
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCreateDeck
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) CreateHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to delete a deck
@@ -148,21 +148,21 @@ type ResponseDeleteDeck struct {
 
 // swagger:route DELETE /api/games/{game}/collections/{collection}/decks/{deck} Decks RequestDeleteDeck
 //
-// Delete deck
+// # Delete deck
 //
 // Allows you to delete an existing deck
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDeleteDeck
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeleteDeck
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an existing deck
@@ -193,21 +193,21 @@ type ResponseDeck struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks/{deck} Decks RequestDeck
 //
-// Get deck
+// # Get deck
 //
 // Get an existing deck
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDeck
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeck
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) ItemHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting a list of existing decks
@@ -223,6 +223,9 @@ type RequestListOfDecks struct {
 	// In: query
 	// Required: false
 	Sort string `json:"sort"`
+	// In: query
+	// Required: false
+	Search string `json:"search"`
 }
 
 // List of decks
@@ -239,22 +242,22 @@ type ResponseListOfDecks struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks Decks RequestListOfDecks
 //
-// Get decks list
+// # Get decks list
 //
 // Get a list of existing decks
 // Sort values: name, name_desc, created, created_desc
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseListOfDecks
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseListOfDecks
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to update a deck
@@ -292,19 +295,19 @@ type ResponseUpdateDeck struct {
 
 // swagger:route PATCH /api/games/{game}/collections/{collection}/decks/{deck} Decks RequestUpdateDeck
 //
-// Update deck
+// # Update deck
 //
 // Allows you to update an existing deck
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseUpdateDeck
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseUpdateDeck
+//	  default: ResponseError
 func (s *UnimplementedDeckServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {}

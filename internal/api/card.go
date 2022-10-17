@@ -69,21 +69,21 @@ type ResponseCreateCard struct {
 
 // swagger:route POST /api/games/{game}/collections/{collection}/decks/{deck}/cards Cards RequestCreateCard
 //
-// Create card
+// # Create card
 //
 // Allows you to create a new card
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCreateCard
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCreateCard
+//	  default: ResponseError
 func (s *UnimplementedCardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to delete a card
@@ -112,21 +112,21 @@ type ResponseDeleteCard struct {
 
 // swagger:route DELETE /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card} Cards RequestDeleteCard
 //
-// Delete card
+// # Delete card
 //
 // Allows you to delete an existing card
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDeleteCard
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeleteCard
+//	  default: ResponseError
 func (s *UnimplementedCardServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an existing card
@@ -161,21 +161,21 @@ type ResponseCard struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card} Cards RequestCard
 //
-// Get card
+// # Get card
 //
 // Get an existing card
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCard
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCard
+//	  default: ResponseError
 func (s *UnimplementedCardServer) ItemHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting a list of existing cards
@@ -194,6 +194,9 @@ type RequestListOfCard struct {
 	// In: query
 	// Required: false
 	Sort string `json:"sort"`
+	// In: query
+	// Required: false
+	Search string `json:"search"`
 }
 
 // List of cards
@@ -210,22 +213,22 @@ type ResponseListOfCard struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks/{deck}/cards Cards RequestListOfCard
 //
-// Get cards list
+// # Get cards list
 //
 // Get a list of existing cards
 // Sort values: name, name_desc, created, created_desc
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseListOfCard
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseListOfCard
+//	  default: ResponseError
 func (s *UnimplementedCardServer) ListHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to update a card
@@ -266,19 +269,19 @@ type ResponseUpdateCard struct {
 
 // swagger:route PATCH /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card} Cards RequestUpdateCard
 //
-// Update card
+// # Update card
 //
 // Allows you to update an existing card
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseUpdateCard
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseUpdateCard
+//	  default: ResponseError
 func (s *UnimplementedCardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {}

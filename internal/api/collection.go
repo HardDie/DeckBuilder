@@ -63,21 +63,21 @@ type ResponseCreateCollection struct {
 
 // swagger:route POST /api/games/{game}/collections Collections RequestCreateCollection
 //
-// Create collection
+// # Create collection
 //
 // Allows you to create a new collection
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCreateCollection
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCreateCollection
+//	  default: ResponseError
 func (s *UnimplementedCollectionServer) CreateHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to delete a collection
@@ -100,21 +100,21 @@ type ResponseDeleteCollection struct {
 
 // swagger:route DELETE /api/games/{game}/collections/{collection} Collections RequestDeleteCollection
 //
-// Delete collection
+// # Delete collection
 //
 // Allows you to delete an existing collection
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseDeleteCollection
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeleteCollection
+//	  default: ResponseError
 func (s *UnimplementedCollectionServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an existing collection
@@ -142,21 +142,21 @@ type ResponseCollection struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection} Collections RequestCollection
 //
-// Get collection
+// # Get collection
 //
 // Get an existing collection
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseCollection
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCollection
+//	  default: ResponseError
 func (s *UnimplementedCollectionServer) ItemHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting a list of existing collections
@@ -169,6 +169,9 @@ type RequestListOfCollections struct {
 	// In: query
 	// Required: false
 	Sort string `json:"sort"`
+	// In: query
+	// Required: false
+	Search string `json:"search"`
 }
 
 // List of collections
@@ -185,22 +188,22 @@ type ResponseListOfCollections struct {
 
 // swagger:route GET /api/games/{game}/collections Collections RequestListOfCollections
 //
-// Get collections list
+// # Get collections list
 //
 // Get a list of existing collections
 // Sort values: name, name_desc, created, created_desc
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseListOfCollections
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseListOfCollections
+//	  default: ResponseError
 func (s *UnimplementedCollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to update a collection
@@ -235,19 +238,19 @@ type ResponseUpdateCollection struct {
 
 // swagger:route PATCH /api/games/{game}/collections/{collection} Collections RequestUpdateCollection
 //
-// Update collection
+// # Update collection
 //
 // Allows you to update an existing collection
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseUpdateCollection
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseUpdateCollection
+//	  default: ResponseError
 func (s *UnimplementedCollectionServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {}
