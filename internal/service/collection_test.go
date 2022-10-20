@@ -16,6 +16,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -434,6 +435,128 @@ func (tt *collectionTest) testImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *collectionTest) testImageBin(t *testing.T) {
+	collectionName := "image_bin_one"
+	collectionID := utils.NameToID(collectionName)
+
+	pageImage := images.CreateImage(100, 100)
+	pngImage, err := images.ImageToPng(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jpegImage, err := images.ImageToJpeg(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gifImage, err := images.ImageToGif(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no collection
+	_, _, err = tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err == nil {
+		t.Fatal("Error, collection not exists")
+	}
+	if !errors.Is(err, er.CollectionNotExists) {
+		t.Fatal(err)
+	}
+
+	// Create collection
+	_, err = tt.collectionService.Create(tt.gameID, &dto.CreateCollectionDTO{
+		Name:      collectionName,
+		ImageFile: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err := tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "png" {
+		t.Fatal("Image type error! [got]", imgType, "[want] png")
+	}
+
+	// Update collection
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name:      collectionName,
+		ImageFile: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Update collection
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name:      collectionName,
+		ImageFile: gifImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update collection
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name: collectionName,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update collection
+	_, err = tt.collectionService.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+		Name:  collectionName,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no image
+	_, _, err = tt.collectionService.GetImage(tt.gameID, collectionID)
+	if err == nil {
+		t.Fatal("Error, collection don't have image")
+	}
+	if !errors.Is(err, er.CollectionImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete collection
+	err = tt.collectionService.Delete(tt.gameID, collectionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestCollection(t *testing.T) {
 	t.Parallel()
@@ -476,6 +599,7 @@ func TestCollection(t *testing.T) {
 	t.Run("list", tt.testList)
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
+	t.Run("image_bin", tt.testImageBin)
 }
 
 func (tt *collectionTest) fuzzCleanup() {

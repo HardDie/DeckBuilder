@@ -16,6 +16,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 )
 
@@ -436,6 +437,127 @@ func (tt *cardTest) testImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *cardTest) testImageBin(t *testing.T) {
+	cardTitle := "image_bin_one"
+
+	pageImage := images.CreateImage(100, 100)
+	pngImage, err := images.ImageToPng(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jpegImage, err := images.ImageToJpeg(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gifImage, err := images.ImageToGif(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no card
+	_, _, err = tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", 1)
+	if err == nil {
+		t.Fatal("Error, card not exists")
+	}
+	if !errors.Is(err, er.CardNotExists) {
+		t.Fatal(err)
+	}
+
+	// Create card
+	card, err := tt.cardService.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", &dto.CreateCardDTO{
+		Name:      cardTitle,
+		ImageFile: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err := tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "png" {
+		t.Fatal("Image type error! [got]", imgType, "[want] png")
+	}
+
+	// Update card
+	_, err = tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+		Name:      cardTitle,
+		ImageFile: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Update card
+	_, err = tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+		Name:      cardTitle,
+		ImageFile: gifImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update card
+	_, err = tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+		Name: cardTitle,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update card
+	_, err = tt.cardService.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+		Name:  cardTitle,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no image
+	_, _, err = tt.cardService.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err == nil {
+		t.Fatal("Error, card don't have image")
+	}
+	if !errors.Is(err, er.CardImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete card
+	err = tt.cardService.Delete(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestCard(t *testing.T) {
 	t.Parallel()
@@ -513,6 +635,7 @@ func TestCard(t *testing.T) {
 	t.Run("list", tt.testList)
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
+	t.Run("image_bin", tt.testImageBin)
 }
 
 func (tt *cardTest) fuzzCleanup() {

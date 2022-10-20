@@ -16,6 +16,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -408,7 +409,7 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	}
 }
 func (tt *gameTest) testImage(t *testing.T) {
-	gameName := "one"
+	gameName := "image_one"
 	gameID := utils.NameToID(gameName)
 	pngImage := "https://github.com/fluidicon.png"
 	jpegImage := "https://avatars.githubusercontent.com/apple"
@@ -482,6 +483,128 @@ func (tt *gameTest) testImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *gameTest) testImageBin(t *testing.T) {
+	gameName := "image_bin_one"
+	gameID := utils.NameToID(gameName)
+
+	pageImage := images.CreateImage(100, 100)
+	pngImage, err := images.ImageToPng(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jpegImage, err := images.ImageToJpeg(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gifImage, err := images.ImageToGif(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no game
+	_, _, err = tt.gameService.GetImage(gameID)
+	if err == nil {
+		t.Fatal("Error, game not exists")
+	}
+	if !errors.Is(err, er.GameNotExists) {
+		t.Fatal(err)
+	}
+
+	// Create game
+	_, err = tt.gameService.Create(&dto.CreateGameDTO{
+		Name:      gameName,
+		ImageFile: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err := tt.gameService.GetImage(gameID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "png" {
+		t.Fatal("Image type error! [got]", imgType, "[want] png")
+	}
+
+	// Update game
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name:      gameName,
+		ImageFile: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.gameService.GetImage(gameID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Update game
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name:      gameName,
+		ImageFile: gifImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.gameService.GetImage(gameID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update game
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name: gameName,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check image type
+	_, imgType, err = tt.gameService.GetImage(gameID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
+	}
+
+	// Update game
+	_, err = tt.gameService.Update(gameID, &dto.UpdateGameDTO{
+		Name:  gameName,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check no image
+	_, _, err = tt.gameService.GetImage(gameID)
+	if err == nil {
+		t.Fatal("Error, game don't have image")
+	}
+	if !errors.Is(err, er.GameImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete game
+	err = tt.gameService.Delete(gameID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestGame(t *testing.T) {
 	t.Parallel()
@@ -509,6 +632,7 @@ func TestGame(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("duplicate", tt.testDuplicate)
 	t.Run("image", tt.testImage)
+	t.Run("image_bin", tt.testImageBin)
 }
 
 func (tt *gameTest) fuzzCleanup() {

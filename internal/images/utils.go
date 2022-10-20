@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"image"
 	"image/draw"
-	_ "image/gif"
-	_ "image/jpeg"
+	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"io"
 
@@ -58,4 +58,32 @@ func SaveToWriter(w io.Writer, img image.Image) error {
 		return err
 	}
 	return nil
+}
+
+func ImageToPng(img image.Image) ([]byte, error) {
+	var res []byte
+	w := bytes.NewBuffer(res)
+	err := png.Encode(w, img)
+	if err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
+}
+func ImageToJpeg(img image.Image) ([]byte, error) {
+	var res []byte
+	w := bytes.NewBuffer(res)
+	err := jpeg.Encode(w, img, nil)
+	if err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
+}
+func ImageToGif(img image.Image) ([]byte, error) {
+	var res []byte
+	w := bytes.NewBuffer(res)
+	err := gif.Encode(w, img, nil)
+	if err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
 }
