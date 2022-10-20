@@ -70,7 +70,7 @@ func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.Co
 
 	// Generate field cachedImage
 	for i := 0; i < len(filteredItems); i++ {
-		items[i].FillCachedImage(s.cfg, gameID)
+		filteredItems[i].FillCachedImage(s.cfg, gameID)
 	}
 
 	// Return empty array if no elements

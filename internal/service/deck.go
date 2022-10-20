@@ -71,7 +71,7 @@ func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*e
 
 	// Generate field cachedImage
 	for i := 0; i < len(filteredItems); i++ {
-		items[i].FillCachedImage(s.cfg, gameID, collectionID)
+		filteredItems[i].FillCachedImage(s.cfg, gameID, collectionID)
 	}
 
 	// Return empty array if no elements
