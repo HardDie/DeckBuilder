@@ -1530,7 +1530,7 @@
         "tags": [
           "Generator"
         ],
-        "summary": "Start generating items for TTS",
+        "summary": "# Start generating items for TTS",
         "operationId": "RequestGameGenerate",
         "parameters": [
           {

@@ -14,7 +14,7 @@ type IGeneratorServer interface {
 
 func RegisterGeneratorServer(route *mux.Router, srv IGeneratorServer) {
 	GeneratorsRoute := route.PathPrefix("/api/games/{game}").Subrouter()
-	GeneratorsRoute.HandleFunc("/generate", srv.GameHandler).Methods(http.MethodGet)
+	GeneratorsRoute.HandleFunc("/generate", srv.GameHandler).Methods(http.MethodPost)
 }
 
 type UnimplementedGeneratorServer struct {
@@ -47,19 +47,19 @@ type ResponseGameGenerate struct {
 
 // swagger:route POST /api/games/{game}/generate Generator RequestGameGenerate
 //
-// Start generating items for TTS
+// # Start generating items for TTS
 //
 // Allow to run the background process of generating images and json item for the game
 //
-//     Consumes:
-//     - application/json
+//	Consumes:
+//	- application/json
 //
-//     Produces:
-//     - application/json
+//	Produces:
+//	- application/json
 //
-//     Schemes: http
+//	Schemes: http
 //
-//     Responses:
-//       200: ResponseGameGenerate
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseGameGenerate
+//	  default: ResponseError
 func (s *UnimplementedGeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {}
