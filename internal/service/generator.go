@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/disintegration/imaging"
@@ -120,20 +119,8 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 
 	var err error
 
-	transform := tts_entity.Transform{
-		ScaleX: 1,
-		ScaleY: 1,
-		ScaleZ: 1,
-	}
-	bag := tts_entity.Bag{
-		Name:      "Bag",
-		Nickname:  gameItem.Name,
-		Transform: transform,
-	}
-	deck := tts_entity.DeckObject{
-		CustomDeck: make(map[int]tts_entity.DeckDescription),
-		Transform:  transform,
-	}
+	bag := tts_entity.NewBag(gameItem.Name)
+	deck := tts_entity.NewDeck("")
 
 	var processedCards int
 
@@ -150,7 +137,7 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 		for pageId, page := range pages.Pages {
 			var infoPage *PageInformation
 			pr.SetMessage("Drawing cards on the resulting page...")
-			for cardId, card := range page {
+			for cardIndex, card := range page {
 				// Preparation
 
 				if infoDeck.backside == nil {
@@ -171,24 +158,18 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 						return err
 					}
 					deck.CustomDeck[pageId+1] = infoDeck.deckDesc
+
+					// Draw a picture of the backside in the bottom right position
+					images.Draw(infoPage.image, infoPage.info.Columns-1, infoPage.info.Rows-1, infoDeck.backside.imageDarker)
 				}
 
 				// Processing image
 
-				// Get card image
-				cardImageBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
-				if err != nil {
-					return err
-				}
-				// Converting binary data to image type
-				cardImg, err := images.ImageFromBinary(cardImageBin)
-				if err != nil {
-					return err
-				}
-				// Calculate the position of the image on the page
-				column, row := utils.CardIdToPageCoordinates(cardId, infoPage.info.Columns)
 				// Draw an image on the page
-				images.Draw(infoPage.image, column, row, cardImg)
+				err = s.drawImageOnPage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID, cardIndex, infoPage)
+				if err != nil {
+					return err
+				}
 
 				// Processing json
 
@@ -207,51 +188,24 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 					}
 
 					// Create a new deck object
-					deck = tts_entity.DeckObject{
-						Name:     "Deck",
-						Nickname: infoDeck.deckItem.Name,
-						CustomDeck: map[int]tts_entity.DeckDescription{
-							pageId + 1: infoDeck.deckDesc,
-						},
-						Transform: transform,
-					}
+					deck = tts_entity.NewDeck(infoDeck.deckItem.Name)
+					deck.CustomDeck[pageId+1] = infoDeck.deckDesc
 				}
 				// Get information about the card
 				cardItem, err := s.cardService.Item(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 				if err != nil {
 					return err
 				}
-				// Converting lua variables into strings
-				var variables []string
-				for key, value := range cardItem.Variables {
-					variables = append(variables, key+"="+value)
-				}
 
-				// Add a card to the deck as many times as set in the count variable
+				cardObject := tts_entity.NewCard(cardItem.Name, cardItem.Description, pageId, cardIndex, cardItem.Variables, infoDeck.deckDesc)
 				for i := 0; i < cardItem.Count; i++ {
-					// Place the card ID in the list of cards inside the deck object
-					deck.DeckIDs = append(deck.DeckIDs, (pageId+1)*100+cardId)
-
-					// Create a card and place it in the list of cards inside the deck
-					deck.ContainedObjects = append(deck.ContainedObjects, tts_entity.Card{
-						Name:        "Card",
-						Nickname:    utils.Allocate(cardItem.Name),
-						Description: utils.Allocate(cardItem.Description),
-						CardID:      (pageId+1)*100 + cardId,
-						LuaScript:   strings.Join(variables, "\n"),
-						CustomDeck: map[int]tts_entity.DeckDescription{
-							pageId + 1: infoDeck.deckDesc,
-						},
-						Transform: &transform,
-					})
+					// Add a card to the deck as many times as set in the count variable
+					deck.AddCard(cardObject)
 				}
 
 				processedCards++
 				pr.SetProgress(float32(processedCards) / float32(deckArray.TotalCount) * 100)
 			}
-			// Draw a picture of the backside in the bottom right position
-			pr.SetMessage("Drawing backside image on the resulting page...")
-			images.Draw(infoPage.image, infoPage.info.Columns-1, infoPage.info.Rows-1, infoDeck.backside.imageDarker)
 			// Save the image page to file
 			pr.SetMessage("Saving the resulting page to disk...")
 			err = fs.CreateAndProcess[image.Image](filepath.Join(s.cfg.Results(), infoPage.info.Name), infoPage.image, images.SaveToWriter)
@@ -374,6 +328,23 @@ func (s *GeneratorService) preparePageInfo(pageId int, page entity.CardPage, car
 	}
 
 	return infoPage, nil
+}
+func (s *GeneratorService) drawImageOnPage(gameID, collectionID, deckID string, cardID int64, cardIndex int, infoPage *PageInformation) error {
+	// Get card image
+	cardImageBin, _, err := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
+	if err != nil {
+		return err
+	}
+	// Converting binary data to image type
+	cardImg, err := images.ImageFromBinary(cardImageBin)
+	if err != nil {
+		return err
+	}
+	// Calculate the position of the image on the page
+	column, row := utils.CardIdToPageCoordinates(cardIndex, infoPage.info.Columns)
+	// Draw an image on the page
+	images.Draw(infoPage.image, column, row, cardImg)
+	return nil
 }
 
 type BackSideInformation struct {

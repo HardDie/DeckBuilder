@@ -7,3 +7,11 @@ type Bag struct {
 	Description      string    `json:"Description"`
 	ContainedObjects []any     `json:"ContainedObjects"`
 }
+
+func NewBag(nickname string) Bag {
+	return Bag{
+		Name:      "Bag",
+		Nickname:  nickname,
+		Transform: transform,
+	}
+}

@@ -44,6 +44,7 @@ func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64, count 
 	if len(cArr.Pages) == 0 ||
 		len(cArr.Pages[lastArray]) == config.MaxCount {
 		// If the card array has reached the limit of the number of cards per page,
+		// or if we don't have any pages yet,
 		// create a new page.
 		cArr.Pages = append(cArr.Pages, make(CardPage, 0))
 		lastArray++
