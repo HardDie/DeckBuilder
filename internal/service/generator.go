@@ -147,76 +147,32 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 			continue
 		}
 
-		var collectionType string
-		var deckItem *entity.DeckInfo
-		var deckBacksideImage []byte
-		var deckBacksideImageDarker *image.NRGBA
-		var deckBacksideImageName string
-		var deckDesc tts_entity.DeckDescription
+		var infoDeck DeckInformation
 
 		for pageId, page := range pages.Pages {
-			var pageInfo *entity.PageInfo
-			var pageImage *image.RGBA
+			var infoPage *PageInformation
 			pr.SetMessage("Drawing cards on the resulting page...")
 			for cardId, card := range page {
 				// Preparation
 
-				if deckBacksideImage == nil {
+				if infoDeck.backside == nil {
 					// Getting an deck item
-					deckItem, err = s.deckService.Item(card.GameID, card.CollectionID, deckInfo.DeckID)
+					infoDeck.deckItem, err = s.deckService.Item(card.GameID, card.CollectionID, deckInfo.DeckID)
 					if err != nil {
 						return err
 					}
-					// Getting an image of the backside
-					deckBacksideImage, _, err = s.deckService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID)
-					if err != nil {
-						return err
-					}
-					deckBacksideImg, err := images.ImageFromBinary(deckBacksideImage)
-					if err != nil {
-						return err
-					}
-					// Make the backside image slightly darker than the original image
-					deckBacksideImageDarker = imaging.AdjustBrightness(deckBacksideImg, -30)
 
-					hash := md5.Sum([]byte(deckItem.Image))
-					deckBacksideImageName = "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
-					err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), deckBacksideImageName), deckBacksideImage, fs.BinToWriter)
+					infoDeck.backside, err = s.prepareBacksideImage(card.GameID, card.CollectionID, deckInfo.DeckID)
 					if err != nil {
 						return err
 					}
 				}
-				if pageInfo == nil {
-					// Calculation the optimal proportion of the image.
-					// Add one card to the bottom right place for the backside image.
-					columns, rows := utils.CalculateGridSize(len(page) + 1)
-					// Extracting the size of the card
-					imgBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
+				if infoPage == nil {
+					infoPage, err = s.preparePageInfo(pageId, page, card, deckInfo, &infoDeck)
 					if err != nil {
 						return err
 					}
-					// Calculating the resolution of the resulting image
-					cardWidth, cardHeight, err := images.ImageSize(imgBin)
-					if err != nil {
-						return err
-					}
-					pageInfo = &entity.PageInfo{
-						Columns: columns,
-						Rows:    rows,
-						Width:   cardWidth * columns,
-						Height:  cardHeight * rows,
-						Count:   len(page),
-						Name:    fmt.Sprintf("%s_%d_%d_%dx%d.png", deckInfo.DeckID, pageId+1, len(page), columns, rows),
-					}
-					pageImage = images.CreateImage(pageInfo.Width, pageInfo.Height)
-
-					deckDesc = tts_entity.DeckDescription{
-						FaceURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), pageInfo.Name)),
-						BackURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), deckBacksideImageName)),
-						NumWidth:  pageInfo.Columns,
-						NumHeight: pageInfo.Rows,
-					}
-					deck.CustomDeck[pageId+1] = deckDesc
+					deck.CustomDeck[pageId+1] = infoDeck.deckDesc
 				}
 
 				// Processing image
@@ -232,16 +188,16 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 					return err
 				}
 				// Calculate the position of the image on the page
-				column, row := utils.CardIdToPageCoordinates(cardId, pageInfo.Columns)
+				column, row := utils.CardIdToPageCoordinates(cardId, infoPage.info.Columns)
 				// Draw an image on the page
-				images.Draw(pageImage, column, row, cardImg)
+				images.Draw(infoPage.image, column, row, cardImg)
 
 				// Processing json
 
 				// If the collection on the previous card is different,
 				// we move the current deck to the object list and create a new deck
-				if collectionType != card.CollectionID+deckInfo.DeckID {
-					collectionType = card.CollectionID + deckInfo.DeckID
+				if infoDeck.collectionType != card.CollectionID+deckInfo.DeckID {
+					infoDeck.collectionType = card.CollectionID + deckInfo.DeckID
 
 					switch {
 					case len(deck.ContainedObjects) == 1:
@@ -255,9 +211,9 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 					// Create a new deck object
 					deck = tts_entity.DeckObject{
 						Name:     "Deck",
-						Nickname: deckItem.Name,
+						Nickname: infoDeck.deckItem.Name,
 						CustomDeck: map[int]tts_entity.DeckDescription{
-							pageId + 1: deckDesc,
+							pageId + 1: infoDeck.deckDesc,
 						},
 						Transform: transform,
 					}
@@ -286,7 +242,7 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 						CardID:      (pageId+1)*100 + cardId,
 						LuaScript:   strings.Join(variables, "\n"),
 						CustomDeck: map[int]tts_entity.DeckDescription{
-							pageId + 1: deckDesc,
+							pageId + 1: infoDeck.deckDesc,
 						},
 						Transform: &transform,
 					})
@@ -297,10 +253,10 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 			}
 			// Draw a picture of the backside in the bottom right position
 			pr.SetMessage("Drawing backside image on the resulting page...")
-			images.Draw(pageImage, pageInfo.Columns-1, pageInfo.Rows-1, deckBacksideImageDarker)
+			images.Draw(infoPage.image, infoPage.info.Columns-1, infoPage.info.Rows-1, infoDeck.backside.imageDarker)
 			// Save the image page to file
 			pr.SetMessage("Saving the resulting page to disk...")
-			err = fs.CreateAndProcess[image.Image](filepath.Join(s.cfg.Results(), pageInfo.Name), pageImage, images.SaveToWriter)
+			err = fs.CreateAndProcess[image.Image](filepath.Join(s.cfg.Results(), infoPage.info.Name), infoPage.image, images.SaveToWriter)
 			if err != nil {
 				return err
 			}
@@ -331,4 +287,84 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 
 	pr.SetMessage("All image pages were successfully generated!")
 	return nil
+}
+
+func (s *GeneratorService) prepareBacksideImage(gameID, collectionID, deckID string) (*BackSideInformation, error) {
+	// Getting an deck item
+	deckItem, err := s.deckService.Item(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+	// Getting an image of the backside
+	deckBacksideImage, _, err := s.deckService.GetImage(gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+	deckBacksideImg, err := images.ImageFromBinary(deckBacksideImage)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := md5.Sum([]byte(deckItem.Name))
+	name := "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
+	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), name), deckBacksideImage, fs.BinToWriter)
+	if err != nil {
+		return nil, err
+	}
+
+	backside := &BackSideInformation{
+		imaging.AdjustBrightness(deckBacksideImg, -30),
+		name,
+	}
+
+	return backside, nil
+}
+func (s *GeneratorService) preparePageInfo(pageId int, page entity.CardPage, card entity.CardDescription, deckInfo entity.DeckType, infoDeck *DeckInformation) (*PageInformation, error) {
+	// Calculation the optimal proportion of the image.
+	// Add one card to the bottom right place for the backside image.
+	columns, rows := utils.CalculateGridSize(len(page) + 1)
+	// Extracting the size of the card
+	imgBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
+	if err != nil {
+		return nil, err
+	}
+	// Calculating the resolution of the resulting image
+	cardWidth, cardHeight, err := images.ImageSize(imgBin)
+	if err != nil {
+		return nil, err
+	}
+	infoPage := &PageInformation{}
+	infoPage.info = &entity.PageInfo{
+		Columns: columns,
+		Rows:    rows,
+		Width:   cardWidth * columns,
+		Height:  cardHeight * rows,
+		Count:   len(page),
+		Name:    fmt.Sprintf("%s_%d_%d_%dx%d.png", deckInfo.DeckID, pageId+1, len(page), columns, rows),
+	}
+	infoPage.image = images.CreateImage(infoPage.info.Width, infoPage.info.Height)
+
+	infoDeck.deckDesc = tts_entity.DeckDescription{
+		FaceURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), infoPage.info.Name)),
+		BackURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), infoDeck.backside.imageName)),
+		NumWidth:  infoPage.info.Columns,
+		NumHeight: infoPage.info.Rows,
+	}
+
+	return infoPage, nil
+}
+
+type BackSideInformation struct {
+	imageDarker *image.NRGBA
+	imageName   string
+}
+type DeckInformation struct {
+	collectionType string
+	deckItem       *entity.DeckInfo
+	backside       *BackSideInformation
+	deckDesc       tts_entity.DeckDescription
+}
+type PageInformation struct {
+	info  *entity.PageInfo
+	image *image.RGBA
 }
