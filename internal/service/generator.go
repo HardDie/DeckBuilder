@@ -51,7 +51,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 		return err
 	}
 
-	deckArray, totalCountOfCards, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
+	deckArray, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(gameItem, deckArray, totalCountOfCards)
+		err = s.generateBody(gameItem, deckArray)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
@@ -83,21 +83,20 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	return nil
 }
 
-func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, int, error) {
+func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, error) {
 	deckArray := entity.NewDeckArray()
-	totalCountOfCards := 0
 
 	// Get collection list
 	collectionItems, err := s.collectionService.List(gameID, sortField, "")
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
 		deckItems, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		// Get a list of cards for each deck
 		for _, deckItem := range deckItems {
@@ -105,18 +104,17 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
 			cardItems, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
-				return nil, 0, err
+				return nil, err
 			}
 			for _, cardItem := range cardItems {
-				// Add card a card to the linked unique deck
+				// Add a card to the linked unique deck
 				deckArray.AddCard(gameID, collectionItem.ID, cardItem.ID, cardItem.Count)
-				totalCountOfCards++
 			}
 		}
 	}
-	return deckArray, totalCountOfCards, nil
+	return deckArray, nil
 }
-func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *entity.DeckArray, totalCountOfCards int) error {
+func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *entity.DeckArray) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
@@ -249,7 +247,7 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 				}
 
 				processedCards++
-				pr.SetProgress(float32(processedCards) / float32(totalCountOfCards) * 100)
+				pr.SetProgress(float32(processedCards) / float32(deckArray.TotalCount) * 100)
 			}
 			// Draw a picture of the backside in the bottom right position
 			pr.SetMessage("Drawing backside image on the resulting page...")

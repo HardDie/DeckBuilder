@@ -59,6 +59,7 @@ func (cArr *CardArray) AddCard(gameID, collectionID string, cardID int64, count 
 
 // DeckArray Full collection of different deck types split by pages
 type DeckArray struct {
+	TotalCount   int
 	Decks        map[DeckType]*CardArray
 	selectedDeck DeckType
 }
@@ -84,4 +85,5 @@ func (dArr *DeckArray) SelectDeck(title, image string) {
 // AddCard Allows you to add a card to the selected deck
 func (dArr *DeckArray) AddCard(gameID, collectionID string, cardID int64, count int) {
 	dArr.Decks[dArr.selectedDeck].AddCard(gameID, collectionID, cardID, count)
+	dArr.TotalCount++
 }
