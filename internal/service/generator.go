@@ -160,7 +160,7 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 						return err
 					}
 
-					infoDeck.backside, err = s.prepareBacksideImage(card.GameID, card.CollectionID, deckInfo.DeckID)
+					infoDeck.backside, err = s.prepareBacksideImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
 					if err != nil {
 						return err
 					}
@@ -287,7 +287,18 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 	return nil
 }
 
-func (s *GeneratorService) prepareBacksideImage(gameID, collectionID, deckID string) (*BackSideInformation, error) {
+func (s *GeneratorService) prepareBacksideImage(gameID, collectionID, deckID string, cardID int64) (*BackSideInformation, error) {
+	// Get image of first card
+	cardImageBin, _, err := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
+	if err != nil {
+		return nil, err
+	}
+	// Get card image resolution
+	cardWidth, cardHeight, err := images.ImageSize(cardImageBin)
+	if err != nil {
+		return nil, err
+	}
+
 	// Getting an deck item
 	deckItem, err := s.deckService.Item(gameID, collectionID, deckID)
 	if err != nil {
@@ -298,12 +309,25 @@ func (s *GeneratorService) prepareBacksideImage(gameID, collectionID, deckID str
 	if err != nil {
 		return nil, err
 	}
+
+	// Get backside image resolution
+	backSideWidth, backSideHeight, err := images.ImageSize(deckBacksideImage)
+	if err != nil {
+		return nil, err
+	}
+
 	deckBacksideImg, err := images.ImageFromBinary(deckBacksideImage)
 	if err != nil {
 		return nil, err
 	}
 
-	hash := md5.Sum([]byte(deckItem.Name))
+	// Resize the backside image in case it has a different size from the card
+	if cardHeight != backSideWidth ||
+		cardWidth != backSideHeight {
+		deckBacksideImg = imaging.Resize(deckBacksideImg, cardWidth, cardHeight, imaging.Lanczos)
+	}
+
+	hash := md5.Sum(deckBacksideImage)
 	name := "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
 	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), name), deckBacksideImage, fs.BinToWriter)
 	if err != nil {
