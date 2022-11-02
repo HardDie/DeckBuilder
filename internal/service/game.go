@@ -6,6 +6,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -13,7 +14,7 @@ import (
 type IGameService interface {
 	Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error)
 	Item(gameID string) (*entity.GameInfo, error)
-	List(sortField, search string) ([]*entity.GameInfo, error)
+	List(sortField, search string) ([]*entity.GameInfo, *network.Meta, error)
 	Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error)
 	Delete(gameID string) error
 	GetImage(gameID string) ([]byte, string, error)
@@ -49,10 +50,10 @@ func (s *GameService) Item(gameID string) (*entity.GameInfo, error) {
 	game.FillCachedImage(s.cfg)
 	return game, nil
 }
-func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, error) {
+func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, *network.Meta, error) {
 	items, err := s.gameRepository.GetAll()
 	if err != nil {
-		return make([]*entity.GameInfo, 0), err
+		return make([]*entity.GameInfo, 0), nil, err
 	}
 
 	// Filter
@@ -80,7 +81,11 @@ func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, error)
 	if filteredItems == nil {
 		filteredItems = make([]*entity.GameInfo, 0)
 	}
-	return filteredItems, nil
+
+	meta := &network.Meta{
+		Total: len(filteredItems),
+	}
+	return filteredItems, meta, nil
 }
 func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
 	game, err := s.gameRepository.Update(gameID, dtoObject)

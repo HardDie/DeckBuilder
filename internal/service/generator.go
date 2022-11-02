@@ -86,14 +86,14 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 	deckArray := entity.NewDeckArray()
 
 	// Get collection list
-	collectionItems, err := s.collectionService.List(gameID, sortField, "")
+	collectionItems, _, err := s.collectionService.List(gameID, sortField, "")
 	if err != nil {
 		return nil, err
 	}
 
 	// Get a list of decks for each collection
 	for _, collectionItem := range collectionItems {
-		deckItems, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
+		deckItems, _, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*ent
 		for _, deckItem := range deckItems {
 			// Create a unique description of the deck
 			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
-			cardItems, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
+			cardItems, _, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
 				return nil, err
 			}

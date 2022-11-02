@@ -6,6 +6,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -13,7 +14,7 @@ import (
 type ICardService interface {
 	Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*entity.CardInfo, error)
 	Item(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error)
-	List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, error)
+	List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, *network.Meta, error)
 	Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error)
 	Delete(gameID, collectionID, deckID string, cardID int64) error
 	GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error)
@@ -49,10 +50,10 @@ func (s *CardService) Item(gameID, collectionID, deckID string, cardID int64) (*
 	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	return card, nil
 }
-func (s *CardService) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, error) {
+func (s *CardService) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, *network.Meta, error) {
 	items, err := s.cardRepository.GetAll(gameID, collectionID, deckID)
 	if err != nil {
-		return make([]*entity.CardInfo, 0), err
+		return make([]*entity.CardInfo, 0), nil, err
 	}
 
 	// Filter
@@ -80,7 +81,11 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField, search strin
 	if filteredItems == nil {
 		filteredItems = make([]*entity.CardInfo, 0)
 	}
-	return filteredItems, nil
+
+	meta := &network.Meta{
+		Total: len(filteredItems),
+	}
+	return filteredItems, meta, nil
 }
 func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
 	card, err := s.cardRepository.Update(gameID, collectionID, deckID, cardID, dtoObject)

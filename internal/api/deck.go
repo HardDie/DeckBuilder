@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 type IDeckServer interface {
@@ -242,6 +243,8 @@ type ResponseListOfDecks struct {
 	Body struct {
 		// Required: true
 		Data []*entity.DeckInfo `json:"data"`
+		// Required: true
+		Meta *network.Meta `json:"meta"`
 	}
 }
 

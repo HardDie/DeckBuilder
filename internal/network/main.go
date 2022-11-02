@@ -13,9 +13,16 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
+type Meta struct {
+	Total int `json:"total"`
+	//Limit int `json:"limit"`
+	//Page  int `json:"page"`
+}
 type JSONResponse struct {
 	// Body
 	Data interface{} `json:"data,omitempty"`
+	// Meta
+	Meta *Meta `json:"meta,omitempty"`
 	// Error information
 	Error interface{} `json:"error,omitempty"`
 }
@@ -98,6 +105,14 @@ func ResponseError(w http.ResponseWriter, e error) {
 func Response(w http.ResponseWriter, data interface{}) {
 	resp := JSONResponse{
 		Data: data,
+	}
+
+	_ = response(w, http.StatusOK, resp)
+}
+func ResponseWithMeta(w http.ResponseWriter, data interface{}, meta *Meta) {
+	resp := JSONResponse{
+		Data: data,
+		Meta: meta,
 	}
 
 	_ = response(w, http.StatusOK, resp)

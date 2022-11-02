@@ -80,12 +80,12 @@ func (s *CollectionServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, e := s.collectionService.List(gameID, sort, search)
+	items, meta, e := s.collectionService.List(gameID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, items)
+	network.ResponseWithMeta(w, items, meta)
 }
 func (s *CollectionServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]

@@ -7,6 +7,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 type IGameServer interface {
@@ -310,6 +311,8 @@ type ResponseListOfGames struct {
 	Body struct {
 		// Required: true
 		Data []*entity.GameInfo `json:"data"`
+		// Required: true
+		Meta *network.Meta `json:"meta"`
 	}
 }
 

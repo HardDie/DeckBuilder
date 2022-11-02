@@ -110,12 +110,12 @@ func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deck"]
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, e := s.cardService.List(gameID, collectionID, deckID, sort, search)
+	items, meta, e := s.cardService.List(gameID, collectionID, deckID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, items)
+	network.ResponseWithMeta(w, items, meta)
 }
 func (s *CardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]

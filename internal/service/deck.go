@@ -6,6 +6,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -13,7 +14,7 @@ import (
 type IDeckService interface {
 	Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error)
 	Item(gameID, collectionID, deckID string) (*entity.DeckInfo, error)
-	List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, error)
+	List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, *network.Meta, error)
 	Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error)
 	Delete(gameID, collectionID, deckID string) error
 	GetImage(gameID, collectionID, deckID string) ([]byte, string, error)
@@ -47,10 +48,10 @@ func (s *DeckService) Item(gameID, collectionID, deckID string) (*entity.DeckInf
 	deck.FillCachedImage(s.cfg, gameID, collectionID)
 	return deck, nil
 }
-func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, error) {
+func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, *network.Meta, error) {
 	items, err := s.deckRepository.GetAll(gameID, collectionID)
 	if err != nil {
-		return make([]*entity.DeckInfo, 0), err
+		return make([]*entity.DeckInfo, 0), nil, err
 	}
 
 	// Filter
@@ -78,7 +79,11 @@ func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*e
 	if filteredItems == nil {
 		filteredItems = make([]*entity.DeckInfo, 0)
 	}
-	return filteredItems, nil
+
+	meta := &network.Meta{
+		Total: len(filteredItems),
+	}
+	return filteredItems, meta, nil
 }
 func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
 	deck, err := s.deckRepository.Update(gameID, collectionID, deckID, dtoObject)

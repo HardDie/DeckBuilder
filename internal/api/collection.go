@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 type ICollectionServer interface {
@@ -188,6 +189,8 @@ type ResponseListOfCollections struct {
 	Body struct {
 		// Required: true
 		Data []*entity.CollectionInfo `json:"data"`
+		// Required: true
+		Meta *network.Meta `json:"meta"`
 	}
 }
 

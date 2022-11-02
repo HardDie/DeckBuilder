@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 type ICardServer interface {
@@ -219,6 +220,8 @@ type ResponseListOfCard struct {
 	Body struct {
 		// Required: true
 		Data []*entity.CardInfo `json:"data"`
+		// Required: true
+		Meta *network.Meta `json:"meta"`
 	}
 }
 

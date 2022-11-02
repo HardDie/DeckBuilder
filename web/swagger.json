@@ -1930,6 +1930,17 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
+    "Meta": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Total"
+        }
+      },
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/network"
+    },
     "SettingInfo": {
       "type": "object",
       "properties": {
@@ -2207,7 +2218,8 @@
       "schema": {
         "type": "object",
         "required": [
-          "data"
+          "data",
+          "meta"
         ],
         "properties": {
           "data": {
@@ -2216,6 +2228,9 @@
               "$ref": "#/definitions/CardInfo"
             },
             "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
           }
         }
       }
@@ -2225,7 +2240,8 @@
       "schema": {
         "type": "object",
         "required": [
-          "data"
+          "data",
+          "meta"
         ],
         "properties": {
           "data": {
@@ -2234,6 +2250,9 @@
               "$ref": "#/definitions/CollectionInfo"
             },
             "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
           }
         }
       }
@@ -2243,7 +2262,8 @@
       "schema": {
         "type": "object",
         "required": [
-          "data"
+          "data",
+          "meta"
         ],
         "properties": {
           "data": {
@@ -2252,6 +2272,9 @@
               "$ref": "#/definitions/DeckInfo"
             },
             "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
           }
         }
       }
@@ -2261,7 +2284,8 @@
       "schema": {
         "type": "object",
         "required": [
-          "data"
+          "data",
+          "meta"
         ],
         "properties": {
           "data": {
@@ -2270,6 +2294,9 @@
               "$ref": "#/definitions/GameInfo"
             },
             "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
           }
         }
       }

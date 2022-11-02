@@ -93,12 +93,12 @@ func (s *DeckServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, e := s.deckService.List(gameID, collectionID, sort, search)
+	items, meta, e := s.deckService.List(gameID, collectionID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, items)
+	network.ResponseWithMeta(w, items, meta)
 }
 func (s *DeckServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]

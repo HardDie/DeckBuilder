@@ -6,6 +6,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -13,7 +14,7 @@ import (
 type ICollectionService interface {
 	Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error)
 	Item(gameID, collectionID string) (*entity.CollectionInfo, error)
-	List(gameID, sortField, search string) ([]*entity.CollectionInfo, error)
+	List(gameID, sortField, search string) ([]*entity.CollectionInfo, *network.Meta, error)
 	Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error)
 	Delete(gameID, collectionID string) error
 	GetImage(gameID, collectionID string) ([]byte, string, error)
@@ -46,10 +47,10 @@ func (s *CollectionService) Item(gameID, collectionID string) (*entity.Collectio
 	collection.FillCachedImage(s.cfg, gameID)
 	return collection, nil
 }
-func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.CollectionInfo, error) {
+func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.CollectionInfo, *network.Meta, error) {
 	items, err := s.collectionRepository.GetAll(gameID)
 	if err != nil {
-		return make([]*entity.CollectionInfo, 0), err
+		return make([]*entity.CollectionInfo, 0), nil, err
 	}
 
 	// Filter
@@ -77,7 +78,11 @@ func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.Co
 	if filteredItems == nil {
 		filteredItems = make([]*entity.CollectionInfo, 0)
 	}
-	return filteredItems, nil
+
+	meta := &network.Meta{
+		Total: len(filteredItems),
+	}
+	return filteredItems, meta, nil
 }
 func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
 	collection, err := s.collectionRepository.Update(gameID, collectionID, dtoObject)

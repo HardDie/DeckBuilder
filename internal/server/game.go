@@ -133,12 +133,12 @@ func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, e := s.gameService.List(sort, search)
+	items, meta, e := s.gameService.List(sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, items)
+	network.ResponseWithMeta(w, items, meta)
 }
 func (s *GameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
