@@ -22,9 +22,6 @@ check_bin() {
 }
 
 echo "Required build packets:"
-check_bin "png2icns" \
-	"Required to build the MacOS icon pack." \
-	"The package may have the name '${BLU}libicns${NC}', try to install it using the package manager."
 check_bin "zip" \
 	"Required to compress a binary file for windows." \
 	"The package may have the name '${BLU}zip${NC}', try to install it using the package manager."
@@ -34,8 +31,8 @@ check_bin "tar" \
 check_bin "yarn" \
 	"Required to build vue web." \
 	"The package may have the name '${BLU}yarn${NC}', try to install it using the package manager."
-check_bin "goversioninfo" \
-	"Required to create a bin file containing the icon and description for a compiled windows application." \
-	"How to install: ${BLU}go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest${NC}"
+check_bin "goreleaser" \
+	"Required to create a release files for all platforms" \
+	"How to install: ${BLU}go install github.com/HardDie/goreleaser/cmd/goreleaser@latest${NC}"
 
 exit ${TOTAL}
