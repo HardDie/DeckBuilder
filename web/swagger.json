@@ -1603,6 +1603,98 @@
         }
       }
     },
+    "/api/replace": {
+      "post": {
+        "description": "# List of images",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Replace"
+        ],
+        "operationId": "RequestReplaceReplace",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "File",
+            "description": "Json file",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Mapping",
+            "description": "Json file",
+            "name": "mapping",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseReplaceReplace"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/replace/prepare": {
+      "post": {
+        "description": "# List of images",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "Replace"
+        ],
+        "operationId": "RequestPrepareReplace",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "File",
+            "description": "Json file",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponsePrepareReplace"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/system/quit": {
       "delete": {
         "description": "Close app on back side",
@@ -2301,8 +2393,46 @@
         }
       }
     },
+    "ResponsePrepareReplace": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Data"
+          }
+        }
+      }
+    },
     "ResponseQuit": {
       "description": "Quit"
+    },
+    "ResponseReplaceReplace": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Data"
+          }
+        }
+      }
     },
     "ResponseSettings": {
       "description": "Settings",

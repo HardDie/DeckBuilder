@@ -64,6 +64,10 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService)
 	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
 
+	// replace
+	replaceService := service.NewReplaceService()
+	api.RegisterReplaceServer(routes, server.NewReplaceServer(replaceService))
+
 	routes.Use(corsMiddleware)
 	return &Application{
 		router: routes,
