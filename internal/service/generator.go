@@ -1,13 +1,12 @@
 package service
 
 import (
-	"crypto/md5"
+	"bytes"
 	"fmt"
-	"image"
+	"image/jpeg"
 	"path/filepath"
+	"strconv"
 	"time"
-
-	"github.com/disintegration/imaging"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -15,9 +14,9 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	pageDrawer "github.com/HardDie/DeckBuilder/internal/page_drawer"
 	"github.com/HardDie/DeckBuilder/internal/progress"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IGeneratorService interface {
@@ -70,7 +69,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(gameItem, deckArray)
+		err = s.generateBody(gameItem, deckArray, dtoObject.Scale)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
@@ -82,148 +81,274 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	return nil
 }
 
-func (s *GeneratorService) getListOfCards(gameID string, sortField string) (*entity.DeckArray, error) {
-	deckArray := entity.NewDeckArray()
+type Deck struct {
+	ID    string
+	Name  string
+	Image string
+}
+type Card struct {
+	ID           int64
+	GameID       string
+	CollectionID string
+	Count        int
+}
 
-	// Get collection list
+func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[Deck][]Card, error) {
+	decks := make(map[Deck][]Card)
+	// Get list of collections
 	collectionItems, _, err := s.collectionService.List(gameID, sortField, "")
 	if err != nil {
 		return nil, err
 	}
-
-	// Get a list of decks for each collection
+	// Iterate through collections
 	for _, collectionItem := range collectionItems {
+		// Get list of decks
 		deckItems, _, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
 			return nil, err
 		}
-		// Get a list of cards for each deck
+		// Iterate through decks
 		for _, deckItem := range deckItems {
-			// Create a unique description of the deck
-			deckArray.SelectDeck(deckItem.ID, deckItem.Image)
+			// Create deck object
+			deck := Deck{
+				ID:    deckItem.ID,
+				Name:  deckItem.Name,
+				Image: deckItem.Image,
+			}
+			// Get list of cards
 			cardItems, _, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
 				return nil, err
 			}
+			// Iterate through cards
 			for _, cardItem := range cardItems {
-				// Add a card to the linked unique deck
-				deckArray.AddCard(gameID, collectionItem.ID, cardItem.ID, cardItem.Count)
+				// Add card into deck
+				decks[deck] = append(decks[deck], Card{
+					ID:           cardItem.ID,
+					GameID:       gameID,
+					CollectionID: collectionItem.ID,
+					Count:        cardItem.Count,
+				})
 			}
 		}
 	}
-	return deckArray, nil
+	return decks, nil
 }
-func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *entity.DeckArray) error {
+
+func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, decks map[Deck][]Card, scale int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
-	var err error
+	// Generate images
+	imageMapping, err := s.generateImages(decks, scale)
+	if err != nil {
+		return err
+	}
+	// Generate json description
+	err = s.generateJson(gameItem, decks, imageMapping)
+	if err != nil {
+		return err
+	}
 
-	bag := tts_entity.NewBag(gameItem.Name)
-	deck := tts_entity.NewDeck("")
+	return nil
+}
 
+type PageInfo struct {
+	Image    string
+	Backside string
+	Columns  int
+	Rows     int
+}
+
+func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map[string]PageInfo, error) {
+	pr := progress.GetProgress()
+
+	// Count total amount of cards
 	var processedCards int
+	var totalCount int
+	for _, cards := range decks {
+		totalCount += len(cards)
+	}
 
 	pr.SetMessage("Generating the resulting image pages...")
 	pr.SetProgress(0)
-	for deckInfo, pages := range deckArray.Decks {
-		if len(pages.Pages) == 0 {
-			// If deck is empty, skip
-			continue
+
+	images := make(map[string]PageInfo)
+
+	pr.SetMessage("Drawing cards on the page...")
+	for deckInfo, cards := range decks {
+		// Create page drawer object
+		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale)
+		var backsidePath string
+
+		// Iterate through all cards in deck
+		for _, card := range cards {
+			// Init page drawer with deck information
+			if page.IsEmpty() {
+				// Getting an image of the backside
+				deckBacksideImage, _, err := s.deckService.GetImage(card.GameID, card.CollectionID, deckInfo.ID)
+				if err != nil {
+					return nil, err
+				}
+				// Set backside image
+				savePath, err := page.SetBacksideImageAndSave(deckBacksideImage)
+				if err != nil {
+					return nil, err
+				}
+				backsidePath = savePath
+			}
+
+			// Start new page if current is full
+			if page.IsFull() {
+				pr.SetMessage("Saving the resulting page to disk...")
+				savePath, columns, rows, err := page.Save()
+				if err != nil {
+					return nil, err
+				}
+				images[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())] = PageInfo{
+					Image:    savePath,
+					Backside: backsidePath,
+					Columns:  columns,
+					Rows:     rows,
+				}
+				pr.SetMessage("Drawing cards on the page...")
+				page = (&pageDrawer.PageDrawer{}).Inherit(page)
+			}
+
+			// Get card image
+			cardImageBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.ID, card.ID)
+			if err != nil {
+				return nil, err
+			}
+			// Add card on page
+			err = page.AddImage(cardImageBin)
+			if err != nil {
+				return nil, err
+			}
+
+			// Progress
+			processedCards++
+			pr.SetProgress(float32(processedCards) / float32(totalCount) * 100)
 		}
 
-		var infoDeck DeckInformation
-
-		for pageId, page := range pages.Pages {
-			var infoPage *PageInformation
-			pr.SetMessage("Drawing cards on the resulting page...")
-			for cardIndex, card := range page {
-				// Preparation
-
-				if infoDeck.backside == nil {
-					// Getting an deck item
-					infoDeck.deckItem, err = s.deckService.Item(card.GameID, card.CollectionID, deckInfo.DeckID)
-					if err != nil {
-						return err
-					}
-
-					infoDeck.backside, err = s.prepareBacksideImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
-					if err != nil {
-						return err
-					}
-				}
-				if infoPage == nil {
-					infoPage, err = s.preparePageInfo(pageId, page, card, deckInfo, &infoDeck)
-					if err != nil {
-						return err
-					}
-					deck.CustomDeck[pageId+1] = infoDeck.deckDesc
-
-					// Draw a picture of the backside in the bottom right position
-					images.Draw(infoPage.image, infoPage.info.Columns-1, infoPage.info.Rows-1, infoDeck.backside.imageDarker)
-				}
-
-				// Processing image
-
-				// Draw an image on the page
-				err = s.drawImageOnPage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID, cardIndex, infoPage)
-				if err != nil {
-					return err
-				}
-
-				// Processing json
-
-				// If the collection on the previous card is different,
-				// we move the current deck to the object list and create a new deck
-				if infoDeck.collectionType != card.CollectionID+deckInfo.DeckID {
-					infoDeck.collectionType = card.CollectionID + deckInfo.DeckID
-
-					switch {
-					case len(deck.ContainedObjects) == 1:
-						// We cannot create a deck object with a single card. We must create a card object.
-						bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
-					case len(deck.ContainedObjects) > 1:
-						// If there is more than one card in the deck, place the deck in the object list.
-						bag.ContainedObjects = append(bag.ContainedObjects, deck)
-					}
-
-					// Create a new deck object
-					deck = tts_entity.NewDeck(infoDeck.deckItem.Name)
-					deck.CustomDeck[pageId+1] = infoDeck.deckDesc
-				}
-				// Get information about the card
-				cardItem, err := s.cardService.Item(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
-				if err != nil {
-					return err
-				}
-
-				cardObject := tts_entity.NewCard(cardItem.Name, cardItem.Description, pageId, cardIndex, cardItem.Variables, infoDeck.deckDesc)
-				for i := 0; i < cardItem.Count; i++ {
-					// Add a card to the deck as many times as set in the count variable
-					deck.AddCard(cardObject)
-				}
-
-				processedCards++
-				pr.SetProgress(float32(processedCards) / float32(deckArray.TotalCount) * 100)
-			}
-			// Save the image page to file
+		if !page.IsEmpty() {
 			pr.SetMessage("Saving the resulting page to disk...")
-			err = fs.CreateAndProcess[image.Image](filepath.Join(s.cfg.Results(), infoPage.info.Name), infoPage.image, images.SaveToWriter)
+			savePath, columns, rows, err := page.Save()
+			if err != nil {
+				return nil, err
+			}
+			images[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())] = PageInfo{
+				Image:    savePath,
+				Backside: backsidePath,
+				Columns:  columns,
+				Rows:     rows,
+			}
+			pr.SetMessage("Drawing cards on the page...")
+		}
+	}
+	pr.SetMessage("All image pages were successfully generated!")
+	return images, nil
+}
+
+func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Deck][]Card, imageMapping map[string]PageInfo) error {
+	bag := tts_entity.NewBag(gameItem.Name)
+	var deck tts_entity.DeckObject
+
+	var dummyImage []byte
+	{
+		buf := new(bytes.Buffer)
+		img := images.CreateImage(10, 10)
+		err := jpeg.Encode(buf, img, nil)
+		if err != nil {
+			return err
+		}
+		dummyImage = buf.Bytes()
+	}
+
+	var deckIdOffset int
+
+	for deckInfo, cards := range decks {
+		deck = tts_entity.NewDeck(deckInfo.Name)
+		// Create page drawer object
+		page := pageDrawer.New(deckInfo.ID, "", 1)
+
+		pageInfo := imageMapping[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())]
+		deckDescription := tts_entity.DeckDescription{
+			FaceURL:   "file:///" + pageInfo.Image,
+			BackURL:   "file:///" + pageInfo.Backside,
+			NumWidth:  pageInfo.Columns,
+			NumHeight: pageInfo.Rows,
+		}
+		deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
+
+		var prevCollection string
+
+		// Iterate through all cards in deck
+		for _, card := range cards {
+			if page.IsEmpty() {
+				prevCollection = card.CollectionID + deckInfo.ID
+			}
+
+			// Start new page if current is full
+			if page.IsFull() {
+				page = (&pageDrawer.PageDrawer{}).Inherit(page)
+
+				pageInfo = imageMapping[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())]
+				deckDescription = tts_entity.DeckDescription{
+					FaceURL:   "file:///" + pageInfo.Image,
+					BackURL:   "file:///" + pageInfo.Backside,
+					NumWidth:  pageInfo.Columns,
+					NumHeight: pageInfo.Rows,
+				}
+				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
+			}
+
+			if card.CollectionID+deckInfo.ID != prevCollection {
+				prevCollection = card.CollectionID + deckInfo.ID
+
+				switch {
+				case len(deck.ContainedObjects) == 1:
+					// We cannot create a deck object with a single card. We must create a card object.
+					bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+				case len(deck.ContainedObjects) > 1:
+					// If there is more than one card in the deck, place the deck in the object list.
+					bag.ContainedObjects = append(bag.ContainedObjects, deck)
+				}
+				deck = tts_entity.NewDeck(deckInfo.Name)
+				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
+			}
+
+			// Add card on page
+			err := page.AddImage(dummyImage)
 			if err != nil {
 				return err
 			}
+
+			// Get information about the card
+			cardItem, err := s.cardService.Item(card.GameID, card.CollectionID, deckInfo.ID, card.ID)
+			if err != nil {
+				return err
+			}
+
+			cardObject := tts_entity.NewCard(cardItem.Name, cardItem.Description, page.GetIndex()+deckIdOffset, page.Size()-1, cardItem.Variables, deckDescription)
+			for i := 0; i < cardItem.Count; i++ {
+				// Add a card to the deck as many times as set in the count variable
+				deck.AddCard(cardObject)
+			}
 		}
 
-		switch {
-		case len(deck.ContainedObjects) == 1:
-			// We cannot create a deck object with a single card. We must create a card object.
-			bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
-			deck = tts_entity.DeckObject{CustomDeck: make(map[int]tts_entity.DeckDescription)}
-		case len(deck.ContainedObjects) > 1:
-			// If there is more than one card in the deck, place the deck in the object list.
-			bag.ContainedObjects = append(bag.ContainedObjects, deck)
-			deck = tts_entity.DeckObject{CustomDeck: make(map[int]tts_entity.DeckDescription)}
+		if !page.IsEmpty() {
+			switch {
+			case len(deck.ContainedObjects) == 1:
+				// We cannot create a deck object with a single card. We must create a card object.
+				bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+			case len(deck.ContainedObjects) > 1:
+				// If there is more than one card in the deck, place the deck in the object list.
+				bag.ContainedObjects = append(bag.ContainedObjects, deck)
+			}
 		}
+
+		deckIdOffset += page.GetIndex()
 	}
 
 	bag.Description = fmt.Sprintf("Created at: %v", time.Now().Format("2006-01-02 15:04:05"))
@@ -232,132 +357,10 @@ func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, deckArray *en
 			bag,
 		},
 	}
-	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), gameItem.ID+".json"), root, fs.JsonToWriter[tts_entity.RootObjects])
+	err := fs.CreateAndProcess(filepath.Join(s.cfg.Results(), gameItem.ID+".json"), root, fs.JsonToWriter[tts_entity.RootObjects])
 	if err != nil {
 		return err
 	}
 
-	pr.SetMessage("All image pages were successfully generated!")
 	return nil
-}
-
-func (s *GeneratorService) prepareBacksideImage(gameID, collectionID, deckID string, cardID int64) (*BackSideInformation, error) {
-	// Get image of first card
-	cardImageBin, _, err := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return nil, err
-	}
-	// Get card image resolution
-	cardWidth, cardHeight, err := images.ImageSize(cardImageBin)
-	if err != nil {
-		return nil, err
-	}
-
-	// Getting an deck item
-	deckItem, err := s.deckService.Item(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-	// Getting an image of the backside
-	deckBacksideImage, _, err := s.deckService.GetImage(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get backside image resolution
-	backSideWidth, backSideHeight, err := images.ImageSize(deckBacksideImage)
-	if err != nil {
-		return nil, err
-	}
-
-	deckBacksideImg, err := images.ImageFromBinary(deckBacksideImage)
-	if err != nil {
-		return nil, err
-	}
-
-	// Resize the backside image in case it has a different size from the card
-	if cardHeight != backSideWidth ||
-		cardWidth != backSideHeight {
-		deckBacksideImg = imaging.Resize(deckBacksideImg, cardWidth, cardHeight, imaging.Lanczos)
-	}
-
-	hash := md5.Sum(deckBacksideImage)
-	name := "backside_" + deckItem.ID + "_" + fmt.Sprintf("%x", hash[0:3]) + ".png"
-	err = fs.CreateAndProcess(filepath.Join(s.cfg.Results(), name), deckBacksideImage, fs.BinToWriter)
-	if err != nil {
-		return nil, err
-	}
-
-	backside := &BackSideInformation{
-		imaging.AdjustBrightness(deckBacksideImg, -30),
-		name,
-	}
-
-	return backside, nil
-}
-func (s *GeneratorService) preparePageInfo(pageId int, page entity.CardPage, card entity.CardDescription, deckInfo entity.DeckType, infoDeck *DeckInformation) (*PageInformation, error) {
-	// Calculation the optimal proportion of the image.
-	// Add one card to the bottom right place for the backside image.
-	columns, rows := utils.CalculateGridSize(len(page) + 1)
-	// Extracting the size of the card
-	imgBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.DeckID, card.CardID)
-	if err != nil {
-		return nil, err
-	}
-	// Calculating the resolution of the resulting image
-	cardWidth, cardHeight, err := images.ImageSize(imgBin)
-	if err != nil {
-		return nil, err
-	}
-	infoPage := &PageInformation{}
-	infoPage.info = &entity.PageInfo{
-		Columns: columns,
-		Rows:    rows,
-		Width:   cardWidth * columns,
-		Height:  cardHeight * rows,
-		Count:   len(page),
-		Name:    fmt.Sprintf("%s_%d_%d_%dx%d.png", deckInfo.DeckID, pageId+1, len(page), columns, rows),
-	}
-	infoPage.image = images.CreateImage(infoPage.info.Width, infoPage.info.Height)
-
-	infoDeck.deckDesc = tts_entity.DeckDescription{
-		FaceURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), infoPage.info.Name)),
-		BackURL:   "file:///" + fs.PathToAbsolutePath(filepath.Join(s.cfg.Results(), infoDeck.backside.imageName)),
-		NumWidth:  infoPage.info.Columns,
-		NumHeight: infoPage.info.Rows,
-	}
-
-	return infoPage, nil
-}
-func (s *GeneratorService) drawImageOnPage(gameID, collectionID, deckID string, cardID int64, cardIndex int, infoPage *PageInformation) error {
-	// Get card image
-	cardImageBin, _, err := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return err
-	}
-	// Converting binary data to image type
-	cardImg, err := images.ImageFromBinary(cardImageBin)
-	if err != nil {
-		return err
-	}
-	// Calculate the position of the image on the page
-	column, row := utils.CardIdToPageCoordinates(cardIndex, infoPage.info.Columns)
-	// Draw an image on the page
-	images.Draw(infoPage.image, column, row, cardImg)
-	return nil
-}
-
-type BackSideInformation struct {
-	imageDarker *image.NRGBA
-	imageName   string
-}
-type DeckInformation struct {
-	collectionType string
-	deckItem       *entity.DeckInfo
-	backside       *BackSideInformation
-	deckDesc       tts_entity.DeckDescription
-}
-type PageInformation struct {
-	info  *entity.PageInfo
-	image *image.RGBA
 }

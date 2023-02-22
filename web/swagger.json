@@ -1546,6 +1546,11 @@
             "schema": {
               "type": "object",
               "properties": {
+                "scale": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-go-name": "Scale"
+                },
                 "sortOrder": {
                   "type": "string",
                   "x-go-name": "SortOrder"

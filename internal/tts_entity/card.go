@@ -24,10 +24,10 @@ func NewCard(name, description string, pageId, cardIndex int, variablesMap map[s
 		Name:        "Card",
 		Nickname:    name,
 		Description: description,
-		CardID:      (pageId+1)*100 + cardIndex,
+		CardID:      pageId*100 + cardIndex,
 		LuaScript:   strings.Join(variables, "\n"),
 		CustomDeck: map[int]DeckDescription{
-			pageId + 1: deckDesc,
+			pageId: deckDesc,
 		},
 		Transform: &transform,
 	}

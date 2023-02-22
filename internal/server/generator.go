@@ -28,6 +28,10 @@ func (s *GeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if dtoObject.Scale < 1 {
+		dtoObject.Scale = 1
+	}
+
 	gameID := mux.Vars(r)["game"]
 	e = s.generatorService.GenerateGame(gameID, dtoObject)
 	if e != nil {
