@@ -80,11 +80,6 @@ type ResponseCreateGame struct {
 //	Consumes:
 //	- multipart/form-data
 //
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseCreateGame
 //	  default: ResponseError
@@ -110,14 +105,6 @@ type ResponseDeleteGame struct {
 // # Delete game
 //
 // Allows you to delete an existing game
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseDeleteGame
@@ -157,14 +144,6 @@ type ResponseDuplicateGame struct {
 //
 // Allows you to create a copy of an existing game
 //
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseDuplicateGame
 //	  default: ResponseError
@@ -193,14 +172,9 @@ type ResponseGameArchive struct {
 //
 // Get an existing game archive
 //
-//	Consumes:
-//	- application/json
-//
 //	Produces:
 //	- application/json
 //	- application/zip
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseGameArchive
@@ -241,11 +215,6 @@ type ResponseGameImport struct {
 //	Consumes:
 //	- multipart/form-data
 //
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseGameImport
 //	  default: ResponseError
@@ -276,14 +245,6 @@ type ResponseGame struct {
 // # Get game
 //
 // Get an existing game
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseGame
@@ -322,14 +283,6 @@ type ResponseListOfGames struct {
 //
 // Get a list of existing games
 // Sort values: name, name_desc, created, created_desc
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseListOfGames
@@ -377,11 +330,6 @@ type ResponseUpdateGame struct {
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseUpdateGame

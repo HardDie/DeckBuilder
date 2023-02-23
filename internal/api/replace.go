@@ -44,15 +44,14 @@ type ResponsePrepareReplace struct {
 
 // swagger:route POST /api/replace/prepare Replace RequestPrepareReplace
 //
-// # List of images
+// # Map with key image and empty value for URLs
+//
+// Takes as input the generated resulting json file for a saved TTS object.
+// As a result, it returns a map of the files that should be uploaded to the web repository
+// and allows you to manually map those files to valid URLs.
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponsePrepareReplace
@@ -82,15 +81,14 @@ type ResponseReplaceReplace struct {
 
 // swagger:route POST /api/replace Replace RequestReplaceReplace
 //
-// # List of images
+// # Replace all image paths with a mapping file
+//
+// Accepts as input the generated resulting json file for the saved TTS object and the mapped URL files.
+// This returns a saved TTS object json file with local file paths replaced by URLs.
+// And with these cards you can already save your table and share it with other users.
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseReplaceReplace

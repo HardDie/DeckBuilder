@@ -63,24 +63,19 @@ type ResponseCardImage struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image Images RequestCardImage
 //
-// Get card image
+// # Get card image
 //
 // Get an image of existing card
 //
-//     Consumes:
-//     - application/json
+//	Produces:
+//	- application/json
+//	- image/png
+//	- image/jpeg
+//	- image/gif
 //
-//     Produces:
-//     - application/json
-//     - image/png
-//     - image/jpeg
-//     - image/gif
-//
-//     Schemes: http
-//
-//     Responses:
-//       200: ResponseCardImage
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCardImage
+//	  default: ResponseError
 func (s *UnimplementedImageServer) CardHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an image of existing collection
@@ -105,24 +100,19 @@ type ResponseCollectionImage struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/image Images RequestCollectionImage
 //
-// Get collection image
+// # Get collection image
 //
 // Get an image of existing collection
 //
-//     Consumes:
-//     - application/json
+//	Produces:
+//	- application/json
+//	- image/png
+//	- image/jpeg
+//	- image/gif
 //
-//     Produces:
-//     - application/json
-//     - image/png
-//     - image/jpeg
-//     - image/gif
-//
-//     Schemes: http
-//
-//     Responses:
-//       200: ResponseCollectionImage
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseCollectionImage
+//	  default: ResponseError
 func (s *UnimplementedImageServer) CollectionHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an image of existing deck
@@ -150,24 +140,19 @@ type ResponseDeckImage struct {
 
 // swagger:route GET /api/games/{game}/collections/{collection}/decks/{deck}/image Images RequestDeckImage
 //
-// Get deck image
+// # Get deck image
 //
 // Get an image of existing deck
 //
-//     Consumes:
-//     - application/json
+//	Produces:
+//	- application/json
+//	- image/png
+//	- image/jpeg
+//	- image/gif
 //
-//     Produces:
-//     - application/json
-//     - image/png
-//     - image/jpeg
-//     - image/gif
-//
-//     Schemes: http
-//
-//     Responses:
-//       200: ResponseDeckImage
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseDeckImage
+//	  default: ResponseError
 func (s *UnimplementedImageServer) DeckHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Requesting an image of existing game
@@ -189,22 +174,17 @@ type ResponseGameImage struct {
 
 // swagger:route GET /api/games/{game}/image Images RequestGameImage
 //
-// Get game image
+// # Get game image
 //
 // Get an image of existing game
 //
-//     Consumes:
-//     - application/json
+//	Produces:
+//	- application/json
+//	- image/png
+//	- image/jpeg
+//	- image/gif
 //
-//     Produces:
-//     - application/json
-//     - image/png
-//     - image/jpeg
-//     - image/gif
-//
-//     Schemes: http
-//
-//     Responses:
-//       200: ResponseGameImage
-//       default: ResponseError
+//	Responses:
+//	  200: ResponseGameImage
+//	  default: ResponseError
 func (s *UnimplementedImageServer) GameHandler(w http.ResponseWriter, r *http.Request) {}

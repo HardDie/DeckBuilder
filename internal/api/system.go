@@ -50,17 +50,9 @@ type ResponseQuit struct {
 //
 // Close app on back side
 //
-//	Consumes:
-//	- application/json
-//
-//	 Produces:
-//	 - application/json
-//
-//	 Schemes: http
-//
-//	 Responses:
-//	   200: ResponseQuit
-//	   default: ResponseError
+//	Responses:
+//	  200: ResponseQuit
+//	  default: ResponseError
 func (s *UnimplementedSystemServer) QuitHandler(w http.ResponseWriter, r *http.Request) {}
 
 // swagger:parameters RequestSettings
@@ -84,17 +76,9 @@ type ResponseSettings struct {
 //
 // Get default or changed settings
 //
-//	Consumes:
-//	- application/json
-//
-//	 Produces:
-//	 - application/json
-//
-//	 Schemes: http
-//
-//	 Responses:
-//	   200: ResponseSettings
-//	   default: ResponseError
+//	Responses:
+//	  200: ResponseSettings
+//	  default: ResponseError
 func (s *UnimplementedSystemServer) GetSettingsHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Request to update a settings
@@ -126,17 +110,9 @@ type ResponseUpdateSettings struct {
 //
 // API to update settings
 //
-//	Consumes:
-//	- application/json
-//
-//	 Produces:
-//	 - application/json
-//
-//	 Schemes: http
-//
-//	 Responses:
-//	   200: ResponseUpdateSettings
-//	   default: ResponseError
+//	Responses:
+//	  200: ResponseUpdateSettings
+//	  default: ResponseError
 func (s *UnimplementedSystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {}
 
 // swagger:parameters RequestStatus
@@ -160,17 +136,9 @@ type ResponseStatus struct {
 //
 // API to get status of process
 //
-//	Consumes:
-//	- application/json
-//
-//	 Produces:
-//	 - application/json
-//
-//	 Schemes: http
-//
-//	 Responses:
-//	   200: ResponseStatus
-//	   default: ResponseError
+//	Responses:
+//	  200: ResponseStatus
+//	  default: ResponseError
 func (s *UnimplementedSystemServer) StatusHandler(w http.ResponseWriter, r *http.Request) {}
 
 // swagger:parameters RequestVersion
@@ -194,15 +162,7 @@ type ResponseVersion struct {
 //
 // API to get version of application
 //
-//	Consumes:
-//	- application/json
-//
-//	 Produces:
-//	 - application/json
-//
-//	 Schemes: http
-//
-//	 Responses:
-//	   200: ResponseVersion
-//	   default: ResponseError
+//	Responses:
+//	  200: ResponseVersion
+//	  default: ResponseError
 func (s *UnimplementedSystemServer) GetVersionHandler(w http.ResponseWriter, r *http.Request) {}

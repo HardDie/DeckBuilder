@@ -76,11 +76,6 @@ type ResponseCreateCollection struct {
 //	Consumes:
 //	- multipart/form-data
 //
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseCreateCollection
 //	  default: ResponseError
@@ -109,14 +104,6 @@ type ResponseDeleteCollection struct {
 // # Delete collection
 //
 // Allows you to delete an existing collection
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseDeleteCollection
@@ -151,14 +138,6 @@ type ResponseCollection struct {
 // # Get collection
 //
 // Get an existing collection
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseCollection
@@ -200,14 +179,6 @@ type ResponseListOfCollections struct {
 //
 // Get a list of existing collections
 // Sort values: name, name_desc, created, created_desc
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseListOfCollections
@@ -258,11 +229,6 @@ type ResponseUpdateCollection struct {
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseUpdateCollection

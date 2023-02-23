@@ -21,15 +21,6 @@
     "/api/games": {
       "get": {
         "description": "Get a list of existing games\nSort values: name, name_desc, created, created_desc",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Games"
         ],
@@ -62,12 +53,6 @@
         "description": "Allows you to create a new game",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Games"
@@ -122,12 +107,6 @@
         "consumes": [
           "multipart/form-data"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Games"
         ],
@@ -167,15 +146,6 @@
     "/api/games/{game}": {
       "get": {
         "description": "Get an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Games"
         ],
@@ -201,15 +171,6 @@
       },
       "delete": {
         "description": "Allows you to delete an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Games"
         ],
@@ -237,12 +198,6 @@
         "description": "Allows you to update an existing game",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Games"
@@ -301,15 +256,6 @@
     "/api/games/{game}/collections": {
       "get": {
         "description": "Get a list of existing collections\nSort values: name, name_desc, created, created_desc",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Collections"
         ],
@@ -349,12 +295,6 @@
         "description": "Allows you to create a new collection",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Collections"
@@ -413,15 +353,6 @@
     "/api/games/{game}/collections/{collection}": {
       "get": {
         "description": "Get an existing collection",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Collections"
         ],
@@ -454,15 +385,6 @@
       },
       "delete": {
         "description": "Allows you to delete an existing collection",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Collections"
         ],
@@ -497,12 +419,6 @@
         "description": "Allows you to update an existing collection",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Collections"
@@ -568,15 +484,6 @@
     "/api/games/{game}/collections/{collection}/decks": {
       "get": {
         "description": "Get a list of existing decks\nSort values: name, name_desc, created, created_desc",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Decks"
         ],
@@ -623,12 +530,6 @@
         "description": "Allows you to create a new deck",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Decks"
@@ -694,15 +595,6 @@
     "/api/games/{game}/collections/{collection}/decks/{deck}": {
       "get": {
         "description": "Get an existing deck",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Decks"
         ],
@@ -742,15 +634,6 @@
       },
       "delete": {
         "description": "Allows you to delete an existing deck",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Decks"
         ],
@@ -792,12 +675,6 @@
         "description": "Allows you to update an existing deck",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Decks"
@@ -870,15 +747,6 @@
     "/api/games/{game}/collections/{collection}/decks/{deck}/cards": {
       "get": {
         "description": "Get a list of existing cards\nSort values: name, name_desc, created, created_desc",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Cards"
         ],
@@ -932,12 +800,6 @@
         "description": "Allows you to create a new card",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Cards"
@@ -1024,15 +886,6 @@
     "/api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}": {
       "get": {
         "description": "Get an existing card",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Cards"
         ],
@@ -1080,15 +933,6 @@
       },
       "delete": {
         "description": "Allows you to delete an existing card",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Cards"
         ],
@@ -1137,12 +981,6 @@
         "description": "Allows you to update an existing card",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Cards"
@@ -1236,22 +1074,16 @@
     "/api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image": {
       "get": {
         "description": "Get an image of existing card",
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json",
           "image/png",
           "image/jpeg",
           "image/gif"
         ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Images"
         ],
-        "summary": "Get card image",
+        "summary": "# Get card image",
         "operationId": "RequestCardImage",
         "parameters": [
           {
@@ -1296,22 +1128,16 @@
     "/api/games/{game}/collections/{collection}/decks/{deck}/image": {
       "get": {
         "description": "Get an image of existing deck",
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json",
           "image/png",
           "image/jpeg",
           "image/gif"
         ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Images"
         ],
-        "summary": "Get deck image",
+        "summary": "# Get deck image",
         "operationId": "RequestDeckImage",
         "parameters": [
           {
@@ -1349,22 +1175,16 @@
     "/api/games/{game}/collections/{collection}/image": {
       "get": {
         "description": "Get an image of existing collection",
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json",
           "image/png",
           "image/jpeg",
           "image/gif"
         ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Images"
         ],
-        "summary": "Get collection image",
+        "summary": "# Get collection image",
         "operationId": "RequestCollectionImage",
         "parameters": [
           {
@@ -1395,15 +1215,6 @@
     "/api/games/{game}/decks": {
       "get": {
         "description": "Get a list of all existing decks in game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Decks"
         ],
@@ -1431,15 +1242,6 @@
     "/api/games/{game}/duplicate": {
       "post": {
         "description": "Allows you to create a copy of an existing game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Games"
         ],
@@ -1481,15 +1283,9 @@
     "/api/games/{game}/export": {
       "get": {
         "description": "Get an existing game archive",
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json",
           "application/zip"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Games"
@@ -1518,15 +1314,6 @@
     "/api/games/{game}/generate": {
       "post": {
         "description": "Allow to run the background process of generating images and json item for the game",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Generator"
         ],
@@ -1572,22 +1359,16 @@
     "/api/games/{game}/image": {
       "get": {
         "description": "Get an image of existing game",
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json",
           "image/png",
           "image/jpeg",
           "image/gif"
         ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "Images"
         ],
-        "summary": "Get game image",
+        "summary": "# Get game image",
         "operationId": "RequestGameImage",
         "parameters": [
           {
@@ -1610,19 +1391,14 @@
     },
     "/api/replace": {
       "post": {
-        "description": "# List of images",
+        "description": "Accepts as input the generated resulting json file for the saved TTS object and the mapped URL files.\nThis returns a saved TTS object json file with local file paths replaced by URLs.\nAnd with these cards you can already save your table and share it with other users.",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Replace"
         ],
+        "summary": "# Replace all image paths with a mapping file",
         "operationId": "RequestReplaceReplace",
         "parameters": [
           {
@@ -1662,19 +1438,14 @@
     },
     "/api/replace/prepare": {
       "post": {
-        "description": "# List of images",
+        "description": "Takes as input the generated resulting json file for a saved TTS object.\nAs a result, it returns a map of the files that should be uploaded to the web repository\nand allows you to manually map those files to valid URLs.",
         "consumes": [
           "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
         ],
         "tags": [
           "Replace"
         ],
+        "summary": "# Map with key image and empty value for URLs",
         "operationId": "RequestPrepareReplace",
         "parameters": [
           {
@@ -1703,15 +1474,6 @@
     "/api/system/quit": {
       "delete": {
         "description": "Close app on back side",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "System"
         ],
@@ -1730,15 +1492,6 @@
     "/api/system/settings": {
       "get": {
         "description": "Get default or changed settings",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "System"
         ],
@@ -1755,15 +1508,6 @@
       },
       "patch": {
         "description": "API to update settings",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "System"
         ],
@@ -1798,15 +1542,6 @@
     "/api/system/status": {
       "get": {
         "description": "API to get status of process",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "System"
         ],
@@ -1825,15 +1560,6 @@
     "/api/system/version": {
       "get": {
         "description": "API to get version of application",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
         "tags": [
           "System"
         ],

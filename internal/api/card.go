@@ -88,11 +88,6 @@ type ResponseCreateCard struct {
 //	Consumes:
 //	- multipart/form-data
 //
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseCreateCard
 //	  default: ResponseError
@@ -127,14 +122,6 @@ type ResponseDeleteCard struct {
 // # Delete card
 //
 // Allows you to delete an existing card
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseDeleteCard
@@ -176,14 +163,6 @@ type ResponseCard struct {
 // # Get card
 //
 // Get an existing card
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseCard
@@ -231,14 +210,6 @@ type ResponseListOfCard struct {
 //
 // Get a list of existing cards
 // Sort values: name, name_desc, created, created_desc
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseListOfCard
@@ -301,11 +272,6 @@ type ResponseUpdateCard struct {
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseUpdateCard

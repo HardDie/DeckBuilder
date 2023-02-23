@@ -14,7 +14,6 @@
 //
 //	Produces:
 //	- application/json
-//	- binary
 //
 // swagger:meta
 package main

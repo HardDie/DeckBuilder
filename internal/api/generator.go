@@ -51,14 +51,6 @@ type ResponseGameGenerate struct {
 //
 // Allow to run the background process of generating images and json item for the game
 //
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseGameGenerate
 //	  default: ResponseError

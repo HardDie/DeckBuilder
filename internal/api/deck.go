@@ -63,14 +63,6 @@ type ResponseListOfAllDecks struct {
 //
 // Get a list of all existing decks in game
 //
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseListOfAllDecks
 //	  default: ResponseError
@@ -121,11 +113,6 @@ type ResponseCreateDeck struct {
 //	Consumes:
 //	- multipart/form-data
 //
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
-//
 //	Responses:
 //	  200: ResponseCreateDeck
 //	  default: ResponseError
@@ -157,14 +144,6 @@ type ResponseDeleteDeck struct {
 // # Delete deck
 //
 // Allows you to delete an existing deck
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseDeleteDeck
@@ -202,14 +181,6 @@ type ResponseDeck struct {
 // # Get deck
 //
 // Get an existing deck
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseDeck
@@ -254,14 +225,6 @@ type ResponseListOfDecks struct {
 //
 // Get a list of existing decks
 // Sort values: name, name_desc, created, created_desc
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseListOfDecks
@@ -315,11 +278,6 @@ type ResponseUpdateDeck struct {
 //
 //	Consumes:
 //	- multipart/form-data
-//
-//	Produces:
-//	- application/json
-//
-//	Schemes: http
 //
 //	Responses:
 //	  200: ResponseUpdateDeck
