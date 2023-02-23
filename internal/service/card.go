@@ -73,7 +73,9 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField, search strin
 	utils.Sort(&filteredItems, sortField)
 
 	// Generate field cachedImage
+	var cardsTotal int
 	for i := 0; i < len(filteredItems); i++ {
+		cardsTotal += filteredItems[i].Count
 		filteredItems[i].FillCachedImage(s.cfg, gameID, collectionID, deckID)
 	}
 
@@ -83,7 +85,8 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField, search strin
 	}
 
 	meta := &network.Meta{
-		Total: len(filteredItems),
+		Total:      len(filteredItems),
+		CardsTotal: cardsTotal,
 	}
 	return filteredItems, meta, nil
 }

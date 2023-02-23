@@ -14,7 +14,8 @@ import (
 )
 
 type Meta struct {
-	Total int `json:"total"`
+	Total      int `json:"total"`
+	CardsTotal int `json:"cardsTotal,omitempty"`
 	//Limit int `json:"limit"`
 	//Page  int `json:"page"`
 }

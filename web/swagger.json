@@ -2030,6 +2030,11 @@
     "Meta": {
       "type": "object",
       "properties": {
+        "cardsTotal": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CardsTotal"
+        },
         "total": {
           "type": "integer",
           "format": "int64",
