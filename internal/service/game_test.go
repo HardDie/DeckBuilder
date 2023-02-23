@@ -177,7 +177,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Empty list
-	items, err := tt.gameService.List("", "")
+	items, _, err := tt.gameService.List("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// One game
-	items, err = tt.gameService.List("", "")
+	items, _, err = tt.gameService.List("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = tt.gameService.List("name", "")
+	items, _, err = tt.gameService.List("name", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +226,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = tt.gameService.List("name_desc", "")
+	items, _, err = tt.gameService.List("name_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +241,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = tt.gameService.List("created", "")
+	items, _, err = tt.gameService.List("created", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,7 +256,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = tt.gameService.List("created_desc", "")
+	items, _, err = tt.gameService.List("created_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Empty list
-	items, err = tt.gameService.List("", "")
+	items, _, err = tt.gameService.List("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -640,7 +640,7 @@ func (tt *gameTest) fuzzCleanup() {
 	_ = tt.db.Init()
 }
 func (tt *gameTest) fuzzList(t *testing.T, waitItems int) error {
-	items, err := tt.gameService.List("", "")
+	items, _, err := tt.gameService.List("", "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")

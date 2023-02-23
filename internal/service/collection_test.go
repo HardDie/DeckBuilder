@@ -183,7 +183,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Empty list
-	items, err := tt.collectionService.List(tt.gameID, "", "")
+	items, _, err := tt.collectionService.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// One collection
-	items, err = tt.collectionService.List(tt.gameID, "", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, err = tt.collectionService.List(tt.gameID, "name", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "name", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +232,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, err = tt.collectionService.List(tt.gameID, "name_desc", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "name_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,7 +247,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, err = tt.collectionService.List(tt.gameID, "created", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "created", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, err = tt.collectionService.List(tt.gameID, "created_desc", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "created_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Empty list
-	items, err = tt.collectionService.List(tt.gameID, "", "")
+	items, _, err = tt.collectionService.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -607,7 +607,7 @@ func (tt *collectionTest) fuzzCleanup() {
 	_ = tt.db.Init()
 }
 func (tt *collectionTest) fuzzList(t *testing.T, waitItems int) error {
-	items, err := tt.collectionService.List(tt.gameID, "", "")
+	items, _, err := tt.collectionService.List(tt.gameID, "", "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -715,7 +715,7 @@ func FuzzCollection(f *testing.F) {
 	}()
 
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
-		items, err := tt.gameService.List("", "")
+		items, _, err := tt.gameService.List("", "")
 		if err != nil {
 			t.Fatal(err)
 		}
