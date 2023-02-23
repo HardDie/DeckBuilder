@@ -68,6 +68,10 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	replaceService := service.NewReplaceService()
 	api.RegisterReplaceServer(routes, server.NewReplaceServer(replaceService))
 
+	// recursive search
+	searchService := service.NewSearchService(gameService, collectionService, deckService, cardService)
+	api.RegisterSearchServer(routes, server.NewSearchServer(searchService))
+
 	routes.Use(corsMiddleware)
 	return &Application{
 		router: routes,

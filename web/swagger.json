@@ -3,8 +3,7 @@
     "application/json"
   ],
   "produces": [
-    "application/json",
-    "binary"
+    "application/json"
   ],
   "schemes": [
     "http"
@@ -1471,6 +1470,123 @@
         }
       }
     },
+    "/api/search": {
+      "get": {
+        "description": "Get a list of all objects that matched the search mask\nSort values: name, name_desc, created, created_desc",
+        "tags": [
+          "Search"
+        ],
+        "summary": "# Recursive search for all games",
+        "operationId": "RequestRootSearch",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseRootSearch"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/search/games/{game}": {
+      "get": {
+        "description": "Get a list of all objects that match the search mask and are in a particular game\nSort values: name, name_desc, created, created_desc",
+        "tags": [
+          "Search"
+        ],
+        "summary": "# Recursive search in a particular game",
+        "operationId": "RequestGameSearch",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseGameSearch"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
+    "/api/search/games/{game}/collections/{collection}": {
+      "get": {
+        "description": "Get a list of all objects that match the search mask and are in a particular game and collection\nSort values: name, name_desc, created, created_desc",
+        "tags": [
+          "Search"
+        ],
+        "summary": "# Recursive search in a particular game and collection",
+        "operationId": "RequestCollectionSearch",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Game",
+            "name": "game",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Collection",
+            "name": "collection",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Sort",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Search",
+            "name": "search",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseCollectionSearch"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/system/quit": {
       "delete": {
         "description": "Close app on back side",
@@ -1852,6 +1968,29 @@
         }
       }
     },
+    "ResponseCollectionSearch": {
+      "description": "List of found objects",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
+          }
+        }
+      }
+    },
     "ResponseCreateCard": {
       "description": "Status of card creation",
       "schema": {
@@ -2023,6 +2162,29 @@
         }
       }
     },
+    "ResponseGameSearch": {
+      "description": "List of found objects",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
+          }
+        }
+      }
+    },
     "ResponseListOfAllDecks": {
       "description": "List of decks",
       "schema": {
@@ -2166,6 +2328,29 @@
               "format": "uint8"
             },
             "x-go-name": "Data"
+          }
+        }
+      }
+    },
+    "ResponseRootSearch": {
+      "description": "List of found objects",
+      "schema": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint8"
+            },
+            "x-go-name": "Data"
+          },
+          "meta": {
+            "$ref": "#/definitions/Meta"
           }
         }
       }
