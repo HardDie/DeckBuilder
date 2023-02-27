@@ -14,10 +14,13 @@ type IReplaceService interface {
 	Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 }
 type ReplaceService struct {
+	ttsService ITTSService
 }
 
-func NewReplaceService() *ReplaceService {
-	return &ReplaceService{}
+func NewReplaceService(ttsService ITTSService) *ReplaceService {
+	return &ReplaceService{
+		ttsService: ttsService,
+	}
 }
 
 type Request struct {
@@ -210,5 +213,7 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 	}
 
 	root.ObjectStates[0].ContainedObjects = newContained
+	s.ttsService.SendToTTS(root.ObjectStates[0])
+
 	return &root, nil
 }

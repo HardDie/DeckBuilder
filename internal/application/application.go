@@ -60,12 +60,16 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// image
 	api.RegisterImageServer(routes, server.NewImageServer(gameService, collectionService, deckService, cardService))
 
+	// tts service
+	ttsService := service.NewTTSService()
+	api.RegisterTTSServer(routes, server.NewTTSServer(ttsService))
+
 	// generator
-	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService)
+	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService, ttsService)
 	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
 
 	// replace
-	replaceService := service.NewReplaceService()
+	replaceService := service.NewReplaceService(ttsService)
 	api.RegisterReplaceServer(routes, server.NewReplaceServer(replaceService))
 
 	// recursive search

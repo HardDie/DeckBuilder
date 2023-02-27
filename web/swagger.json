@@ -1392,13 +1392,13 @@
       "get": {
         "description": "API for TTS for downloading JSON file inside game",
         "tags": [
-          "Generator"
+          "TTS"
         ],
         "summary": "# Get json file from last generator",
-        "operationId": "RequestDataGenerate",
+        "operationId": "RequestDataTTS",
         "responses": {
           "200": {
-            "$ref": "#/responses/ResponseDataGenerate"
+            "$ref": "#/responses/ResponseDataTTS"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -2065,7 +2065,7 @@
         }
       }
     },
-    "ResponseDataGenerate": {
+    "ResponseDataTTS": {
       "description": "",
       "schema": {
         "type": "array",

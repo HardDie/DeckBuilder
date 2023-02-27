@@ -2,11 +2,8 @@ package service
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"image/jpeg"
-	"net"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -25,7 +22,6 @@ import (
 
 type IGeneratorService interface {
 	GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error
-	DataForTTS() ([]byte, error)
 }
 type GeneratorService struct {
 	cfg               *config.Config
@@ -33,17 +29,17 @@ type GeneratorService struct {
 	collectionService ICollectionService
 	deckService       IDeckService
 	cardService       ICardService
-
-	dataForTTS []byte
+	ttsService        ITTSService
 }
 
-func NewGeneratorService(cfg *config.Config, gameService IGameService, collectionService ICollectionService, deckService IDeckService, cardService ICardService) *GeneratorService {
+func NewGeneratorService(cfg *config.Config, gameService IGameService, collectionService ICollectionService, deckService IDeckService, cardService ICardService, ttsService ITTSService) *GeneratorService {
 	return &GeneratorService{
 		cfg:               cfg,
 		gameService:       gameService,
 		collectionService: collectionService,
 		deckService:       deckService,
 		cardService:       cardService,
+		ttsService:        ttsService,
 	}
 }
 
@@ -389,65 +385,7 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 	}
 
 	// Try to upload to TTS if it's possible
-	conn, err := net.Dial("tcp", "localhost:39999")
-	if err != nil {
-		logger.Info.Println("Can't connect to TTS via tcp connection 'localhost:39999':", err.Error())
-		return nil
-	}
-	defer func() { conn.Close() }()
-
-	dataForTTS, err := json.Marshal(bag)
-	if err != nil {
-		logger.Warn.Println("error marshal data for TTS:", err.Error())
-		return nil
-	}
-	s.dataForTTS = dataForTTS
-
-	type Message struct {
-		MessageID int    `json:"messageID"`
-		GUID      string `json:"guid"`
-		Script    string `json:"script"`
-	}
-
-	msg := Message{
-		MessageID: 3,
-		GUID:      "-1",
-		Script: `
-WebRequest.get("http://localhost:5000/api/generator/data", function(request)
-	if request.is_error then
-		print('Downloading json error: ', request.error)
-		return
-	end
-	print('JSON were downloaded!')
-	local object = spawnObjectJSON({
-		json = request.text,
-		callback_function = function(spawned_object)
-			print('Object were spawned! Done!')
-		end
-	})
-end)`,
-	}
-
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logger.Warn.Println("error marshal msg for TTS:", err.Error())
-		return nil
-	}
-
-	_, err = conn.Write(data)
-	if err != nil {
-		logger.Warn.Println("error write message into TTS socket:", err.Error())
-		return nil
-	}
+	s.ttsService.SendToTTS(bag)
 
 	return nil
-}
-
-func (s *GeneratorService) DataForTTS() ([]byte, error) {
-	if s.dataForTTS == nil {
-		return nil, errors.New("there is nothing to serve")
-	}
-	res := s.dataForTTS
-	s.dataForTTS = nil
-	return res, nil
 }

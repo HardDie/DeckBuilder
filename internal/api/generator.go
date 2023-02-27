@@ -10,12 +10,9 @@ import (
 
 type IGeneratorServer interface {
 	GameHandler(w http.ResponseWriter, r *http.Request)
-	DataHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func RegisterGeneratorServer(route *mux.Router, srv IGeneratorServer) {
-	route.HandleFunc("/api/generator/data", srv.DataHandler).Methods(http.MethodGet)
-
 	GeneratorsRoute := route.PathPrefix("/api/games/{game}").Subrouter()
 	GeneratorsRoute.HandleFunc("/generate", srv.GameHandler).Methods(http.MethodPost)
 }
@@ -58,24 +55,3 @@ type ResponseGameGenerate struct {
 //	  200: ResponseGameGenerate
 //	  default: ResponseError
 func (s *UnimplementedGeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {}
-
-// swagger:parameters RequestDataGenerate
-type RequestDataGenerate struct {
-}
-
-// swagger:response ResponseDataGenerate
-type ResponseDataGenerate struct {
-	// In: body
-	Body []byte
-}
-
-// swagger:route GET /api/generator/data Generator RequestDataGenerate
-//
-// # Get json file from last generator
-//
-// API for TTS for downloading JSON file inside game
-//
-//	Responses:
-//	  200: ResponseDataGenerate
-//	  default: ResponseError
-func (s *UnimplementedGeneratorServer) DataHandler(w http.ResponseWriter, r *http.Request) {}
