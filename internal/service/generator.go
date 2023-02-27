@@ -20,6 +20,7 @@ import (
 	pageDrawer "github.com/HardDie/DeckBuilder/internal/page_drawer"
 	"github.com/HardDie/DeckBuilder/internal/progress"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IGeneratorService interface {
@@ -258,6 +259,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 
 func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Deck][]Card, imageMapping map[string]PageInfo) error {
 	bag := tts_entity.NewBag(gameItem.Name)
+	collectionBags := make(map[string]*tts_entity.Bag)
 	var deck tts_entity.DeckObject
 
 	var dummyImage []byte
@@ -288,11 +290,13 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 		deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
 
 		var prevCollection string
+		var prevCollectionDeck string
 
 		// Iterate through all cards in deck
 		for _, card := range cards {
 			if page.IsEmpty() {
-				prevCollection = card.CollectionID + deckInfo.ID
+				prevCollection = card.CollectionID
+				prevCollectionDeck = card.CollectionID + deckInfo.ID
 			}
 
 			// Start new page if current is full
@@ -309,17 +313,23 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
 			}
 
-			if card.CollectionID+deckInfo.ID != prevCollection {
-				prevCollection = card.CollectionID + deckInfo.ID
+			if card.CollectionID+deckInfo.ID != prevCollectionDeck {
+				prevCollectionDeck = card.CollectionID + deckInfo.ID
 
+				if _, ok := collectionBags[prevCollection]; !ok {
+					collectionBags[prevCollection] = utils.Allocate(tts_entity.NewBag(prevCollection))
+				}
 				switch {
 				case len(deck.ContainedObjects) == 1:
 					// We cannot create a deck object with a single card. We must create a card object.
-					bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+					collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck.ContainedObjects[0])
+					//bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
 				case len(deck.ContainedObjects) > 1:
 					// If there is more than one card in the deck, place the deck in the object list.
-					bag.ContainedObjects = append(bag.ContainedObjects, deck)
+					//bag.ContainedObjects = append(bag.ContainedObjects, deck)
+					collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck)
 				}
+				prevCollection = card.CollectionID
 				deck = tts_entity.NewDeck(deckInfo.Name)
 				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
 			}
@@ -344,17 +354,27 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 		}
 
 		if !page.IsEmpty() {
+			if _, ok := collectionBags[prevCollection]; !ok {
+				collectionBags[prevCollection] = utils.Allocate(tts_entity.NewBag(prevCollection))
+			}
 			switch {
 			case len(deck.ContainedObjects) == 1:
 				// We cannot create a deck object with a single card. We must create a card object.
-				bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+				//bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+				collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck.ContainedObjects[0])
 			case len(deck.ContainedObjects) > 1:
 				// If there is more than one card in the deck, place the deck in the object list.
-				bag.ContainedObjects = append(bag.ContainedObjects, deck)
+				//bag.ContainedObjects = append(bag.ContainedObjects, deck)
+				collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck)
 			}
 		}
 
 		deckIdOffset += page.GetIndex()
+	}
+
+	// Add all collection bags into game bag
+	for _, collectionBag := range collectionBags {
+		bag.ContainedObjects = append(bag.ContainedObjects, collectionBag)
 	}
 
 	bag.Description = fmt.Sprintf("Created at: %v", time.Now().Format("2006-01-02 15:04:05"))

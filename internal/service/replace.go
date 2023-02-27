@@ -23,10 +23,12 @@ func NewReplaceService() *ReplaceService {
 type Request struct {
 	ObjectStates []struct {
 		ContainedObjects []struct {
-			CustomDeck map[string]struct {
-				FaceURL string `json:"FaceURL"`
-				BackURL string `json:"BackURL"`
-			} `json:"CustomDeck"`
+			ContainedObjects []struct {
+				CustomDeck map[string]struct {
+					FaceURL string `json:"FaceURL"`
+					BackURL string `json:"BackURL"`
+				} `json:"CustomDeck"`
+			} `json:"containedObjects"`
 		} `json:"ContainedObjects"`
 	} `json:"ObjectStates"`
 }
@@ -48,15 +50,17 @@ func (s *ReplaceService) Prepare(data []byte) ([]Couple, error) {
 
 	var res []Couple
 	uniq := make(map[string]string)
-	for _, item := range req.ObjectStates[0].ContainedObjects {
-		for _, val := range item.CustomDeck {
-			if _, ok := uniq[val.BackURL]; !ok {
-				res = append(res, Couple{Key: val.BackURL})
-				uniq[val.BackURL] = ""
-			}
-			if _, ok := uniq[val.FaceURL]; !ok {
-				res = append(res, Couple{Key: val.FaceURL})
-				uniq[val.FaceURL] = ""
+	for _, collectionBag := range req.ObjectStates[0].ContainedObjects {
+		for _, item := range collectionBag.ContainedObjects {
+			for _, val := range item.CustomDeck {
+				if _, ok := uniq[val.BackURL]; !ok {
+					res = append(res, Couple{Key: val.BackURL})
+					uniq[val.BackURL] = ""
+				}
+				if _, ok := uniq[val.FaceURL]; !ok {
+					res = append(res, Couple{Key: val.FaceURL})
+					uniq[val.FaceURL] = ""
+				}
 			}
 		}
 	}
@@ -115,15 +119,18 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 	}
 
 	var newContained []any
-	for _, item := range root.ObjectStates[0].ContainedObjects {
-		tmp, ok := item.(map[string]any)
+	for _, collectionBagTemp := range root.ObjectStates[0].ContainedObjects {
+		tmp, ok := collectionBagTemp.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unknown object type: %T", item)
+			return nil, fmt.Errorf("unknown object type: %T", collectionBagTemp)
 		}
 
 		name, ok := tmp["Name"]
 		if !ok {
 			return nil, errors.New("object don't have Name field")
+		}
+		if name != "Bag" {
+			return nil, fmt.Errorf("error collection bag parsing %w", err)
 		}
 
 		tmpJson, err := json.Marshal(tmp)
@@ -131,46 +138,74 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 			return nil, fmt.Errorf("error marshaling %w", err)
 		}
 
-		switch name {
-		case "Deck":
-			var deck tts_entity.DeckObject
-			err = json.Unmarshal(tmpJson, &deck)
-			if err != nil {
-				return nil, fmt.Errorf("error deck parsing %w", err)
+		var collectionBag tts_entity.Bag
+		err = json.Unmarshal(tmpJson, &collectionBag)
+		if err != nil {
+			return nil, fmt.Errorf("error collection bag parsing %w", err)
+		}
+
+		var collectionBagContaind []any
+		for _, item := range collectionBag.ContainedObjects {
+			tmp, ok := item.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("unknown object type: %T", item)
 			}
 
-			// Replace for custom deck
-			err = replaceCustomDeck(deck.CustomDeck, mm)
-			if err != nil {
-				return nil, err
+			name, ok := tmp["Name"]
+			if !ok {
+				return nil, errors.New("object don't have Name field")
 			}
 
-			// Replace for cards inside deck
-			for i, card := range deck.ContainedObjects {
+			tmpJson, err := json.Marshal(tmp)
+			if err != nil {
+				return nil, fmt.Errorf("error marshaling %w", err)
+			}
+
+			switch name {
+			case "Deck":
+				var deck tts_entity.DeckObject
+				err = json.Unmarshal(tmpJson, &deck)
+				if err != nil {
+					return nil, fmt.Errorf("error deck parsing %w", err)
+				}
+
+				// Replace for custom deck
+				err = replaceCustomDeck(deck.CustomDeck, mm)
+				if err != nil {
+					return nil, err
+				}
+
+				// Replace for cards inside deck
+				for i, card := range deck.ContainedObjects {
+					err = replaceCustomDeck(card.CustomDeck, mm)
+					if err != nil {
+						return nil, err
+					}
+					deck.ContainedObjects[i] = card
+				}
+
+				collectionBagContaind = append(collectionBagContaind, deck)
+			case "Card":
+				var card tts_entity.Card
+				err = json.Unmarshal(tmpJson, &card)
+				if err != nil {
+					return nil, fmt.Errorf("error card parsing %w", err)
+				}
+
+				// Replace for custom deck
 				err = replaceCustomDeck(card.CustomDeck, mm)
 				if err != nil {
 					return nil, err
 				}
-				deck.ContainedObjects[i] = card
-			}
 
-			newContained = append(newContained, deck)
-		case "Card":
-			var card tts_entity.Card
-			err = json.Unmarshal(tmpJson, &card)
-			if err != nil {
-				return nil, fmt.Errorf("error card parsing %w", err)
+				collectionBagContaind = append(collectionBagContaind, card)
+			default:
+				return nil, fmt.Errorf("unknown object: %q", name)
 			}
-
-			// Replace for custom deck
-			err = replaceCustomDeck(card.CustomDeck, mm)
-			if err != nil {
-				return nil, err
-			}
-
-			newContained = append(newContained, card)
-		default:
-			return nil, fmt.Errorf("unknown object: %q", name)
+		}
+		if len(collectionBagContaind) > 0 {
+			collectionBag.ContainedObjects = collectionBagContaind
+			newContained = append(newContained, collectionBag)
 		}
 	}
 
