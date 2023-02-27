@@ -1388,6 +1388,24 @@
         }
       }
     },
+    "/api/generator/data": {
+      "get": {
+        "description": "API for TTS for downloading JSON file inside game",
+        "tags": [
+          "Generator"
+        ],
+        "summary": "# Get json file from last generator",
+        "operationId": "RequestDataGenerate",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ResponseDataGenerate"
+          },
+          "default": {
+            "$ref": "#/responses/ResponseError"
+          }
+        }
+      }
+    },
     "/api/replace": {
       "post": {
         "description": "Accepts as input the generated resulting json file for the saved TTS object and the mapped URL files.\nThis returns a saved TTS object json file with local file paths replaced by URLs.\nAnd with these cards you can already save your table and share it with other users.",
@@ -2044,6 +2062,16 @@
           "data": {
             "$ref": "#/definitions/GameInfo"
           }
+        }
+      }
+    },
+    "ResponseDataGenerate": {
+      "description": "",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint8"
         }
       }
     },

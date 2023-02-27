@@ -39,3 +39,14 @@ func (s *GeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (s *GeneratorServer) DataHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := s.generatorService.DataForTTS()
+	if err != nil {
+		network.ResponseError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write(resp)
+}
