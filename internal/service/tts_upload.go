@@ -47,7 +47,7 @@ func (s *TTSService) SendToTTS(data any) {
 		MessageID: 3,
 		GUID:      "-1",
 		Script: `
-WebRequest.get("http://localhost:5000/api/generator/data", function(request)
+WebRequest.get("http://localhost:5000/api/tts/data", function(request)
 	if request.is_error then
 		print('Downloading json error: ', request.error)
 		return

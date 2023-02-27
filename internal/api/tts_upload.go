@@ -11,7 +11,7 @@ type ITTSServer interface {
 }
 
 func RegisterTTSServer(route *mux.Router, srv ITTSServer) {
-	route.HandleFunc("/api/generator/data", srv.DataHandler).Methods(http.MethodGet)
+	route.HandleFunc("/api/tts/data", srv.DataHandler).Methods(http.MethodGet)
 }
 
 type UnimplementedTTSServer struct {
@@ -32,7 +32,7 @@ type ResponseDataTTS struct {
 	Body []byte
 }
 
-// swagger:route GET /api/generator/data TTS RequestDataTTS
+// swagger:route GET /api/tts/data TTS RequestDataTTS
 //
 // # Get json file from last generator
 //
