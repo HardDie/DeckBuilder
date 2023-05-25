@@ -12,7 +12,7 @@ build: ## build app for all platforms
 .PHONY: web-build
 web-build: ## build web interface
 	cd gui && yarn install
-	cd gui && yarn build --dest ../web/dist
+	cd gui && yarn build
 
 .PHONY: swagger
 swagger: ## generate swagger json file
