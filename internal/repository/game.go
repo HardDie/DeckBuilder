@@ -86,7 +86,8 @@ func (s *GameRepository) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*e
 	}
 
 	if oldGame.Description != dtoObject.Description ||
-		oldGame.Image != dtoObject.Image {
+		oldGame.Image != dtoObject.Image ||
+		dtoObject.ImageFile != nil {
 		// Update data
 		newGame, err = s.db.GameUpdate(context.Background(), dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {

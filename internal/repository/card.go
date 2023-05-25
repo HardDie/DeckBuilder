@@ -78,6 +78,7 @@ func (s *CardRepository) Update(gameID, collectionID, deckID string, cardID int6
 	if oldCard.Name != dtoObject.Name ||
 		oldCard.Description != dtoObject.Description ||
 		oldCard.Image != dtoObject.Image ||
+		dtoObject.ImageFile != nil ||
 		oldCard.Count != dtoObject.Count ||
 		!utils.CompareMaps(oldCard.Variables, dtoObject.Variables) {
 		// Update data

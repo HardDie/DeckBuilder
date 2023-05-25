@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type DeckInfo struct {
@@ -28,5 +29,5 @@ func (i *DeckInfo) GetCreatedAt() time.Time {
 	return time.Time{}
 }
 func (i *DeckInfo) FillCachedImage(cfg *config.Config, gameID, collectionID string) {
-	i.CachedImage = fmt.Sprintf(cfg.DeckImagePath, gameID, collectionID, i.ID)
+	i.CachedImage = fmt.Sprintf(cfg.DeckImagePath+"?%s", gameID, collectionID, i.ID, utils.HashForTime(i.UpdatedAt))
 }

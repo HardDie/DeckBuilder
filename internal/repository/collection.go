@@ -80,7 +80,8 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	}
 
 	if oldCollection.Description != dtoObject.Description ||
-		oldCollection.Image != dtoObject.Image {
+		oldCollection.Image != dtoObject.Image ||
+		dtoObject.ImageFile != nil {
 		// Update data
 		newCollection, err = s.db.CollectionUpdate(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {

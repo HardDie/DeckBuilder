@@ -81,7 +81,8 @@ func (s *DeckRepository) Update(gameID, collectionID, deckID string, dtoObject *
 	}
 
 	if oldDeck.Description != dtoObject.Description ||
-		oldDeck.Image != dtoObject.Image {
+		oldDeck.Image != dtoObject.Image ||
+		dtoObject.ImageFile != nil {
 		// Update data
 		newDeck, err = s.db.DeckUpdate(context.Background(), gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {
