@@ -29,9 +29,9 @@ func NewTTSService() *TTSService {
 
 func (s *TTSService) SendToTTS(data any) {
 	// Try to open TCP socket
-	conn, err := net.Dial("tcp", "localhost:39999")
+	conn, err := net.Dial("tcp", "127.0.0.1:39999")
 	if err != nil {
-		logger.Info.Println("Can't connect to TTS via tcp connection 'localhost:39999':", err.Error())
+		logger.Info.Println("Can't connect to TTS via tcp connection '127.0.0.1:39999':", err.Error())
 		return
 	}
 	defer func() { conn.Close() }()
@@ -47,7 +47,7 @@ func (s *TTSService) SendToTTS(data any) {
 		MessageID: 3,
 		GUID:      "-1",
 		Script: `
-WebRequest.get("http://localhost:5000/api/tts/data", function(request)
+WebRequest.get("http://127.0.0.1:5000/api/tts/data", function(request)
 	if request.is_error then
 		print('Downloading json error: ', request.error)
 		return
