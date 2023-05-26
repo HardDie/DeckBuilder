@@ -179,9 +179,12 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 	images := make(map[string]PageInfo)
 
 	pr.SetMessage("Drawing cards on the page...")
+	var commonIndex int
 	for deckInfo, cards := range decks {
+		commonIndex++
+
 		// Create page drawer object
-		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale)
+		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale, commonIndex)
 		var backsidePath string
 
 		// Iterate through all cards in deck
@@ -216,6 +219,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 				}
 				pr.SetMessage("Drawing cards on the page...")
 				page = (&pageDrawer.PageDrawer{}).Inherit(page)
+				commonIndex++
 			}
 
 			// Get card image
@@ -271,10 +275,13 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 
 	var deckIdOffset int
 
+	var commonIndex int
 	for deckInfo, cards := range decks {
+		commonIndex++
+
 		deck = tts_entity.NewDeck(deckInfo.Name)
 		// Create page drawer object
-		page := pageDrawer.New(deckInfo.ID, "", 1)
+		page := pageDrawer.New(deckInfo.ID, "", 1, commonIndex)
 
 		pageInfo := imageMapping[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())]
 		deckDescription := tts_entity.DeckDescription{
@@ -298,6 +305,7 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 			// Start new page if current is full
 			if page.IsFull() {
 				page = (&pageDrawer.PageDrawer{}).Inherit(page)
+				commonIndex++
 
 				pageInfo = imageMapping[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())]
 				deckDescription = tts_entity.DeckDescription{

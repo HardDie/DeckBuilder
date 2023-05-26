@@ -19,26 +19,29 @@ type PageDrawer struct {
 	images   []image.Image
 	backside *image.NRGBA
 
-	index int
-	title string
-	path  string
+	index       int
+	commonIndex int
+	title       string
+	path        string
 
 	scale  int
 	width  int
 	height int
 }
 
-func New(title, path string, scale int) *PageDrawer {
+func New(title, path string, scale, commonIndex int) *PageDrawer {
 	return &PageDrawer{
-		index: 1,
-		title: title,
-		path:  path,
-		scale: scale,
+		index:       1,
+		commonIndex: commonIndex,
+		title:       title,
+		path:        path,
+		scale:       scale,
 	}
 }
 
 func (d *PageDrawer) Inherit(d2 *PageDrawer) *PageDrawer {
 	d.index = d2.index + 1
+	d.commonIndex = d2.commonIndex + 1
 	d.title, d.path = d2.title, d2.path
 	d.backside = d2.backside
 	d.width, d.height = d2.width, d2.height
@@ -123,7 +126,7 @@ func (d *PageDrawer) Save() (string, int, int, error) {
 	images.Draw(pageImage, columns-1, rows-1, d.backside)
 
 	// Filename
-	pageName := fmt.Sprintf("%s_%d_%d_%dx%d.png", d.title, d.index, len(d.images), columns, rows)
+	pageName := fmt.Sprintf("%d_%s_%d_%d_%dx%d.png", d.commonIndex, d.title, d.index, len(d.images), columns, rows)
 	savePath := filepath.Join(d.path, pageName)
 	// Saving on disk
 	err := fs.CreateAndProcess[image.Image](savePath, pageImage, images.SaveToWriter)
