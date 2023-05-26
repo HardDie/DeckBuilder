@@ -2,10 +2,11 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sort"
 
+	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 )
 
@@ -48,7 +49,7 @@ func (s *ReplaceService) Prepare(data []byte) ([]Couple, error) {
 	}
 
 	if len(req.ObjectStates) != 1 {
-		return nil, errors.New("should be single root object")
+		return nil, errors.ErrorInvalidDeckDescription
 	}
 
 	var res []Couple
@@ -82,14 +83,14 @@ func replaceCustomDeck(customDeck map[int]tts_entity.DeckDescription, mm map[str
 		// Replace back image
 		newUrl, ok := mm[val.BackURL]
 		if !ok {
-			return fmt.Errorf("can't find mapping for %q back url", val.BackURL)
+			return errors.ErrorInvalidDeckDescription.AddMessage(fmt.Sprintf("can't find mapping for %q back url", val.BackURL))
 		}
 		val.BackURL = newUrl
 
 		// Replace front image
 		newUrl, ok = mm[val.FaceURL]
 		if !ok {
-			return fmt.Errorf("can't find mapping for %q face url", val.FaceURL)
+			return errors.ErrorInvalidDeckDescription.AddMessage(fmt.Sprintf("can't find mapping for %q face url", val.FaceURL))
 		}
 		val.FaceURL = newUrl
 
@@ -102,13 +103,15 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 	var m Mapping
 	err := json.Unmarshal(mapping, &m)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing mapping file: %s", err.Error())
+		logger.Info.Printf("error parsing mapping file: %s", err.Error())
+		return nil, errors.ErrorInvalidMapping
 	}
 
 	var root tts_entity.RootObjects
 	err = json.Unmarshal(data, &root)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing data file: %s", err.Error())
+		logger.Info.Printf("error parsing data file: %s", err.Error())
+		return nil, errors.ErrorInvalidDeckDescription
 	}
 
 	// Convert items into map
@@ -118,50 +121,59 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 	}
 
 	if len(root.ObjectStates) != 1 {
-		return nil, errors.New("should be single root object")
+		logger.Info.Println("should be single root object")
+		return nil, errors.ErrorInvalidDeckDescription
 	}
 
 	var newContained []any
 	for _, collectionBagTemp := range root.ObjectStates[0].ContainedObjects {
 		tmp, ok := collectionBagTemp.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unknown object type: %T", collectionBagTemp)
+			logger.Info.Printf("unknown object type: %T", collectionBagTemp)
+			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		name, ok := tmp["Name"]
 		if !ok {
-			return nil, errors.New("object don't have Name field")
+			logger.Info.Println("object don't have Name field")
+			return nil, errors.ErrorInvalidDeckDescription
 		}
 		if name != "Bag" {
-			return nil, fmt.Errorf("error collection bag parsing %w", err)
+			logger.Info.Println("error collection bag parsing %w", err)
+			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		tmpJson, err := json.Marshal(tmp)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling %w", err)
+			logger.Info.Printf("error marshaling %w", err)
+			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		var collectionBag tts_entity.Bag
 		err = json.Unmarshal(tmpJson, &collectionBag)
 		if err != nil {
-			return nil, fmt.Errorf("error collection bag parsing %w", err)
+			logger.Info.Println("error collection bag parsing %w", err)
+			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		var collectionBagContaind []any
 		for _, item := range collectionBag.ContainedObjects {
 			tmp, ok := item.(map[string]any)
 			if !ok {
-				return nil, fmt.Errorf("unknown object type: %T", item)
+				logger.Info.Printf("unknown object type: %T", item)
+				return nil, errors.ErrorInvalidDeckDescription
 			}
 
 			name, ok := tmp["Name"]
 			if !ok {
-				return nil, errors.New("object don't have Name field")
+				logger.Info.Println("object don't have Name field")
+				return nil, errors.ErrorInvalidDeckDescription
 			}
 
 			tmpJson, err := json.Marshal(tmp)
 			if err != nil {
-				return nil, fmt.Errorf("error marshaling %w", err)
+				logger.Info.Printf("error marshaling %w", err)
+				return nil, errors.ErrorInvalidDeckDescription
 			}
 
 			switch name {
@@ -169,7 +181,8 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 				var deck tts_entity.DeckObject
 				err = json.Unmarshal(tmpJson, &deck)
 				if err != nil {
-					return nil, fmt.Errorf("error deck parsing %w", err)
+					logger.Info.Printf("error deck parsing %w", err)
+					return nil, errors.ErrorInvalidDeckDescription
 				}
 
 				// Replace for custom deck
@@ -192,7 +205,8 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 				var card tts_entity.Card
 				err = json.Unmarshal(tmpJson, &card)
 				if err != nil {
-					return nil, fmt.Errorf("error card parsing %w", err)
+					logger.Info.Printf("error card parsing %w", err)
+					return nil, errors.ErrorInvalidDeckDescription
 				}
 
 				// Replace for custom deck
@@ -203,7 +217,8 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 
 				collectionBagContaind = append(collectionBagContaind, card)
 			default:
-				return nil, fmt.Errorf("unknown object: %q", name)
+				logger.Info.Printf("unknown object: %q", name)
+				return nil, errors.ErrorInvalidDeckDescription
 			}
 		}
 		if len(collectionBagContaind) > 0 {

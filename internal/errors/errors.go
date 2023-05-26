@@ -53,6 +53,10 @@ var (
 
 	// zip
 	BadArchive = NewError("bad zip archive").HTTP(http.StatusBadRequest)
+
+	// replace
+	ErrorInvalidDeckDescription = NewError("invalid deck description").HTTP(http.StatusBadRequest)
+	ErrorInvalidMapping         = NewError("invalid mapping file").HTTP(http.StatusBadRequest)
 )
 
 type Err struct {
