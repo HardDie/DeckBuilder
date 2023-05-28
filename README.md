@@ -1,6 +1,11 @@
-# DeckBuilder
+<p align="center">
+  <img alt="logo" src="deployment/512.png" height="150" />
+  <h3 align="center">DeckBuilder</h3>
+  <p align="center">Create your own deck of cards for the Tabletop Simulator</p>
+</p>
 
-## About
+---
+
 The frontend for this application: https://github.com/lmm1ng/DeckBuilderGUI
 
 ## Description
