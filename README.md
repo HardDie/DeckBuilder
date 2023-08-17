@@ -8,6 +8,10 @@
 
 The frontend for this application: https://github.com/lmm1ng/DeckBuilderGUI
 
+[Video guide [ENG]](https://www.youtube.com/watch?v=jty_nEsGGJg)
+
+[Video guide [RUS]](https://www.youtube.com/watch?v=r0-4mW8gX1w)
+
 ## Description
 This utility helps you easily create, modify, and export card games for Tabletop Simulator.
 The utility has four logical objects.
