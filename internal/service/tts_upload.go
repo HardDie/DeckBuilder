@@ -53,7 +53,7 @@ WebRequest.get("http://127.0.0.1:5000/api/tts/data", function(request)
 		return
 	end
 	print('JSON were downloaded!')
-	local object = spawnObjectJSON({
+	spawnObjectJSON({
 		json = request.text,
 		callback_function = function(spawned_object)
 			print('Object were spawned! Done!')
