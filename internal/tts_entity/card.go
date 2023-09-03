@@ -5,6 +5,7 @@ import (
 )
 
 type Card struct {
+	GUID        string                  `json:"GUID"`
 	Name        string                  `json:"Name"`
 	Nickname    string                  `json:"Nickname"`
 	Description string                  `json:"Description"`
@@ -14,13 +15,14 @@ type Card struct {
 	CustomDeck  map[int]DeckDescription `json:"CustomDeck,omitempty"`
 }
 
-func NewCard(name, description string, pageId, cardIndex int, variablesMap map[string]string, deckDesc DeckDescription) Card {
+func NewCard(guid, name, description string, pageId, cardIndex int, variablesMap map[string]string, deckDesc DeckDescription) Card {
 	// Converting lua variables into strings
 	var variables []string
 	for key, value := range variablesMap {
 		variables = append(variables, key+"="+value)
 	}
 	return Card{
+		GUID:        guid,
 		Name:        "Card",
 		Nickname:    name,
 		Description: description,
