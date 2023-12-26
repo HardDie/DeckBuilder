@@ -49,7 +49,9 @@ func writeCards(path string, cards Cards) {
 	}
 	defer file.Close()
 
-	err = json.NewEncoder(file).Encode(cards)
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "	")
+	err = enc.Encode(cards)
 	if err != nil {
 		log.Fatal(err)
 	}
