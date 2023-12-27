@@ -1,6 +1,7 @@
 package tts_entity
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ func NewCard(guid, name, description string, pageId, cardIndex int, variablesMap
 	// Converting lua variables into strings
 	var variables []string
 	for key, value := range variablesMap {
-		variables = append(variables, key+"="+value)
+		variables = append(variables, fmt.Sprintf(`%s=%q`, key, value))
 	}
 	return Card{
 		GUID:        guid,
