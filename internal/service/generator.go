@@ -350,7 +350,8 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 				return err
 			}
 
-			cardGUID := fmt.Sprintf("%03d%03d", commonIndex, card.ID)
+			cardGUID := fmt.Sprintf("%06d", commonIndex)
+			commonIndex++
 			cardObject := tts_entity.NewCard(cardGUID, cardItem.Name, cardItem.Description, page.GetIndex()+deckIdOffset, page.Size()-1, cardItem.Variables, deckDescription)
 			for i := 0; i < cardItem.Count; i++ {
 				// Add a card to the deck as many times as set in the count variable
