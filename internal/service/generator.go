@@ -163,6 +163,12 @@ type PageInfo struct {
 	Rows     int
 }
 
+// input:
+//   - array of decks with array of cards
+//
+// output:
+//   - images in result folder
+//   - map[file_name] = info{ path_to_image, path_to_backside, width, height }
 func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map[string]PageInfo, error) {
 	pr := progress.GetProgress()
 
