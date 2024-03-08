@@ -3,7 +3,7 @@ module github.com/HardDie/DeckBuilder
 go 1.19
 
 require (
-	github.com/HardDie/fsentry v0.0.10
+	github.com/HardDie/fsentry v0.0.11
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-openapi/runtime v0.26.0
 	github.com/google/uuid v1.3.0
