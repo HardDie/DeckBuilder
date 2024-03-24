@@ -126,10 +126,10 @@ func (d *PageDrawer) Save() (string, int, int, error) {
 	images.Draw(pageImage, columns-1, rows-1, d.backside)
 
 	// Filename
-	pageName := fmt.Sprintf("%d_%s_%d_%d_%dx%d.png", d.commonIndex, d.title, d.index, len(d.images), columns, rows)
+	pageName := fmt.Sprintf("%d_%s_%d_%d_%dx%d.jpg", d.commonIndex, d.title, d.index, len(d.images), columns, rows)
 	savePath := filepath.Join(d.path, pageName)
 	// Saving on disk
-	err := fs.CreateAndProcess[image.Image](savePath, pageImage, images.SaveToWriter)
+	err := fs.CreateAndProcess[image.Image](savePath, pageImage, images.JpegSaveToWriter)
 	if err != nil {
 		return "", 0, 0, err
 	}
