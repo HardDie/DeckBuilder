@@ -13,6 +13,10 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/service"
 )
 
+const (
+	DestroyTimer = time.Second * 60
+)
+
 var quitTimer *time.Timer
 var quitCtx context.Context
 var quitCancel func()
@@ -37,9 +41,9 @@ func (s *SystemServer) QuitHandler(w http.ResponseWriter, _ *http.Request) {
 	if quitTimer != nil {
 		return
 	}
-	logger.Debug.Println("Start destroy timer")
+	logger.Debug.Println("Start destroy timer:", DestroyTimer.String())
 	quitCtx, quitCancel = context.WithCancel(context.Background())
-	quitTimer = time.NewTimer(time.Second * 5)
+	quitTimer = time.NewTimer(DestroyTimer)
 	go func() {
 		select {
 		case <-quitTimer.C:
