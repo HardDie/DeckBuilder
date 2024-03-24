@@ -200,6 +200,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 				// Getting an image of the backside
 				deckBacksideImage, _, err := s.deckService.GetImage(card.GameID, card.CollectionID, deckInfo.ID)
 				if err != nil {
+					logger.Error.Printf("backside not found for: %s.%s.%s", card.GameID, card.CollectionID, deckInfo.ID)
 					return nil, err
 				}
 				// Set backside image
@@ -231,6 +232,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 			// Get card image
 			cardImageBin, _, err := s.cardService.GetImage(card.GameID, card.CollectionID, deckInfo.ID, card.ID)
 			if err != nil {
+				logger.Error.Printf("card image not found for: %s.%s.%s.%d", card.GameID, card.CollectionID, deckInfo.ID, card.ID)
 				return nil, err
 			}
 			// Add card on page
