@@ -138,6 +138,10 @@ func (s *DB) GameList(ctx context.Context) ([]*entity.GameInfo, error) {
 			logger.Error.Println(folder, err.Error())
 			continue
 		}
+		if folder != game.ID {
+			logger.Error.Println("Corrupted game folder:", folder)
+			continue
+		}
 		games = append(games, game)
 	}
 	return games, nil
@@ -378,6 +382,10 @@ func (s *DB) CollectionList(ctx context.Context, gameID string) ([]*entity.Colle
 			logger.Error.Println(folder, err.Error())
 			continue
 		}
+		if folder != collection.ID {
+			logger.Error.Println("Corrupted collection folder:", folder)
+			continue
+		}
 		collections = append(collections, collection)
 	}
 	return collections, nil
@@ -610,6 +618,10 @@ func (s *DB) DeckList(ctx context.Context, gameID, collectionID string) ([]*enti
 		_, deck, err := s.DeckGet(ctx, ctxGameID, collection.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
+			continue
+		}
+		if folder != deck.ID {
+			logger.Error.Println("Corrupted deck folder:", folder)
 			continue
 		}
 		decks = append(decks, deck)
