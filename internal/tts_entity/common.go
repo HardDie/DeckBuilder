@@ -7,3 +7,8 @@ var (
 		ScaleZ: 1,
 	}
 )
+
+type TTSObject interface {
+	GetName() string
+	GetNickname() string
+}

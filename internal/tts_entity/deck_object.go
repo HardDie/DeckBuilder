@@ -25,3 +25,10 @@ func (d *DeckObject) AddCard(card Card) {
 	// Place card in the list of cards inside the deck
 	d.ContainedObjects = append(d.ContainedObjects, card)
 }
+
+func (d DeckObject) GetName() string {
+	return d.Name
+}
+func (d DeckObject) GetNickname() string {
+	return d.Nickname
+}

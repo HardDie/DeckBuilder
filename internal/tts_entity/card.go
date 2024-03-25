@@ -36,3 +36,10 @@ func NewCard(guid, name, description string, pageId, cardIndex int, variablesMap
 		Transform: &transform,
 	}
 }
+
+func (c Card) GetName() string {
+	return c.Name
+}
+func (c Card) GetNickname() string {
+	return c.Nickname
+}

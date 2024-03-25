@@ -8,6 +8,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type IReplaceService interface {
@@ -127,61 +128,37 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 
 	var newContained []any
 	for _, collectionBagTemp := range root.ObjectStates[0].ContainedObjects {
-		tmp, ok := collectionBagTemp.(map[string]any)
-		if !ok {
-			logger.Info.Printf("unknown object type: %T", collectionBagTemp)
-			return nil, errors.ErrorInvalidDeckDescription
-		}
-
-		name, ok := tmp["Name"]
-		if !ok {
-			logger.Info.Println("object don't have Name field")
-			return nil, errors.ErrorInvalidDeckDescription
-		}
-		if name != "Bag" {
-			logger.Info.Println("error collection bag parsing %w", err)
-			return nil, errors.ErrorInvalidDeckDescription
-		}
-
-		tmpJson, err := json.Marshal(tmp)
+		colName, err := getName(collectionBagTemp)
 		if err != nil {
-			logger.Info.Printf("error marshaling %w", err)
+			logger.Info.Printf("error get collection name: %T", collectionBagTemp)
+			return nil, err
+		}
+		if colName != "Bag" {
+			logger.Info.Printf("error collection bag parsing %v", err)
 			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		var collectionBag tts_entity.Bag
-		err = json.Unmarshal(tmpJson, &collectionBag)
+		err = utils.ObjectJSONObject(collectionBagTemp, &collectionBag)
 		if err != nil {
-			logger.Info.Println("error collection bag parsing %w", err)
+			logger.Info.Printf("error collection bag parsing %v", err)
 			return nil, errors.ErrorInvalidDeckDescription
 		}
 
 		var collectionBagContaind []any
 		for _, item := range collectionBag.ContainedObjects {
-			tmp, ok := item.(map[string]any)
-			if !ok {
-				logger.Info.Printf("unknown object type: %T", item)
-				return nil, errors.ErrorInvalidDeckDescription
-			}
-
-			name, ok := tmp["Name"]
-			if !ok {
-				logger.Info.Println("object don't have Name field")
-				return nil, errors.ErrorInvalidDeckDescription
-			}
-
-			tmpJson, err := json.Marshal(tmp)
+			itemName, err := getName(item)
 			if err != nil {
-				logger.Info.Printf("error marshaling %w", err)
-				return nil, errors.ErrorInvalidDeckDescription
+				logger.Info.Printf("error get item name: %T", collectionBagTemp)
+				return nil, err
 			}
 
-			switch name {
+			switch itemName {
 			case "Deck":
 				var deck tts_entity.DeckObject
-				err = json.Unmarshal(tmpJson, &deck)
+				err = utils.ObjectJSONObject(item, &deck)
 				if err != nil {
-					logger.Info.Printf("error deck parsing %w", err)
+					logger.Info.Printf("error deck parsing %v", err)
 					return nil, errors.ErrorInvalidDeckDescription
 				}
 
@@ -203,9 +180,9 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 				collectionBagContaind = append(collectionBagContaind, deck)
 			case "Card":
 				var card tts_entity.Card
-				err = json.Unmarshal(tmpJson, &card)
+				err = utils.ObjectJSONObject(item, &card)
 				if err != nil {
-					logger.Info.Printf("error card parsing %w", err)
+					logger.Info.Printf("error card parsing %v", err)
 					return nil, errors.ErrorInvalidDeckDescription
 				}
 
@@ -217,7 +194,7 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 
 				collectionBagContaind = append(collectionBagContaind, card)
 			default:
-				logger.Info.Printf("unknown object: %q", name)
+				logger.Info.Printf("unknown object: %q", itemName)
 				return nil, errors.ErrorInvalidDeckDescription
 			}
 		}
@@ -231,4 +208,23 @@ func (s *ReplaceService) Replace(data, mapping []byte) (*tts_entity.RootObjects,
 	s.ttsService.SendToTTS(root.ObjectStates[0])
 
 	return &root, nil
+}
+
+func getName(obj any) (string, error) {
+	tmp, ok := obj.(map[string]any)
+	if !ok {
+		logger.Info.Printf("unknown object type: %T", obj)
+		return "", errors.ErrorInvalidDeckDescription
+	}
+	name, ok := tmp["Name"]
+	if !ok {
+		logger.Info.Println("object don't have Name field")
+		return "", errors.ErrorInvalidDeckDescription
+	}
+	nameStr, ok := name.(string)
+	if !ok {
+		logger.Info.Println("Name field is not string")
+		return "", errors.ErrorInvalidDeckDescription
+	}
+	return nameStr, nil
 }

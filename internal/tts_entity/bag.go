@@ -15,3 +15,10 @@ func NewBag(nickname string) Bag {
 		Transform: transform,
 	}
 }
+
+func (b Bag) GetName() string {
+	return b.Name
+}
+func (b Bag) GetNickname() string {
+	return b.Nickname
+}
