@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"math"
 	"path/filepath"
 
 	"github.com/disintegration/imaging"
@@ -12,6 +13,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -24,9 +26,10 @@ type PageDrawer struct {
 	title       string
 	path        string
 
-	scale  int
-	width  int
-	height int
+	scale      int
+	innerScale float64
+	width      int
+	height     int
 }
 
 func New(title, path string, scale, commonIndex int) *PageDrawer {
@@ -71,9 +74,39 @@ func (d *PageDrawer) AddImage(img []byte) error {
 		return err
 	}
 
+	cardWidth := cardImg.Bounds().Max.X
+	cardHeight := cardImg.Bounds().Max.Y
+	if (cardWidth * 10) > 10_000 {
+		d.innerScale = 10_000 / 10 / float64(cardWidth)
+		for {
+			if int(math.Trunc(float64(cardWidth)*d.innerScale)) > 10_000 {
+				logger.Debug.Println("Increase scale for width:", d.innerScale)
+				d.innerScale += 0.01
+			}
+			break
+		}
+	}
+	if (math.Trunc(float64(cardHeight)*d.innerScale) * 7) > 10_000 {
+		d.innerScale = 10_000 / 7 / float64(cardHeight)
+		for {
+			if int(math.Trunc(float64(cardHeight)*d.innerScale)) > 10_000 {
+				logger.Debug.Println("Increase scale for height:", d.innerScale)
+				d.innerScale += 0.01
+			}
+			break
+		}
+	}
+
+	if d.scale == 0 {
+		d.scale = 1
+	}
+	if d.innerScale == 0 {
+		d.innerScale = 1
+	}
+
 	if d.width == 0 && d.height == 0 {
-		d.width = cardImg.Bounds().Max.X / d.scale
-		d.height = cardImg.Bounds().Max.Y / d.scale
+		d.width = int(math.Trunc(float64(cardWidth)*d.innerScale)) / d.scale
+		d.height = int(math.Trunc(float64(cardHeight)*d.innerScale)) / d.scale
 	}
 
 	if d.width != cardImg.Bounds().Max.X ||
