@@ -10,7 +10,7 @@ TAG=$(git --git-dir ../.git describe --tags)
 
 #BACKEND=
 #FRONTEND=
-#VERSION=custom-version
+VERSION= # custom-version
 
 rm -rf release || 1
 
