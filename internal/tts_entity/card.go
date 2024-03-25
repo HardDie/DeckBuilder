@@ -14,6 +14,7 @@ type Card struct {
 	LuaScript   string                  `json:"LuaScript"`
 	Transform   *Transform              `json:"Transform,omitempty"`
 	CustomDeck  map[int]DeckDescription `json:"CustomDeck,omitempty"`
+	States      map[string]Card         `json:"States,omitempty"`
 }
 
 func NewCard(guid, name, description string, pageId, cardIndex int, variablesMap map[string]string, deckDesc DeckDescription) Card {
