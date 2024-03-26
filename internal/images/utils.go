@@ -61,7 +61,7 @@ func SaveToWriter(w io.Writer, img image.Image) error {
 }
 func JpegSaveToWriter(w io.Writer, img image.Image) error {
 	err := jpeg.Encode(w, img, &jpeg.Options{
-		Quality: 60,
+		Quality: 80,
 	})
 	if err != nil {
 		return err
