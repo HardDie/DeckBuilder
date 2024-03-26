@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/jpeg"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 
@@ -52,7 +53,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 		return err
 	}
 
-	deckArray, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
+	deckArray, order, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(gameItem, deckArray, dtoObject.Scale)
+		err = s.generateBody(gameItem, deckArray, order, dtoObject.Scale)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
@@ -96,19 +97,19 @@ type Card struct {
 	Count        int
 }
 
-func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[Deck][]Card, error) {
+func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[Deck][]Card, []Deck, error) {
 	decks := make(map[Deck][]Card)
 	// Get list of collections
 	collectionItems, _, err := s.collectionService.List(gameID, sortField, "")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	// Iterate through collections
 	for _, collectionItem := range collectionItems {
 		// Get list of decks
 		deckItems, _, err := s.deckService.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		// Iterate through decks
 		for _, deckItem := range deckItems {
@@ -121,7 +122,7 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[
 			// Get list of cards
 			cardItems, _, err := s.cardService.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			// Iterate through cards
 			for _, cardItem := range cardItems {
@@ -135,20 +136,28 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[
 			}
 		}
 	}
-	return decks, nil
+
+	var order []Deck
+	for deck := range decks {
+		order = append(order, deck)
+	}
+	sort.SliceStable(order, func(i, j int) bool {
+		return order[i].Name < order[j].Name
+	})
+	return decks, order, nil
 }
 
-func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, decks map[Deck][]Card, scale int) error {
+func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, decks map[Deck][]Card, order []Deck, scale int) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
 	// Generate images
-	imageMapping, err := s.generateImages(decks, scale)
+	imageMapping, err := s.generateImages(decks, order, scale)
 	if err != nil {
 		return err
 	}
 	// Generate json description
-	err = s.generateJson(gameItem, decks, imageMapping)
+	err = s.generateJson(gameItem, decks, order, imageMapping)
 	if err != nil {
 		return err
 	}
@@ -169,7 +178,7 @@ type PageInfo struct {
 // output:
 //   - images in result folder
 //   - map[file_name] = info{ path_to_image, path_to_backside, width, height }
-func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map[string]PageInfo, error) {
+func (s *GeneratorService) generateImages(decks map[Deck][]Card, order []Deck, scale int) (map[string]PageInfo, error) {
 	pr := progress.GetProgress()
 
 	// Count total amount of cards
@@ -186,7 +195,8 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 
 	pr.SetMessage("Drawing cards on the page...")
 	var commonIndex int
-	for deckInfo, cards := range decks {
+	for _, deckInfo := range order {
+		cards := decks[deckInfo]
 		commonIndex++
 
 		// Create page drawer object
@@ -265,7 +275,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, scale int) (map
 	return images, nil
 }
 
-func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Deck][]Card, imageMapping map[string]PageInfo) error {
+func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Deck][]Card, order []Deck, imageMapping map[string]PageInfo) error {
 	bag := tts_entity.NewBag(gameItem.Name)
 	collectionBags := make(map[string]*tts_entity.Bag)
 	var deck tts_entity.DeckObject
@@ -284,7 +294,8 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 	var deckIdOffset int
 
 	var commonIndex int
-	for deckInfo, cards := range decks {
+	for _, deckInfo := range order {
+		cards := decks[deckInfo]
 		commonIndex++
 
 		deck = tts_entity.NewDeck(deckInfo.Name)
