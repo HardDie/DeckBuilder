@@ -51,3 +51,8 @@ make build
 ```
 
 The resulting files can be found in the deployment/out folder
+
+## Swagger
+```
+http://localhost:5000/docs
+```
