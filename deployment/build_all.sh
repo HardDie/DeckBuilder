@@ -8,8 +8,8 @@ BACKEND=$(git --git-dir ../.git rev-parse --short HEAD)
 FRONTEND=$(git --git-dir ../gui/.git rev-parse --short HEAD)
 TAG=$(git --git-dir ../.git describe --tags)
 
-#BACKEND=
-#FRONTEND=
+BACKEND=
+FRONTEND=
 VERSION= # custom-version
 
 rm -rf release || 1
