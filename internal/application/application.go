@@ -35,7 +35,8 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	}
 
 	// system
-	systemServer := server.NewSystemServer(cfg, service.NewService(cfg, builderDB))
+	systemService := service.NewService(cfg, builderDB)
+	systemServer := server.NewSystemServer(cfg, systemService)
 	api.RegisterSystemServer(routes, systemServer)
 
 	// game
@@ -65,7 +66,15 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterTTSServer(routes, server.NewTTSServer(ttsService))
 
 	// generator
-	generatorService := service.NewGeneratorService(cfg, gameService, collectionService, deckService, cardService, ttsService)
+	generatorService := service.NewGeneratorService(
+		cfg,
+		gameService,
+		collectionService,
+		deckService,
+		cardService,
+		ttsService,
+		systemService,
+	)
 	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
 
 	// replace

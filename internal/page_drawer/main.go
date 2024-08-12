@@ -11,6 +11,7 @@ import (
 	"github.com/disintegration/imaging"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -30,15 +31,18 @@ type PageDrawer struct {
 	innerScale float64
 	width      int
 	height     int
+
+	config *entity.SettingInfo
 }
 
-func New(title, path string, scale, commonIndex int) *PageDrawer {
+func New(title, path string, scale, commonIndex int, config *entity.SettingInfo) *PageDrawer {
 	return &PageDrawer{
 		index:       1,
 		commonIndex: commonIndex,
 		title:       title,
 		path:        path,
 		scale:       scale,
+		config:      config,
 	}
 }
 
@@ -133,7 +137,11 @@ func (d *PageDrawer) SetBacksideImageAndSave(img []byte) (string, error) {
 	}
 
 	// Make image darker
-	d.backside = imaging.AdjustBrightness(backsideImg, 0)
+	if d.config.EnableBackShadow {
+		d.backside = imaging.AdjustBrightness(backsideImg, -30)
+	} else {
+		d.backside = imaging.AdjustBrightness(backsideImg, 0)
+	}
 	return fs.PathToAbsolutePath(savePath), nil
 }
 func (d *PageDrawer) Save() (string, int, int, error) {

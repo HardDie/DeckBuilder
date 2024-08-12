@@ -47,6 +47,10 @@ func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 
 	// Update default values
 	settings.Lang = set.Lang
+	settings.EnableBackShadow = set.EnableBackShadow
+	settings.CardSize.ScaleX = set.CardSize.ScaleX
+	settings.CardSize.ScaleY = set.CardSize.ScaleY
+	settings.CardSize.ScaleZ = set.CardSize.ScaleZ
 	return settings, nil
 }
 func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error) {

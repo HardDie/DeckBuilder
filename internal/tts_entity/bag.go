@@ -10,9 +10,13 @@ type Bag struct {
 
 func NewBag(nickname string) Bag {
 	return Bag{
-		Name:      "Bag",
-		Nickname:  nickname,
-		Transform: transform,
+		Name:     "Bag",
+		Nickname: nickname,
+		Transform: Transform{
+			ScaleX: 1,
+			ScaleY: 1,
+			ScaleZ: 1,
+		},
 	}
 }
 

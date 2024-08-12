@@ -31,9 +31,18 @@ type GeneratorService struct {
 	deckService       IDeckService
 	cardService       ICardService
 	ttsService        ITTSService
+	systemService     ISystemService
 }
 
-func NewGeneratorService(cfg *config.Config, gameService IGameService, collectionService ICollectionService, deckService IDeckService, cardService ICardService, ttsService ITTSService) *GeneratorService {
+func NewGeneratorService(
+	cfg *config.Config,
+	gameService IGameService,
+	collectionService ICollectionService,
+	deckService IDeckService,
+	cardService ICardService,
+	ttsService ITTSService,
+	systemService ISystemService,
+) *GeneratorService {
 	return &GeneratorService{
 		cfg:               cfg,
 		gameService:       gameService,
@@ -41,10 +50,17 @@ func NewGeneratorService(cfg *config.Config, gameService IGameService, collectio
 		deckService:       deckService,
 		cardService:       cardService,
 		ttsService:        ttsService,
+		systemService:     systemService,
 	}
 }
 
 func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error {
+	cfg, err := s.systemService.GetSettings()
+	if err != nil {
+		logger.Error.Printf("can't get config")
+		return err
+	}
+
 	pr := progress.GetProgress()
 
 	// Check if the game exists
@@ -73,7 +89,7 @@ func (s *GeneratorService) GenerateGame(gameID string, dtoObject *dto.GenerateGa
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(gameItem, deckArray, order, dtoObject.Scale)
+		err = s.generateBody(gameItem, deckArray, order, dtoObject.Scale, cfg)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())
@@ -147,17 +163,23 @@ func (s *GeneratorService) getListOfCards(gameID string, sortField string) (map[
 	return decks, order, nil
 }
 
-func (s *GeneratorService) generateBody(gameItem *entity.GameInfo, decks map[Deck][]Card, order []Deck, scale int) error {
+func (s *GeneratorService) generateBody(
+	gameItem *entity.GameInfo,
+	decks map[Deck][]Card,
+	order []Deck,
+	scale int,
+	cfg *entity.SettingInfo,
+) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
 
 	// Generate images
-	imageMapping, err := s.generateImages(decks, order, scale)
+	imageMapping, err := s.generateImages(decks, order, scale, cfg)
 	if err != nil {
 		return err
 	}
 	// Generate json description
-	err = s.generateJson(gameItem, decks, order, imageMapping)
+	err = s.generateJson(gameItem, decks, order, imageMapping, cfg)
 	if err != nil {
 		return err
 	}
@@ -178,7 +200,12 @@ type PageInfo struct {
 // output:
 //   - images in result folder
 //   - map[file_name] = info{ path_to_image, path_to_backside, width, height }
-func (s *GeneratorService) generateImages(decks map[Deck][]Card, order []Deck, scale int) (map[string]PageInfo, error) {
+func (s *GeneratorService) generateImages(
+	decks map[Deck][]Card,
+	order []Deck,
+	scale int,
+	cfg *entity.SettingInfo,
+) (map[string]PageInfo, error) {
 	pr := progress.GetProgress()
 
 	// Count total amount of cards
@@ -200,7 +227,7 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, order []Deck, s
 		commonIndex++
 
 		// Create page drawer object
-		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale, commonIndex)
+		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale, commonIndex, cfg)
 		var backsidePath string
 
 		// Iterate through all cards in deck
@@ -275,7 +302,13 @@ func (s *GeneratorService) generateImages(decks map[Deck][]Card, order []Deck, s
 	return images, nil
 }
 
-func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Deck][]Card, order []Deck, imageMapping map[string]PageInfo) error {
+func (s *GeneratorService) generateJson(
+	gameItem *entity.GameInfo,
+	decks map[Deck][]Card,
+	order []Deck,
+	imageMapping map[string]PageInfo,
+	cfg *entity.SettingInfo,
+) error {
 	bag := tts_entity.NewBag(gameItem.Name)
 	collectionBags := make(map[string]*tts_entity.Bag)
 	var deck tts_entity.DeckObject
@@ -298,9 +331,9 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 		cards := decks[deckInfo]
 		commonIndex++
 
-		deck = tts_entity.NewDeck(deckInfo.Name)
+		deck = tts_entity.NewDeck(deckInfo.Name, cfg)
 		// Create page drawer object
-		page := pageDrawer.New(deckInfo.ID, "", 1, commonIndex)
+		page := pageDrawer.New(deckInfo.ID, "", 1, commonIndex, cfg)
 
 		pageInfo := imageMapping[deckInfo.ID+"_"+strconv.Itoa(page.GetIndex())]
 		deckDescription := tts_entity.DeckDescription{
@@ -346,14 +379,14 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 				case len(deck.ContainedObjects) == 1:
 					// We cannot create a deck object with a single card. We must create a card object.
 					collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck.ContainedObjects[0])
-					//bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+					// bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
 				case len(deck.ContainedObjects) > 1:
 					// If there is more than one card in the deck, place the deck in the object list.
-					//bag.ContainedObjects = append(bag.ContainedObjects, deck)
+					// bag.ContainedObjects = append(bag.ContainedObjects, deck)
 					collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck)
 				}
 				prevCollection = card.CollectionID
-				deck = tts_entity.NewDeck(deckInfo.Name)
+				deck = tts_entity.NewDeck(deckInfo.Name, cfg)
 				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
 			}
 
@@ -371,7 +404,7 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 
 			cardGUID := fmt.Sprintf("%06d", commonIndex)
 			commonIndex++
-			cardObject := tts_entity.NewCard(cardGUID, cardItem.Name, cardItem.Description, page.GetIndex()+deckIdOffset, page.Size()-1, cardItem.Variables, deckDescription)
+			cardObject := tts_entity.NewCard(cardGUID, cardItem.Name, cardItem.Description, page.GetIndex()+deckIdOffset, page.Size()-1, cardItem.Variables, deckDescription, cfg)
 			for i := 0; i < cardItem.Count; i++ {
 				// Add a card to the deck as many times as set in the count variable
 				deck.AddCard(cardObject)
@@ -385,11 +418,11 @@ func (s *GeneratorService) generateJson(gameItem *entity.GameInfo, decks map[Dec
 			switch {
 			case len(deck.ContainedObjects) == 1:
 				// We cannot create a deck object with a single card. We must create a card object.
-				//bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
+				// bag.ContainedObjects = append(bag.ContainedObjects, deck.ContainedObjects[0])
 				collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck.ContainedObjects[0])
 			case len(deck.ContainedObjects) > 1:
 				// If there is more than one card in the deck, place the deck in the object list.
-				//bag.ContainedObjects = append(bag.ContainedObjects, deck)
+				// bag.ContainedObjects = append(bag.ContainedObjects, deck)
 				collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck)
 			}
 		}
