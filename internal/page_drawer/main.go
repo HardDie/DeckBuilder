@@ -133,7 +133,7 @@ func (d *PageDrawer) SetBacksideImageAndSave(img []byte) (string, error) {
 	}
 
 	// Make image darker
-	d.backside = imaging.AdjustBrightness(backsideImg, -30)
+	d.backside = imaging.AdjustBrightness(backsideImg, 0)
 	return fs.PathToAbsolutePath(savePath), nil
 }
 func (d *PageDrawer) Save() (string, int, int, error) {
