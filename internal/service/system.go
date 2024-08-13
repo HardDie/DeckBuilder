@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/db"
+	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/repository"
@@ -20,9 +20,9 @@ type SystemService struct {
 	rep repository.ISystemRepository
 }
 
-func NewService(cfg *config.Config, db *db.DB) *SystemService {
+func NewService(cfg *config.Config, settings dbSettings.Settings) *SystemService {
 	return &SystemService{
-		rep: repository.NewSystemRepository(cfg, db),
+		rep: repository.NewSystemRepository(cfg, settings),
 	}
 }
 

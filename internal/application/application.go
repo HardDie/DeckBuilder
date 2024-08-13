@@ -8,7 +8,12 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/db"
+	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
+	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
+	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
+	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
+	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
+	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/repository"
 	"github.com/HardDie/DeckBuilder/internal/server"
@@ -28,34 +33,42 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterStaticServer(routes)
 
 	// fsentry db
-	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty()))
-	err := builderDB.Init()
+	fs := fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty())
+
+	core := dbCore.New(fs)
+	settings := dbSettings.New(fs)
+	game := dbGame.New(fs)
+	collection := dbCollection.New(fs, game)
+	deck := dbDeck.New(fs, collection)
+	card := dbCard.New(fs, deck)
+
+	err := core.Init()
 	if err != nil {
 		logger.Error.Fatal(err)
 	}
 
 	// system
-	systemService := service.NewService(cfg, builderDB)
+	systemService := service.NewService(cfg, settings)
 	systemServer := server.NewSystemServer(cfg, systemService)
 	api.RegisterSystemServer(routes, systemServer)
 
 	// game
-	gameRepository := repository.NewGameRepository(cfg, builderDB)
+	gameRepository := repository.NewGameRepository(cfg, game)
 	gameService := service.NewGameService(cfg, gameRepository)
 	api.RegisterGameServer(routes, server.NewGameServer(gameService, systemServer))
 
 	// collection
-	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
+	collectionRepository := repository.NewCollectionRepository(cfg, collection)
 	collectionService := service.NewCollectionService(cfg, collectionRepository)
 	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService, systemServer))
 
 	// deck
-	deckRepository := repository.NewDeckRepository(cfg, builderDB)
+	deckRepository := repository.NewDeckRepository(cfg, collection, deck)
 	deckService := service.NewDeckService(cfg, deckRepository)
 	api.RegisterDeckServer(routes, server.NewDeckServer(deckService, systemServer))
 
 	// card
-	cardService := service.NewCardService(cfg, repository.NewCardRepository(cfg, builderDB))
+	cardService := service.NewCardService(cfg, repository.NewCardRepository(cfg, card))
 	api.RegisterCardServer(routes, server.NewCardServer(cardService, systemServer))
 
 	// image

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/db"
+	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -21,19 +21,19 @@ type ICollectionRepository interface {
 	GetImage(gameID, collectionID string) ([]byte, string, error)
 }
 type CollectionRepository struct {
-	cfg *config.Config
-	db  *db.DB
+	cfg        *config.Config
+	collection dbCollection.Collection
 }
 
-func NewCollectionRepository(cfg *config.Config, db *db.DB) *CollectionRepository {
+func NewCollectionRepository(cfg *config.Config, collection dbCollection.Collection) *CollectionRepository {
 	return &CollectionRepository{
-		cfg: cfg,
-		db:  db,
+		cfg:        cfg,
+		collection: collection,
 	}
 }
 
 func (s *CollectionRepository) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.db.CollectionCreate(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+	collection, err := s.collection.Create(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +58,14 @@ func (s *CollectionRepository) Create(gameID string, dtoObject *dto.CreateCollec
 	return collection, nil
 }
 func (s *CollectionRepository) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
-	_, resp, err := s.db.CollectionGet(context.Background(), gameID, collectionID)
+	_, resp, err := s.collection.Get(context.Background(), gameID, collectionID)
 	return resp, err
 }
 func (s *CollectionRepository) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
-	return s.db.CollectionList(context.Background(), gameID)
+	return s.collection.List(context.Background(), gameID)
 }
 func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
-	_, oldCollection, err := s.db.CollectionGet(context.Background(), gameID, collectionID)
+	_, oldCollection, err := s.collection.Get(context.Background(), gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	var newCollection *entity.CollectionInfo
 	if oldCollection.Name != dtoObject.Name {
 		// Rename folder
-		newCollection, err = s.db.CollectionMove(context.Background(), gameID, oldCollection.Name, dtoObject.Name)
+		newCollection, err = s.collection.Move(context.Background(), gameID, oldCollection.Name, dtoObject.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 		oldCollection.Image != dtoObject.Image ||
 		dtoObject.ImageFile != nil {
 		// Update data
-		newCollection, err = s.db.CollectionUpdate(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newCollection, err = s.collection.Update(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 
 	// If image exist, delete
 	if data, _, _ := s.GetImage(gameID, newCollection.ID); data != nil {
-		err = s.db.CollectionImageDelete(context.Background(), gameID, collectionID)
+		err = s.collection.ImageDelete(context.Background(), gameID, collectionID)
 		if err != nil {
 			return nil, err
 		}
@@ -127,10 +127,10 @@ func (s *CollectionRepository) Update(gameID, collectionID string, dtoObject *dt
 	return newCollection, nil
 }
 func (s *CollectionRepository) DeleteByID(gameID, collectionID string) error {
-	return s.db.CollectionDelete(context.Background(), gameID, collectionID)
+	return s.collection.Delete(context.Background(), gameID, collectionID)
 }
 func (s *CollectionRepository) GetImage(gameID, collectionID string) ([]byte, string, error) {
-	data, err := s.db.CollectionImageGet(context.Background(), gameID, collectionID)
+	data, err := s.collection.ImageGet(context.Background(), gameID, collectionID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -160,5 +160,5 @@ func (s *CollectionRepository) createImageFromByte(gameID, collectionID string, 
 	}
 
 	// Write image to file
-	return s.db.CollectionImageCreate(context.Background(), gameID, collectionID, data)
+	return s.collection.ImageCreate(context.Background(), gameID, collectionID, data)
 }
