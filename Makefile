@@ -43,30 +43,20 @@ linter-run: ## run linters
 
 .PHONY: test
 test: ## run unit tests
-	rm -rf data_test || 1
-	TEST_DATA_PATH=${PWD}/data_test go test ./... -v -race
-	rm -rf data_test || 1
+	go test ./... -v -race
 
 .PHONY: fuzz_game
 fuzz_game: ## run fuzzy test for game API's
-	rm -rf data_test || 1
-	cd internal/service && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzGame -v
-	rm -rf data_test || 1
+	cd internal/services/game && go test -fuzz=FuzzGame -v
 
 .PHONY: fuzz_collection
 fuzz_collection: ## run fuzzy test for collection API's
-	rm -rf data_test || 1
-	cd internal/service && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCollection -v
-	rm -rf data_test || 1
+	cd internal/services/collection && go test -fuzz=FuzzCollection -v
 
 .PHONY: fuzz_deck
 fuzz_deck: ## run fuzzy test for deck API's
-	rm -rf data_test || 1
-	cd internal/service && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzDeck -v
-	rm -rf data_test || 1
+	cd internal/services/deck && go test -fuzz=FuzzDeck -v
 
 .PHONY: fuzz_card
 fuzz_card: ## run fuzzy test for card API's
-	rm -rf data_test || 1
-	cd internal/service && TEST_DATA_PATH=${PWD}/data_test go test -fuzz=FuzzCard -v
-	rm -rf data_test || 1
+	cd internal/services/card && go test -fuzz=FuzzCard -v

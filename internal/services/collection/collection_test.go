@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/HardDie/fsentry"
-	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
@@ -34,9 +32,17 @@ type collectionTest struct {
 	serviceCollection Collection
 }
 
-func newCollectionTest(dataPath string) *collectionTest {
+func newCollectionTest(t testing.TB) *collectionTest {
+	dir, err := os.MkdirTemp("", "collection_test")
+	if err != nil {
+		t.Fatal("error creating temp dir", err)
+	}
+	t.Cleanup(func() {
+		os.RemoveAll(dir)
+	})
+
 	cfg := config.Get(false, "")
-	cfg.SetDataPath(dataPath)
+	cfg.SetDataPath(dir)
 
 	fs := fsentry.NewFSEntry(cfg.Games())
 
@@ -571,12 +577,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 func TestCollection(t *testing.T) {
 	t.Parallel()
 
-	// Set path for the game test artifacts
-	dataPath := os.Getenv("TEST_DATA_PATH")
-	if dataPath == "" {
-		t.Fatal("TEST_DATA_PATH must be set")
-	}
-	tt := newCollectionTest(filepath.Join(dataPath, "collection_test"))
+	tt := newCollectionTest(t)
 
 	if err := tt.core.Init(); err != nil {
 		t.Fatal(err)
@@ -708,12 +709,7 @@ func (tt *collectionTest) fuzzDelete(t *testing.T, collectionID string) error {
 }
 
 func FuzzCollection(f *testing.F) {
-	// Set path for the collection test artifacts
-	dataPath := os.Getenv("TEST_DATA_PATH")
-	if dataPath == "" {
-		f.Fatal("TEST_DATA_PATH must be set")
-	}
-	tt := newCollectionTest(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
+	tt := newCollectionTest(f)
 
 	if err := tt.core.Init(); err != nil {
 		f.Fatal(err)
