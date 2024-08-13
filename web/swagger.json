@@ -1760,6 +1760,27 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
     },
+    "CardSize": {
+      "type": "object",
+      "properties": {
+        "scaleX": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "ScaleX"
+        },
+        "scaleY": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "ScaleY"
+        },
+        "scaleZ": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "ScaleZ"
+        }
+      },
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+    },
     "CollectionInfo": {
       "type": "object",
       "properties": {
@@ -1906,6 +1927,13 @@
     "SettingInfo": {
       "type": "object",
       "properties": {
+        "card_size": {
+          "$ref": "#/definitions/CardSize"
+        },
+        "enable_back_shadow": {
+          "type": "boolean",
+          "x-go-name": "EnableBackShadow"
+        },
         "lang": {
           "type": "string",
           "x-go-name": "Lang"
