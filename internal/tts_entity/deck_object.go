@@ -1,7 +1,5 @@
 package tts_entity
 
-import "github.com/HardDie/DeckBuilder/internal/entity"
-
 type DeckObject struct {
 	Name             string                  `json:"Name"`
 	Transform        Transform               `json:"Transform"`
@@ -12,15 +10,15 @@ type DeckObject struct {
 	ContainedObjects []Card                  `json:"ContainedObjects"`
 }
 
-func NewDeck(nickname string, config *entity.SettingInfo) DeckObject {
+func NewDeck(nickname string, deckSize Transform) DeckObject {
 	return DeckObject{
 		Name:       "Deck",
 		Nickname:   nickname,
 		CustomDeck: make(map[int]DeckDescription),
 		Transform: Transform{
-			ScaleX: config.CardSize.ScaleX,
-			ScaleY: config.CardSize.ScaleY,
-			ScaleZ: config.CardSize.ScaleZ,
+			ScaleX: deckSize.ScaleX,
+			ScaleY: deckSize.ScaleY,
+			ScaleZ: deckSize.ScaleZ,
 		},
 	}
 }

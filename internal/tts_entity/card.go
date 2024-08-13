@@ -3,8 +3,6 @@ package tts_entity
 import (
 	"fmt"
 	"strings"
-
-	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
 type Card struct {
@@ -24,7 +22,7 @@ func NewCard(
 	pageId, cardIndex int,
 	variablesMap map[string]string,
 	deckDesc DeckDescription,
-	config *entity.SettingInfo,
+	cardSize Transform,
 ) Card {
 	// Converting lua variables into strings
 	var variables []string
@@ -42,9 +40,9 @@ func NewCard(
 			pageId: deckDesc,
 		},
 		Transform: &Transform{
-			ScaleX: config.CardSize.ScaleX,
-			ScaleY: config.CardSize.ScaleY,
-			ScaleZ: config.CardSize.ScaleZ,
+			ScaleX: cardSize.ScaleX,
+			ScaleY: cardSize.ScaleY,
+			ScaleZ: cardSize.ScaleZ,
 		},
 	}
 }

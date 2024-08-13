@@ -12,12 +12,15 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/db"
+	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
+	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
+	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -26,24 +29,28 @@ type collectionTest struct {
 	cfg               *config.Config
 	gameService       IGameService
 	collectionService ICollectionService
-	db                *db.DB
+	core              dbCore.Core
 }
 
 func newCollectionTest(dataPath string) *collectionTest {
 	cfg := config.Get(false, "")
 	cfg.SetDataPath(dataPath)
 
-	// fsentry db
-	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+	fs := fsentry.NewFSEntry(cfg.Games())
 
-	gameRepository := repository.NewGameRepository(cfg, builderDB)
+	core := dbCore.New(fs)
+	game := dbGame.New(fs)
+	collection := dbCollection.New(fs, game)
+
+	repositoryGame := repositoriesGame.New(cfg, game)
+	repositoryCollection := repositoriesCollection.New(cfg, collection)
 
 	return &collectionTest{
 		gameID:            "test_collection__game",
 		cfg:               cfg,
-		gameService:       NewGameService(cfg, gameRepository),
-		collectionService: NewCollectionService(cfg, repository.NewCollectionRepository(cfg, builderDB)),
-		db:                builderDB,
+		gameService:       NewGameService(cfg, repositoryGame),
+		collectionService: NewCollectionService(cfg, repositoryCollection),
+		core:              core,
 	}
 }
 
@@ -568,11 +575,11 @@ func TestCollection(t *testing.T) {
 	}
 	tt := newCollectionTest(filepath.Join(dataPath, "collection_test"))
 
-	if err := tt.db.Init(); err != nil {
+	if err := tt.core.Init(); err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := tt.db.Drop(); err != nil {
+		if err := tt.core.Drop(); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -603,8 +610,8 @@ func TestCollection(t *testing.T) {
 }
 
 func (tt *collectionTest) fuzzCleanup() {
-	_ = tt.db.Drop()
-	_ = tt.db.Init()
+	_ = tt.core.Drop()
+	_ = tt.core.Init()
 }
 func (tt *collectionTest) fuzzList(t *testing.T, waitItems int) error {
 	items, _, err := tt.collectionService.List(tt.gameID, "", "")
@@ -705,11 +712,11 @@ func FuzzCollection(f *testing.F) {
 	}
 	tt := newCollectionTest(filepath.Join(dataPath, "collection_fuzz_"+uuid.New().String()))
 
-	if err := tt.db.Init(); err != nil {
+	if err := tt.core.Init(); err != nil {
 		f.Fatal(err)
 	}
 	defer func() {
-		if err := tt.db.Drop(); err != nil {
+		if err := tt.core.Drop(); err != nil {
 			f.Fatal(err)
 		}
 	}()

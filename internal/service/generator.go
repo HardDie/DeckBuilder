@@ -331,7 +331,14 @@ func (s *GeneratorService) generateJson(
 		cards := decks[deckInfo]
 		commonIndex++
 
-		deck = tts_entity.NewDeck(deckInfo.Name, cfg)
+		deck = tts_entity.NewDeck(
+			deckInfo.Name,
+			tts_entity.Transform{
+				ScaleX: cfg.CardSize.ScaleX,
+				ScaleY: cfg.CardSize.ScaleY,
+				ScaleZ: cfg.CardSize.ScaleZ,
+			},
+		)
 		// Create page drawer object
 		page := pageDrawer.New(deckInfo.ID, "", 1, commonIndex, cfg)
 
@@ -386,7 +393,14 @@ func (s *GeneratorService) generateJson(
 					collectionBags[prevCollection].ContainedObjects = append(collectionBags[prevCollection].ContainedObjects, deck)
 				}
 				prevCollection = card.CollectionID
-				deck = tts_entity.NewDeck(deckInfo.Name, cfg)
+				deck = tts_entity.NewDeck(
+					deckInfo.Name,
+					tts_entity.Transform{
+						ScaleX: cfg.CardSize.ScaleX,
+						ScaleY: cfg.CardSize.ScaleY,
+						ScaleZ: cfg.CardSize.ScaleZ,
+					},
+				)
 				deck.CustomDeck[page.GetIndex()+deckIdOffset] = deckDescription
 			}
 
@@ -404,7 +418,20 @@ func (s *GeneratorService) generateJson(
 
 			cardGUID := fmt.Sprintf("%06d", commonIndex)
 			commonIndex++
-			cardObject := tts_entity.NewCard(cardGUID, cardItem.Name, cardItem.Description, page.GetIndex()+deckIdOffset, page.Size()-1, cardItem.Variables, deckDescription, cfg)
+			cardObject := tts_entity.NewCard(
+				cardGUID,
+				cardItem.Name,
+				cardItem.Description,
+				page.GetIndex()+deckIdOffset,
+				page.Size()-1,
+				cardItem.Variables,
+				deckDescription,
+				tts_entity.Transform{
+					ScaleX: cfg.CardSize.ScaleX,
+					ScaleY: cfg.CardSize.ScaleY,
+					ScaleZ: cfg.CardSize.ScaleZ,
+				},
+			)
 			for i := 0; i < cardItem.Count; i++ {
 				// Add a card to the deck as many times as set in the count variable
 				deck.AddCard(cardObject)

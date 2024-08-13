@@ -12,12 +12,19 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/db"
+	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
+	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
+	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
+	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
+	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
+	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
+	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 )
 
 type cardTest struct {
@@ -27,30 +34,36 @@ type cardTest struct {
 	collectionService            ICollectionService
 	deckService                  IDeckService
 	cardService                  ICardService
-	db                           *db.DB
+	core                         dbCore.Core
 }
 
 func newCardTest(dataPath string) *cardTest {
 	cfg := config.Get(false, "")
 	cfg.SetDataPath(dataPath)
 
-	// fsentry db
-	builderDB := db.NewFSEntryDB(fsentry.NewFSEntry(cfg.Games()))
+	fs := fsentry.NewFSEntry(cfg.Games())
 
-	gameRepository := repository.NewGameRepository(cfg, builderDB)
-	collectionRepository := repository.NewCollectionRepository(cfg, builderDB)
-	deckRepository := repository.NewDeckRepository(cfg, builderDB)
+	core := dbCore.New(fs)
+	game := dbGame.New(fs)
+	collection := dbCollection.New(fs, game)
+	deck := dbDeck.New(fs, collection)
+	card := dbCard.New(fs, deck)
+
+	repositoryGame := repositoriesGame.New(cfg, game)
+	repositoryCollection := repositoriesCollection.New(cfg, collection)
+	repositoryDeck := repositoriesDeck.New(cfg, collection, deck)
+	repositoryCard := repositoriesCard.New(cfg, card)
 
 	return &cardTest{
 		gameID:            "test_card__game",
 		collectionID:      "test_card__collection",
 		deckID:            "test_card__deck",
 		cfg:               cfg,
-		gameService:       NewGameService(cfg, gameRepository),
-		collectionService: NewCollectionService(cfg, collectionRepository),
-		deckService:       NewDeckService(cfg, deckRepository),
-		cardService:       NewCardService(cfg, repository.NewCardRepository(cfg, builderDB)),
-		db:                builderDB,
+		gameService:       NewGameService(cfg, repositoryGame),
+		collectionService: NewCollectionService(cfg, repositoryCollection),
+		deckService:       NewDeckService(cfg, repositoryDeck),
+		cardService:       NewCardService(cfg, repositoryCard),
+		core:              core,
 	}
 }
 
@@ -569,11 +582,11 @@ func TestCard(t *testing.T) {
 	}
 	tt := newCardTest(filepath.Join(dataPath, "card_test"))
 
-	if err := tt.db.Init(); err != nil {
+	if err := tt.core.Init(); err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := tt.db.Drop(); err != nil {
+		if err := tt.core.Drop(); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -639,8 +652,8 @@ func TestCard(t *testing.T) {
 }
 
 func (tt *cardTest) fuzzCleanup() {
-	_ = tt.db.Drop()
-	_ = tt.db.Init()
+	_ = tt.core.Drop()
+	_ = tt.core.Init()
 }
 func (tt *cardTest) fuzzList(t *testing.T, waitItems int) error {
 	items, _, err := tt.cardService.List(tt.gameID, tt.collectionID, tt.deckID, "", "")
@@ -764,11 +777,11 @@ func FuzzCard(f *testing.F) {
 	}
 	tt := newCardTest(filepath.Join(dataPath, "card_fuzz_"+uuid.New().String()))
 
-	if err := tt.db.Init(); err != nil {
+	if err := tt.core.Init(); err != nil {
 		f.Fatal(err)
 	}
 	defer func() {
-		if err := tt.db.Drop(); err != nil {
+		if err := tt.core.Drop(); err != nil {
 			f.Fatal(err)
 		}
 	}()
