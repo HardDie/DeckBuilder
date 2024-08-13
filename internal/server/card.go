@@ -10,18 +10,18 @@ import (
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type CardServer struct {
-	cardService  service.ICardService
+	serviceCard  servicesCard.Card
 	systemServer *SystemServer
 }
 
-func NewCardServer(cardService service.ICardService, systemServer *SystemServer) *CardServer {
+func NewCardServer(serviceCard servicesCard.Card, systemServer *SystemServer) *CardServer {
 	return &CardServer{
-		cardService:  cardService,
+		serviceCard:  serviceCard,
 		systemServer: systemServer,
 	}
 }
@@ -65,7 +65,7 @@ func (s *CardServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	item, e := s.cardService.Create(gameID, collectionID, deckID, dtoObject)
+	item, e := s.serviceCard.Create(gameID, collectionID, deckID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -81,7 +81,7 @@ func (s *CardServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	e = s.cardService.Delete(gameID, collectionID, deckID, cardID)
+	e = s.serviceCard.Delete(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -95,7 +95,7 @@ func (s *CardServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	item, e := s.cardService.Item(gameID, collectionID, deckID, cardID)
+	item, e := s.serviceCard.Item(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -110,7 +110,7 @@ func (s *CardServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deck"]
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, meta, e := s.cardService.List(gameID, collectionID, deckID, sort, search)
+	items, meta, e := s.serviceCard.List(gameID, collectionID, deckID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -161,7 +161,7 @@ func (s *CardServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	item, e := s.cardService.Update(gameID, collectionID, deckID, cardID, dtoObject)
+	item, e := s.serviceCard.Update(gameID, collectionID, deckID, cardID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

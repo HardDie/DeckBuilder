@@ -7,16 +7,16 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesGenerator "github.com/HardDie/DeckBuilder/internal/services/generator"
 )
 
 type GeneratorServer struct {
-	generatorService service.IGeneratorService
+	serviceGenerator servicesGenerator.Generator
 }
 
-func NewGeneratorServer(generatorService service.IGeneratorService) *GeneratorServer {
+func NewGeneratorServer(serviceGenerator servicesGenerator.Generator) *GeneratorServer {
 	return &GeneratorServer{
-		generatorService: generatorService,
+		serviceGenerator: serviceGenerator,
 	}
 }
 
@@ -33,7 +33,7 @@ func (s *GeneratorServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := mux.Vars(r)["game"]
-	e = s.generatorService.GenerateGame(gameID, dtoObject)
+	e = s.serviceGenerator.GenerateGame(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

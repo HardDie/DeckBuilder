@@ -10,7 +10,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/progress"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
 )
 
 const (
@@ -22,14 +22,14 @@ var quitCtx context.Context
 var quitCancel func()
 
 type SystemServer struct {
-	systemService service.ISystemService
+	serviceSystem servicesSystem.System
 	cfg           *config.Config
 }
 
-func NewSystemServer(cfg *config.Config, systemService service.ISystemService) *SystemServer {
+func NewSystemServer(cfg *config.Config, serviceSystem servicesSystem.System) *SystemServer {
 	return &SystemServer{
 		cfg:           cfg,
-		systemService: systemService,
+		serviceSystem: serviceSystem,
 	}
 }
 
@@ -53,7 +53,7 @@ func (s *SystemServer) QuitHandler(w http.ResponseWriter, _ *http.Request) {
 			quitTimer = nil
 			return
 		}
-		s.systemService.Quit()
+		s.serviceSystem.Quit()
 	}()
 }
 func (s *SystemServer) StopQuit() {
@@ -63,7 +63,7 @@ func (s *SystemServer) StopQuit() {
 	quitCancel()
 }
 func (s *SystemServer) GetSettingsHandler(w http.ResponseWriter, _ *http.Request) {
-	setting, e := s.systemService.GetSettings()
+	setting, e := s.serviceSystem.GetSettings()
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -78,7 +78,7 @@ func (s *SystemServer) UpdateSettingsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	setting, e := s.systemService.UpdateSettings(dtoObject)
+	setting, e := s.serviceSystem.UpdateSettings(dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

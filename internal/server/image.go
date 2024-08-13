@@ -8,22 +8,30 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
+	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
+	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
+	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 )
 
 type ImageServer struct {
-	gameService       service.IGameService
-	collectionService service.ICollectionService
-	deckService       service.IDeckService
-	cardService       service.ICardService
+	serviceGame       servicesGame.Game
+	serviceCollection servicesCollection.Collection
+	serviceDeck       servicesDeck.Deck
+	serviceCard       servicesCard.Card
 }
 
-func NewImageServer(gameService service.IGameService, collectionService service.ICollectionService, deckService service.IDeckService, cardService service.ICardService) *ImageServer {
+func NewImageServer(
+	serviceGame servicesGame.Game,
+	serviceCollection servicesCollection.Collection,
+	serviceDeck servicesDeck.Deck,
+	serviceCard servicesCard.Card,
+) *ImageServer {
 	return &ImageServer{
-		gameService:       gameService,
-		collectionService: collectionService,
-		deckService:       deckService,
-		cardService:       cardService,
+		serviceGame:       serviceGame,
+		serviceCollection: serviceCollection,
+		serviceDeck:       serviceDeck,
+		serviceCard:       serviceCard,
 	}
 }
 
@@ -36,7 +44,7 @@ func (s *ImageServer) CardHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	img, imgType, e := s.cardService.GetImage(gameID, collectionID, deckID, cardID)
+	img, imgType, e := s.serviceCard.GetImage(gameID, collectionID, deckID, cardID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -49,7 +57,7 @@ func (s *ImageServer) CardHandler(w http.ResponseWriter, r *http.Request) {
 func (s *ImageServer) CollectionHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
-	img, imgType, e := s.collectionService.GetImage(gameID, collectionID)
+	img, imgType, e := s.serviceCollection.GetImage(gameID, collectionID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -63,7 +71,7 @@ func (s *ImageServer) DeckHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]
-	img, imgType, e := s.deckService.GetImage(gameID, collectionID, deckID)
+	img, imgType, e := s.serviceDeck.GetImage(gameID, collectionID, deckID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -75,7 +83,7 @@ func (s *ImageServer) DeckHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *ImageServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	img, imgType, e := s.gameService.GetImage(gameID)
+	img, imgType, e := s.serviceGame.GetImage(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

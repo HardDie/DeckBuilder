@@ -6,16 +6,16 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesSearch "github.com/HardDie/DeckBuilder/internal/services/search"
 )
 
 type SearchServer struct {
-	searchService service.ISearchService
+	serviceSearch servicesSearch.Search
 }
 
-func NewSearchServer(searchService service.ISearchService) *SearchServer {
+func NewSearchServer(serviceSearch servicesSearch.Search) *SearchServer {
 	return &SearchServer{
-		searchService: searchService,
+		serviceSearch: serviceSearch,
 	}
 }
 
@@ -23,7 +23,7 @@ func (s *SearchServer) RootHandler(w http.ResponseWriter, r *http.Request) {
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
 
-	resp, meta, err := s.searchService.RecursiveSearch(sort, search, "", "")
+	resp, meta, err := s.serviceSearch.RecursiveSearch(sort, search, "", "")
 	if err != nil {
 		network.ResponseError(w, err)
 		return
@@ -35,7 +35,7 @@ func (s *SearchServer) GameHandler(w http.ResponseWriter, r *http.Request) {
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
 
-	resp, meta, err := s.searchService.RecursiveSearch(sort, search, gameID, "")
+	resp, meta, err := s.serviceSearch.RecursiveSearch(sort, search, gameID, "")
 	if err != nil {
 		network.ResponseError(w, err)
 		return
@@ -48,7 +48,7 @@ func (s *SearchServer) CollectionHandler(w http.ResponseWriter, r *http.Request)
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
 
-	resp, meta, err := s.searchService.RecursiveSearch(sort, search, gameID, collectionID)
+	resp, meta, err := s.serviceSearch.RecursiveSearch(sort, search, gameID, collectionID)
 	if err != nil {
 		network.ResponseError(w, err)
 		return

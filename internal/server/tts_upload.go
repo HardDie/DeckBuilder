@@ -4,21 +4,21 @@ import (
 	"net/http"
 
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
 )
 
 type TTSServer struct {
-	ttsService service.ITTSService
+	serviceTTS servicesTTS.TTS
 }
 
-func NewTTSServer(ttsService service.ITTSService) *TTSServer {
+func NewTTSServer(serviceTTS servicesTTS.TTS) *TTSServer {
 	return &TTSServer{
-		ttsService: ttsService,
+		serviceTTS: serviceTTS,
 	}
 }
 
 func (s *TTSServer) DataHandler(w http.ResponseWriter, r *http.Request) {
-	resp, err := s.ttsService.DataForTTS()
+	resp, err := s.serviceTTS.DataForTTS()
 	if err != nil {
 		network.ResponseError(w, err)
 		return

@@ -8,18 +8,18 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type GameServer struct {
-	gameService  service.IGameService
+	serviceGame  servicesGame.Game
 	systemServer *SystemServer
 }
 
-func NewGameServer(gameService service.IGameService, systemServer *SystemServer) *GameServer {
+func NewGameServer(serviceGame servicesGame.Game, systemServer *SystemServer) *GameServer {
 	return &GameServer{
-		gameService:  gameService,
+		serviceGame:  serviceGame,
 		systemServer: systemServer,
 	}
 }
@@ -46,7 +46,7 @@ func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		ImageFile:   data,
 	}
 
-	item, e := s.gameService.Create(dtoObject)
+	item, e := s.serviceGame.Create(dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -56,7 +56,7 @@ func (s *GameServer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	e := s.gameService.Delete(gameID)
+	e := s.serviceGame.Delete(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 	}
@@ -70,7 +70,7 @@ func (s *GameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := s.gameService.Duplicate(gameID, dtoObject)
+	item, e := s.serviceGame.Duplicate(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -80,7 +80,7 @@ func (s *GameServer) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	archive, e := s.gameService.Export(gameID)
+	archive, e := s.serviceGame.Export(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -112,7 +112,7 @@ func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, e := s.gameService.Import(data, name)
+	item, e := s.serviceGame.Import(data, name)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -121,7 +121,7 @@ func (s *GameServer) ImportHandler(w http.ResponseWriter, r *http.Request) {
 }
 func (s *GameServer) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
-	item, e := s.gameService.Item(gameID)
+	item, e := s.serviceGame.Item(gameID)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -133,7 +133,7 @@ func (s *GameServer) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, meta, e := s.gameService.List(sort, search)
+	items, meta, e := s.serviceGame.List(sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -164,7 +164,7 @@ func (s *GameServer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		ImageFile:   data,
 	}
 
-	item, e := s.gameService.Update(gameID, dtoObject)
+	item, e := s.serviceGame.Update(gameID, dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return

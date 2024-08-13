@@ -20,7 +20,15 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/server"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
+	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
+	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
+	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
+	servicesGenerator "github.com/HardDie/DeckBuilder/internal/services/generator"
+	servicesReplace "github.com/HardDie/DeckBuilder/internal/services/replace"
+	servicesSearch "github.com/HardDie/DeckBuilder/internal/services/search"
+	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
+	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
 )
 
 type Application struct {
@@ -51,56 +59,48 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	}
 
 	// system
-	systemService := service.NewService(cfg, settings)
-	systemServer := server.NewSystemServer(cfg, systemService)
+	serviceSystem := servicesSystem.New(cfg, settings)
+	systemServer := server.NewSystemServer(cfg, serviceSystem)
 	api.RegisterSystemServer(routes, systemServer)
 
 	// game
 	repositoryGame := repositoriesGame.New(cfg, game)
-	gameService := service.NewGameService(cfg, repositoryGame)
-	api.RegisterGameServer(routes, server.NewGameServer(gameService, systemServer))
+	serviceGame := servicesGame.New(cfg, repositoryGame)
+	api.RegisterGameServer(routes, server.NewGameServer(serviceGame, systemServer))
 
 	// collection
 	repositoryCollection := repositoriesCollection.New(cfg, collection)
-	collectionService := service.NewCollectionService(cfg, repositoryCollection)
-	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService, systemServer))
+	serviceCollection := servicesCollection.New(cfg, repositoryCollection)
+	api.RegisterCollectionServer(routes, server.NewCollectionServer(serviceCollection, systemServer))
 
 	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, collection, deck)
-	deckService := service.NewDeckService(cfg, repositoryDeck)
-	api.RegisterDeckServer(routes, server.NewDeckServer(deckService, systemServer))
+	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
+	api.RegisterDeckServer(routes, server.NewDeckServer(serviceDeck, systemServer))
 
 	// card
 	repositoryCard := repositoriesCard.New(cfg, card)
-	cardService := service.NewCardService(cfg, repositoryCard)
-	api.RegisterCardServer(routes, server.NewCardServer(cardService, systemServer))
+	serviceCard := servicesCard.New(cfg, repositoryCard)
+	api.RegisterCardServer(routes, server.NewCardServer(serviceCard, systemServer))
 
 	// image
-	api.RegisterImageServer(routes, server.NewImageServer(gameService, collectionService, deckService, cardService))
+	api.RegisterImageServer(routes, server.NewImageServer(serviceGame, serviceCollection, serviceDeck, serviceCard))
 
 	// tts service
-	ttsService := service.NewTTSService()
-	api.RegisterTTSServer(routes, server.NewTTSServer(ttsService))
+	serviceTTS := servicesTTS.New()
+	api.RegisterTTSServer(routes, server.NewTTSServer(serviceTTS))
 
 	// generator
-	generatorService := service.NewGeneratorService(
-		cfg,
-		gameService,
-		collectionService,
-		deckService,
-		cardService,
-		ttsService,
-		systemService,
-	)
-	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(generatorService))
+	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
+	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(serviceGenerator))
 
 	// replace
-	replaceService := service.NewReplaceService(ttsService)
-	api.RegisterReplaceServer(routes, server.NewReplaceServer(replaceService))
+	serviceReplace := servicesReplace.New(serviceTTS)
+	api.RegisterReplaceServer(routes, server.NewReplaceServer(serviceReplace))
 
 	// recursive search
-	searchService := service.NewSearchService(gameService, collectionService, deckService, cardService)
-	api.RegisterSearchServer(routes, server.NewSearchServer(searchService))
+	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
+	api.RegisterSearchServer(routes, server.NewSearchServer(serviceSearch))
 
 	routes.Use(corsMiddleware)
 	return &Application{

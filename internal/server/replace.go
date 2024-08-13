@@ -5,17 +5,17 @@ import (
 
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/service"
+	servicesReplace "github.com/HardDie/DeckBuilder/internal/services/replace"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type ReplaceServer struct {
-	replaceService service.IReplaceService
+	serviceReplace servicesReplace.Replace
 }
 
-func NewReplaceServer(replaceService service.IReplaceService) *ReplaceServer {
+func NewReplaceServer(serviceReplace servicesReplace.Replace) *ReplaceServer {
 	return &ReplaceServer{
-		replaceService: replaceService,
+		serviceReplace: serviceReplace,
 	}
 }
 
@@ -39,7 +39,7 @@ func (s *ReplaceServer) PrepareHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, e := s.replaceService.Prepare(data)
+	resp, e := s.serviceReplace.Prepare(data)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -77,7 +77,7 @@ func (s *ReplaceServer) ReplaceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, e := s.replaceService.Replace(data, mapping)
+	resp, e := s.serviceReplace.Replace(data, mapping)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
