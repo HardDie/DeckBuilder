@@ -14,6 +14,15 @@ web-build: ## build web interface
 	cd gui && yarn install
 	cd gui && yarn build
 
+.PHONY: web-build-docker
+web-build-docker: ## build web interface using docker container
+	docker run --rm \
+		-v .:/app \
+		--workdir /app/gui \
+		-u $(shell id -u) \
+		--name node node:latest \
+		make
+
 .PHONY: swagger
 swagger: ## generate swagger json file
 	./swagger generate spec -m -o web/swagger.json
