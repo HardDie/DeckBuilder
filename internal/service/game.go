@@ -7,7 +7,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -24,18 +24,18 @@ type IGameService interface {
 }
 type GameService struct {
 	cfg            *config.Config
-	gameRepository repository.IGameRepository
+	repositoryGame repositoriesGame.Game
 }
 
-func NewGameService(cfg *config.Config, gameRepository repository.IGameRepository) *GameService {
+func NewGameService(cfg *config.Config, repositoryGame repositoriesGame.Game) *GameService {
 	return &GameService{
 		cfg:            cfg,
-		gameRepository: gameRepository,
+		repositoryGame: repositoryGame,
 	}
 }
 
 func (s *GameService) Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.gameRepository.Create(dtoObject)
+	game, err := s.repositoryGame.Create(dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *GameService) Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, er
 	return game, nil
 }
 func (s *GameService) Item(gameID string) (*entity.GameInfo, error) {
-	game, err := s.gameRepository.GetByID(gameID)
+	game, err := s.repositoryGame.GetByID(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *GameService) Item(gameID string) (*entity.GameInfo, error) {
 	return game, nil
 }
 func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, *network.Meta, error) {
-	items, err := s.gameRepository.GetAll()
+	items, err := s.repositoryGame.GetAll()
 	if err != nil {
 		return make([]*entity.GameInfo, 0), nil, err
 	}
@@ -69,7 +69,7 @@ func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, *netwo
 		filteredItems = items
 	}
 
-	//Sorting
+	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
 	// Generate field cachedImage
@@ -88,7 +88,7 @@ func (s *GameService) List(sortField, search string) ([]*entity.GameInfo, *netwo
 	return filteredItems, meta, nil
 }
 func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.gameRepository.Update(gameID, dtoObject)
+	game, err := s.repositoryGame.Update(gameID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -96,13 +96,13 @@ func (s *GameService) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*enti
 	return game, nil
 }
 func (s *GameService) Delete(gameID string) error {
-	return s.gameRepository.DeleteByID(gameID)
+	return s.repositoryGame.DeleteByID(gameID)
 }
 func (s *GameService) GetImage(gameID string) ([]byte, string, error) {
-	return s.gameRepository.GetImage(gameID)
+	return s.repositoryGame.GetImage(gameID)
 }
 func (s *GameService) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.gameRepository.Duplicate(gameID, dtoObject)
+	game, err := s.repositoryGame.Duplicate(gameID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -110,10 +110,10 @@ func (s *GameService) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) 
 	return game, nil
 }
 func (s *GameService) Export(gameID string) ([]byte, error) {
-	return s.gameRepository.Export(gameID)
+	return s.repositoryGame.Export(gameID)
 }
 func (s *GameService) Import(data []byte, name string) (*entity.GameInfo, error) {
-	game, err := s.gameRepository.Import(data, name)
+	game, err := s.repositoryGame.Import(data, name)
 	if err != nil {
 		return nil, err
 	}

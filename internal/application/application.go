@@ -15,7 +15,10 @@ import (
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
+	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
+	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/server"
 	"github.com/HardDie/DeckBuilder/internal/service"
 )
@@ -53,22 +56,23 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterSystemServer(routes, systemServer)
 
 	// game
-	gameRepository := repository.NewGameRepository(cfg, game)
-	gameService := service.NewGameService(cfg, gameRepository)
+	repositoryGame := repositoriesGame.New(cfg, game)
+	gameService := service.NewGameService(cfg, repositoryGame)
 	api.RegisterGameServer(routes, server.NewGameServer(gameService, systemServer))
 
 	// collection
-	collectionRepository := repository.NewCollectionRepository(cfg, collection)
-	collectionService := service.NewCollectionService(cfg, collectionRepository)
+	repositoryCollection := repositoriesCollection.New(cfg, collection)
+	collectionService := service.NewCollectionService(cfg, repositoryCollection)
 	api.RegisterCollectionServer(routes, server.NewCollectionServer(collectionService, systemServer))
 
 	// deck
-	deckRepository := repository.NewDeckRepository(cfg, collection, deck)
-	deckService := service.NewDeckService(cfg, deckRepository)
+	repositoryDeck := repositoriesDeck.New(cfg, collection, deck)
+	deckService := service.NewDeckService(cfg, repositoryDeck)
 	api.RegisterDeckServer(routes, server.NewDeckServer(deckService, systemServer))
 
 	// card
-	cardService := service.NewCardService(cfg, repository.NewCardRepository(cfg, card))
+	repositoryCard := repositoriesCard.New(cfg, card)
+	cardService := service.NewCardService(cfg, repositoryCard)
 	api.RegisterCardServer(routes, server.NewCardServer(cardService, systemServer))
 
 	// image

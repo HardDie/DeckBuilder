@@ -7,7 +7,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -22,18 +22,18 @@ type IDeckService interface {
 }
 type DeckService struct {
 	cfg            *config.Config
-	deckRepository repository.IDeckRepository
+	repositoryDeck repositoriesDeck.Deck
 }
 
-func NewDeckService(cfg *config.Config, deckRepository repository.IDeckRepository) *DeckService {
+func NewDeckService(cfg *config.Config, repositoryDeck repositoriesDeck.Deck) *DeckService {
 	return &DeckService{
 		cfg:            cfg,
-		deckRepository: deckRepository,
+		repositoryDeck: repositoryDeck,
 	}
 }
 
 func (s *DeckService) Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
-	deck, err := s.deckRepository.Create(gameID, collectionID, dtoObject)
+	deck, err := s.repositoryDeck.Create(gameID, collectionID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *DeckService) Create(gameID, collectionID string, dtoObject *dto.CreateD
 	return deck, nil
 }
 func (s *DeckService) Item(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
-	deck, err := s.deckRepository.GetByID(gameID, collectionID, deckID)
+	deck, err := s.repositoryDeck.GetByID(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *DeckService) Item(gameID, collectionID, deckID string) (*entity.DeckInf
 	return deck, nil
 }
 func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, *network.Meta, error) {
-	items, err := s.deckRepository.GetAll(gameID, collectionID)
+	items, err := s.repositoryDeck.GetAll(gameID, collectionID)
 	if err != nil {
 		return make([]*entity.DeckInfo, 0), nil, err
 	}
@@ -67,7 +67,7 @@ func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*e
 		filteredItems = items
 	}
 
-	//Sorting
+	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
 	// Generate field cachedImage
@@ -86,7 +86,7 @@ func (s *DeckService) List(gameID, collectionID, sortField, search string) ([]*e
 	return filteredItems, meta, nil
 }
 func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
-	deck, err := s.deckRepository.Update(gameID, collectionID, deckID, dtoObject)
+	deck, err := s.repositoryDeck.Update(gameID, collectionID, deckID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +94,13 @@ func (s *DeckService) Update(gameID, collectionID, deckID string, dtoObject *dto
 	return deck, nil
 }
 func (s *DeckService) Delete(gameID, collectionID, deckID string) error {
-	return s.deckRepository.DeleteByID(gameID, collectionID, deckID)
+	return s.repositoryDeck.DeleteByID(gameID, collectionID, deckID)
 }
 func (s *DeckService) GetImage(gameID, collectionID, deckID string) ([]byte, string, error) {
-	return s.deckRepository.GetImage(gameID, collectionID, deckID)
+	return s.repositoryDeck.GetImage(gameID, collectionID, deckID)
 }
 func (s *DeckService) ListAllUnique(gameID string) ([]*entity.DeckInfo, error) {
-	items, err := s.deckRepository.GetAllDecksInGame(gameID)
+	items, err := s.repositoryDeck.GetAllDecksInGame(gameID)
 	if err != nil {
 		return make([]*entity.DeckInfo, 0), err
 	}

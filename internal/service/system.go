@@ -8,7 +8,7 @@ import (
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 )
 
 type ISystemService interface {
@@ -17,12 +17,12 @@ type ISystemService interface {
 	UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error)
 }
 type SystemService struct {
-	rep repository.ISystemRepository
+	repositorySettings repositoriesSettings.Settings
 }
 
 func NewService(cfg *config.Config, settings dbSettings.Settings) *SystemService {
 	return &SystemService{
-		rep: repository.NewSystemRepository(cfg, settings),
+		repositorySettings: repositoriesSettings.New(cfg, settings),
 	}
 }
 
@@ -34,7 +34,7 @@ func (s *SystemService) GetSettings() (*entity.SettingInfo, error) {
 	settings := entity.NewSettings()
 
 	// Try to read settings from file
-	set, err := s.rep.GetSettings()
+	set, err := s.repositorySettings.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (s *SystemService) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entit
 		}
 	}
 	if isUpdated {
-		err = s.rep.SaveSettings(set)
+		err = s.repositorySettings.Save(set)
 		if err != nil {
 			return nil, err
 		}

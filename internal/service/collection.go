@@ -7,7 +7,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -21,18 +21,18 @@ type ICollectionService interface {
 }
 type CollectionService struct {
 	cfg                  *config.Config
-	collectionRepository repository.ICollectionRepository
+	repositoryCollection repositoriesCollection.Collection
 }
 
-func NewCollectionService(cfg *config.Config, collectionRepository repository.ICollectionRepository) *CollectionService {
+func NewCollectionService(cfg *config.Config, repositoryCollection repositoriesCollection.Collection) *CollectionService {
 	return &CollectionService{
 		cfg:                  cfg,
-		collectionRepository: collectionRepository,
+		repositoryCollection: repositoryCollection,
 	}
 }
 
 func (s *CollectionService) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.collectionRepository.Create(gameID, dtoObject)
+	collection, err := s.repositoryCollection.Create(gameID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (s *CollectionService) Create(gameID string, dtoObject *dto.CreateCollectio
 	return collection, nil
 }
 func (s *CollectionService) Item(gameID, collectionID string) (*entity.CollectionInfo, error) {
-	collection, err := s.collectionRepository.GetByID(gameID, collectionID)
+	collection, err := s.repositoryCollection.GetByID(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *CollectionService) Item(gameID, collectionID string) (*entity.Collectio
 	return collection, nil
 }
 func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.CollectionInfo, *network.Meta, error) {
-	items, err := s.collectionRepository.GetAll(gameID)
+	items, err := s.repositoryCollection.GetAll(gameID)
 	if err != nil {
 		return make([]*entity.CollectionInfo, 0), nil, err
 	}
@@ -66,7 +66,7 @@ func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.Co
 		filteredItems = items
 	}
 
-	//Sorting
+	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
 	// Generate field cachedImage
@@ -85,7 +85,7 @@ func (s *CollectionService) List(gameID, sortField, search string) ([]*entity.Co
 	return filteredItems, meta, nil
 }
 func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.collectionRepository.Update(gameID, collectionID, dtoObject)
+	collection, err := s.repositoryCollection.Update(gameID, collectionID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +93,8 @@ func (s *CollectionService) Update(gameID, collectionID string, dtoObject *dto.U
 	return collection, nil
 }
 func (s *CollectionService) Delete(gameID, collectionID string) error {
-	return s.collectionRepository.DeleteByID(gameID, collectionID)
+	return s.repositoryCollection.DeleteByID(gameID, collectionID)
 }
 func (s *CollectionService) GetImage(gameID, collectionID string) ([]byte, string, error) {
-	return s.collectionRepository.GetImage(gameID, collectionID)
+	return s.repositoryCollection.GetImage(gameID, collectionID)
 }

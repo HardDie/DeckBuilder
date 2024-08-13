@@ -7,7 +7,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/repository"
+	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -21,13 +21,13 @@ type ICardService interface {
 }
 type CardService struct {
 	cfg            *config.Config
-	cardRepository repository.ICardRepository
+	repositoryCard repositoriesCard.Card
 }
 
-func NewCardService(cfg *config.Config, cardRepository repository.ICardRepository) *CardService {
+func NewCardService(cfg *config.Config, repositoryCard repositoriesCard.Card) *CardService {
 	return &CardService{
 		cfg:            cfg,
-		cardRepository: cardRepository,
+		repositoryCard: repositoryCard,
 	}
 }
 
@@ -35,7 +35,7 @@ func (s *CardService) Create(gameID, collectionID, deckID string, dtoObject *dto
 	if dtoObject.Count < 1 {
 		dtoObject.Count = 1
 	}
-	card, err := s.cardRepository.Create(gameID, collectionID, deckID, dtoObject)
+	card, err := s.repositoryCard.Create(gameID, collectionID, deckID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *CardService) Create(gameID, collectionID, deckID string, dtoObject *dto
 	return card, nil
 }
 func (s *CardService) Item(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	card, err := s.cardRepository.GetByID(gameID, collectionID, deckID, cardID)
+	card, err := s.repositoryCard.GetByID(gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *CardService) Item(gameID, collectionID, deckID string, cardID int64) (*
 	return card, nil
 }
 func (s *CardService) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, *network.Meta, error) {
-	items, err := s.cardRepository.GetAll(gameID, collectionID, deckID)
+	items, err := s.repositoryCard.GetAll(gameID, collectionID, deckID)
 	if err != nil {
 		return make([]*entity.CardInfo, 0), nil, err
 	}
@@ -69,7 +69,7 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField, search strin
 		filteredItems = items
 	}
 
-	//Sorting
+	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
 	// Generate field cachedImage
@@ -91,7 +91,7 @@ func (s *CardService) List(gameID, collectionID, deckID, sortField, search strin
 	return filteredItems, meta, nil
 }
 func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
-	card, err := s.cardRepository.Update(gameID, collectionID, deckID, cardID, dtoObject)
+	card, err := s.repositoryCard.Update(gameID, collectionID, deckID, cardID, dtoObject)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +99,8 @@ func (s *CardService) Update(gameID, collectionID, deckID string, cardID int64, 
 	return card, nil
 }
 func (s *CardService) Delete(gameID, collectionID, deckID string, cardID int64) error {
-	return s.cardRepository.DeleteByID(gameID, collectionID, deckID, cardID)
+	return s.repositoryCard.DeleteByID(gameID, collectionID, deckID, cardID)
 }
 func (s *CardService) GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error) {
-	return s.cardRepository.GetImage(gameID, collectionID, deckID, cardID)
+	return s.repositoryCard.GetImage(gameID, collectionID, deckID, cardID)
 }
