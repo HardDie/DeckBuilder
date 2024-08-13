@@ -4,16 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
 )
 
-type IImageServer interface {
-	CardHandler(w http.ResponseWriter, r *http.Request)
-	CollectionHandler(w http.ResponseWriter, r *http.Request)
-	DeckHandler(w http.ResponseWriter, r *http.Request)
-	GameHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterImageServer(route *mux.Router, srv IImageServer) {
+func RegisterImageServer(route *mux.Router, srv serversImage.Image) {
 	GamesRoute := route.PathPrefix("/api/games").Subrouter()
 	GamesRoute.HandleFunc("/{game}/image", srv.GameHandler).Methods(http.MethodGet)
 
@@ -32,7 +27,7 @@ type UnimplementedImageServer struct {
 
 var (
 	// Validation
-	_ IImageServer = &UnimplementedImageServer{}
+	_ serversImage.Image = &UnimplementedImageServer{}
 )
 
 // Requesting an image of existing card

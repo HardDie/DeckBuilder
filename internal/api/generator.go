@@ -6,13 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
+	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 )
 
-type IGeneratorServer interface {
-	GameHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterGeneratorServer(route *mux.Router, srv IGeneratorServer) {
+func RegisterGeneratorServer(route *mux.Router, srv serversGenerator.Generator) {
 	GeneratorsRoute := route.PathPrefix("/api/games/{game}").Subrouter()
 	GeneratorsRoute.HandleFunc("/generate", srv.GameHandler).Methods(http.MethodPost)
 }
@@ -22,7 +19,7 @@ type UnimplementedGeneratorServer struct {
 
 var (
 	// Validation
-	_ IGeneratorServer = &UnimplementedGeneratorServer{}
+	_ serversGenerator.Generator = &UnimplementedGeneratorServer{}
 )
 
 // Request to start generating result objects

@@ -7,17 +7,10 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	serversCard "github.com/HardDie/DeckBuilder/internal/servers/card"
 )
 
-type ICardServer interface {
-	CreateHandler(w http.ResponseWriter, r *http.Request)
-	DeleteHandler(w http.ResponseWriter, r *http.Request)
-	ItemHandler(w http.ResponseWriter, r *http.Request)
-	ListHandler(w http.ResponseWriter, r *http.Request)
-	UpdateHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterCardServer(route *mux.Router, srv ICardServer) {
+func RegisterCardServer(route *mux.Router, srv serversCard.Card) {
 	CardsRoute := route.PathPrefix("/api/games/{game}/collections/{collection}/decks/{deck}/cards").Subrouter()
 	CardsRoute.HandleFunc("", srv.ListHandler).Methods(http.MethodGet)
 	CardsRoute.HandleFunc("", srv.CreateHandler).Methods(http.MethodPost)
@@ -31,7 +24,7 @@ type UnimplementedCardServer struct {
 
 var (
 	// Validation
-	_ ICardServer = &UnimplementedCardServer{}
+	_ serversCard.Card = &UnimplementedCardServer{}
 )
 
 // Request to create a card

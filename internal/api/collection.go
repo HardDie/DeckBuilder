@@ -7,17 +7,10 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	serversCollection "github.com/HardDie/DeckBuilder/internal/servers/collection"
 )
 
-type ICollectionServer interface {
-	CreateHandler(w http.ResponseWriter, r *http.Request)
-	DeleteHandler(w http.ResponseWriter, r *http.Request)
-	ItemHandler(w http.ResponseWriter, r *http.Request)
-	ListHandler(w http.ResponseWriter, r *http.Request)
-	UpdateHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterCollectionServer(route *mux.Router, srv ICollectionServer) {
+func RegisterCollectionServer(route *mux.Router, srv serversCollection.Collection) {
 	CollectionsRoute := route.PathPrefix("/api/games/{game}/collections").Subrouter()
 	CollectionsRoute.HandleFunc("", srv.ListHandler).Methods(http.MethodGet)
 	CollectionsRoute.HandleFunc("", srv.CreateHandler).Methods(http.MethodPost)
@@ -31,7 +24,7 @@ type UnimplementedCollectionServer struct {
 
 var (
 	// Validation
-	_ ICollectionServer = &UnimplementedCollectionServer{}
+	_ serversCollection.Collection = &UnimplementedCollectionServer{}
 )
 
 // Request to create a collection

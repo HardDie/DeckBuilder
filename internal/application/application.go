@@ -19,7 +19,16 @@ import (
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
-	"github.com/HardDie/DeckBuilder/internal/server"
+	serversCard "github.com/HardDie/DeckBuilder/internal/servers/card"
+	serversCollection "github.com/HardDie/DeckBuilder/internal/servers/collection"
+	serversDeck "github.com/HardDie/DeckBuilder/internal/servers/deck"
+	serversGame "github.com/HardDie/DeckBuilder/internal/servers/game"
+	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
+	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
+	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
+	serversSearch "github.com/HardDie/DeckBuilder/internal/servers/search"
+	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
+	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
@@ -61,47 +70,56 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// system
 	serviceSystem := servicesSystem.New(cfg, settings)
-	systemServer := server.NewSystemServer(cfg, serviceSystem)
-	api.RegisterSystemServer(routes, systemServer)
+	serverSystem := serversSystem.New(cfg, serviceSystem)
+	api.RegisterSystemServer(routes, serverSystem)
 
 	// game
 	repositoryGame := repositoriesGame.New(cfg, game)
 	serviceGame := servicesGame.New(cfg, repositoryGame)
-	api.RegisterGameServer(routes, server.NewGameServer(serviceGame, systemServer))
+	serverGame := serversGame.New(serviceGame, serverSystem)
+	api.RegisterGameServer(routes, serverGame)
 
 	// collection
 	repositoryCollection := repositoriesCollection.New(cfg, collection)
 	serviceCollection := servicesCollection.New(cfg, repositoryCollection)
-	api.RegisterCollectionServer(routes, server.NewCollectionServer(serviceCollection, systemServer))
+	serverCollection := serversCollection.New(serviceCollection, serverSystem)
+	api.RegisterCollectionServer(routes, serverCollection)
 
 	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, collection, deck)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
-	api.RegisterDeckServer(routes, server.NewDeckServer(serviceDeck, systemServer))
+	serverDeck := serversDeck.New(serviceDeck, serverSystem)
+	api.RegisterDeckServer(routes, serverDeck)
 
 	// card
 	repositoryCard := repositoriesCard.New(cfg, card)
 	serviceCard := servicesCard.New(cfg, repositoryCard)
-	api.RegisterCardServer(routes, server.NewCardServer(serviceCard, systemServer))
+	serverCard := serversCard.New(serviceCard, serverSystem)
+	api.RegisterCardServer(routes, serverCard)
 
 	// image
-	api.RegisterImageServer(routes, server.NewImageServer(serviceGame, serviceCollection, serviceDeck, serviceCard))
+	serverImage := serversImage.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
+	api.RegisterImageServer(routes, serverImage)
 
 	// tts service
 	serviceTTS := servicesTTS.New()
-	api.RegisterTTSServer(routes, server.NewTTSServer(serviceTTS))
+	serverTTS := serversTTS.New(serviceTTS)
+	api.RegisterTTSServer(routes, serverTTS)
 
 	// generator
 	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
-	api.RegisterGeneratorServer(routes, server.NewGeneratorServer(serviceGenerator))
+	serverGenerator := serversGenerator.New(serviceGenerator)
+	api.RegisterGeneratorServer(routes, serverGenerator)
 
 	// replace
 	serviceReplace := servicesReplace.New(serviceTTS)
-	api.RegisterReplaceServer(routes, server.NewReplaceServer(serviceReplace))
+	serverReplace := serversReplace.New(serviceReplace)
+	api.RegisterReplaceServer(routes, serverReplace)
 
 	// recursive search
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
-	api.RegisterSearchServer(routes, server.NewSearchServer(serviceSearch))
+	serverSearch := serversSearch.New(serviceSearch)
+	api.RegisterSearchServer(routes, serverSearch)
 
 	routes.Use(corsMiddleware)
 	return &Application{

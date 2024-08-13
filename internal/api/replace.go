@@ -4,14 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
 )
 
-type IReplaceServer interface {
-	PrepareHandler(w http.ResponseWriter, r *http.Request)
-	ReplaceHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterReplaceServer(route *mux.Router, srv IReplaceServer) {
+func RegisterReplaceServer(route *mux.Router, srv serversReplace.Replace) {
 	ReplaceRoute := route.PathPrefix("/api/replace").Subrouter()
 	ReplaceRoute.HandleFunc("/prepare", srv.PrepareHandler).Methods(http.MethodPost)
 	ReplaceRoute.HandleFunc("", srv.ReplaceHandler).Methods(http.MethodPost)
@@ -22,7 +19,7 @@ type UnimplementedReplaceServer struct {
 
 var (
 	// Validation
-	_ IReplaceServer = &UnimplementedReplaceServer{}
+	_ serversReplace.Replace = &UnimplementedReplaceServer{}
 )
 
 // swagger:parameters RequestPrepareReplace

@@ -6,15 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/network"
+	serversSearch "github.com/HardDie/DeckBuilder/internal/servers/search"
 )
 
-type ISearchServer interface {
-	RootHandler(w http.ResponseWriter, r *http.Request)
-	GameHandler(w http.ResponseWriter, r *http.Request)
-	CollectionHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterSearchServer(route *mux.Router, srv ISearchServer) {
+func RegisterSearchServer(route *mux.Router, srv serversSearch.Search) {
 	SearchRoute := route.PathPrefix("/api/search").Subrouter()
 	SearchRoute.HandleFunc("", srv.RootHandler).Methods(http.MethodGet)
 	SearchRoute.HandleFunc("/games/{game}", srv.GameHandler).Methods(http.MethodGet)
@@ -26,7 +21,7 @@ type UnimplementedSearchServer struct {
 
 var (
 	// Validation
-	_ ISearchServer = &UnimplementedSearchServer{}
+	_ serversSearch.Search = &UnimplementedSearchServer{}
 )
 
 // Recursive search for all object types

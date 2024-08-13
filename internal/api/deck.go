@@ -7,18 +7,10 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	serversDeck "github.com/HardDie/DeckBuilder/internal/servers/deck"
 )
 
-type IDeckServer interface {
-	AllDecksHandler(w http.ResponseWriter, r *http.Request)
-	CreateHandler(w http.ResponseWriter, r *http.Request)
-	DeleteHandler(w http.ResponseWriter, r *http.Request)
-	ItemHandler(w http.ResponseWriter, r *http.Request)
-	ListHandler(w http.ResponseWriter, r *http.Request)
-	UpdateHandler(w http.ResponseWriter, r *http.Request)
-}
-
-func RegisterDeckServer(route *mux.Router, srv IDeckServer) {
+func RegisterDeckServer(route *mux.Router, srv serversDeck.Deck) {
 	DecksRoute := route.PathPrefix("/api/games/{game}/collections/{collection}/decks").Subrouter()
 	DecksRoute.HandleFunc("", srv.ListHandler).Methods(http.MethodGet)
 	DecksRoute.HandleFunc("", srv.CreateHandler).Methods(http.MethodPost)
@@ -33,7 +25,7 @@ type UnimplementedDeckServer struct {
 
 var (
 	// Validation
-	_ IDeckServer = &UnimplementedDeckServer{}
+	_ serversDeck.Deck = &UnimplementedDeckServer{}
 )
 
 // Requesting a list of all decks in game
