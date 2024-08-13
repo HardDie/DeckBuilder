@@ -46,6 +46,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// fsentry db
 	fs := fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty())
 
+	// db methods
 	core := dbCore.New(fs)
 	settings := dbSettings.New(fs)
 	game := dbGame.New(fs)
