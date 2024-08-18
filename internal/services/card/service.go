@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
@@ -23,24 +22,31 @@ func New(cfg *config.Config, repositoryCard repositoriesCard.Card) Card {
 	}
 }
 
-func (s *card) Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*entity.CardInfo, error) {
-	if dtoObject.Count < 1 {
-		dtoObject.Count = 1
+func (s *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entity.CardInfo, error) {
+	if req.Count < 1 {
+		req.Count = 1
 	}
-	card, err := s.repositoryCard.Create(gameID, collectionID, deckID, dtoObject)
+	c, err := s.repositoryCard.Create(gameID, collectionID, deckID, repositoriesCard.CreateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		Variables:   req.Variables,
+		Count:       req.Count,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return card, nil
+	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
+	return c, nil
 }
 func (s *card) Item(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	card, err := s.repositoryCard.GetByID(gameID, collectionID, deckID, cardID)
+	c, err := s.repositoryCard.GetByID(gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return card, nil
+	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
+	return c, nil
 }
 func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, *network.Meta, error) {
 	items, err := s.repositoryCard.GetAll(gameID, collectionID, deckID)
@@ -82,13 +88,20 @@ func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*
 	}
 	return filteredItems, meta, nil
 }
-func (s *card) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
-	card, err := s.repositoryCard.Update(gameID, collectionID, deckID, cardID, dtoObject)
+func (s *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entity.CardInfo, error) {
+	c, err := s.repositoryCard.Update(gameID, collectionID, deckID, cardID, repositoriesCard.UpdateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		Variables:   req.Variables,
+		Count:       req.Count,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	card.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return card, nil
+	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
+	return c, nil
 }
 func (s *card) Delete(gameID, collectionID, deckID string, cardID int64) error {
 	return s.repositoryCard.DeleteByID(gameID, collectionID, deckID, cardID)

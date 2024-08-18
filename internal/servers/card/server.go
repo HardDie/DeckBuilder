@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -46,18 +45,11 @@ func (s *card) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.CreateCardDTO{
-		Name:        r.FormValue("name"),
-		Description: r.FormValue("description"),
-		Image:       r.FormValue("image"),
-		Variables:   nil,
-		Count:       fs.StringToInt(r.FormValue("count")),
-		ImageFile:   data,
-	}
+	var variables map[string]string
 
 	variablesJson := r.FormValue("variables")
 	if variablesJson != "" {
-		e = json.Unmarshal([]byte(variablesJson), &dtoObject.Variables)
+		e = json.Unmarshal([]byte(variablesJson), &variables)
 		if e != nil {
 			er.IfErrorLog(e)
 			e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage("Bad variables json")
@@ -66,7 +58,14 @@ func (s *card) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	item, e := s.serviceCard.Create(gameID, collectionID, deckID, dtoObject)
+	item, e := s.serviceCard.Create(gameID, collectionID, deckID, servicesCard.CreateRequest{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		Variables:   variables,
+		Count:       fs.StringToInt(r.FormValue("count")),
+		ImageFile:   data,
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -142,18 +141,11 @@ func (s *card) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.UpdateCardDTO{
-		Name:        r.FormValue("name"),
-		Description: r.FormValue("description"),
-		Image:       r.FormValue("image"),
-		Variables:   nil,
-		Count:       fs.StringToInt(r.FormValue("count")),
-		ImageFile:   data,
-	}
+	var variables map[string]string
 
 	variablesJson := r.FormValue("variables")
 	if variablesJson != "" {
-		e = json.Unmarshal([]byte(variablesJson), &dtoObject.Variables)
+		e = json.Unmarshal([]byte(variablesJson), &variables)
 		if e != nil {
 			er.IfErrorLog(e)
 			e = er.InternalError.HTTP(http.StatusBadRequest).AddMessage("Bad variables json")
@@ -162,7 +154,14 @@ func (s *card) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	item, e := s.serviceCard.Update(gameID, collectionID, deckID, cardID, dtoObject)
+	item, e := s.serviceCard.Update(gameID, collectionID, deckID, cardID, servicesCard.UpdateRequest{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Image:       r.FormValue("image"),
+		Variables:   variables,
+		Count:       fs.StringToInt(r.FormValue("count")),
+		ImageFile:   data,
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return

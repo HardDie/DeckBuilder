@@ -15,7 +15,6 @@ import (
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -84,7 +83,7 @@ func (tt *cardTest) testCreate(t *testing.T) {
 	count := 2
 
 	// Create card
-	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_create", &dto.CreateCardDTO{
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_create", CreateRequest{
 		Name:        cardName,
 		Description: desc,
 		Count:       count,
@@ -121,7 +120,7 @@ func (tt *cardTest) testDelete(t *testing.T) {
 	}
 
 	// Create card
-	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_delete", &dto.CreateCardDTO{
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_delete", CreateRequest{
 		Name: cardName,
 	})
 	if err != nil {
@@ -149,7 +148,7 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 	count := []int{5, 12}
 
 	// Try to update non-existing card
-	_, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", 1, &dto.UpdateCardDTO{})
+	_, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", 1, UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, card not exist")
 	}
@@ -158,7 +157,7 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 	}
 
 	// Create card
-	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_update", &dto.CreateCardDTO{
+	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_update", CreateRequest{
 		Name:        cardName[0],
 		Description: desc[0],
 		Count:       count[0],
@@ -177,7 +176,7 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 	}
 
 	// Update card
-	card2, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", card1.ID, &dto.UpdateCardDTO{
+	card2, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", card1.ID, UpdateRequest{
 		Name:        cardName[1],
 		Description: desc[1],
 		Count:       count[1],
@@ -202,7 +201,7 @@ func (tt *cardTest) testUpdate(t *testing.T) {
 	}
 
 	// Try to update non-existing card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", card2.ID, &dto.UpdateCardDTO{})
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", card2.ID, UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, card not exist")
 	}
@@ -223,7 +222,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Create first card
-	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_list", &dto.CreateCardDTO{
+	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_list", CreateRequest{
 		Name: cardName[0],
 	})
 	if err != nil {
@@ -240,7 +239,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Create second card
-	card2, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_list", &dto.CreateCardDTO{
+	card2, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_list", CreateRequest{
 		Name: cardName[1],
 	})
 	if err != nil {
@@ -341,7 +340,7 @@ func (tt *cardTest) testItem(t *testing.T) {
 	}
 
 	// Create card
-	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_item", &dto.CreateCardDTO{
+	card1, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_item", CreateRequest{
 		Name: cardName[0],
 	})
 	if err != nil {
@@ -364,7 +363,7 @@ func (tt *cardTest) testItem(t *testing.T) {
 	}
 
 	// Rename card
-	card2, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_item", card1.ID, &dto.UpdateCardDTO{Name: cardName[1]})
+	card2, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_item", card1.ID, UpdateRequest{Name: cardName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -402,7 +401,7 @@ func (tt *cardTest) testImage(t *testing.T) {
 	}
 
 	// Create card
-	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", &dto.CreateCardDTO{
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", CreateRequest{
 		Name:  cardTitle,
 		Image: pngImage,
 	})
@@ -420,7 +419,7 @@ func (tt *cardTest) testImage(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:  cardTitle,
 		Image: jpegImage,
 	})
@@ -438,7 +437,7 @@ func (tt *cardTest) testImage(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:  cardTitle,
 		Image: "",
 	})
@@ -488,7 +487,7 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Create card
-	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", &dto.CreateCardDTO{
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", CreateRequest{
 		Name:      cardTitle,
 		ImageFile: pngImage,
 	})
@@ -506,7 +505,7 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:      cardTitle,
 		ImageFile: jpegImage,
 	})
@@ -524,7 +523,7 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:      cardTitle,
 		ImageFile: gifImage,
 	})
@@ -542,7 +541,7 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name: cardTitle,
 	})
 	if err != nil {
@@ -559,7 +558,7 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, &dto.UpdateCardDTO{
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:  cardTitle,
 		Image: "empty",
 	})
@@ -598,7 +597,7 @@ func TestCard(t *testing.T) {
 	}()
 
 	// Game not exist error
-	_, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
+	_, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -614,7 +613,7 @@ func TestCard(t *testing.T) {
 	}
 
 	// Collection not exist error
-	_, err = tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
+	_, err = tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.CollectionNotExists) {
@@ -630,7 +629,7 @@ func TestCard(t *testing.T) {
 	}
 
 	// Deck not exist error
-	_, err = tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
+	_, err = tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.DeckNotExists) {
@@ -722,7 +721,7 @@ func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) erro
 	return nil
 }
 func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInfo, error) {
-	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, &dto.CreateCardDTO{
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, CreateRequest{
 		Name:        name,
 		Description: desc,
 		Variables: map[string]string{
@@ -743,7 +742,7 @@ func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInf
 	return card, nil
 }
 func (tt *cardTest) fuzzUpdate(t *testing.T, cardID int64, name, desc string) (*entity.CardInfo, error) {
-	card, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID, cardID, &dto.UpdateCardDTO{
+	card, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID, cardID, UpdateRequest{
 		Name:        name,
 		Description: desc,
 		Variables: map[string]string{

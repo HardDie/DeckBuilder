@@ -6,7 +6,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -27,31 +26,31 @@ func New(cfg *config.Config, c dbCard.Card) Card {
 	}
 }
 
-func (r *card) Create(gameID, collectionID, deckID string, dtoObject *dto.CreateCardDTO) (*entity.CardInfo, error) {
-	card, err := r.card.Create(context.Background(), gameID, collectionID, deckID, dtoObject.Name,
-		dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
+func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entity.CardInfo, error) {
+	c, err := r.card.Create(context.Background(), gameID, collectionID, deckID, req.Name,
+		req.Description, req.Image, req.Variables, req.Count)
 	if err != nil {
 		return nil, err
 	}
 
-	if card.Image == "" && dtoObject.ImageFile == nil {
-		return card, nil
+	if c.Image == "" && req.ImageFile == nil {
+		return c, nil
 	}
 
-	if card.Image != "" {
+	if c.Image != "" {
 		// Download image
-		err = r.createImage(gameID, collectionID, deckID, card.ID, card.Image)
+		err = r.createImage(gameID, collectionID, deckID, c.ID, c.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, deckID, card.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, collectionID, deckID, c.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The card will be saved without an image.", err.Error())
 		}
 	}
 
-	return card, nil
+	return c, nil
 }
 func (r *card) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
 	_, resp, err := r.card.Get(context.Background(), gameID, collectionID, deckID, cardID)
@@ -60,21 +59,21 @@ func (r *card) GetByID(gameID, collectionID, deckID string, cardID int64) (*enti
 func (r *card) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
 	return r.card.List(context.Background(), gameID, collectionID, deckID)
 }
-func (r *card) Update(gameID, collectionID, deckID string, cardID int64, dtoObject *dto.UpdateCardDTO) (*entity.CardInfo, error) {
+func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entity.CardInfo, error) {
 	_, oldCard, err := r.card.Get(context.Background(), gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
 
 	var newCard *entity.CardInfo
-	if oldCard.Name != dtoObject.Name ||
-		oldCard.Description != dtoObject.Description ||
-		oldCard.Image != dtoObject.Image ||
-		dtoObject.ImageFile != nil ||
-		oldCard.Count != dtoObject.Count ||
-		!utils.CompareMaps(oldCard.Variables, dtoObject.Variables) {
+	if oldCard.Name != req.Name ||
+		oldCard.Description != req.Description ||
+		oldCard.Image != req.Image ||
+		req.ImageFile != nil ||
+		oldCard.Count != req.Count ||
+		!utils.CompareMaps(oldCard.Variables, req.Variables) {
 		// Update data
-		newCard, err = r.card.Update(context.Background(), gameID, collectionID, deckID, cardID, dtoObject.Name, dtoObject.Description, dtoObject.Image, dtoObject.Variables, dtoObject.Count)
+		newCard, err = r.card.Update(context.Background(), gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +85,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, dtoObje
 	}
 
 	// If the image has not been changed
-	if newCard.Image == oldCard.Image && dtoObject.ImageFile == nil {
+	if newCard.Image == oldCard.Image && req.ImageFile == nil {
 		return newCard, nil
 	}
 
@@ -98,7 +97,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, dtoObje
 		}
 	}
 
-	if newCard.Image == "" && dtoObject.ImageFile == nil {
+	if newCard.Image == "" && req.ImageFile == nil {
 		return newCard, nil
 	}
 
@@ -107,8 +106,8 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, dtoObje
 		if err = r.createImage(gameID, collectionID, deckID, newCard.ID, newCard.Image); err != nil {
 			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, deckID, newCard.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, collectionID, deckID, newCard.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The card will be saved without an image.", err.Error())
 		}
