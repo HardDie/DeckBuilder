@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversGame "github.com/HardDie/DeckBuilder/internal/servers/game"
@@ -112,7 +111,7 @@ type RequestDuplicateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		dto.DuplicateGameDTO
+		Name string `json:"name"`
 	}
 }
 

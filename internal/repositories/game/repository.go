@@ -5,7 +5,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -27,30 +26,30 @@ func New(cfg *config.Config, g dbGame.Game) Game {
 	}
 }
 
-func (r *game) Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error) {
-	game, err := r.game.Create(context.Background(), dtoObject.Name, dtoObject.Description, dtoObject.Image)
+func (r *game) Create(req CreateRequest) (*entity.GameInfo, error) {
+	g, err := r.game.Create(context.Background(), req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if game.Image == "" && dtoObject.ImageFile == nil {
-		return game, nil
+	if g.Image == "" && req.ImageFile == nil {
+		return g, nil
 	}
 
-	if game.Image != "" {
+	if g.Image != "" {
 		// Download image
-		err = r.createImage(game.ID, game.Image)
+		err = r.createImage(g.ID, g.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(game.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(g.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
 		}
 	}
 
-	return game, nil
+	return g, nil
 }
 func (r *game) GetByID(gameID string) (*entity.GameInfo, error) {
 	_, resp, err := r.game.Get(context.Background(), gameID)
@@ -59,26 +58,26 @@ func (r *game) GetByID(gameID string) (*entity.GameInfo, error) {
 func (r *game) GetAll() ([]*entity.GameInfo, error) {
 	return r.game.List(context.Background())
 }
-func (r *game) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
+func (r *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error) {
 	_, oldGame, err := r.game.Get(context.Background(), gameID)
 	if err != nil {
 		return nil, err
 	}
 
 	var newGame *entity.GameInfo
-	if oldGame.Name != dtoObject.Name {
+	if oldGame.Name != req.Name {
 		// Rename folder
-		newGame, err = r.game.Move(context.Background(), oldGame.Name, dtoObject.Name)
+		newGame, err = r.game.Move(context.Background(), oldGame.Name, req.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if oldGame.Description != dtoObject.Description ||
-		oldGame.Image != dtoObject.Image ||
-		dtoObject.ImageFile != nil {
+	if oldGame.Description != req.Description ||
+		oldGame.Image != req.Image ||
+		req.ImageFile != nil {
 		// Update data
-		newGame, err = r.game.Update(context.Background(), dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newGame, err = r.game.Update(context.Background(), req.Name, req.Description, req.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +89,7 @@ func (r *game) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.Game
 	}
 
 	// If the image has not been changed
-	if newGame.Image == oldGame.Image && dtoObject.ImageFile == nil {
+	if newGame.Image == oldGame.Image && req.ImageFile == nil {
 		return newGame, nil
 	}
 
@@ -102,7 +101,7 @@ func (r *game) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.Game
 		}
 	}
 
-	if newGame.Image == "" && dtoObject.ImageFile == nil {
+	if newGame.Image == "" && req.ImageFile == nil {
 		return newGame, nil
 	}
 
@@ -112,8 +111,8 @@ func (r *game) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.Game
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(newGame.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(newGame.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
 		}
@@ -137,21 +136,21 @@ func (r *game) GetImage(gameID string) ([]byte, string, error) {
 
 	return data, imgType, nil
 }
-func (r *game) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
-	game, err := r.game.Duplicate(context.Background(), gameID, dtoObject.Name)
+func (r *game) Duplicate(gameID string, req DuplicateRequest) (*entity.GameInfo, error) {
+	g, err := r.game.Duplicate(context.Background(), gameID, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	return game, nil
+	return g, nil
 }
 func (r *game) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
-	game, err := r.GetByID(gameID)
+	g, err := r.GetByID(gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	return fs.ArchiveFolder(game.Path(r.cfg), game.ID)
+	return fs.ArchiveFolder(g.Path(r.cfg), g.ID)
 }
 func (r *game) Import(data []byte, name string) (*entity.GameInfo, error) {
 	gameID := utils.NameToID(name)
@@ -166,7 +165,7 @@ func (r *game) Import(data []byte, name string) (*entity.GameInfo, error) {
 	}
 
 	// Check if the root folder contains information about the game
-	game, err := r.GetByID(resultGameID)
+	g, err := r.GetByID(resultGameID)
 	if err != nil {
 		// If an error occurs during unzipping, delete the created folder with the game
 		errors.IfErrorLog(r.game.Delete(context.Background(), resultGameID))
@@ -176,7 +175,7 @@ func (r *game) Import(data []byte, name string) (*entity.GameInfo, error) {
 	// If the user skipped passing a new name for the game,
 	// but the root folder has a different name than in the game information file.
 	// Fix the game information file.
-	if name == "" && resultGameID != game.ID {
+	if name == "" && resultGameID != g.ID {
 		gameID = resultGameID
 		name = resultGameID
 	}
@@ -184,15 +183,15 @@ func (r *game) Import(data []byte, name string) (*entity.GameInfo, error) {
 	// If the name has been changed
 	if name != "" {
 		// Update the title of the game
-		game.ID = gameID
-		game.Name = name
+		g.ID = gameID
+		g.Name = name
 
-		if err = r.game.UpdateInfo(context.Background(), game.ID, name); err != nil {
+		if err = r.game.UpdateInfo(context.Background(), g.ID, name); err != nil {
 			return nil, err
 		}
 	}
 
-	return game, nil
+	return g, nil
 }
 
 func (r *game) createImage(gameID, imageURL string) error {

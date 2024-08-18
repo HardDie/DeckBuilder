@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
@@ -23,21 +22,26 @@ func New(cfg *config.Config, repositoryGame repositoriesGame.Game) Game {
 	}
 }
 
-func (s *game) Create(dtoObject *dto.CreateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.repositoryGame.Create(dtoObject)
+func (s *game) Create(req CreateRequest) (*entity.GameInfo, error) {
+	g, err := s.repositoryGame.Create(repositoriesGame.CreateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	game.FillCachedImage(s.cfg)
-	return game, nil
+	g.FillCachedImage(s.cfg)
+	return g, nil
 }
 func (s *game) Item(gameID string) (*entity.GameInfo, error) {
-	game, err := s.repositoryGame.GetByID(gameID)
+	g, err := s.repositoryGame.GetByID(gameID)
 	if err != nil {
 		return nil, err
 	}
-	game.FillCachedImage(s.cfg)
-	return game, nil
+	g.FillCachedImage(s.cfg)
+	return g, nil
 }
 func (s *game) List(sortField, search string) ([]*entity.GameInfo, *network.Meta, error) {
 	items, err := s.repositoryGame.GetAll()
@@ -76,13 +80,18 @@ func (s *game) List(sortField, search string) ([]*entity.GameInfo, *network.Meta
 	}
 	return filteredItems, meta, nil
 }
-func (s *game) Update(gameID string, dtoObject *dto.UpdateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.repositoryGame.Update(gameID, dtoObject)
+func (s *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error) {
+	g, err := s.repositoryGame.Update(gameID, repositoriesGame.UpdateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	game.FillCachedImage(s.cfg)
-	return game, nil
+	g.FillCachedImage(s.cfg)
+	return g, nil
 }
 func (s *game) Delete(gameID string) error {
 	return s.repositoryGame.DeleteByID(gameID)
@@ -90,22 +99,24 @@ func (s *game) Delete(gameID string) error {
 func (s *game) GetImage(gameID string) ([]byte, string, error) {
 	return s.repositoryGame.GetImage(gameID)
 }
-func (s *game) Duplicate(gameID string, dtoObject *dto.DuplicateGameDTO) (*entity.GameInfo, error) {
-	game, err := s.repositoryGame.Duplicate(gameID, dtoObject)
+func (s *game) Duplicate(gameID string, req DuplicateRequest) (*entity.GameInfo, error) {
+	g, err := s.repositoryGame.Duplicate(gameID, repositoriesGame.DuplicateRequest{
+		Name: req.Name,
+	})
 	if err != nil {
 		return nil, err
 	}
-	game.FillCachedImage(s.cfg)
-	return game, nil
+	g.FillCachedImage(s.cfg)
+	return g, nil
 }
 func (s *game) Export(gameID string) ([]byte, error) {
 	return s.repositoryGame.Export(gameID)
 }
 func (s *game) Import(data []byte, name string) (*entity.GameInfo, error) {
-	game, err := s.repositoryGame.Import(data, name)
+	g, err := s.repositoryGame.Import(data, name)
 	if err != nil {
 		return nil, err
 	}
-	game.FillCachedImage(s.cfg)
-	return game, nil
+	g.FillCachedImage(s.cfg)
+	return g, nil
 }

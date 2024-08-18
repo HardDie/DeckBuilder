@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
@@ -40,14 +39,12 @@ func (s *game) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.CreateGameDTO{
+	item, e := s.serviceGame.Create(servicesGame.CreateRequest{
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
 		Image:       r.FormValue("image"),
 		ImageFile:   data,
-	}
-
-	item, e := s.serviceGame.Create(dtoObject)
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -63,15 +60,20 @@ func (s *game) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *game) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
+	type duplicateRequest struct {
+		Name string `json:"name"`
+	}
 	gameID := mux.Vars(r)["game"]
-	dtoObject := &dto.DuplicateGameDTO{}
+	dtoObject := &duplicateRequest{}
 	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	item, e := s.serviceGame.Duplicate(gameID, dtoObject)
+	item, e := s.serviceGame.Duplicate(gameID, servicesGame.DuplicateRequest{
+		Name: dtoObject.Name,
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -158,14 +160,12 @@ func (s *game) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.UpdateGameDTO{
+	item, e := s.serviceGame.Update(gameID, servicesGame.UpdateRequest{
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
 		Image:       r.FormValue("image"),
 		ImageFile:   data,
-	}
-
-	item, e := s.serviceGame.Update(gameID, dtoObject)
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return

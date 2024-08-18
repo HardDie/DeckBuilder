@@ -12,7 +12,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -59,7 +58,7 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	desc := "best game ever"
 
 	// Create game
-	game, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+	game, err := tt.serviceGame.Create(CreateRequest{
 		Name:        gameName,
 		Description: desc,
 	})
@@ -74,7 +73,7 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName,
 	})
 	if err == nil {
@@ -105,7 +104,7 @@ func (tt *gameTest) testDelete(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName,
 	})
 	if err != nil {
@@ -133,7 +132,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Try to update non-existing game
-	_, err := tt.serviceGame.Update(gameID[0], &dto.UpdateGameDTO{})
+	_, err := tt.serviceGame.Update(gameID[0], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -142,7 +141,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	}
 
 	// Create game
-	game, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+	game, err := tt.serviceGame.Create(CreateRequest{
 		Name:        gameName[0],
 		Description: desc[0],
 	})
@@ -157,7 +156,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	}
 
 	// Update game
-	game, err = tt.serviceGame.Update(gameID[0], &dto.UpdateGameDTO{
+	game, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
 		Name:        gameName[1],
 		Description: desc[1],
 	})
@@ -178,7 +177,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 	}
 
 	// Try to update non-existing game
-	_, err = tt.serviceGame.Update(gameID[1], &dto.UpdateGameDTO{})
+	_, err = tt.serviceGame.Update(gameID[1], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, game not exist")
 	}
@@ -200,7 +199,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Create first game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -217,7 +216,7 @@ func (tt *gameTest) testList(t *testing.T) {
 	}
 
 	// Create second game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[1],
 	})
 	if err != nil {
@@ -319,7 +318,7 @@ func (tt *gameTest) testItem(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
 	if err != nil {
@@ -342,7 +341,9 @@ func (tt *gameTest) testItem(t *testing.T) {
 	}
 
 	// Rename game
-	_, err = tt.serviceGame.Update(gameID[0], &dto.UpdateGameDTO{Name: gameName[1]})
+	_, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
+		Name: gameName[1],
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -373,13 +374,13 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Create games
-	_, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err := tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[1],
 	})
 	if err != nil {
@@ -387,7 +388,7 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	}
 
 	// Try to duplicate not exist game
-	_, err = tt.serviceGame.Duplicate("not_exist_game", &dto.DuplicateGameDTO{
+	_, err = tt.serviceGame.Duplicate("not_exist_game", DuplicateRequest{
 		Name: "new_game",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -395,14 +396,14 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	}
 
 	// Try to duplicate to exist game
-	_, err = tt.serviceGame.Duplicate(gameID[0], &dto.DuplicateGameDTO{
+	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: gameID[1],
 	})
 	if !errors.Is(err, er.GameExist) {
 		t.Fatal("Game already exist")
 	}
 
-	_, err = tt.serviceGame.Duplicate(gameID[0], &dto.DuplicateGameDTO{
+	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: "good_duplicate",
 	})
 	if err != nil {
@@ -438,7 +439,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name:  gameName,
 		Image: pngImage,
 	})
@@ -456,7 +457,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: jpegImage,
 	})
@@ -474,7 +475,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: "",
 	})
@@ -525,7 +526,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(CreateRequest{
 		Name:      gameName,
 		ImageFile: pngImage,
 	})
@@ -543,7 +544,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:      gameName,
 		ImageFile: jpegImage,
 	})
@@ -561,7 +562,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:      gameName,
 		ImageFile: gifImage,
 	})
@@ -579,7 +580,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name: gameName,
 	})
 	if err != nil {
@@ -596,7 +597,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	}
 
 	// Update game
-	_, err = tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: "empty",
 	})
@@ -692,7 +693,7 @@ func (tt *gameTest) fuzzItem(t *testing.T, gameID, name, desc string) error {
 	return nil
 }
 func (tt *gameTest) fuzzCreate(t *testing.T, name, desc string) (*entity.GameInfo, error) {
-	game, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+	game, err := tt.serviceGame.Create(CreateRequest{
 		Name:        name,
 		Description: desc,
 	})
@@ -710,7 +711,7 @@ func (tt *gameTest) fuzzCreate(t *testing.T, name, desc string) (*entity.GameInf
 	return game, nil
 }
 func (tt *gameTest) fuzzUpdate(t *testing.T, gameID, name, desc string) (*entity.GameInfo, error) {
-	game, err := tt.serviceGame.Update(gameID, &dto.UpdateGameDTO{
+	game, err := tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:        name,
 		Description: desc,
 	})

@@ -606,7 +606,7 @@ func TestCard(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(servicesGame.CreateRequest{
 		Name: tt.gameID,
 	})
 	if err != nil {
@@ -794,7 +794,7 @@ func FuzzCard(f *testing.F) {
 		}
 		if len(items) == 0 {
 			// Create game
-			_, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+			_, err := tt.serviceGame.Create(servicesGame.CreateRequest{
 				Name: tt.gameID,
 			})
 			if err != nil {

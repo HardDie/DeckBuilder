@@ -591,7 +591,7 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(servicesGame.CreateRequest{
 		Name: tt.gameID,
 	})
 	if err != nil {
@@ -728,7 +728,7 @@ func FuzzDeck(f *testing.F) {
 		}
 		if len(gameItems) == 0 {
 			// Create game
-			_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+			_, err = tt.serviceGame.Create(servicesGame.CreateRequest{
 				Name: tt.gameID,
 			})
 			if err != nil {

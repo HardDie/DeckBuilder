@@ -597,7 +597,7 @@ func TestCollection(t *testing.T) {
 	}
 
 	// Create game
-	_, err = tt.serviceGame.Create(&dto.CreateGameDTO{
+	_, err = tt.serviceGame.Create(servicesGame.CreateRequest{
 		Name: tt.gameID,
 	})
 	if err != nil {
@@ -727,7 +727,7 @@ func FuzzCollection(f *testing.F) {
 		}
 		if len(items) == 0 {
 			// Create game
-			_, err := tt.serviceGame.Create(&dto.CreateGameDTO{
+			_, err := tt.serviceGame.Create(servicesGame.CreateRequest{
 				Name: tt.gameID,
 			})
 			if err != nil {
