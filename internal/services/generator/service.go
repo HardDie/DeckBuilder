@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -166,7 +167,7 @@ func (s *generator) getListOfCards(gameID string, sortField string) (map[Deck][]
 }
 
 func (s *generator) generateBody(
-	gameItem *entity.GameInfo,
+	gameItem *entitiesGame.Game,
 	decks map[Deck][]Card,
 	order []Deck,
 	scale int,
@@ -305,7 +306,7 @@ func (s *generator) generateImages(
 }
 
 func (s *generator) generateJson(
-	gameItem *entity.GameInfo,
+	gameItem *entitiesGame.Game,
 	decks map[Deck][]Card,
 	order []Deck,
 	imageMapping map[string]PageInfo,

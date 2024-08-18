@@ -721,7 +721,7 @@ func FuzzDeck(f *testing.F) {
 	}()
 
 	f.Fuzz(func(t *testing.T, type1, type2 string) {
-		gameItems, _, err := tt.serviceGame.List("", "")
+		gameItems, err := tt.serviceGame.List("", "")
 		if err != nil {
 			t.Fatal(err)
 		}

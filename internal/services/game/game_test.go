@@ -2,17 +2,17 @@ package game
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/HardDie/fsentry"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
@@ -28,9 +28,7 @@ type gameTest struct {
 
 func newGameTest(t testing.TB) *gameTest {
 	dir, err := os.MkdirTemp("", "game_test")
-	if err != nil {
-		t.Fatal("error creating temp dir", err)
-	}
+	assert.NoError(t, err)
 	t.Cleanup(func() {
 		os.RemoveAll(dir)
 	})
@@ -58,73 +56,45 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	desc := "best game ever"
 
 	// Create game
-	game, err := tt.serviceGame.Create(CreateRequest{
+	g, err := tt.serviceGame.Create(CreateRequest{
 		Name:        gameName,
 		Description: desc,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if game.Name != gameName {
-		t.Fatal("Bad name [got]", game.Name, "[want]", gameName)
-	}
-	if game.Description != desc {
-		t.Fatal("Bad description [got]", game.Description, "[want]", desc)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, gameName, g.Name)
+	assert.Equal(t, desc, g.Description)
 
 	// Try to create duplicate
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName,
 	})
-	if err == nil {
-		t.Fatal("Error, you can't create duplicate game")
-	}
-	if !errors.Is(err, er.GameExist) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameExist)
 
 	// Delete game
-	err = tt.serviceGame.Delete(game.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	err = tt.serviceGame.Delete(g.ID)
+	assert.NoError(t, err)
 }
-
 func (tt *gameTest) testDelete(t *testing.T) {
 	gameName := "delete_one"
 	gameID := utils.NameToID(gameName)
 
 	// Try to remove non-existing game
 	err := tt.serviceGame.Delete(gameID)
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Try to delete game twice
 	err = tt.serviceGame.Delete(gameID)
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 }
 func (tt *gameTest) testUpdate(t *testing.T) {
 	gameName := []string{"update_one", "update_two"}
@@ -133,176 +103,100 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 
 	// Try to update non-existing game
 	_, err := tt.serviceGame.Update(gameID[0], UpdateRequest{})
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Create game
-	game, err := tt.serviceGame.Create(CreateRequest{
+	g, err := tt.serviceGame.Create(CreateRequest{
 		Name:        gameName[0],
 		Description: desc[0],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if game.Name != gameName[0] {
-		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[0])
-	}
-	if game.Description != desc[0] {
-		t.Fatal("Bad description [got]", game.Description, "[want]", desc[0])
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, gameName[0], g.Name)
+	assert.Equal(t, desc[0], g.Description)
 
 	// Update game
-	game, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
+	g, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
 		Name:        gameName[1],
 		Description: desc[1],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if game.Name != gameName[1] {
-		t.Fatal("Bad name [got]", game.Name, "[want]", gameName[1])
-	}
-	if game.Description != desc[1] {
-		t.Fatal("Bad description [got]", game.Description, "[want]", desc[1])
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, gameName[1], g.Name)
+	assert.Equal(t, desc[1], g.Description)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID[1])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Try to update non-existing game
 	_, err = tt.serviceGame.Update(gameID[1], UpdateRequest{})
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 }
 func (tt *gameTest) testList(t *testing.T) {
 	gameName := []string{"B game", "A game"}
 	gameID := []string{utils.NameToID(gameName[0]), utils.NameToID(gameName[1])}
 
 	// Empty list
-	items, _, err := tt.serviceGame.List("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 0 {
-		t.Fatal("List should be empty")
-	}
+	items, err := tt.serviceGame.List("", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 0)
 
 	// Create first game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// One game
-	items, _, err = tt.serviceGame.List("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 1 {
-		t.Fatal("List should be with 1 element")
-	}
+	items, err = tt.serviceGame.List("", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
 
 	// Create second game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[1],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Sort by name
-	items, _, err = tt.serviceGame.List("name", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 2 {
-		t.Fatal("List should with 2 value")
-	}
-	if items[0].Name != gameName[1] {
-		t.Fatal("Bad name order: [got]", items[0].Name, "[want]", gameName[1])
-	}
-	if items[1].Name != gameName[0] {
-		t.Fatal("Bad name order: [got]", items[1].Name, "[want]", gameName[0])
-	}
+	items, err = tt.serviceGame.List("name", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 2)
+	assert.Equal(t, gameName[1], items[0].Name)
+	assert.Equal(t, gameName[0], items[1].Name)
 
 	// Sort by name_desc
-	items, _, err = tt.serviceGame.List("name_desc", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 2 {
-		t.Fatal("List should with 2 value")
-	}
-	if items[0].Name != gameName[0] {
-		t.Fatal("Bad name_desc order: [got]", items[0].Name, "[want]", gameName[0])
-	}
-	if items[1].Name != gameName[1] {
-		t.Fatal("Bad name_desc order: [got]", items[1].Name, "[want]", gameName[1])
-	}
+	items, err = tt.serviceGame.List("name_desc", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 2)
+	assert.Equal(t, gameName[0], items[0].Name)
+	assert.Equal(t, gameName[1], items[1].Name)
 
 	// Sort by created date
-	items, _, err = tt.serviceGame.List("created", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 2 {
-		t.Fatal("List should with 2 value")
-	}
-	if items[0].Name != gameName[0] {
-		t.Fatal("Bad created order: [got]", items[0].Name, "[want]", gameName[0])
-	}
-	if items[1].Name != gameName[1] {
-		t.Fatal("Bad created order: [got]", items[1].Name, "[want]", gameName[1])
-	}
+	items, err = tt.serviceGame.List("created", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 2)
+	assert.Equal(t, gameName[0], items[0].Name)
+	assert.Equal(t, gameName[1], items[1].Name)
 
 	// Sort by created_desc
-	items, _, err = tt.serviceGame.List("created_desc", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 2 {
-		t.Fatal("List should with 2 value")
-	}
-	if items[0].Name != gameName[1] {
-		t.Fatal("Bad created_desc order: [got]", items[0].Name, "[want]", gameName[1])
-	}
-	if items[1].Name != gameName[0] {
-		t.Fatal("Bad created_desc order: [got]", items[1].Name, "[want]", gameName[0])
-	}
+	items, err = tt.serviceGame.List("created_desc", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 2)
+	assert.Equal(t, gameName[1], items[0].Name)
+	assert.Equal(t, gameName[0], items[1].Name)
 
 	// Delete first game
 	err = tt.serviceGame.Delete(gameID[0])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Delete second game
 	err = tt.serviceGame.Delete(gameID[1])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Empty list
-	items, _, err = tt.serviceGame.List("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(items) != 0 {
-		t.Fatal("List should be empty")
-	}
+	items, err = tt.serviceGame.List("", "")
+	assert.NoError(t, err)
+	assert.Len(t, items, 0)
 }
 func (tt *gameTest) testItem(t *testing.T) {
 	gameName := []string{"item_one", "item_two"}
@@ -310,64 +204,39 @@ func (tt *gameTest) testItem(t *testing.T) {
 
 	// Try to get non-existing game
 	_, err := tt.serviceGame.Item(gameID[0])
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Get valid game
 	_, err = tt.serviceGame.Item(gameID[0])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Get invalid game
 	_, err = tt.serviceGame.Item(gameID[1])
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Rename game
 	_, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
 		Name: gameName[1],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Get valid game
 	_, err = tt.serviceGame.Item(gameID[1])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Get invalid game
 	_, err = tt.serviceGame.Item(gameID[0])
-	if err == nil {
-		t.Fatal("Error, game not exist")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID[1])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 func (tt *gameTest) testDuplicate(t *testing.T) {
 	gameName := []string{"duplicate_one", "duplicate_two"}
@@ -377,51 +246,35 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	_, err := tt.serviceGame.Create(CreateRequest{
 		Name: gameName[0],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName[1],
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Try to duplicate not exist game
 	_, err = tt.serviceGame.Duplicate("not_exist_game", DuplicateRequest{
 		Name: "new_game",
 	})
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal("Game not exist")
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Try to duplicate to exist game
 	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: gameID[1],
 	})
-	if !errors.Is(err, er.GameExist) {
-		t.Fatal("Game already exist")
-	}
+	assert.ErrorIs(t, err, er.GameExist)
 
 	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: "good_duplicate",
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	err = tt.serviceGame.Delete(gameID[0])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	err = tt.serviceGame.Delete(gameID[1])
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	err = tt.serviceGame.Delete("good_duplicate")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 func (tt *gameTest) testImage(t *testing.T) {
 	gameName := "image_one"
@@ -431,72 +284,46 @@ func (tt *gameTest) testImage(t *testing.T) {
 
 	// Check no game
 	_, _, err := tt.serviceGame.GetImage(gameID)
-	if err == nil {
-		t.Fatal("Error, game not exists")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name:  gameName,
 		Image: pngImage,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err := tt.serviceGame.GetImage(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if imgType != "png" {
-		t.Fatal("Image type error! [got]", imgType, "[want] png")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "png")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: jpegImage,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err = tt.serviceGame.GetImage(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if imgType != "jpeg" {
-		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "jpeg")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: "",
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check no image
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	if err == nil {
-		t.Fatal("Error, game don't have image")
-	}
-	if !errors.Is(err, er.GameImageNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameImageNotExists)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 func (tt *gameTest) testImageBin(t *testing.T) {
 	gameName := "image_bin_one"
@@ -504,121 +331,80 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 
 	pageImage := images.CreateImage(100, 100)
 	pngImage, err := images.ImageToPng(pageImage)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	jpegImage, err := images.ImageToJpeg(pageImage)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	gifImage, err := images.ImageToGif(pageImage)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check no game
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	if err == nil {
-		t.Fatal("Error, game not exists")
-	}
-	if !errors.Is(err, er.GameNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameNotExists)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name:      gameName,
 		ImageFile: pngImage,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err := tt.serviceGame.GetImage(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if imgType != "png" {
-		t.Fatal("Image type error! [got]", imgType, "[want] png")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "png")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:      gameName,
 		ImageFile: jpegImage,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err = tt.serviceGame.GetImage(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if imgType != "jpeg" {
-		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "jpeg")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:      gameName,
 		ImageFile: gifImage,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err = tt.serviceGame.GetImage(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if imgType != "gif" {
-		t.Fatal("Image type error! [got]", imgType, "[want] gif")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "gif")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name: gameName,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check image type
 	_, imgType, err = tt.serviceGame.GetImage(gameID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if imgType != "gif" {
-		t.Fatal("Image type error! [got]", imgType, "[want] gif")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, imgType, "gif")
 
 	// Update game
 	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: "empty",
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check no image
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	if err == nil {
-		t.Fatal("Error, game don't have image")
-	}
-	if !errors.Is(err, er.GameImageNotExists) {
-		t.Fatal(err)
-	}
+	assert.ErrorIs(t, err, er.GameImageNotExists)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestGame(t *testing.T) {
@@ -650,14 +436,8 @@ func (tt *gameTest) fuzzCleanup() {
 	_ = tt.core.Init()
 }
 func (tt *gameTest) fuzzList(t *testing.T, waitItems int) error {
-	items, _, err := tt.serviceGame.List("", "")
-	if err != nil {
-		{
-			data, _ := json.MarshalIndent(err, "", "	")
-			t.Log(string(data))
-		}
-		return err
-	}
+	items, err := tt.serviceGame.List("", "")
+	assert.NoError(t, err)
 	if len(items) != waitItems {
 		{
 			data, _ := json.MarshalIndent(items, "", "	")
@@ -692,41 +472,29 @@ func (tt *gameTest) fuzzItem(t *testing.T, gameID, name, desc string) error {
 	}
 	return nil
 }
-func (tt *gameTest) fuzzCreate(t *testing.T, name, desc string) (*entity.GameInfo, error) {
-	game, err := tt.serviceGame.Create(CreateRequest{
+func (tt *gameTest) fuzzCreate(t *testing.T, name, desc string) (*entitiesGame.Game, error) {
+	g, err := tt.serviceGame.Create(CreateRequest{
 		Name:        name,
 		Description: desc,
 	})
-	if err != nil {
-		{
-			data, _ := json.MarshalIndent(err, "", "	")
-			t.Log(string(data))
-		}
-		return nil, err
-	}
+	assert.NoError(t, err)
 	{
-		data, _ := json.MarshalIndent(game, "", "	")
+		data, _ := json.MarshalIndent(g, "", "	")
 		t.Log("create:", string(data))
 	}
-	return game, nil
+	return g, nil
 }
-func (tt *gameTest) fuzzUpdate(t *testing.T, gameID, name, desc string) (*entity.GameInfo, error) {
-	game, err := tt.serviceGame.Update(gameID, UpdateRequest{
+func (tt *gameTest) fuzzUpdate(t *testing.T, gameID, name, desc string) (*entitiesGame.Game, error) {
+	g, err := tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:        name,
 		Description: desc,
 	})
-	if err != nil {
-		{
-			data, _ := json.MarshalIndent(err, "", "	")
-			t.Log(string(data))
-		}
-		return nil, err
-	}
+	assert.NoError(t, err)
 	{
-		data, _ := json.MarshalIndent(game, "", "	")
+		data, _ := json.MarshalIndent(g, "", "	")
 		t.Log("update:", string(data))
 	}
-	return game, nil
+	return g, nil
 }
 func (tt *gameTest) fuzzDelete(t *testing.T, gameID string) error {
 	err := tt.serviceGame.Delete(gameID)

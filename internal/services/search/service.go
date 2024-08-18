@@ -1,6 +1,7 @@
 package search
 
 import (
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
@@ -37,7 +38,7 @@ func (s *search) RecursiveSearch(sortField, search, gameID, collectionID string)
 
 	if gameID == "" {
 		// Check if game with such search mask exist
-		foundGames, _, err := s.serviceGame.List(sortField, search)
+		foundGames, err := s.serviceGame.List(sortField, search)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -48,9 +49,9 @@ func (s *search) RecursiveSearch(sortField, search, gameID, collectionID string)
 	}
 
 	// Iterate through all games
-	var allGames []*entity.GameInfo
+	var allGames []*entitiesGame.Game
 	if gameID == "" {
-		allGames, _, err = s.serviceGame.List(sortField, "")
+		allGames, err = s.serviceGame.List(sortField, "")
 		if err != nil {
 			return nil, nil, err
 		}

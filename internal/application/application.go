@@ -76,7 +76,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// game
 	repositoryGame := repositoriesGame.New(cfg, game)
 	serviceGame := servicesGame.New(cfg, repositoryGame)
-	serverGame := serversGame.New(serviceGame, serverSystem)
+	serverGame := serversGame.New(*cfg, serviceGame, serverSystem)
 	api.RegisterGameServer(routes, serverGame)
 
 	// collection

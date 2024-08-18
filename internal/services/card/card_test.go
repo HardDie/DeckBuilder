@@ -787,7 +787,7 @@ func FuzzCard(f *testing.F) {
 	}()
 
 	f.Fuzz(func(t *testing.T, name1, desc1, name2, desc2 string) {
-		items, _, err := tt.serviceGame.List("", "")
+		items, err := tt.serviceGame.List("", "")
 		if err != nil {
 			t.Fatal(err)
 		}

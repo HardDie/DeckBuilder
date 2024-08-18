@@ -1,19 +1,19 @@
 package game
 
 import (
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 )
 
 type Game interface {
-	Create(req CreateRequest) (*entity.GameInfo, error)
-	GetByID(gameID string) (*entity.GameInfo, error)
-	GetAll() ([]*entity.GameInfo, error)
-	Update(gameID string, req UpdateRequest) (*entity.GameInfo, error)
+	Create(req CreateRequest) (*entitiesGame.Game, error)
+	GetByID(gameID string) (*entitiesGame.Game, error)
+	GetAll() ([]*entitiesGame.Game, error)
+	Update(gameID string, req UpdateRequest) (*entitiesGame.Game, error)
 	DeleteByID(gameID string) error
 	GetImage(gameID string) ([]byte, string, error)
-	Duplicate(gameID string, req DuplicateRequest) (*entity.GameInfo, error)
+	Duplicate(gameID string, req DuplicateRequest) (*entitiesGame.Game, error)
 	Export(gameID string) ([]byte, error)
-	Import(data []byte, name string) (*entity.GameInfo, error)
+	Import(data []byte, name string) (*entitiesGame.Game, error)
 }
 
 type CreateRequest struct {

@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/entity"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -22,35 +21,25 @@ func New(cfg *config.Config, repositoryGame repositoriesGame.Game) Game {
 	}
 }
 
-func (s *game) Create(req CreateRequest) (*entity.GameInfo, error) {
-	g, err := s.repositoryGame.Create(repositoriesGame.CreateRequest{
+func (s *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
+	return s.repositoryGame.Create(repositoriesGame.CreateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	g.FillCachedImage(s.cfg)
-	return g, nil
 }
-func (s *game) Item(gameID string) (*entity.GameInfo, error) {
-	g, err := s.repositoryGame.GetByID(gameID)
-	if err != nil {
-		return nil, err
-	}
-	g.FillCachedImage(s.cfg)
-	return g, nil
+func (s *game) Item(gameID string) (*entitiesGame.Game, error) {
+	return s.repositoryGame.GetByID(gameID)
 }
-func (s *game) List(sortField, search string) ([]*entity.GameInfo, *network.Meta, error) {
+func (s *game) List(sortField, search string) ([]*entitiesGame.Game, error) {
 	items, err := s.repositoryGame.GetAll()
 	if err != nil {
-		return make([]*entity.GameInfo, 0), nil, err
+		return make([]*entitiesGame.Game, 0), err
 	}
 
 	// Filter
-	var filteredItems []*entity.GameInfo
+	var filteredItems []*entitiesGame.Game
 	if search != "" {
 		search = strings.ToLower(search)
 		for _, item := range items {
@@ -65,33 +54,23 @@ func (s *game) List(sortField, search string) ([]*entity.GameInfo, *network.Meta
 	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
-	// Generate field cachedImage
-	for i := 0; i < len(filteredItems); i++ {
-		filteredItems[i].FillCachedImage(s.cfg)
-	}
-
 	// Return empty array if no elements
 	if filteredItems == nil {
-		filteredItems = make([]*entity.GameInfo, 0)
+		filteredItems = make([]*entitiesGame.Game, 0)
 	}
 
-	meta := &network.Meta{
-		Total: len(filteredItems),
-	}
-	return filteredItems, meta, nil
+	// meta := &network.Meta{
+	// 	Total: len(filteredItems),
+	// }
+	return filteredItems, nil
 }
-func (s *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error) {
-	g, err := s.repositoryGame.Update(gameID, repositoriesGame.UpdateRequest{
+func (s *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, error) {
+	return s.repositoryGame.Update(gameID, repositoriesGame.UpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	g.FillCachedImage(s.cfg)
-	return g, nil
 }
 func (s *game) Delete(gameID string) error {
 	return s.repositoryGame.DeleteByID(gameID)
@@ -99,24 +78,14 @@ func (s *game) Delete(gameID string) error {
 func (s *game) GetImage(gameID string) ([]byte, string, error) {
 	return s.repositoryGame.GetImage(gameID)
 }
-func (s *game) Duplicate(gameID string, req DuplicateRequest) (*entity.GameInfo, error) {
-	g, err := s.repositoryGame.Duplicate(gameID, repositoriesGame.DuplicateRequest{
+func (s *game) Duplicate(gameID string, req DuplicateRequest) (*entitiesGame.Game, error) {
+	return s.repositoryGame.Duplicate(gameID, repositoriesGame.DuplicateRequest{
 		Name: req.Name,
 	})
-	if err != nil {
-		return nil, err
-	}
-	g.FillCachedImage(s.cfg)
-	return g, nil
 }
 func (s *game) Export(gameID string) ([]byte, error) {
 	return s.repositoryGame.Export(gameID)
 }
-func (s *game) Import(data []byte, name string) (*entity.GameInfo, error) {
-	g, err := s.repositoryGame.Import(data, name)
-	if err != nil {
-		return nil, err
-	}
-	g.FillCachedImage(s.cfg)
-	return g, nil
+func (s *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
+	return s.repositoryGame.Import(data, name)
 }

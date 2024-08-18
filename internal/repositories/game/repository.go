@@ -2,9 +2,12 @@ package game
 
 import (
 	"context"
+	"path/filepath"
+	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -26,14 +29,14 @@ func New(cfg *config.Config, g dbGame.Game) Game {
 	}
 }
 
-func (r *game) Create(req CreateRequest) (*entity.GameInfo, error) {
+func (r *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
 	g, err := r.game.Create(context.Background(), req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
 
 	if g.Image == "" && req.ImageFile == nil {
-		return g, nil
+		return r.oldEntityToNew(g), nil
 	}
 
 	if g.Image != "" {
@@ -49,16 +52,27 @@ func (r *game) Create(req CreateRequest) (*entity.GameInfo, error) {
 		}
 	}
 
-	return g, nil
+	return r.oldEntityToNew(g), nil
 }
-func (r *game) GetByID(gameID string) (*entity.GameInfo, error) {
-	_, resp, err := r.game.Get(context.Background(), gameID)
-	return resp, err
+func (r *game) GetByID(gameID string) (*entitiesGame.Game, error) {
+	_, g, err := r.game.Get(context.Background(), gameID)
+	if err != nil {
+		return nil, err
+	}
+	return r.oldEntityToNew(g), nil
 }
-func (r *game) GetAll() ([]*entity.GameInfo, error) {
-	return r.game.List(context.Background())
+func (r *game) GetAll() ([]*entitiesGame.Game, error) {
+	list, err := r.game.List(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*entitiesGame.Game, 0, len(list))
+	for _, g := range list {
+		res = append(res, r.oldEntityToNew(g))
+	}
+	return res, nil
 }
-func (r *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error) {
+func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, error) {
 	_, oldGame, err := r.game.Get(context.Background(), gameID)
 	if err != nil {
 		return nil, err
@@ -90,7 +104,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error
 
 	// If the image has not been changed
 	if newGame.Image == oldGame.Image && req.ImageFile == nil {
-		return newGame, nil
+		return r.oldEntityToNew(newGame), nil
 	}
 
 	// If image exist, delete
@@ -102,7 +116,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error
 	}
 
 	if newGame.Image == "" && req.ImageFile == nil {
-		return newGame, nil
+		return r.oldEntityToNew(newGame), nil
 	}
 
 	if newGame.Image != "" {
@@ -118,7 +132,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entity.GameInfo, error
 		}
 	}
 
-	return newGame, nil
+	return r.oldEntityToNew(newGame), nil
 }
 func (r *game) DeleteByID(gameID string) error {
 	return r.game.Delete(context.Background(), gameID)
@@ -136,12 +150,12 @@ func (r *game) GetImage(gameID string) ([]byte, string, error) {
 
 	return data, imgType, nil
 }
-func (r *game) Duplicate(gameID string, req DuplicateRequest) (*entity.GameInfo, error) {
+func (r *game) Duplicate(gameID string, req DuplicateRequest) (*entitiesGame.Game, error) {
 	g, err := r.game.Duplicate(context.Background(), gameID, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	return g, nil
+	return r.oldEntityToNew(g), nil
 }
 func (r *game) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
@@ -150,9 +164,9 @@ func (r *game) Export(gameID string) ([]byte, error) {
 		return nil, err
 	}
 
-	return fs.ArchiveFolder(g.Path(r.cfg), g.ID)
+	return fs.ArchiveFolder(filepath.Join(r.cfg.Games(), g.ID), g.ID)
 }
-func (r *game) Import(data []byte, name string) (*entity.GameInfo, error) {
+func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 	gameID := utils.NameToID(name)
 	if name != "" && gameID == "" {
 		return nil, errors.BadName
@@ -212,4 +226,28 @@ func (r *game) createImageFromByte(gameID string, data []byte) error {
 
 	// Write image to file
 	return r.game.ImageCreate(context.Background(), gameID, data)
+}
+
+func (r *game) oldEntityToNew(g *entity.GameInfo) *entitiesGame.Game {
+	if g == nil {
+		return nil
+	}
+	createdAt, updatedAt := r.convertCreateUpdate(g.CreatedAt, g.UpdatedAt)
+	return &entitiesGame.Game{
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: g.Description,
+		Image:       g.Image,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+	}
+}
+func (r *game) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
+	if createdAt == nil {
+		createdAt = utils.Allocate(time.Now())
+	}
+	if updatedAt == nil {
+		updatedAt = createdAt
+	}
+	return *createdAt, *updatedAt
 }

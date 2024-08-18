@@ -1,10 +1,14 @@
 package game
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
+	"github.com/HardDie/DeckBuilder/internal/config"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
@@ -13,12 +17,18 @@ import (
 )
 
 type game struct {
+	cfg          config.Config
 	serviceGame  servicesGame.Game
 	serverSystem serversSystem.System
 }
 
-func New(serviceGame servicesGame.Game, serverSystem serversSystem.System) Game {
+func New(
+	cfg config.Config,
+	serviceGame servicesGame.Game,
+	serverSystem serversSystem.System,
+) Game {
 	return &game{
+		cfg:          cfg,
 		serviceGame:  serviceGame,
 		serverSystem: serverSystem,
 	}
@@ -50,7 +60,25 @@ func (s *game) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	network.Response(w, item)
+	type createResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	network.Response(w, createResponse{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(*item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *game) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -79,7 +107,25 @@ func (s *game) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	network.Response(w, item)
+	type duplicateResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	network.Response(w, duplicateResponse{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(*item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *game) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -120,7 +166,26 @@ func (s *game) ImportHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, item)
+
+	type importResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	network.Response(w, importResponse{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(*item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *game) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -129,19 +194,64 @@ func (s *game) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, item)
+
+	type itemResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	network.Response(w, itemResponse{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(*item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *game) ListHandler(w http.ResponseWriter, r *http.Request) {
 	s.serverSystem.StopQuit()
 
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, meta, e := s.serviceGame.List(sort, search)
+	items, e := s.serviceGame.List(sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.ResponseWithMeta(w, items, meta)
+
+	type listItemResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	respItems := make([]*listItemResponse, 0, len(items))
+	for _, item := range items {
+		respItems = append(respItems, &listItemResponse{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Image:       item.Image,
+			CachedImage: s.calculateCachedImage(*item),
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+		})
+	}
+
+	network.ResponseWithMeta(w, respItems, &network.Meta{
+		Total: len(respItems),
+	})
 }
 func (s *game) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -171,5 +281,27 @@ func (s *game) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	network.Response(w, item)
+	type updateResponse struct {
+		ID          string    `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Image       string    `json:"image"`
+		CachedImage string    `json:"cachedImage,omitempty"`
+		CreatedAt   time.Time `json:"createdAt"`
+		UpdatedAt   time.Time `json:"updatedAt"`
+	}
+
+	network.Response(w, updateResponse{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(*item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
+}
+
+func (s *game) calculateCachedImage(game entitiesGame.Game) string {
+	return fmt.Sprintf(s.cfg.GameImagePath+"?%s", game.ID, utils.HashForTime(&game.UpdatedAt))
 }
