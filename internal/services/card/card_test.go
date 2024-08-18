@@ -640,7 +640,7 @@ func TestCard(t *testing.T) {
 	decks := []string{"_create", "_delete", "_update", "_list", "_item", "_image"}
 	for _, deck := range decks {
 		// Create deck
-		_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+		_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, servicesDeck.CreateRequest{
 			Name: tt.deckID + deck,
 		})
 		if err != nil {
@@ -810,7 +810,7 @@ func FuzzCard(f *testing.F) {
 			}
 
 			// Create deck
-			_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+			_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, servicesDeck.CreateRequest{
 				Name: tt.deckID,
 			})
 			if err != nil {

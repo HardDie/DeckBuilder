@@ -6,7 +6,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -27,30 +26,30 @@ func New(cfg *config.Config, c dbCollection.Collection, d dbDeck.Deck) Deck {
 	}
 }
 
-func (r *deck) Create(gameID, collectionID string, dtoObject *dto.CreateDeckDTO) (*entity.DeckInfo, error) {
-	deck, err := r.deck.Create(context.Background(), gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+func (r *deck) Create(gameID, collectionID string, req CreateRequest) (*entity.DeckInfo, error) {
+	d, err := r.deck.Create(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if deck.Image == "" && dtoObject.ImageFile == nil {
-		return deck, nil
+	if d.Image == "" && req.ImageFile == nil {
+		return d, nil
 	}
 
-	if deck.Image != "" {
+	if d.Image != "" {
 		// Download image
-		err = r.createImage(gameID, collectionID, deck.ID, deck.Image)
+		err = r.createImage(gameID, collectionID, d.ID, d.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, deck.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, collectionID, d.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
 		}
 	}
 
-	return deck, nil
+	return d, nil
 }
 func (r *deck) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
 	_, resp, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
@@ -59,26 +58,26 @@ func (r *deck) GetByID(gameID, collectionID, deckID string) (*entity.DeckInfo, e
 func (r *deck) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
 	return r.deck.List(context.Background(), gameID, collectionID)
 }
-func (r *deck) Update(gameID, collectionID, deckID string, dtoObject *dto.UpdateDeckDTO) (*entity.DeckInfo, error) {
+func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*entity.DeckInfo, error) {
 	_, oldDeck, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
 	var newDeck *entity.DeckInfo
-	if oldDeck.Name != dtoObject.Name {
+	if oldDeck.Name != req.Name {
 		// Rename folder
-		newDeck, err = r.deck.Move(context.Background(), gameID, collectionID, oldDeck.Name, dtoObject.Name)
+		newDeck, err = r.deck.Move(context.Background(), gameID, collectionID, oldDeck.Name, req.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if oldDeck.Description != dtoObject.Description ||
-		oldDeck.Image != dtoObject.Image ||
-		dtoObject.ImageFile != nil {
+	if oldDeck.Description != req.Description ||
+		oldDeck.Image != req.Image ||
+		req.ImageFile != nil {
 		// Update data
-		newDeck, err = r.deck.Update(context.Background(), gameID, collectionID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newDeck, err = r.deck.Update(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +89,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, dtoObject *dto.Update
 	}
 
 	// If the image has not been changed
-	if newDeck.Image == oldDeck.Image && dtoObject.ImageFile == nil {
+	if newDeck.Image == oldDeck.Image && req.ImageFile == nil {
 		return newDeck, nil
 	}
 
@@ -102,7 +101,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, dtoObject *dto.Update
 		}
 	}
 
-	if newDeck.Image == "" && dtoObject.ImageFile == nil {
+	if newDeck.Image == "" && req.ImageFile == nil {
 		return newDeck, nil
 	}
 
@@ -112,8 +111,8 @@ func (r *deck) Update(gameID, collectionID, deckID string, dtoObject *dto.Update
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, newDeck.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, collectionID, newDeck.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
 		}
@@ -157,15 +156,15 @@ func (r *deck) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 		}
 
 		// Go through all decks and keep only unique decks
-		for _, deck := range collectionDecks {
-			if _, ok := uniqueDecks[deck.Name+deck.Image]; ok {
+		for _, d := range collectionDecks {
+			if _, ok := uniqueDecks[d.Name+d.Image]; ok {
 				// If we have already seen such a deck, we skip it
 				continue
 			}
 			// If deck unique, put mark in map
-			uniqueDecks[deck.Name+deck.Image] = struct{}{}
-			deck.FillCachedImage(r.cfg, gameID, collection.ID)
-			decks = append(decks, deck)
+			uniqueDecks[d.Name+d.Image] = struct{}{}
+			d.FillCachedImage(r.cfg, gameID, collection.ID)
+			decks = append(decks, d)
 		}
 	}
 	return decks, nil

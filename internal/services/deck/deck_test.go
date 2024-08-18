@@ -14,7 +14,6 @@ import (
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -75,7 +74,7 @@ func (tt *deckTest) testCreate(t *testing.T) {
 	deckType := "create_one"
 
 	// Create deck
-	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType,
 	})
 	if err != nil {
@@ -86,7 +85,7 @@ func (tt *deckTest) testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType,
 	})
 	if err == nil {
@@ -116,7 +115,7 @@ func (tt *deckTest) testDelete(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType,
 	})
 	if err != nil {
@@ -143,7 +142,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	deckID := []string{utils.NameToID(deckType[0]), utils.NameToID(deckType[1])}
 
 	// Try to update non-existing deck
-	_, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{})
+	_, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -152,7 +151,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	}
 
 	// Create deck
-	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType[0],
 	})
 	if err != nil {
@@ -163,7 +162,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	}
 
 	// Update deck
-	deck, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{
+	deck, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], UpdateRequest{
 		Name: deckType[1],
 	})
 	if err != nil {
@@ -180,7 +179,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	}
 
 	// Try to update non-existing deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[1], &dto.UpdateDeckDTO{})
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[1], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
@@ -202,7 +201,7 @@ func (tt *deckTest) testList(t *testing.T) {
 	}
 
 	// Create first deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType[0],
 	})
 	if err != nil {
@@ -219,7 +218,7 @@ func (tt *deckTest) testList(t *testing.T) {
 	}
 
 	// Create second deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType[1],
 	})
 	if err != nil {
@@ -321,7 +320,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckType[0],
 	})
 	if err != nil {
@@ -344,7 +343,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	}
 
 	// Rename deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], &dto.UpdateDeckDTO{Name: deckType[1]})
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID[0], UpdateRequest{Name: deckType[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -386,7 +385,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name:  deckType,
 		Image: pngImage,
 	})
@@ -404,7 +403,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:  deckType,
 		Image: jpegImage,
 	})
@@ -422,7 +421,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:  deckType,
 		Image: "",
 	})
@@ -473,7 +472,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Create deck
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name:      deckType,
 		ImageFile: pngImage,
 	})
@@ -491,7 +490,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:      deckType,
 		ImageFile: jpegImage,
 	})
@@ -509,7 +508,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:      deckType,
 		ImageFile: gifImage,
 	})
@@ -527,7 +526,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name: deckType,
 	})
 	if err != nil {
@@ -544,7 +543,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:  deckType,
 		Image: "empty",
 	})
@@ -583,7 +582,7 @@ func TestDeck(t *testing.T) {
 	}()
 
 	// Game not exist error
-	_, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -599,7 +598,7 @@ func TestDeck(t *testing.T) {
 	}
 
 	// Collection not exist error
-	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.CollectionNotExists) {
@@ -664,7 +663,7 @@ func (tt *deckTest) fuzzItem(t *testing.T, deckID, deckName string) error {
 	return nil
 }
 func (tt *deckTest) fuzzCreate(t *testing.T, deckName string) (*entity.DeckInfo, error) {
-	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, &dto.CreateDeckDTO{
+	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckName,
 	})
 	if err != nil {
@@ -681,7 +680,7 @@ func (tt *deckTest) fuzzCreate(t *testing.T, deckName string) (*entity.DeckInfo,
 	return deck, nil
 }
 func (tt *deckTest) fuzzUpdate(t *testing.T, deckID, deckName string) (*entity.DeckInfo, error) {
-	deck, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, &dto.UpdateDeckDTO{
+	deck, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name: deckName,
 	})
 	if err != nil {
