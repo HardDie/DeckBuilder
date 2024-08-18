@@ -20,11 +20,10 @@ type Game interface {
 }
 
 type GameInfo struct {
-	ID          string
-	Name        string
-	Description string
-	Image       string
-	CachedImage string
-	CreatedAt   *time.Time
-	UpdatedAt   *time.Time
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Image       string     `json:"image"`
+	CreatedAt   *time.Time `json:"createdAt"`
+	UpdatedAt   *time.Time `json:"updatedAt"`
 }

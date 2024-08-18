@@ -1,8 +1,10 @@
 package settings
 
-import "github.com/HardDie/DeckBuilder/internal/entity"
+import (
+	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
+)
 
 type Settings interface {
-	Get() (*entity.SettingInfo, error)
-	Save(set *entity.SettingInfo) error
+	Get() (*entitiesSettings.Settings, error)
+	Save(set *entitiesSettings.Settings) error
 }

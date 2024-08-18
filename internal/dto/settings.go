@@ -1,9 +1,4 @@
-package settings
-
-type Settings interface {
-	Get() (*SettingInfo, error)
-	Set(data *SettingInfo) error
-}
+package dto
 
 type CardSize struct {
 	ScaleX float64 `json:"scaleX"`
@@ -11,7 +6,7 @@ type CardSize struct {
 	ScaleZ float64 `json:"scaleZ"`
 }
 
-type SettingInfo struct {
+type Settings struct {
 	Lang             string   `json:"lang"`
 	EnableBackShadow bool     `json:"enable_back_shadow"`
 	CardSize         CardSize `json:"card_size"`

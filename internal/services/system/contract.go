@@ -1,13 +1,13 @@
 package system
 
 import (
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 )
 
 type System interface {
 	Quit()
-	GetSettings() (*entity.SettingInfo, error)
-	UpdateSettings(req UpdateSettingsRequest) (*entity.SettingInfo, error)
+	GetSettings() (*entitiesSettings.Settings, error)
+	UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error)
 }
 
 type UpdateSettingsRequest struct {

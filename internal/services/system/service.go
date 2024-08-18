@@ -6,7 +6,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 )
 
@@ -23,9 +23,9 @@ func New(cfg *config.Config, settings dbSettings.Settings) System {
 func (s *system) Quit() {
 	os.Exit(0)
 }
-func (s *system) GetSettings() (*entity.SettingInfo, error) {
+func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
 	// Load default value
-	settings := entity.NewSettings()
+	settings := entitiesSettings.Default()
 
 	// Try to read settings from file
 	set, err := s.repositorySettings.Get()
@@ -36,7 +36,7 @@ func (s *system) GetSettings() (*entity.SettingInfo, error) {
 	// If got no settings from file
 	if set == nil {
 		// Return default value
-		return settings, nil
+		return &settings, nil
 	}
 
 	// Update default values
@@ -45,9 +45,9 @@ func (s *system) GetSettings() (*entity.SettingInfo, error) {
 	settings.CardSize.ScaleX = set.CardSize.ScaleX
 	settings.CardSize.ScaleY = set.CardSize.ScaleY
 	settings.CardSize.ScaleZ = set.CardSize.ScaleZ
-	return settings, nil
+	return &settings, nil
 }
-func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entity.SettingInfo, error) {
+func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error) {
 	log.Println("Update settings")
 	set, err := s.GetSettings()
 	if err != nil {

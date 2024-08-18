@@ -1785,7 +1785,7 @@
           "x-go-name": "ScaleZ"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "CollectionInfo": {
       "type": "object",
@@ -1930,7 +1930,7 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/network"
     },
-    "SettingInfo": {
+    "Settings": {
       "type": "object",
       "properties": {
         "card_size": {
@@ -1945,7 +1945,7 @@
           "x-go-name": "Lang"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "Status": {
       "type": "object",
@@ -2426,7 +2426,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/SettingInfo"
+            "$ref": "#/definitions/Settings"
           }
         }
       }
@@ -2510,7 +2510,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/SettingInfo"
+            "$ref": "#/definitions/Settings"
           }
         }
       }

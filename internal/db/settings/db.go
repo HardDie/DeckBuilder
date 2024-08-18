@@ -7,7 +7,6 @@ import (
 	"github.com/HardDie/fsentry"
 	"github.com/HardDie/fsentry/pkg/fsentry_error"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
 
@@ -21,7 +20,7 @@ func New(db fsentry.IFSEntry) Settings {
 	}
 }
 
-func (d *settings) Get() (*entity.SettingInfo, error) {
+func (d *settings) Get() (*SettingInfo, error) {
 	info, err := d.db.GetEntry("settings")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -30,7 +29,7 @@ func (d *settings) Get() (*entity.SettingInfo, error) {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	setting := &entity.SettingInfo{}
+	setting := &SettingInfo{}
 
 	err = json.Unmarshal(info.Data, setting)
 	if err != nil {
@@ -39,7 +38,7 @@ func (d *settings) Get() (*entity.SettingInfo, error) {
 
 	return setting, nil
 }
-func (d *settings) Set(data *entity.SettingInfo) error {
+func (d *settings) Set(data *SettingInfo) error {
 	err := d.db.CreateEntry("settings", data)
 	if err == nil {
 		return nil

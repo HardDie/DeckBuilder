@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
@@ -65,7 +66,7 @@ type ResponseSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.SettingInfo `json:"data"`
+		Data dto.Settings `json:"data"`
 	}
 }
 
@@ -99,7 +100,7 @@ type ResponseUpdateSettings struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.SettingInfo `json:"data"`
+		Data dto.Settings `json:"data"`
 	}
 }
 

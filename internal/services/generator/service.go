@@ -11,7 +11,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -171,7 +171,7 @@ func (s *generator) generateBody(
 	decks map[Deck][]Card,
 	order []Deck,
 	scale int,
-	cfg *entity.SettingInfo,
+	cfg *entitiesSettings.Settings,
 ) error {
 	pr := progress.GetProgress()
 	pr.SetMessage("Reading a list of cards from the disk...")
@@ -207,7 +207,7 @@ func (s *generator) generateImages(
 	decks map[Deck][]Card,
 	order []Deck,
 	scale int,
-	cfg *entity.SettingInfo,
+	cfg *entitiesSettings.Settings,
 ) (map[string]PageInfo, error) {
 	pr := progress.GetProgress()
 
@@ -310,7 +310,7 @@ func (s *generator) generateJson(
 	decks map[Deck][]Card,
 	order []Deck,
 	imageMapping map[string]PageInfo,
-	cfg *entity.SettingInfo,
+	cfg *entitiesSettings.Settings,
 ) error {
 	bag := tts_entity.NewBag(gameItem.Name)
 	collectionBags := make(map[string]*tts_entity.Bag)
