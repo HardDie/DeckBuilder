@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/progress"
@@ -71,14 +70,19 @@ func (s *system) GetSettingsHandler(w http.ResponseWriter, _ *http.Request) {
 	network.Response(w, setting)
 }
 func (s *system) UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {
-	dtoObject := &dto.UpdateSettingsDTO{}
+	type updateSettings struct {
+		Lang string `json:"lang"`
+	}
+	dtoObject := &updateSettings{}
 	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
 
-	setting, e := s.serviceSystem.UpdateSettings(dtoObject)
+	setting, e := s.serviceSystem.UpdateSettings(servicesSystem.UpdateSettingsRequest{
+		Lang: dtoObject.Lang,
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return

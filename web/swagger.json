@@ -1639,6 +1639,9 @@
             "required": true,
             "schema": {
               "type": "object",
+              "required": [
+                "lang"
+              ],
               "properties": {
                 "lang": {
                   "type": "string",

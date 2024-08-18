@@ -6,7 +6,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 )
@@ -48,17 +47,17 @@ func (s *system) GetSettings() (*entity.SettingInfo, error) {
 	settings.CardSize.ScaleZ = set.CardSize.ScaleZ
 	return settings, nil
 }
-func (s *system) UpdateSettings(dtoObject *dto.UpdateSettingsDTO) (*entity.SettingInfo, error) {
+func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entity.SettingInfo, error) {
 	log.Println("Update settings")
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err
 	}
 	isUpdated := false
-	switch dtoObject.Lang {
+	switch req.Lang {
 	case "en", "ru":
-		if set.Lang != dtoObject.Lang {
-			set.Lang = dtoObject.Lang
+		if set.Lang != req.Lang {
+			set.Lang = req.Lang
 			isUpdated = true
 		}
 	}

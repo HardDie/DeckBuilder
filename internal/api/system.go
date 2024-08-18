@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
@@ -89,7 +88,7 @@ type RequestUpdateSettings struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		dto.UpdateSettingsDTO
+		Lang string `json:"lang"`
 	}
 }
 
