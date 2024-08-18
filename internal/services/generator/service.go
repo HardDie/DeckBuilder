@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -57,7 +56,7 @@ func New(
 	}
 }
 
-func (s *generator) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error {
+func (s *generator) GenerateGame(gameID string, req GenerateGameRequest) error {
 	cfg, err := s.serviceSystem.GetSettings()
 	if err != nil {
 		logger.Error.Printf("can't get config")
@@ -72,7 +71,7 @@ func (s *generator) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) 
 		return err
 	}
 
-	deckArray, order, err := s.getListOfCards(gameItem.ID, dtoObject.SortOrder)
+	deckArray, order, err := s.getListOfCards(gameItem.ID, req.SortOrder)
 	if err != nil {
 		return err
 	}
@@ -92,7 +91,7 @@ func (s *generator) GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) 
 	pr.SetType("Image generation")
 	pr.SetStatus(progress.StatusInProgress)
 	go func() {
-		err = s.generateBody(gameItem, deckArray, order, dtoObject.Scale, cfg)
+		err = s.generateBody(gameItem, deckArray, order, req.Scale, cfg)
 		if err != nil {
 			pr.SetStatus(progress.StatusError)
 			logger.Error.Println("Generator:", err.Error())

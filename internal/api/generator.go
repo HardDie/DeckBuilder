@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 )
 
@@ -32,7 +31,8 @@ type RequestGameGenerate struct {
 	// In: body
 	// Required: false
 	Body struct {
-		dto.GenerateGameDTO
+		SortOrder string `json:"sortOrder"`
+		Scale     int    `json:"scale"`
 	}
 }
 

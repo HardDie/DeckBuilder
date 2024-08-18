@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	servicesGenerator "github.com/HardDie/DeckBuilder/internal/services/generator"
 )
@@ -21,7 +20,11 @@ func New(serviceGenerator servicesGenerator.Generator) Generator {
 }
 
 func (s *generator) GameHandler(w http.ResponseWriter, r *http.Request) {
-	dtoObject := &dto.GenerateGameDTO{}
+	type game struct {
+		SortOrder string `json:"sortOrder"`
+		Scale     int    `json:"scale"`
+	}
+	dtoObject := &game{}
 	e := network.RequestToObject(r.Body, &dtoObject)
 	if e != nil {
 		network.ResponseError(w, e)
@@ -33,7 +36,10 @@ func (s *generator) GameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := mux.Vars(r)["game"]
-	e = s.serviceGenerator.GenerateGame(gameID, dtoObject)
+	e = s.serviceGenerator.GenerateGame(gameID, servicesGenerator.GenerateGameRequest{
+		SortOrder: dtoObject.SortOrder,
+		Scale:     dtoObject.Scale,
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return

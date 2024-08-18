@@ -1,7 +1,10 @@
 package generator
 
-import "github.com/HardDie/DeckBuilder/internal/dto"
-
 type Generator interface {
-	GenerateGame(gameID string, dtoObject *dto.GenerateGameDTO) error
+	GenerateGame(gameID string, req GenerateGameRequest) error
+}
+
+type GenerateGameRequest struct {
+	SortOrder string
+	Scale     int
 }
