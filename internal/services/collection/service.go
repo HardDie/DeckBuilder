@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -23,21 +22,26 @@ func New(cfg *config.Config, repositoryCollection repositoriesCollection.Collect
 	}
 }
 
-func (s *collection) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.repositoryCollection.Create(gameID, dtoObject)
+func (s *collection) Create(gameID string, req CreateRequest) (*entity.CollectionInfo, error) {
+	c, err := s.repositoryCollection.Create(gameID, repositoriesCollection.CreateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	collection.FillCachedImage(s.cfg, gameID)
-	return collection, nil
+	c.FillCachedImage(s.cfg, gameID)
+	return c, nil
 }
 func (s *collection) Item(gameID, collectionID string) (*entity.CollectionInfo, error) {
-	collection, err := s.repositoryCollection.GetByID(gameID, collectionID)
+	c, err := s.repositoryCollection.GetByID(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
-	collection.FillCachedImage(s.cfg, gameID)
-	return collection, nil
+	c.FillCachedImage(s.cfg, gameID)
+	return c, nil
 }
 func (s *collection) List(gameID, sortField, search string) ([]*entity.CollectionInfo, *network.Meta, error) {
 	items, err := s.repositoryCollection.GetAll(gameID)
@@ -76,13 +80,18 @@ func (s *collection) List(gameID, sortField, search string) ([]*entity.Collectio
 	}
 	return filteredItems, meta, nil
 }
-func (s *collection) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := s.repositoryCollection.Update(gameID, collectionID, dtoObject)
+func (s *collection) Update(gameID, collectionID string, req UpdateRequest) (*entity.CollectionInfo, error) {
+	c, err := s.repositoryCollection.Update(gameID, collectionID, repositoriesCollection.UpdateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+		ImageFile:   req.ImageFile,
+	})
 	if err != nil {
 		return nil, err
 	}
-	collection.FillCachedImage(s.cfg, gameID)
-	return collection, nil
+	c.FillCachedImage(s.cfg, gameID)
+	return c, nil
 }
 func (s *collection) Delete(gameID, collectionID string) error {
 	return s.repositoryCollection.DeleteByID(gameID, collectionID)

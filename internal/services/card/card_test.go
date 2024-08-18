@@ -622,7 +622,7 @@ func TestCard(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, servicesCollection.CreateRequest{
 		Name: tt.collectionID,
 	})
 	if err != nil {
@@ -802,7 +802,7 @@ func FuzzCard(f *testing.F) {
 			}
 
 			// Create collection
-			_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+			_, err = tt.serviceCollection.Create(tt.gameID, servicesCollection.CreateRequest{
 				Name: tt.collectionID,
 			})
 			if err != nil {

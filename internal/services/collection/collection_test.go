@@ -13,7 +13,6 @@ import (
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -68,7 +67,7 @@ func (tt *collectionTest) testCreate(t *testing.T) {
 	desc := "best game ever"
 
 	// Create collection
-	collection, err := tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	collection, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:        collectionName,
 		Description: desc,
 	})
@@ -83,7 +82,7 @@ func (tt *collectionTest) testCreate(t *testing.T) {
 	}
 
 	// Try to create duplicate
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: collectionName,
 	})
 	if err == nil {
@@ -113,7 +112,7 @@ func (tt *collectionTest) testDelete(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: collectionName,
 	})
 	if err != nil {
@@ -141,7 +140,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Try to update non-existing collection
-	_, err := tt.serviceCollection.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{})
+	_, err := tt.serviceCollection.Update(tt.gameID, collectionID[0], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -150,7 +149,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	}
 
 	// Create collection
-	collection, err := tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	collection, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:        collectionName[0],
 		Description: desc[0],
 	})
@@ -165,7 +164,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	}
 
 	// Update collection
-	collection, err = tt.serviceCollection.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{
+	collection, err = tt.serviceCollection.Update(tt.gameID, collectionID[0], UpdateRequest{
 		Name:        collectionName[1],
 		Description: desc[1],
 	})
@@ -186,7 +185,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	}
 
 	// Try to update non-existing collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID[1], &dto.UpdateCollectionDTO{})
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID[1], UpdateRequest{})
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
@@ -208,7 +207,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Create first collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: collectionName[0],
 	})
 	if err != nil {
@@ -225,7 +224,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Create second collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: collectionName[1],
 	})
 	if err != nil {
@@ -327,7 +326,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: collectionName[0],
 	})
 	if err != nil {
@@ -350,7 +349,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	}
 
 	// Rename collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID[0], &dto.UpdateCollectionDTO{Name: collectionName[1]})
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID[0], UpdateRequest{Name: collectionName[1]})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -392,7 +391,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:  collectionName,
 		Image: pngImage,
 	})
@@ -410,7 +409,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:  collectionName,
 		Image: jpegImage,
 	})
@@ -428,7 +427,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:  collectionName,
 		Image: "",
 	})
@@ -479,7 +478,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Create collection
-	_, err = tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:      collectionName,
 		ImageFile: pngImage,
 	})
@@ -497,7 +496,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:      collectionName,
 		ImageFile: jpegImage,
 	})
@@ -515,7 +514,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:      collectionName,
 		ImageFile: gifImage,
 	})
@@ -533,7 +532,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name: collectionName,
 	})
 	if err != nil {
@@ -550,7 +549,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:  collectionName,
 		Image: "empty",
 	})
@@ -589,7 +588,7 @@ func TestCollection(t *testing.T) {
 	}()
 
 	// Game not exist error
-	_, err := tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	_, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: "test",
 	})
 	if !errors.Is(err, er.GameNotExists) {
@@ -661,7 +660,7 @@ func (tt *collectionTest) fuzzItem(t *testing.T, collectionID, name, desc string
 	return nil
 }
 func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CollectionInfo, error) {
-	collection, err := tt.serviceCollection.Create(tt.gameID, &dto.CreateCollectionDTO{
+	collection, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:        name,
 		Description: desc,
 	})
@@ -679,7 +678,7 @@ func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entity.C
 	return collection, nil
 }
 func (tt *collectionTest) fuzzUpdate(t *testing.T, collectionID, name, desc string) (*entity.CollectionInfo, error) {
-	collection, err := tt.serviceCollection.Update(tt.gameID, collectionID, &dto.UpdateCollectionDTO{
+	collection, err := tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:        name,
 		Description: desc,
 	})

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
@@ -42,14 +41,12 @@ func (s *collection) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.CreateCollectionDTO{
+	item, e := s.serviceCollection.Create(gameID, servicesCollection.CreateRequest{
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
 		Image:       r.FormValue("image"),
 		ImageFile:   data,
-	}
-
-	item, e := s.serviceCollection.Create(gameID, dtoObject)
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return
@@ -106,14 +103,12 @@ func (s *collection) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dtoObject := &dto.UpdateCollectionDTO{
+	item, e := s.serviceCollection.Update(gameID, collectionID, servicesCollection.UpdateRequest{
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
 		Image:       r.FormValue("image"),
 		ImageFile:   data,
-	}
-
-	item, e := s.serviceCollection.Update(gameID, collectionID, dtoObject)
+	})
 	if e != nil {
 		network.ResponseError(w, e)
 		return

@@ -5,7 +5,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
-	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -24,30 +23,30 @@ func New(cfg *config.Config, c dbCollection.Collection) Collection {
 	}
 }
 
-func (r *collection) Create(gameID string, dtoObject *dto.CreateCollectionDTO) (*entity.CollectionInfo, error) {
-	collection, err := r.collection.Create(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+func (r *collection) Create(gameID string, req CreateRequest) (*entity.CollectionInfo, error) {
+	c, err := r.collection.Create(context.Background(), gameID, req.Name, req.Description, req.Image)
 	if err != nil {
 		return nil, err
 	}
 
-	if collection.Image == "" && dtoObject.ImageFile == nil {
-		return collection, nil
+	if c.Image == "" && req.ImageFile == nil {
+		return c, nil
 	}
 
-	if collection.Image != "" {
+	if c.Image != "" {
 		// Download image
-		err = r.createImage(gameID, collection.ID, collection.Image)
+		err = r.createImage(gameID, c.ID, c.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collection.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, c.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
 		}
 	}
 
-	return collection, nil
+	return c, nil
 }
 func (r *collection) GetByID(gameID, collectionID string) (*entity.CollectionInfo, error) {
 	_, resp, err := r.collection.Get(context.Background(), gameID, collectionID)
@@ -56,26 +55,26 @@ func (r *collection) GetByID(gameID, collectionID string) (*entity.CollectionInf
 func (r *collection) GetAll(gameID string) ([]*entity.CollectionInfo, error) {
 	return r.collection.List(context.Background(), gameID)
 }
-func (r *collection) Update(gameID, collectionID string, dtoObject *dto.UpdateCollectionDTO) (*entity.CollectionInfo, error) {
+func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*entity.CollectionInfo, error) {
 	_, oldCollection, err := r.collection.Get(context.Background(), gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
 	var newCollection *entity.CollectionInfo
-	if oldCollection.Name != dtoObject.Name {
+	if oldCollection.Name != req.Name {
 		// Rename folder
-		newCollection, err = r.collection.Move(context.Background(), gameID, oldCollection.Name, dtoObject.Name)
+		newCollection, err = r.collection.Move(context.Background(), gameID, oldCollection.Name, req.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if oldCollection.Description != dtoObject.Description ||
-		oldCollection.Image != dtoObject.Image ||
-		dtoObject.ImageFile != nil {
+	if oldCollection.Description != req.Description ||
+		oldCollection.Image != req.Image ||
+		req.ImageFile != nil {
 		// Update data
-		newCollection, err = r.collection.Update(context.Background(), gameID, dtoObject.Name, dtoObject.Description, dtoObject.Image)
+		newCollection, err = r.collection.Update(context.Background(), gameID, req.Name, req.Description, req.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +86,7 @@ func (r *collection) Update(gameID, collectionID string, dtoObject *dto.UpdateCo
 	}
 
 	// If the image has not been changed
-	if newCollection.Image == oldCollection.Image && dtoObject.ImageFile == nil {
+	if newCollection.Image == oldCollection.Image && req.ImageFile == nil {
 		return newCollection, nil
 	}
 
@@ -99,7 +98,7 @@ func (r *collection) Update(gameID, collectionID string, dtoObject *dto.UpdateCo
 		}
 	}
 
-	if newCollection.Image == "" && dtoObject.ImageFile == nil {
+	if newCollection.Image == "" && req.ImageFile == nil {
 		return newCollection, nil
 	}
 
@@ -109,8 +108,8 @@ func (r *collection) Update(gameID, collectionID string, dtoObject *dto.UpdateCo
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
 		}
-	} else if dtoObject.ImageFile != nil {
-		err = r.createImageFromByte(gameID, newCollection.ID, dtoObject.ImageFile)
+	} else if req.ImageFile != nil {
+		err = r.createImageFromByte(gameID, newCollection.ID, req.ImageFile)
 		if err != nil {
 			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
 		}
