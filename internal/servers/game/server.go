@@ -3,11 +3,11 @@ package game
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -60,17 +60,7 @@ func (s *game) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type createResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	network.Response(w, createResponse{
+	network.Response(w, dto.Game{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -107,17 +97,7 @@ func (s *game) DuplicateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type duplicateResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	network.Response(w, duplicateResponse{
+	network.Response(w, dto.Game{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -167,17 +147,7 @@ func (s *game) ImportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type importResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	network.Response(w, importResponse{
+	network.Response(w, dto.Game{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -195,17 +165,7 @@ func (s *game) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type itemResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	network.Response(w, itemResponse{
+	network.Response(w, dto.Game{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -226,19 +186,9 @@ func (s *game) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type listItemResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	respItems := make([]*listItemResponse, 0, len(items))
+	respItems := make([]*dto.Game, 0, len(items))
 	for _, item := range items {
-		respItems = append(respItems, &listItemResponse{
+		respItems = append(respItems, &dto.Game{
 			ID:          item.ID,
 			Name:        item.Name,
 			Description: item.Description,
@@ -281,17 +231,7 @@ func (s *game) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type updateResponse struct {
-		ID          string    `json:"id"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Image       string    `json:"image"`
-		CachedImage string    `json:"cachedImage,omitempty"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
-	}
-
-	network.Response(w, updateResponse{
+	network.Response(w, dto.Game{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,

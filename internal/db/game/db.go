@@ -11,7 +11,6 @@ import (
 	"github.com/HardDie/fsentry/pkg/fsentry_types"
 
 	dbCommon "github.com/HardDie/DeckBuilder/internal/db/common"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -28,7 +27,7 @@ func New(db fsentry.IFSEntry) Game {
 	}
 }
 
-func (d *game) Create(_ context.Context, name, description, image string) (*entity.GameInfo, error) {
+func (d *game) Create(_ context.Context, name, description, image string) (*GameInfo, error) {
 	info, err := d.db.CreateFolder(name, &dbCommon.Info{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
@@ -43,7 +42,7 @@ func (d *game) Create(_ context.Context, name, description, image string) (*enti
 		}
 	}
 
-	return &entity.GameInfo{
+	return &GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -53,7 +52,7 @@ func (d *game) Create(_ context.Context, name, description, image string) (*enti
 		Image:       image,
 	}, nil
 }
-func (d *game) Get(ctx context.Context, name string) (context.Context, *entity.GameInfo, error) {
+func (d *game) Get(ctx context.Context, name string) (context.Context, *GameInfo, error) {
 	info, err := d.db.GetFolder(name, d.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -72,7 +71,7 @@ func (d *game) Get(ctx context.Context, name string) (context.Context, *entity.G
 	}
 
 	ctx = context.WithValue(ctx, "gameID", info.Id)
-	return ctx, &entity.GameInfo{
+	return ctx, &GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -82,13 +81,13 @@ func (d *game) Get(ctx context.Context, name string) (context.Context, *entity.G
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (d *game) List(ctx context.Context) ([]*entity.GameInfo, error) {
+func (d *game) List(ctx context.Context) ([]*GameInfo, error) {
 	list, err := d.db.List(d.gamesPath)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	var games []*entity.GameInfo
+	var games []*GameInfo
 	for _, folder := range list.Folders {
 		_, game, err := d.Get(ctx, folder)
 		if err != nil {
@@ -103,7 +102,7 @@ func (d *game) List(ctx context.Context) ([]*entity.GameInfo, error) {
 	}
 	return games, nil
 }
-func (d *game) Move(_ context.Context, oldName, newName string) (*entity.GameInfo, error) {
+func (d *game) Move(_ context.Context, oldName, newName string) (*GameInfo, error) {
 	info, err := d.db.MoveFolder(oldName, newName, d.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -121,7 +120,7 @@ func (d *game) Move(_ context.Context, oldName, newName string) (*entity.GameInf
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.GameInfo{
+	return &GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -131,7 +130,7 @@ func (d *game) Move(_ context.Context, oldName, newName string) (*entity.GameInf
 		Image:       gInfo.Image.String(),
 	}, nil
 }
-func (d *game) Update(_ context.Context, name, description, image string) (*entity.GameInfo, error) {
+func (d *game) Update(_ context.Context, name, description, image string) (*GameInfo, error) {
 	info, err := d.db.UpdateFolder(name, &dbCommon.Info{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
@@ -152,7 +151,7 @@ func (d *game) Update(_ context.Context, name, description, image string) (*enti
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.GameInfo{
+	return &GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -175,7 +174,7 @@ func (d *game) Delete(_ context.Context, name string) error {
 	}
 	return nil
 }
-func (d *game) Duplicate(_ context.Context, srcName, dstName string) (*entity.GameInfo, error) {
+func (d *game) Duplicate(_ context.Context, srcName, dstName string) (*GameInfo, error) {
 	info, err := d.db.DuplicateFolder(srcName, dstName, d.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -195,7 +194,7 @@ func (d *game) Duplicate(_ context.Context, srcName, dstName string) (*entity.Ga
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.GameInfo{
+	return &GameInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,

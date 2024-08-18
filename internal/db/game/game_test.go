@@ -12,7 +12,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -61,7 +60,7 @@ func TestGameCreate(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		wait := &entity.GameInfo{
+		wait := &GameInfo{
 			Name:        "success",
 			Description: "descrption",
 			Image:       "https://some.url/image",
@@ -137,14 +136,14 @@ func TestGameList(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, got, 1)
 		wait.CreatedAt = got[0].CreatedAt
-		assert.Equal(t, []*entity.GameInfo{wait}, got)
+		assert.Equal(t, []*GameInfo{wait}, got)
 	})
 
 	t.Run("empty", func(t *testing.T) {
 		g := initGame(t, "game_list__empty")
 		got, err := g.List(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, []*entity.GameInfo(nil), got)
+		assert.Equal(t, []*GameInfo(nil), got)
 	})
 }
 func TestGameMove(t *testing.T) {
@@ -257,7 +256,7 @@ func TestGameDuplicate(t *testing.T) {
 		list, err := g.List(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, list, 2)
-		assert.Equal(t, []*entity.GameInfo{srcGame, dstGame}, list)
+		assert.Equal(t, []*GameInfo{srcGame, dstGame}, list)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {

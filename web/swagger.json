@@ -1878,7 +1878,7 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/errors"
     },
-    "GameInfo": {
+    "Game": {
       "type": "object",
       "properties": {
         "cachedImage": {
@@ -1912,7 +1912,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "Meta": {
       "type": "object",
@@ -2094,7 +2094,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/GameInfo"
+            "$ref": "#/definitions/Game"
           }
         }
       }
@@ -2154,7 +2154,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/GameInfo"
+            "$ref": "#/definitions/Game"
           }
         }
       }
@@ -2182,7 +2182,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/GameInfo"
+            "$ref": "#/definitions/Game"
           }
         }
       }
@@ -2219,7 +2219,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/GameInfo"
+            "$ref": "#/definitions/Game"
           }
         }
       }
@@ -2343,7 +2343,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/GameInfo"
+              "$ref": "#/definitions/Game"
             },
             "x-go-name": "Data"
           },
@@ -2496,7 +2496,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/GameInfo"
+            "$ref": "#/definitions/Game"
           }
         }
       }

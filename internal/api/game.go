@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversGame "github.com/HardDie/DeckBuilder/internal/servers/game"
 )
@@ -56,7 +56,7 @@ type ResponseCreateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.GameInfo `json:"data"`
+		Data dto.Game `json:"data"`
 	}
 }
 
@@ -123,7 +123,7 @@ type ResponseDuplicateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.GameInfo `json:"data"`
+		Data dto.Game `json:"data"`
 	}
 }
 
@@ -191,7 +191,7 @@ type ResponseGameImport struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.GameInfo `json:"data"`
+		Data dto.Game `json:"data"`
 	}
 }
 
@@ -225,7 +225,7 @@ type ResponseGame struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.GameInfo `json:"data"`
+		Data dto.Game `json:"data"`
 	}
 }
 
@@ -260,7 +260,7 @@ type ResponseListOfGames struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*entity.GameInfo `json:"data"`
+		Data []*dto.Game `json:"data"`
 		// Required: true
 		Meta *network.Meta `json:"meta"`
 	}
@@ -307,7 +307,7 @@ type ResponseUpdateGame struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.GameInfo `json:"data"`
+		Data dto.Game `json:"data"`
 	}
 }
 
