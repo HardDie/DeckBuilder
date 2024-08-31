@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/entity"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -22,35 +21,25 @@ func New(cfg *config.Config, repositoryCollection repositoriesCollection.Collect
 	}
 }
 
-func (s *collection) Create(gameID string, req CreateRequest) (*entity.CollectionInfo, error) {
-	c, err := s.repositoryCollection.Create(gameID, repositoriesCollection.CreateRequest{
+func (s *collection) Create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {
+	return s.repositoryCollection.Create(gameID, repositoriesCollection.CreateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID)
-	return c, nil
 }
-func (s *collection) Item(gameID, collectionID string) (*entity.CollectionInfo, error) {
-	c, err := s.repositoryCollection.GetByID(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID)
-	return c, nil
+func (s *collection) Item(gameID, collectionID string) (*entitiesCollection.Collection, error) {
+	return s.repositoryCollection.GetByID(gameID, collectionID)
 }
-func (s *collection) List(gameID, sortField, search string) ([]*entity.CollectionInfo, *network.Meta, error) {
+func (s *collection) List(gameID, sortField, search string) ([]*entitiesCollection.Collection, error) {
 	items, err := s.repositoryCollection.GetAll(gameID)
 	if err != nil {
-		return make([]*entity.CollectionInfo, 0), nil, err
+		return make([]*entitiesCollection.Collection, 0), err
 	}
 
 	// Filter
-	var filteredItems []*entity.CollectionInfo
+	var filteredItems []*entitiesCollection.Collection
 	if search != "" {
 		search = strings.ToLower(search)
 		for _, item := range items {
@@ -65,33 +54,20 @@ func (s *collection) List(gameID, sortField, search string) ([]*entity.Collectio
 	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
-	// Generate field cachedImage
-	for i := 0; i < len(filteredItems); i++ {
-		filteredItems[i].FillCachedImage(s.cfg, gameID)
-	}
-
 	// Return empty array if no elements
 	if filteredItems == nil {
-		filteredItems = make([]*entity.CollectionInfo, 0)
+		filteredItems = make([]*entitiesCollection.Collection, 0)
 	}
 
-	meta := &network.Meta{
-		Total: len(filteredItems),
-	}
-	return filteredItems, meta, nil
+	return filteredItems, nil
 }
-func (s *collection) Update(gameID, collectionID string, req UpdateRequest) (*entity.CollectionInfo, error) {
-	c, err := s.repositoryCollection.Update(gameID, collectionID, repositoriesCollection.UpdateRequest{
+func (s *collection) Update(gameID, collectionID string, req UpdateRequest) (*entitiesCollection.Collection, error) {
+	return s.repositoryCollection.Update(gameID, collectionID, repositoriesCollection.UpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID)
-	return c, nil
 }
 func (s *collection) Delete(gameID, collectionID string) error {
 	return s.repositoryCollection.DeleteByID(gameID, collectionID)

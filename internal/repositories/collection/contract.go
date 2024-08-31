@@ -1,14 +1,14 @@
 package collection
 
 import (
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 )
 
 type Collection interface {
-	Create(gameID string, req CreateRequest) (*entity.CollectionInfo, error)
-	GetByID(gameID, collectionID string) (*entity.CollectionInfo, error)
-	GetAll(gameID string) ([]*entity.CollectionInfo, error)
-	Update(gameID, collectionID string, req UpdateRequest) (*entity.CollectionInfo, error)
+	Create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error)
+	GetByID(gameID, collectionID string) (*entitiesCollection.Collection, error)
+	GetAll(gameID string) ([]*entitiesCollection.Collection, error)
+	Update(gameID, collectionID string, req UpdateRequest) (*entitiesCollection.Collection, error)
 	DeleteByID(gameID, collectionID string) error
 	GetImage(gameID, collectionID string) ([]byte, string, error)
 }

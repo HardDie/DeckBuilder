@@ -119,7 +119,7 @@ type Card struct {
 func (s *generator) getListOfCards(gameID string, sortField string) (map[Deck][]Card, []Deck, error) {
 	decks := make(map[Deck][]Card)
 	// Get list of collections
-	collectionItems, _, err := s.serviceCollection.List(gameID, sortField, "")
+	collectionItems, err := s.serviceCollection.List(gameID, sortField, "")
 	if err != nil {
 		return nil, nil, err
 	}

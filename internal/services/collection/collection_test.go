@@ -13,7 +13,7 @@ import (
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -198,7 +198,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	collectionID := []string{utils.NameToID(collectionName[0]), utils.NameToID(collectionName[1])}
 
 	// Empty list
-	items, _, err := tt.serviceCollection.List(tt.gameID, "", "")
+	items, err := tt.serviceCollection.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +215,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// One collection
-	items, _, err = tt.serviceCollection.List(tt.gameID, "", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +232,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, _, err = tt.serviceCollection.List(tt.gameID, "name", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "name", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,7 +247,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, _, err = tt.serviceCollection.List(tt.gameID, "name_desc", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "name_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, _, err = tt.serviceCollection.List(tt.gameID, "created", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "created", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +277,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, _, err = tt.serviceCollection.List(tt.gameID, "created_desc", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "created_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,7 +304,7 @@ func (tt *collectionTest) testList(t *testing.T) {
 	}
 
 	// Empty list
-	items, _, err = tt.serviceCollection.List(tt.gameID, "", "")
+	items, err = tt.serviceCollection.List(tt.gameID, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -617,7 +617,7 @@ func (tt *collectionTest) fuzzCleanup() {
 	_ = tt.core.Init()
 }
 func (tt *collectionTest) fuzzList(t *testing.T, waitItems int) error {
-	items, _, err := tt.serviceCollection.List(tt.gameID, "", "")
+	items, err := tt.serviceCollection.List(tt.gameID, "", "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -659,7 +659,7 @@ func (tt *collectionTest) fuzzItem(t *testing.T, collectionID, name, desc string
 	}
 	return nil
 }
-func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CollectionInfo, error) {
+func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entitiesCollection.Collection, error) {
 	collection, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name:        name,
 		Description: desc,
@@ -677,7 +677,7 @@ func (tt *collectionTest) fuzzCreate(t *testing.T, name, desc string) (*entity.C
 	}
 	return collection, nil
 }
-func (tt *collectionTest) fuzzUpdate(t *testing.T, collectionID, name, desc string) (*entity.CollectionInfo, error) {
+func (tt *collectionTest) fuzzUpdate(t *testing.T, collectionID, name, desc string) (*entitiesCollection.Collection, error) {
 	collection, err := tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:        name,
 		Description: desc,

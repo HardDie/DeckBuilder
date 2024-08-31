@@ -59,9 +59,6 @@ func (s *game) List(sortField, search string) ([]*entitiesGame.Game, error) {
 		filteredItems = make([]*entitiesGame.Game, 0)
 	}
 
-	// meta := &network.Meta{
-	// 	Total: len(filteredItems),
-	// }
 	return filteredItems, nil
 }
 func (s *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, error) {

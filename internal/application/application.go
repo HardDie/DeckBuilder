@@ -82,7 +82,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// collection
 	repositoryCollection := repositoriesCollection.New(cfg, collection)
 	serviceCollection := servicesCollection.New(cfg, repositoryCollection)
-	serverCollection := serversCollection.New(serviceCollection, serverSystem)
+	serverCollection := serversCollection.New(*cfg, serviceCollection, serverSystem)
 	api.RegisterCollectionServer(routes, serverCollection)
 
 	// deck
