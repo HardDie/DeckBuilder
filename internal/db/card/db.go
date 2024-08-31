@@ -14,6 +14,7 @@ import (
 	"github.com/HardDie/fsentry/pkg/fsentry_types"
 
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
+	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -34,18 +35,7 @@ func New(db fsentry.IFSEntry, deck dbDeck.Deck) Card {
 	}
 }
 
-type cardInfo struct {
-	ID          int64                                 `json:"id"`
-	Name        fsentry_types.QuotedString            `json:"name"`
-	Description fsentry_types.QuotedString            `json:"description"`
-	Image       fsentry_types.QuotedString            `json:"image"`
-	Variables   map[string]fsentry_types.QuotedString `json:"variables"`
-	Count       int                                   `json:"count"`
-	CreatedAt   *time.Time                            `json:"createdAt"`
-	UpdatedAt   *time.Time                            `json:"updatedAt"`
-}
-
-func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*CardInfo, error) {
+func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -60,7 +50,7 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 	}
 
 	// Create a card with the found identifier
-	cardInfo := &cardInfo{
+	cardInfo := &model{
 		ID:          maxID,
 		Name:        fsentry_types.QS(name),
 		Description: fsentry_types.QS(description),
@@ -86,64 +76,67 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 		}
 	}
 
-	return &CardInfo{
+	createdAt, updatedAt := d.convertCreateUpdate(cardInfo.CreatedAt, cardInfo.UpdatedAt)
+	return &entitiesCard.Card{
 		ID:          cardInfo.ID,
 		Name:        cardInfo.Name.String(),
 		Description: cardInfo.Description.String(),
 		Image:       cardInfo.Image.String(),
 		Variables:   convertMapQuotedString(cardInfo.Variables),
 		Count:       cardInfo.Count,
-		CreatedAt:   cardInfo.CreatedAt,
-		UpdatedAt:   nil,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
 		DeckID:       deckID,
 	}, nil
 }
-func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (context.Context, *CardInfo, error) {
+func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
-		return ctx, nil, err
+		return nil, err
 	}
 
 	card, ok := list[cardID]
 	if !ok {
-		return ctx, nil, er.CardNotExists.HTTP(http.StatusBadRequest)
+		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	return ctx, &CardInfo{
+	createdAt, updatedAt := d.convertCreateUpdate(card.CreatedAt, card.UpdatedAt)
+	return &entitiesCard.Card{
 		ID:          card.ID,
 		Name:        card.Name.String(),
 		Description: card.Description.String(),
 		Image:       card.Image.String(),
 		Variables:   convertMapQuotedString(card.Variables),
 		Count:       card.Count,
-		CreatedAt:   card.CreatedAt,
-		UpdatedAt:   card.UpdatedAt,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
 		DeckID:       deckID,
 	}, nil
 }
-func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*CardInfo, error) {
+func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
-	var cards []*CardInfo
+	var cards []*entitiesCard.Card
 	for _, item := range list {
-		cards = append(cards, &CardInfo{
+		createdAt, updatedAt := d.convertCreateUpdate(item.CreatedAt, item.UpdatedAt)
+		cards = append(cards, &entitiesCard.Card{
 			ID:          item.ID,
 			Name:        item.Name.String(),
 			Description: item.Description.String(),
 			Image:       item.Image.String(),
 			Variables:   convertMapQuotedString(item.Variables),
 			Count:       item.Count,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
 
 			GameID:       gameID,
 			CollectionID: collectionID,
@@ -152,7 +145,7 @@ func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([
 	}
 	return cards, nil
 }
-func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*CardInfo, error) {
+func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -184,15 +177,16 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 		}
 	}
 
-	return &CardInfo{
+	createdAt, updatedAt := d.convertCreateUpdate(card.CreatedAt, card.UpdatedAt)
+	return &entitiesCard.Card{
 		ID:          card.ID,
 		Name:        card.Name.String(),
 		Description: card.Description.String(),
 		Image:       card.Image.String(),
 		Variables:   convertMapQuotedString(card.Variables),
 		Count:       card.Count,
-		CreatedAt:   card.CreatedAt,
-		UpdatedAt:   card.UpdatedAt,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
@@ -226,7 +220,7 @@ func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, 
 	return nil
 }
 func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID string, cardID int64, data []byte) error {
-	ctx, card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
+	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return err
 	}
@@ -242,7 +236,7 @@ func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 	return nil
 }
 func (d *card) ImageGet(ctx context.Context, gameID, collectionID, deckID string, cardID int64) ([]byte, error) {
-	ctx, card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
+	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +252,7 @@ func (d *card) ImageGet(ctx context.Context, gameID, collectionID, deckID string
 	return data, nil
 }
 func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
-	ctx, card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
+	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return err
 	}
@@ -274,7 +268,7 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 	return nil
 }
 
-func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, map[int64]*cardInfo, error) {
+func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, map[int64]*model, error) {
 	deck, err := d.deck.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return ctx, nil, err
@@ -287,14 +281,14 @@ func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID str
 	}
 
 	// Parsing an array of cards from json
-	var list map[int64]*cardInfo
+	var list map[int64]*model
 	err = json.Unmarshal(info.Data, &list)
 	if err != nil {
 		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	if list == nil {
-		list = make(map[int64]*cardInfo)
+		list = make(map[int64]*model)
 	}
 	return ctx, list, nil
 }
@@ -315,4 +309,14 @@ func convertMapQuotedString(in map[string]fsentry_types.QuotedString) map[string
 		res[key] = val.String()
 	}
 	return res
+}
+
+func (d *card) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
+	if createdAt == nil {
+		createdAt = utils.Allocate(time.Now())
+	}
+	if updatedAt == nil {
+		updatedAt = createdAt
+	}
+	return *createdAt, *updatedAt
 }
