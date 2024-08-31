@@ -12,6 +12,11 @@ type Deck struct {
 	Image       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+
+	// Dynamic fields
+
+	GameID       string
+	CollectionID string
 }
 
 func (e Deck) GetName() string {

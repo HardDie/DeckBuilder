@@ -12,6 +12,10 @@ type Collection struct {
 	Image       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+
+	// Dynamic fields
+
+	GameID string
 }
 
 func (e Collection) GetName() string {

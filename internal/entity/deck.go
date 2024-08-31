@@ -17,6 +17,11 @@ type DeckInfo struct {
 	CachedImage string     `json:"cachedImage,omitempty"`
 	CreatedAt   *time.Time `json:"createdAt"`
 	UpdatedAt   *time.Time `json:"updatedAt"`
+
+	// Dynamic fields
+
+	GameID       string
+	CollectionID string
 }
 
 func (i *DeckInfo) GetName() string {

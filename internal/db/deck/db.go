@@ -68,6 +68,9 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 
 		Description: description,
 		Image:       image,
+
+		GameID:       gameID,
+		CollectionID: collectionID,
 	}, nil
 }
 func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (context.Context, *entity.DeckInfo, error) {
@@ -103,6 +106,9 @@ func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (cont
 
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+
+		GameID:       gameID,
+		CollectionID: collectionID,
 	}, nil
 }
 func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*entity.DeckInfo, error) {
@@ -164,6 +170,9 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+
+		GameID:       gameID,
+		CollectionID: collectionID,
 	}, nil
 }
 func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
@@ -201,6 +210,9 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+
+		GameID:       gameID,
+		CollectionID: collectionID,
 	}, nil
 }
 func (d *deck) Delete(ctx context.Context, gameID, collectionID, name string) error {

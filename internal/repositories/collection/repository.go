@@ -176,6 +176,8 @@ func (r *collection) oldEntityToNew(g *dbCollection.CollectionInfo) *entitiesCol
 		Image:       g.Image,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
+
+		GameID: g.GameID,
 	}
 }
 func (r *collection) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {

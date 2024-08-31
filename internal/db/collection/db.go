@@ -60,6 +60,8 @@ func (d *collection) Create(ctx context.Context, gameID, name, description, imag
 
 		Description: description,
 		Image:       image,
+
+		GameID: gameID,
 	}, nil
 }
 func (d *collection) Get(ctx context.Context, gameID, name string) (context.Context, *CollectionInfo, error) {
@@ -94,6 +96,8 @@ func (d *collection) Get(ctx context.Context, gameID, name string) (context.Cont
 
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+
+		GameID: gameID,
 	}, nil
 }
 func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo, error) {
@@ -153,6 +157,8 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+
+		GameID: gameID,
 	}, nil
 }
 func (d *collection) Update(ctx context.Context, gameID, name, description, image string) (*CollectionInfo, error) {
@@ -189,6 +195,8 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+
+		GameID: gameID,
 	}, nil
 }
 func (d *collection) Delete(ctx context.Context, gameID, name string) error {

@@ -22,7 +22,10 @@ type CollectionInfo struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Image       string     `json:"image"`
-	CachedImage string     `json:"cachedImage,omitempty"`
 	CreatedAt   *time.Time `json:"createdAt"`
 	UpdatedAt   *time.Time `json:"updatedAt"`
+
+	// Dynamic fields
+
+	GameID string `json:"game_id"`
 }
