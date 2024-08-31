@@ -50,9 +50,6 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
 	// Search for the largest card ID
 	maxID := int64(1)
@@ -78,7 +75,7 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 	list[cardInfo.ID] = cardInfo
 
 	// Writing an array of cards to a file again
-	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
+	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -160,9 +157,6 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
 	card, ok := list[cardID]
 	if !ok {
@@ -179,7 +173,7 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 	list[card.ID] = card
 
 	// Writing an array of cards to a file again
-	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
+	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -210,9 +204,6 @@ func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, 
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
 	if _, ok := list[cardID]; !ok {
 		return er.CardNotExists
@@ -221,7 +212,7 @@ func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, 
 	delete(list, cardID)
 
 	// Writing an array of cards to a file again
-	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID)
+	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CardNotExists.AddMessage(err.Error())
@@ -239,11 +230,8 @@ func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
-	err = d.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
+	err = d.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.CardImageExist.AddMessage(err.Error())
@@ -258,11 +246,8 @@ func (d *card) ImageGet(ctx context.Context, gameID, collectionID, deckID string
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
-	data, err := d.db.GetBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
+	data, err := d.db.GetBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardImageNotExists.AddMessage(err.Error())
@@ -277,11 +262,8 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
-	ctxDeckID := ctx.Value("deckID").(string)
 
-	err = d.db.RemoveBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, ctxGameID, ctxCollectionID, ctxDeckID, "cards")
+	err = d.db.RemoveBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CardImageNotExists.AddMessage(err.Error())
@@ -297,11 +279,9 @@ func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID str
 	if err != nil {
 		return ctx, nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
 
 	// Get all the cards
-	info, err := d.db.GetFolder("cards", d.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
+	info, err := d.db.GetFolder("cards", d.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
 		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}

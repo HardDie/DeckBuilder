@@ -12,6 +12,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
+	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -60,7 +61,7 @@ func TestGameCreate(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		wait := &GameInfo{
+		wait := &entitiesGame.Game{
 			Name:        "success",
 			Description: "descrption",
 			Image:       "https://some.url/image",
@@ -100,18 +101,16 @@ func TestGameGet(t *testing.T) {
 		g := initGame(t, "game_get__success")
 		wait, err := g.Create(ctx, name, desc, img)
 		assert.NoError(t, err)
-		ctx, got, err := g.Get(ctx, name)
+		got, err := g.Get(ctx, name)
 		assert.NoError(t, err)
 		wait.CreatedAt = got.CreatedAt
+		wait.UpdatedAt = got.UpdatedAt
 		assert.Equal(t, wait, got)
-		// TODO: remove context
-		gameID := ctx.Value("gameID").(string)
-		assert.Equal(t, wait.ID, gameID)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_get__not_exist")
-		_, _, err := g.Get(ctx, "not_exist")
+		_, err := g.Get(ctx, "not_exist")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
@@ -136,14 +135,15 @@ func TestGameList(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, got, 1)
 		wait.CreatedAt = got[0].CreatedAt
-		assert.Equal(t, []*GameInfo{wait}, got)
+		wait.UpdatedAt = got[0].UpdatedAt
+		assert.Equal(t, []*entitiesGame.Game{wait}, got)
 	})
 
 	t.Run("empty", func(t *testing.T) {
 		g := initGame(t, "game_list__empty")
 		got, err := g.List(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, []*GameInfo(nil), got)
+		assert.Equal(t, []*entitiesGame.Game(nil), got)
 	})
 }
 func TestGameMove(t *testing.T) {
@@ -163,7 +163,7 @@ func TestGameMove(t *testing.T) {
 
 		oldGame.ID = utils.NameToID(newName)
 		oldGame.Name = newName
-		oldGame.CreatedAt = utils.Allocate(oldGame.CreatedAt.Truncate(time.Nanosecond))
+		oldGame.CreatedAt = oldGame.CreatedAt.Truncate(time.Nanosecond)
 		oldGame.UpdatedAt = newGame.UpdatedAt
 		assert.Equal(t, oldGame, newGame)
 	})
@@ -248,15 +248,17 @@ func TestGameDuplicate(t *testing.T) {
 		g := initGame(t, "game_duplicate__success")
 		srcGame, err := g.Create(ctx, srcName, "", "")
 		assert.NoError(t, err)
-		srcGame.CreatedAt = utils.Allocate(srcGame.CreatedAt.Truncate(time.Nanosecond))
+		srcGame.CreatedAt = srcGame.CreatedAt.Truncate(time.Nanosecond)
+		srcGame.UpdatedAt = srcGame.UpdatedAt.Truncate(time.Nanosecond)
 		dstGame, err := g.Duplicate(ctx, srcName, dstName)
 		assert.NoError(t, err)
-		dstGame.CreatedAt = utils.Allocate(dstGame.CreatedAt.Truncate(time.Nanosecond))
+		dstGame.CreatedAt = dstGame.CreatedAt.Truncate(time.Nanosecond)
+		dstGame.UpdatedAt = dstGame.UpdatedAt.Truncate(time.Nanosecond)
 		assert.NotEqual(t, srcGame, dstGame)
 		list, err := g.List(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, list, 2)
-		assert.Equal(t, []*GameInfo{srcGame, dstGame}, list)
+		assert.Equal(t, []*entitiesGame.Game{srcGame, dstGame}, list)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {

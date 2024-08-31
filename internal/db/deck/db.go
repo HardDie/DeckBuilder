@@ -37,12 +37,11 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
 	info, err := d.db.CreateFolder(name, &dbCommon.Info{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
-	}, d.gamesPath, ctxGameID, collection.ID)
+	}, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return nil, er.DeckExist
@@ -54,7 +53,7 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 	}
 
 	// Create folder for cards
-	_, err = d.db.CreateFolder("cards", nil, d.gamesPath, ctxGameID, collection.ID, info.Id)
+	_, err = d.db.CreateFolder("cards", nil, d.gamesPath, gameID, collection.ID, info.Id)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
@@ -77,9 +76,8 @@ func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (cont
 	if err != nil {
 		return ctx, nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	info, err := d.db.GetFolder(name, d.gamesPath, ctxGameID, collection.ID)
+	info, err := d.db.GetFolder(name, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return ctx, nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -115,16 +113,15 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckIn
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	list, err := d.db.List(d.gamesPath, ctxGameID, collection.ID)
+	list, err := d.db.List(d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	var decks []*DeckInfo
 	for _, folder := range list.Folders {
-		_, deck, err := d.Get(ctx, ctxGameID, collection.ID, folder)
+		_, deck, err := d.Get(ctx, gameID, collection.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -142,9 +139,8 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	info, err := d.db.MoveFolder(oldName, newName, d.gamesPath, ctxGameID, collection.ID)
+	info, err := d.db.MoveFolder(oldName, newName, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -179,12 +175,11 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
 	info, err := d.db.UpdateFolder(name, &dbCommon.Info{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
-	}, d.gamesPath, ctxGameID, collection.ID)
+	}, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -219,9 +214,8 @@ func (d *deck) Delete(ctx context.Context, gameID, collectionID, name string) er
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	err = d.db.RemoveFolder(name, d.gamesPath, ctxGameID, collection.ID)
+	err = d.db.RemoveFolder(name, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -238,10 +232,8 @@ func (d *deck) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	err = d.db.CreateBinary("image", data, d.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
+	err = d.db.CreateBinary("image", data, d.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.DeckImageExist.AddMessage(err.Error())
@@ -256,10 +248,8 @@ func (d *deck) ImageGet(ctx context.Context, gameID, collectionID, deckID string
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	data, err := d.db.GetBinary("image", d.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
+	data, err := d.db.GetBinary("image", d.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckImageNotExists.AddMessage(err.Error())
@@ -274,10 +264,8 @@ func (d *deck) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
-	ctxCollectionID := ctx.Value("collectionID").(string)
 
-	err = d.db.RemoveBinary("image", d.gamesPath, ctxGameID, ctxCollectionID, deck.ID)
+	err = d.db.RemoveBinary("image", d.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.DeckImageNotExists.AddMessage(err.Error())

@@ -3,7 +3,6 @@ package game
 import (
 	"context"
 	"path/filepath"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
@@ -35,7 +34,7 @@ func (r *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
 	}
 
 	if g.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(g), nil
+		return g, nil
 	}
 
 	if g.Image != "" {
@@ -51,33 +50,21 @@ func (r *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
 		}
 	}
 
-	return r.oldEntityToNew(g), nil
+	return g, nil
 }
 func (r *game) GetByID(gameID string) (*entitiesGame.Game, error) {
-	_, g, err := r.game.Get(context.Background(), gameID)
-	if err != nil {
-		return nil, err
-	}
-	return r.oldEntityToNew(g), nil
+	return r.game.Get(context.Background(), gameID)
 }
 func (r *game) GetAll() ([]*entitiesGame.Game, error) {
-	list, err := r.game.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*entitiesGame.Game, 0, len(list))
-	for _, g := range list {
-		res = append(res, r.oldEntityToNew(g))
-	}
-	return res, nil
+	return r.game.List(context.Background())
 }
 func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, error) {
-	_, oldGame, err := r.game.Get(context.Background(), gameID)
+	oldGame, err := r.game.Get(context.Background(), gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	var newGame *dbGame.GameInfo
+	var newGame *entitiesGame.Game
 	if oldGame.Name != req.Name {
 		// Rename folder
 		newGame, err = r.game.Move(context.Background(), oldGame.Name, req.Name)
@@ -103,7 +90,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 
 	// If the image has not been changed
 	if newGame.Image == oldGame.Image && req.ImageFile == nil {
-		return r.oldEntityToNew(newGame), nil
+		return newGame, nil
 	}
 
 	// If image exist, delete
@@ -115,7 +102,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 	}
 
 	if newGame.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(newGame), nil
+		return newGame, nil
 	}
 
 	if newGame.Image != "" {
@@ -131,7 +118,7 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 		}
 	}
 
-	return r.oldEntityToNew(newGame), nil
+	return newGame, nil
 }
 func (r *game) DeleteByID(gameID string) error {
 	return r.game.Delete(context.Background(), gameID)
@@ -154,7 +141,7 @@ func (r *game) Duplicate(gameID string, req DuplicateRequest) (*entitiesGame.Gam
 	if err != nil {
 		return nil, err
 	}
-	return r.oldEntityToNew(g), nil
+	return g, nil
 }
 func (r *game) Export(gameID string) ([]byte, error) {
 	// Check if such an object exists
@@ -225,28 +212,4 @@ func (r *game) createImageFromByte(gameID string, data []byte) error {
 
 	// Write image to file
 	return r.game.ImageCreate(context.Background(), gameID, data)
-}
-
-func (r *game) oldEntityToNew(g *dbGame.GameInfo) *entitiesGame.Game {
-	if g == nil {
-		return nil
-	}
-	createdAt, updatedAt := r.convertCreateUpdate(g.CreatedAt, g.UpdatedAt)
-	return &entitiesGame.Game{
-		ID:          g.ID,
-		Name:        g.Name,
-		Description: g.Description,
-		Image:       g.Image,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-	}
-}
-func (r *game) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
-	if createdAt == nil {
-		createdAt = utils.Allocate(time.Now())
-	}
-	if updatedAt == nil {
-		updatedAt = createdAt
-	}
-	return *createdAt, *updatedAt
 }

@@ -33,7 +33,7 @@ func New(db fsentry.IFSEntry, game dbGame.Game) Collection {
 }
 
 func (d *collection) Create(ctx context.Context, gameID, name, description, image string) (*CollectionInfo, error) {
-	_, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (d *collection) Create(ctx context.Context, gameID, name, description, imag
 	}, nil
 }
 func (d *collection) Get(ctx context.Context, gameID, name string) (context.Context, *CollectionInfo, error) {
-	ctx, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -101,7 +101,7 @@ func (d *collection) Get(ctx context.Context, gameID, name string) (context.Cont
 	}, nil
 }
 func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo, error) {
-	_, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo
 	return collections, nil
 }
 func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) (*CollectionInfo, error) {
-	_, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 	}, nil
 }
 func (d *collection) Update(ctx context.Context, gameID, name, description, image string) (*CollectionInfo, error) {
-	_, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 	}, nil
 }
 func (d *collection) Delete(ctx context.Context, gameID, name string) error {
-	_, game, err := d.game.Get(ctx, gameID)
+	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return err
 	}
@@ -222,9 +222,8 @@ func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID strin
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	err = d.db.CreateBinary("image", data, d.gamesPath, ctxGameID, collection.ID)
+	err = d.db.CreateBinary("image", data, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return er.CollectionImageExist.AddMessage(err.Error())
@@ -239,9 +238,8 @@ func (d *collection) ImageGet(ctx context.Context, gameID, collectionID string) 
 	if err != nil {
 		return nil, err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	data, err := d.db.GetBinary("image", d.gamesPath, ctxGameID, collection.ID)
+	data, err := d.db.GetBinary("image", d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CollectionImageNotExists.AddMessage(err.Error())
@@ -256,9 +254,8 @@ func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID strin
 	if err != nil {
 		return err
 	}
-	ctxGameID := ctx.Value("gameID").(string)
 
-	err = d.db.RemoveBinary("image", d.gamesPath, ctxGameID, collection.ID)
+	err = d.db.RemoveBinary("image", d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return er.CollectionImageNotExists.AddMessage(err.Error())
