@@ -1787,7 +1787,7 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
-    "CollectionInfo": {
+    "Collection": {
       "type": "object",
       "properties": {
         "cachedImage": {
@@ -1821,7 +1821,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "DeckInfo": {
       "type": "object",
@@ -2005,7 +2005,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CollectionInfo"
+            "$ref": "#/definitions/Collection"
           }
         }
       }
@@ -2066,7 +2066,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CollectionInfo"
+            "$ref": "#/definitions/Collection"
           }
         }
       }
@@ -2299,7 +2299,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/CollectionInfo"
+              "$ref": "#/definitions/Collection"
             },
             "x-go-name": "Data"
           },
@@ -2468,7 +2468,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CollectionInfo"
+            "$ref": "#/definitions/Collection"
           }
         }
       }

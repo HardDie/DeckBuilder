@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversCollection "github.com/HardDie/DeckBuilder/internal/servers/collection"
 )
@@ -56,7 +56,7 @@ type ResponseCreateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.CollectionInfo `json:"data"`
+		Data dto.Collection `json:"data"`
 	}
 }
 
@@ -122,7 +122,7 @@ type ResponseCollection struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.CollectionInfo `json:"data"`
+		Data dto.Collection `json:"data"`
 	}
 }
 
@@ -160,7 +160,7 @@ type ResponseListOfCollections struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*entity.CollectionInfo `json:"data"`
+		Data []*dto.Collection `json:"data"`
 		// Required: true
 		Meta *network.Meta `json:"meta"`
 	}
@@ -210,7 +210,7 @@ type ResponseUpdateCollection struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.CollectionInfo `json:"data"`
+		Data dto.Collection `json:"data"`
 	}
 }
 
