@@ -1717,7 +1717,7 @@
     }
   },
   "definitions": {
-    "CardInfo": {
+    "Card": {
       "type": "object",
       "properties": {
         "cachedImage": {
@@ -1764,7 +1764,7 @@
           "x-go-name": "Variables"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "CardSize": {
       "type": "object",
@@ -1981,7 +1981,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CardInfo"
+            "$ref": "#/definitions/Card"
           }
         }
       }
@@ -2052,7 +2052,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CardInfo"
+            "$ref": "#/definitions/Card"
           }
         }
       }
@@ -2277,7 +2277,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/CardInfo"
+              "$ref": "#/definitions/Card"
             },
             "x-go-name": "Data"
           },
@@ -2454,7 +2454,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/CardInfo"
+            "$ref": "#/definitions/Card"
           }
         }
       }

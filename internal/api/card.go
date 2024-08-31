@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversCard "github.com/HardDie/DeckBuilder/internal/servers/card"
 )
@@ -68,7 +68,7 @@ type ResponseCreateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.CardInfo `json:"data"`
+		Data dto.Card `json:"data"`
 	}
 }
 
@@ -147,7 +147,7 @@ type ResponseCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.CardInfo `json:"data"`
+		Data dto.Card `json:"data"`
 	}
 }
 
@@ -191,7 +191,7 @@ type ResponseListOfCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*entity.CardInfo `json:"data"`
+		Data []*dto.Card `json:"data"`
 		// Required: true
 		Meta *network.Meta `json:"meta"`
 	}
@@ -253,7 +253,7 @@ type ResponseUpdateCard struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.CardInfo `json:"data"`
+		Data dto.Card `json:"data"`
 	}
 }
 

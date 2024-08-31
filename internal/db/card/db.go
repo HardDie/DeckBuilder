@@ -14,7 +14,6 @@ import (
 	"github.com/HardDie/fsentry/pkg/fsentry_types"
 
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -46,7 +45,7 @@ type cardInfo struct {
 	UpdatedAt   *time.Time                            `json:"updatedAt"`
 }
 
-func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*CardInfo, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -90,7 +89,7 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 		}
 	}
 
-	return &entity.CardInfo{
+	return &CardInfo{
 		ID:          cardInfo.ID,
 		Name:        cardInfo.Name.String(),
 		Description: cardInfo.Description.String(),
@@ -105,7 +104,7 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 		DeckID:       deckID,
 	}, nil
 }
-func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (context.Context, *entity.CardInfo, error) {
+func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (context.Context, *CardInfo, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return ctx, nil, err
@@ -116,7 +115,7 @@ func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, car
 		return ctx, nil, er.CardNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	return ctx, &entity.CardInfo{
+	return ctx, &CardInfo{
 		ID:          card.ID,
 		Name:        card.Name.String(),
 		Description: card.Description.String(),
@@ -131,15 +130,15 @@ func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, car
 		DeckID:       deckID,
 	}, nil
 }
-func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
+func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*CardInfo, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
-	var cards []*entity.CardInfo
+	var cards []*CardInfo
 	for _, item := range list {
-		cards = append(cards, &entity.CardInfo{
+		cards = append(cards, &CardInfo{
 			ID:          item.ID,
 			Name:        item.Name.String(),
 			Description: item.Description.String(),
@@ -156,7 +155,7 @@ func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([
 	}
 	return cards, nil
 }
-func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entity.CardInfo, error) {
+func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*CardInfo, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -191,7 +190,7 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 		}
 	}
 
-	return &entity.CardInfo{
+	return &CardInfo{
 		ID:          card.ID,
 		Name:        card.Name.String(),
 		Description: card.Description.String(),

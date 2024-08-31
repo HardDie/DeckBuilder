@@ -8,7 +8,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -75,7 +74,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		return nil, err
 	}
 
-	var newCard *entity.CardInfo
+	var newCard *dbCard.CardInfo
 	if oldCard.Name != req.Name ||
 		oldCard.Description != req.Description ||
 		oldCard.Image != req.Image ||
@@ -169,7 +168,7 @@ func (r *card) createImageFromByte(gameID, collectionID, deckID string, cardID i
 	return r.card.ImageCreate(context.Background(), gameID, collectionID, deckID, cardID, data)
 }
 
-func (r *card) oldEntityToNew(g *entity.CardInfo) *entitiesCard.Card {
+func (r *card) oldEntityToNew(g *dbCard.CardInfo) *entitiesCard.Card {
 	if g == nil {
 		return nil
 	}
