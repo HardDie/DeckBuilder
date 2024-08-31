@@ -126,7 +126,7 @@ func (s *generator) getListOfCards(gameID string, sortField string) (map[Deck][]
 	// Iterate through collections
 	for _, collectionItem := range collectionItems {
 		// Get list of decks
-		deckItems, _, err := s.serviceDeck.List(gameID, collectionItem.ID, sortField, "")
+		deckItems, err := s.serviceDeck.List(gameID, collectionItem.ID, sortField, "")
 		if err != nil {
 			return nil, nil, err
 		}

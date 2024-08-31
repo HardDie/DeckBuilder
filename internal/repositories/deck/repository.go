@@ -58,8 +58,16 @@ func (r *deck) GetByID(gameID, collectionID, deckID string) (*entitiesDeck.Deck,
 	_, resp, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
 	return r.oldEntityToNew(resp), err
 }
-func (r *deck) GetAll(gameID, collectionID string) ([]*entity.DeckInfo, error) {
-	return r.deck.List(context.Background(), gameID, collectionID)
+func (r *deck) GetAll(gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
+	items, err := r.deck.List(context.Background(), gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*entitiesDeck.Deck, 0, len(items))
+	for _, item := range items {
+		res = append(res, r.oldEntityToNew(item))
+	}
+	return res, nil
 }
 func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*entitiesDeck.Deck, error) {
 	_, oldDeck, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
@@ -139,23 +147,23 @@ func (r *deck) GetImage(gameID, collectionID, deckID string) ([]byte, string, er
 
 	return data, imgType, nil
 }
-func (r *deck) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
+func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
 	// Get all collections in selected game
 	listCollections, err := r.collection.List(context.Background(), gameID)
 	if err != nil {
-		return make([]*entity.DeckInfo, 0), err
+		return make([]*entitiesDeck.Deck, 0), err
 	}
 
 	// Mark unique deck types
 	uniqueDecks := make(map[string]struct{})
 
 	// Go through all collections and find unique types of decks
-	decks := make([]*entity.DeckInfo, 0)
+	decks := make([]*entitiesDeck.Deck, 0)
 	for _, collection := range listCollections {
 		// Get all decks in selected collection
 		collectionDecks, err := r.GetAll(gameID, collection.ID)
 		if err != nil {
-			return make([]*entity.DeckInfo, 0), err
+			return make([]*entitiesDeck.Deck, 0), err
 		}
 
 		// Go through all decks and keep only unique decks
@@ -166,7 +174,6 @@ func (r *deck) GetAllDecksInGame(gameID string) ([]*entity.DeckInfo, error) {
 			}
 			// If deck unique, put mark in map
 			uniqueDecks[d.Name+d.Image] = struct{}{}
-			d.FillCachedImage(r.cfg, gameID, collection.ID)
 			decks = append(decks, d)
 		}
 	}

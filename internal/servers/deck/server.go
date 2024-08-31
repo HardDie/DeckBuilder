@@ -41,7 +41,21 @@ func (s *deck) AllDecksHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, items)
+
+	respItems := make([]*dto.Deck, 0, len(items))
+	for _, item := range items {
+		respItems = append(respItems, &dto.Deck{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Image:       item.Image,
+			CachedImage: s.calculateCachedImage(*item),
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+		})
+	}
+
+	network.Response(w, respItems)
 }
 func (s *deck) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -77,7 +91,7 @@ func (s *deck) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		Name:        item.Name,
 		Description: item.Description,
 		Image:       item.Image,
-		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CachedImage: s.calculateCachedImage(*item),
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	})
@@ -106,7 +120,7 @@ func (s *deck) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		Name:        item.Name,
 		Description: item.Description,
 		Image:       item.Image,
-		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CachedImage: s.calculateCachedImage(*item),
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	})
@@ -118,12 +132,28 @@ func (s *deck) ListHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")
 	search := r.URL.Query().Get("search")
-	items, meta, e := s.serviceDeck.List(gameID, collectionID, sort, search)
+	items, e := s.serviceDeck.List(gameID, collectionID, sort, search)
 	if e != nil {
 		network.ResponseError(w, e)
 		return
 	}
-	network.ResponseWithMeta(w, items, meta)
+
+	respItems := make([]*dto.Deck, 0, len(items))
+	for _, item := range items {
+		respItems = append(respItems, &dto.Deck{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Image:       item.Image,
+			CachedImage: s.calculateCachedImage(*item),
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+		})
+	}
+
+	network.ResponseWithMeta(w, respItems, &network.Meta{
+		Total: len(respItems),
+	})
 }
 func (s *deck) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -160,12 +190,12 @@ func (s *deck) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		Name:        item.Name,
 		Description: item.Description,
 		Image:       item.Image,
-		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CachedImage: s.calculateCachedImage(*item),
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	})
 }
 
-func (s *deck) calculateCachedImage(gameID, collectionID string, deck entitiesDeck.Deck) string {
-	return fmt.Sprintf(s.cfg.DeckImagePath+"?%s", gameID, collectionID, deck.ID, utils.HashForTime(&deck.UpdatedAt))
+func (s *deck) calculateCachedImage(deck entitiesDeck.Deck) string {
+	return fmt.Sprintf(s.cfg.DeckImagePath+"?%s", deck.GameID, deck.CollectionID, deck.ID, utils.HashForTime(&deck.UpdatedAt))
 }
