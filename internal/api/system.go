@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/dto"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 )
 
 type ISystemServer interface {
@@ -126,7 +125,7 @@ type ResponseStatus struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.Status `json:"data"`
+		Data dto.Status `json:"data"`
 	}
 }
 

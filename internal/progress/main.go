@@ -3,7 +3,7 @@ package progress
 import (
 	"sync"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesStatus "github.com/HardDie/DeckBuilder/internal/entities/status"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
@@ -74,8 +74,8 @@ func (p *progress) SetStatus(value string) {
 	logger.Debug.Printf("Progress(%s): [%s] %s - %0.2f\n", p.Status, p.Type, p.Message, p.Progress)
 }
 
-func (p *progress) GetStatus() entity.Status {
-	return entity.Status{
+func (p *progress) GetStatus() entitiesStatus.Status {
+	return entitiesStatus.Status{
 		Type:     p.Type,
 		Message:  p.Message,
 		Progress: p.Progress,

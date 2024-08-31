@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	"github.com/HardDie/DeckBuilder/internal/progress"
@@ -95,7 +96,13 @@ func (s *system) StatusHandler(w http.ResponseWriter, _ *http.Request) {
 	if status.Status == progress.StatusError || status.Status == progress.StatusDone {
 		progress.GetProgress().Flush()
 	}
-	network.Response(w, status)
+
+	network.Response(w, dto.Status{
+		Type:     status.Type,
+		Message:  status.Message,
+		Progress: status.Progress,
+		Status:   status.Status,
+	})
 }
 func (s *system) GetVersionHandler(w http.ResponseWriter, _ *http.Request) {
 	network.Response(w, s.cfg.Version)

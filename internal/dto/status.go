@@ -1,4 +1,4 @@
-package entity
+package dto
 
 type Status struct {
 	Type     string  `json:"type"`

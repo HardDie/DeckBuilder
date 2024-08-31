@@ -1968,7 +1968,7 @@
           "x-go-name": "Type"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     }
   },
   "responses": {
