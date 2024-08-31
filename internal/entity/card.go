@@ -19,6 +19,12 @@ type CardInfo struct {
 	Count       int               `json:"count"`
 	CreatedAt   *time.Time        `json:"createdAt"`
 	UpdatedAt   *time.Time        `json:"updatedAt"`
+
+	// Dynamic fields
+
+	GameID       string `json:"game_id"`
+	CollectionID string `json:"collection_id"`
+	DeckID       string `json:"deck_id"`
 }
 
 func (i *CardInfo) GetName() string {

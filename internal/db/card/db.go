@@ -99,6 +99,10 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 		Count:       cardInfo.Count,
 		CreatedAt:   cardInfo.CreatedAt,
 		UpdatedAt:   nil,
+
+		GameID:       gameID,
+		CollectionID: collectionID,
+		DeckID:       deckID,
 	}, nil
 }
 func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (context.Context, *entity.CardInfo, error) {
@@ -121,6 +125,10 @@ func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, car
 		Count:       card.Count,
 		CreatedAt:   card.CreatedAt,
 		UpdatedAt:   card.UpdatedAt,
+
+		GameID:       gameID,
+		CollectionID: collectionID,
+		DeckID:       deckID,
 	}, nil
 }
 func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
@@ -140,6 +148,10 @@ func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([
 			Count:       item.Count,
 			CreatedAt:   item.CreatedAt,
 			UpdatedAt:   item.UpdatedAt,
+
+			GameID:       gameID,
+			CollectionID: collectionID,
+			DeckID:       deckID,
 		})
 	}
 	return cards, nil
@@ -188,6 +200,10 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 		Count:       card.Count,
 		CreatedAt:   card.CreatedAt,
 		UpdatedAt:   card.UpdatedAt,
+
+		GameID:       gameID,
+		CollectionID: collectionID,
+		DeckID:       deckID,
 	}, nil
 }
 func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
