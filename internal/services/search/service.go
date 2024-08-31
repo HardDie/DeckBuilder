@@ -116,7 +116,7 @@ func (s *search) RecursiveSearch(sortField, search, gameID, collectionID string)
 			}
 			for _, deck := range allDecks {
 				// Check if card with such search mask exist
-				foundCards, _, err := s.serviceCard.List(game.ID, collection.ID, deck.ID, sortField, search)
+				foundCards, err := s.serviceCard.List(game.ID, collection.ID, deck.ID, sortField, search)
 				if err != nil {
 					return nil, nil, err
 				}

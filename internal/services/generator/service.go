@@ -139,7 +139,7 @@ func (s *generator) getListOfCards(gameID string, sortField string) (map[Deck][]
 				Image: deckItem.Image,
 			}
 			// Get list of cards
-			cardItems, _, err := s.serviceCard.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
+			cardItems, err := s.serviceCard.List(gameID, collectionItem.ID, deckItem.ID, sortField, "")
 			if err != nil {
 				return nil, nil, err
 			}

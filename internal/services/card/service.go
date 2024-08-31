@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/entity"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -22,11 +21,11 @@ func New(cfg *config.Config, repositoryCard repositoriesCard.Card) Card {
 	}
 }
 
-func (s *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entity.CardInfo, error) {
+func (s *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {
 	if req.Count < 1 {
 		req.Count = 1
 	}
-	c, err := s.repositoryCard.Create(gameID, collectionID, deckID, repositoriesCard.CreateRequest{
+	return s.repositoryCard.Create(gameID, collectionID, deckID, repositoriesCard.CreateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
@@ -34,28 +33,18 @@ func (s *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*
 		Count:       req.Count,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return c, nil
 }
-func (s *card) Item(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
-	c, err := s.repositoryCard.GetByID(gameID, collectionID, deckID, cardID)
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return c, nil
+func (s *card) Item(gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error) {
+	return s.repositoryCard.GetByID(gameID, collectionID, deckID, cardID)
 }
-func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*entity.CardInfo, *network.Meta, error) {
+func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*entitiesCard.Card, error) {
 	items, err := s.repositoryCard.GetAll(gameID, collectionID, deckID)
 	if err != nil {
-		return make([]*entity.CardInfo, 0), nil, err
+		return make([]*entitiesCard.Card, 0), err
 	}
 
 	// Filter
-	var filteredItems []*entity.CardInfo
+	var filteredItems []*entitiesCard.Card
 	if search != "" {
 		search = strings.ToLower(search)
 		for _, item := range items {
@@ -70,26 +59,15 @@ func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*
 	// Sorting
 	utils.Sort(&filteredItems, sortField)
 
-	// Generate field cachedImage
-	var cardsTotal int
-	for i := 0; i < len(filteredItems); i++ {
-		cardsTotal += filteredItems[i].Count
-		filteredItems[i].FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	}
-
 	// Return empty array if no elements
 	if filteredItems == nil {
-		filteredItems = make([]*entity.CardInfo, 0)
+		filteredItems = make([]*entitiesCard.Card, 0)
 	}
 
-	meta := &network.Meta{
-		Total:      len(filteredItems),
-		CardsTotal: cardsTotal,
-	}
-	return filteredItems, meta, nil
+	return filteredItems, nil
 }
-func (s *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entity.CardInfo, error) {
-	c, err := s.repositoryCard.Update(gameID, collectionID, deckID, cardID, repositoriesCard.UpdateRequest{
+func (s *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entitiesCard.Card, error) {
+	return s.repositoryCard.Update(gameID, collectionID, deckID, cardID, repositoriesCard.UpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
@@ -97,11 +75,6 @@ func (s *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		Count:       req.Count,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	c.FillCachedImage(s.cfg, gameID, collectionID, deckID)
-	return c, nil
 }
 func (s *card) Delete(gameID, collectionID, deckID string, cardID int64) error {
 	return s.repositoryCard.DeleteByID(gameID, collectionID, deckID, cardID)

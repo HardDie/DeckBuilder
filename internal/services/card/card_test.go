@@ -15,7 +15,7 @@ import (
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
@@ -213,7 +213,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	cardName := []string{"B card", "A card"}
 
 	// Empty list
-	items, _, err := tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
+	items, err := tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +230,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// One card
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,7 +247,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by name
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by name_desc
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name_desc", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "name_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +277,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by created date
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,7 +292,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Sort by created_desc
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created_desc", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "created_desc", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -319,7 +319,7 @@ func (tt *cardTest) testList(t *testing.T) {
 	}
 
 	// Empty list
-	items, _, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
+	items, err = tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID+"_list", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -661,7 +661,7 @@ func (tt *cardTest) fuzzCleanup() {
 	_ = tt.core.Init()
 }
 func (tt *cardTest) fuzzList(t *testing.T, waitItems int) error {
-	items, _, err := tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID, "", "")
+	items, err := tt.serviceCard.List(tt.gameID, tt.collectionID, tt.deckID, "", "")
 	if err != nil {
 		{
 			data, _ := json.MarshalIndent(err, "", "	")
@@ -720,7 +720,7 @@ func (tt *cardTest) fuzzItem(t *testing.T, cardID int64, name, desc string) erro
 	}
 	return nil
 }
-func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInfo, error) {
+func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entitiesCard.Card, error) {
 	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID, CreateRequest{
 		Name:        name,
 		Description: desc,
@@ -741,7 +741,7 @@ func (tt *cardTest) fuzzCreate(t *testing.T, name, desc string) (*entity.CardInf
 	}
 	return card, nil
 }
-func (tt *cardTest) fuzzUpdate(t *testing.T, cardID int64, name, desc string) (*entity.CardInfo, error) {
+func (tt *cardTest) fuzzUpdate(t *testing.T, cardID int64, name, desc string) (*entitiesCard.Card, error) {
 	card, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID, cardID, UpdateRequest{
 		Name:        name,
 		Description: desc,

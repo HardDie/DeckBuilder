@@ -3,9 +3,11 @@ package card
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
+	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -26,7 +28,7 @@ func New(cfg *config.Config, c dbCard.Card) Card {
 	}
 }
 
-func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entity.CardInfo, error) {
+func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {
 	c, err := r.card.Create(context.Background(), gameID, collectionID, deckID, req.Name,
 		req.Description, req.Image, req.Variables, req.Count)
 	if err != nil {
@@ -34,7 +36,7 @@ func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*
 	}
 
 	if c.Image == "" && req.ImageFile == nil {
-		return c, nil
+		return r.oldEntityToNew(c), nil
 	}
 
 	if c.Image != "" {
@@ -50,16 +52,24 @@ func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*
 		}
 	}
 
-	return c, nil
+	return r.oldEntityToNew(c), nil
 }
-func (r *card) GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error) {
+func (r *card) GetByID(gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error) {
 	_, resp, err := r.card.Get(context.Background(), gameID, collectionID, deckID, cardID)
-	return resp, err
+	return r.oldEntityToNew(resp), err
 }
-func (r *card) GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error) {
-	return r.card.List(context.Background(), gameID, collectionID, deckID)
+func (r *card) GetAll(gameID, collectionID, deckID string) ([]*entitiesCard.Card, error) {
+	items, err := r.card.List(context.Background(), gameID, collectionID, deckID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*entitiesCard.Card, 0, len(items))
+	for _, item := range items {
+		res = append(res, r.oldEntityToNew(item))
+	}
+	return res, nil
 }
-func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entity.CardInfo, error) {
+func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entitiesCard.Card, error) {
 	_, oldCard, err := r.card.Get(context.Background(), gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
@@ -86,7 +96,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 
 	// If the image has not been changed
 	if newCard.Image == oldCard.Image && req.ImageFile == nil {
-		return newCard, nil
+		return r.oldEntityToNew(newCard), nil
 	}
 
 	// If image exist, delete
@@ -98,7 +108,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 	}
 
 	if newCard.Image == "" && req.ImageFile == nil {
-		return newCard, nil
+		return r.oldEntityToNew(newCard), nil
 	}
 
 	if newCard.Image != "" {
@@ -113,7 +123,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		}
 	}
 
-	return newCard, nil
+	return r.oldEntityToNew(newCard), nil
 }
 func (r *card) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
 	err := r.card.ImageDelete(context.Background(), gameID, collectionID, deckID, cardID)
@@ -157,4 +167,34 @@ func (r *card) createImageFromByte(gameID, collectionID, deckID string, cardID i
 
 	// Write image to file
 	return r.card.ImageCreate(context.Background(), gameID, collectionID, deckID, cardID, data)
+}
+
+func (r *card) oldEntityToNew(g *entity.CardInfo) *entitiesCard.Card {
+	if g == nil {
+		return nil
+	}
+	createdAt, updatedAt := r.convertCreateUpdate(g.CreatedAt, g.UpdatedAt)
+	return &entitiesCard.Card{
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: g.Description,
+		Image:       g.Image,
+		Variables:   g.Variables,
+		Count:       g.Count,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+
+		GameID:       g.GameID,
+		CollectionID: g.CollectionID,
+		DeckID:       g.DeckID,
+	}
+}
+func (r *card) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
+	if createdAt == nil {
+		createdAt = utils.Allocate(time.Now())
+	}
+	if updatedAt == nil {
+		updatedAt = createdAt
+	}
+	return *createdAt, *updatedAt
 }

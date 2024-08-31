@@ -94,7 +94,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// card
 	repositoryCard := repositoriesCard.New(cfg, card)
 	serviceCard := servicesCard.New(cfg, repositoryCard)
-	serverCard := serversCard.New(serviceCard, serverSystem)
+	serverCard := serversCard.New(*cfg, serviceCard, serverSystem)
 	api.RegisterCardServer(routes, serverCard)
 
 	// image

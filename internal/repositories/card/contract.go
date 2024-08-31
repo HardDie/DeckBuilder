@@ -1,14 +1,14 @@
 package card
 
 import (
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 )
 
 type Card interface {
-	Create(gameID, collectionID, deckID string, req CreateRequest) (*entity.CardInfo, error)
-	GetByID(gameID, collectionID, deckID string, cardID int64) (*entity.CardInfo, error)
-	GetAll(gameID, collectionID, deckID string) ([]*entity.CardInfo, error)
-	Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entity.CardInfo, error)
+	Create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error)
+	GetByID(gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error)
+	GetAll(gameID, collectionID, deckID string) ([]*entitiesCard.Card, error)
+	Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entitiesCard.Card, error)
 	DeleteByID(gameID, collectionID, deckID string, cardID int64) error
 	GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error)
 }
