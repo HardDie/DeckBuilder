@@ -33,7 +33,7 @@ func New(db fsentry.IFSEntry, collection dbCollection.Collection) Deck {
 }
 
 func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 	}, nil
 }
 func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (context.Context, *DeckInfo, error) {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -109,7 +109,7 @@ func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (cont
 	}, nil
 }
 func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckInfo, error) {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckIn
 	return decks, nil
 }
 func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName string) (*DeckInfo, error) {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 	}, nil
 }
 func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 	}, nil
 }
 func (d *deck) Delete(ctx context.Context, gameID, collectionID, name string) error {
-	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
+	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package collection
 
 import (
 	"context"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
@@ -10,7 +9,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type collection struct {
@@ -32,7 +30,7 @@ func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollecti
 	}
 
 	if c.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(c), nil
+		return c, nil
 	}
 
 	if c.Image != "" {
@@ -48,30 +46,21 @@ func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollecti
 		}
 	}
 
-	return r.oldEntityToNew(c), nil
+	return c, nil
 }
 func (r *collection) GetByID(gameID, collectionID string) (*entitiesCollection.Collection, error) {
-	_, resp, err := r.collection.Get(context.Background(), gameID, collectionID)
-	return r.oldEntityToNew(resp), err
+	return r.collection.Get(context.Background(), gameID, collectionID)
 }
 func (r *collection) GetAll(gameID string) ([]*entitiesCollection.Collection, error) {
-	items, err := r.collection.List(context.Background(), gameID)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*entitiesCollection.Collection, 0, len(items))
-	for _, item := range items {
-		res = append(res, r.oldEntityToNew(item))
-	}
-	return res, nil
+	return r.collection.List(context.Background(), gameID)
 }
 func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*entitiesCollection.Collection, error) {
-	_, oldCollection, err := r.collection.Get(context.Background(), gameID, collectionID)
+	oldCollection, err := r.collection.Get(context.Background(), gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	var newCollection *dbCollection.CollectionInfo
+	var newCollection *entitiesCollection.Collection
 	if oldCollection.Name != req.Name {
 		// Rename folder
 		newCollection, err = r.collection.Move(context.Background(), gameID, oldCollection.Name, req.Name)
@@ -97,7 +86,7 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 
 	// If the image has not been changed
 	if newCollection.Image == oldCollection.Image && req.ImageFile == nil {
-		return r.oldEntityToNew(newCollection), nil
+		return newCollection, nil
 	}
 
 	// If image exist, delete
@@ -109,7 +98,7 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	}
 
 	if newCollection.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(newCollection), nil
+		return newCollection, nil
 	}
 
 	if newCollection.Image != "" {
@@ -125,7 +114,7 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 		}
 	}
 
-	return r.oldEntityToNew(newCollection), nil
+	return newCollection, nil
 }
 func (r *collection) DeleteByID(gameID, collectionID string) error {
 	return r.collection.Delete(context.Background(), gameID, collectionID)
@@ -162,30 +151,4 @@ func (r *collection) createImageFromByte(gameID, collectionID string, data []byt
 
 	// Write image to file
 	return r.collection.ImageCreate(context.Background(), gameID, collectionID, data)
-}
-
-func (r *collection) oldEntityToNew(g *dbCollection.CollectionInfo) *entitiesCollection.Collection {
-	if g == nil {
-		return nil
-	}
-	createdAt, updatedAt := r.convertCreateUpdate(g.CreatedAt, g.UpdatedAt)
-	return &entitiesCollection.Collection{
-		ID:          g.ID,
-		Name:        g.Name,
-		Description: g.Description,
-		Image:       g.Image,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID: g.GameID,
-	}
-}
-func (r *collection) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
-	if createdAt == nil {
-		createdAt = utils.Allocate(time.Now())
-	}
-	if updatedAt == nil {
-		updatedAt = createdAt
-	}
-	return *createdAt, *updatedAt
 }

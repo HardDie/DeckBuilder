@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/HardDie/fsentry"
 	"github.com/HardDie/fsentry/pkg/fsentry_error"
@@ -12,8 +13,10 @@ import (
 
 	dbCommon "github.com/HardDie/DeckBuilder/internal/db/common"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
+	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type collection struct {
@@ -32,13 +35,13 @@ func New(db fsentry.IFSEntry, game dbGame.Game) Collection {
 	}
 }
 
-func (d *collection) Create(ctx context.Context, gameID, name, description, image string) (*CollectionInfo, error) {
+func (d *collection) Create(ctx context.Context, gameID, name, description, image string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.CreateFolder(name, &dbCommon.Info{
+	info, err := d.db.CreateFolder(name, &model{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
 	}, d.gamesPath, game.ID)
@@ -52,55 +55,54 @@ func (d *collection) Create(ctx context.Context, gameID, name, description, imag
 		}
 	}
 
-	return &CollectionInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: description,
 		Image:       image,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID: gameID,
 	}, nil
 }
-func (d *collection) Get(ctx context.Context, gameID, name string) (context.Context, *CollectionInfo, error) {
+func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
-		return ctx, nil, err
+		return nil, err
 	}
 
 	info, err := d.db.GetFolder(name, d.gamesPath, game.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
-			return ctx, nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry_error.ErrorBadName) {
-			return ctx, nil, er.BadName
+			return nil, er.BadName
 		} else {
-			return ctx, nil, er.InternalError.AddMessage(err.Error())
+			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var cInfo dbCommon.Info
 
+	var cInfo dbCommon.Info
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
-		return ctx, nil, er.InternalError.AddMessage(err.Error())
+		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	ctx = context.WithValue(ctx, "collectionID", info.Id)
-	return ctx, &CollectionInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID: gameID,
 	}, nil
 }
-func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo, error) {
+func (d *collection) List(ctx context.Context, gameID string) ([]*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
@@ -111,9 +113,9 @@ func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	var collections []*CollectionInfo
+	var collections []*entitiesCollection.Collection
 	for _, folder := range list.Folders {
-		_, collection, err := d.Get(ctx, game.ID, folder)
+		collection, err := d.Get(ctx, game.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -126,7 +128,7 @@ func (d *collection) List(ctx context.Context, gameID string) ([]*CollectionInfo
 	}
 	return collections, nil
 }
-func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) (*CollectionInfo, error) {
+func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
@@ -142,26 +144,26 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var cInfo dbCommon.Info
 
+	var cInfo dbCommon.Info
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &CollectionInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID: gameID,
 	}, nil
 }
-func (d *collection) Update(ctx context.Context, gameID, name, description, image string) (*CollectionInfo, error) {
+func (d *collection) Update(ctx context.Context, gameID, name, description, image string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
@@ -180,21 +182,21 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var cInfo dbCommon.Info
 
+	var cInfo dbCommon.Info
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &CollectionInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: cInfo.Description.String(),
 		Image:       cInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID: gameID,
 	}, nil
@@ -218,7 +220,7 @@ func (d *collection) Delete(ctx context.Context, gameID, name string) error {
 	return nil
 }
 func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID string, data []byte) error {
-	ctx, collection, err := d.Get(ctx, gameID, collectionID)
+	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}
@@ -234,7 +236,7 @@ func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID strin
 	return nil
 }
 func (d *collection) ImageGet(ctx context.Context, gameID, collectionID string) ([]byte, error) {
-	ctx, collection, err := d.Get(ctx, gameID, collectionID)
+	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +252,7 @@ func (d *collection) ImageGet(ctx context.Context, gameID, collectionID string) 
 	return data, nil
 }
 func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID string) error {
-	ctx, collection, err := d.Get(ctx, gameID, collectionID)
+	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return err
 	}
@@ -264,4 +266,14 @@ func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID strin
 		}
 	}
 	return nil
+}
+
+func (d *collection) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
+	if createdAt == nil {
+		createdAt = utils.Allocate(time.Now())
+	}
+	if updatedAt == nil {
+		updatedAt = createdAt
+	}
+	return *createdAt, *updatedAt
 }
