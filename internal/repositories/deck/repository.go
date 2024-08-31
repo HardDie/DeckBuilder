@@ -8,7 +8,6 @@ import (
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -75,7 +74,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 		return nil, err
 	}
 
-	var newDeck *entity.DeckInfo
+	var newDeck *dbDeck.DeckInfo
 	if oldDeck.Name != req.Name {
 		// Rename folder
 		newDeck, err = r.deck.Move(context.Background(), gameID, collectionID, oldDeck.Name, req.Name)
@@ -200,7 +199,7 @@ func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []b
 	return r.deck.ImageCreate(context.Background(), gameID, collectionID, deckID, data)
 }
 
-func (r *deck) oldEntityToNew(g *entity.DeckInfo) *entitiesDeck.Deck {
+func (r *deck) oldEntityToNew(g *dbDeck.DeckInfo) *entitiesDeck.Deck {
 	if g == nil {
 		return nil
 	}

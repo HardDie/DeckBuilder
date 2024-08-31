@@ -1823,7 +1823,7 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
-    "DeckInfo": {
+    "Deck": {
       "type": "object",
       "properties": {
         "cachedImage": {
@@ -1857,7 +1857,7 @@
           "x-go-name": "UpdatedAt"
         }
       },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/entity"
+      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     },
     "Err": {
       "type": "object",
@@ -2080,7 +2080,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/DeckInfo"
+            "$ref": "#/definitions/Deck"
           }
         }
       }
@@ -2118,7 +2118,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/DeckInfo"
+            "$ref": "#/definitions/Deck"
           }
         }
       }
@@ -2258,7 +2258,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/DeckInfo"
+              "$ref": "#/definitions/Deck"
             },
             "x-go-name": "Data"
           }
@@ -2321,7 +2321,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/DeckInfo"
+              "$ref": "#/definitions/Deck"
             },
             "x-go-name": "Data"
           },
@@ -2482,7 +2482,7 @@
         ],
         "properties": {
           "data": {
-            "$ref": "#/definitions/DeckInfo"
+            "$ref": "#/definitions/Deck"
           }
         }
       }

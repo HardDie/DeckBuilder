@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversDeck "github.com/HardDie/DeckBuilder/internal/servers/deck"
 )
@@ -45,7 +45,7 @@ type ResponseListOfAllDecks struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*entity.DeckInfo `json:"data"`
+		Data []*dto.Deck `json:"data"`
 	}
 }
 
@@ -92,7 +92,7 @@ type ResponseCreateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.DeckInfo `json:"data"`
+		Data dto.Deck `json:"data"`
 	}
 }
 
@@ -164,7 +164,7 @@ type ResponseDeck struct {
 	// In: body
 	Body struct {
 		// Required: true
-		Data entity.DeckInfo `json:"data"`
+		Data dto.Deck `json:"data"`
 	}
 }
 
@@ -205,7 +205,7 @@ type ResponseListOfDecks struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data []*entity.DeckInfo `json:"data"`
+		Data []*dto.Deck `json:"data"`
 		// Required: true
 		Meta *network.Meta `json:"meta"`
 	}
@@ -258,7 +258,7 @@ type ResponseUpdateDeck struct {
 	// Required: true
 	Body struct {
 		// Required: true
-		Data entity.DeckInfo `json:"data"`
+		Data dto.Deck `json:"data"`
 	}
 }
 

@@ -12,7 +12,6 @@ import (
 
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCommon "github.com/HardDie/DeckBuilder/internal/db/common"
-	"github.com/HardDie/DeckBuilder/internal/entity"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -33,7 +32,7 @@ func New(db fsentry.IFSEntry, collection dbCollection.Collection) Deck {
 	}
 }
 
-func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
 	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -60,7 +59,7 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.DeckInfo{
+	return &DeckInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -73,7 +72,7 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (context.Context, *entity.DeckInfo, error) {
+func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (context.Context, *DeckInfo, error) {
 	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return ctx, nil, err
@@ -98,7 +97,7 @@ func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (cont
 	}
 
 	ctx = context.WithValue(ctx, "deckID", info.Id)
-	return ctx, &entity.DeckInfo{
+	return ctx, &DeckInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -111,7 +110,7 @@ func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (cont
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*entity.DeckInfo, error) {
+func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckInfo, error) {
 	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -123,7 +122,7 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*entity
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	var decks []*entity.DeckInfo
+	var decks []*DeckInfo
 	for _, folder := range list.Folders {
 		_, deck, err := d.Get(ctx, ctxGameID, collection.ID, folder)
 		if err != nil {
@@ -138,7 +137,7 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*entity
 	}
 	return decks, nil
 }
-func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName string) (*entity.DeckInfo, error) {
+func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName string) (*DeckInfo, error) {
 	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -162,7 +161,7 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.DeckInfo{
+	return &DeckInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
@@ -175,7 +174,7 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*entity.DeckInfo, error) {
+func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
 	ctx, collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -202,7 +201,7 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &entity.DeckInfo{
+	return &DeckInfo{
 		ID:        info.Id,
 		Name:      info.Name.String(),
 		CreatedAt: info.CreatedAt,
