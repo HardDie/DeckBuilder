@@ -1,10 +1,14 @@
 package deck
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
+	"github.com/HardDie/DeckBuilder/internal/config"
+	"github.com/HardDie/DeckBuilder/internal/dto"
+	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
@@ -13,12 +17,18 @@ import (
 )
 
 type deck struct {
+	cfg          config.Config
 	serviceDeck  servicesDeck.Deck
 	serverSystem serversSystem.System
 }
 
-func New(serviceDeck servicesDeck.Deck, serverSystem serversSystem.System) Deck {
+func New(
+	cfg config.Config,
+	serviceDeck servicesDeck.Deck,
+	serverSystem serversSystem.System,
+) Deck {
 	return &deck{
+		cfg:          cfg,
 		serviceDeck:  serviceDeck,
 		serverSystem: serverSystem,
 	}
@@ -62,7 +72,15 @@ func (s *deck) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	network.Response(w, item)
+	network.Response(w, dto.Deck{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *deck) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game"]
@@ -82,7 +100,16 @@ func (s *deck) ItemHandler(w http.ResponseWriter, r *http.Request) {
 		network.ResponseError(w, e)
 		return
 	}
-	network.Response(w, item)
+
+	network.Response(w, dto.Deck{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
 }
 func (s *deck) ListHandler(w http.ResponseWriter, r *http.Request) {
 	s.serverSystem.StopQuit()
@@ -128,5 +155,17 @@ func (s *deck) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	network.Response(w, item)
+	network.Response(w, dto.Deck{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: s.calculateCachedImage(gameID, collectionID, *item),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	})
+}
+
+func (s *deck) calculateCachedImage(gameID, collectionID string, deck entitiesDeck.Deck) string {
+	return fmt.Sprintf(s.cfg.DeckImagePath+"?%s", gameID, collectionID, deck.ID, utils.HashForTime(&deck.UpdatedAt))
 }

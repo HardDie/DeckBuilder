@@ -88,7 +88,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, collection, deck)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
-	serverDeck := serversDeck.New(serviceDeck, serverSystem)
+	serverDeck := serversDeck.New(*cfg, serviceDeck, serverSystem)
 	api.RegisterDeckServer(routes, serverDeck)
 
 	// card

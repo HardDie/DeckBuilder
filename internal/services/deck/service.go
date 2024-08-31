@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	"github.com/HardDie/DeckBuilder/internal/entity"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
@@ -22,26 +23,16 @@ func New(cfg *config.Config, repositoryDeck repositoriesDeck.Deck) Deck {
 	}
 }
 
-func (s *deck) Create(gameID, collectionID string, req CreateRequest) (*entity.DeckInfo, error) {
-	d, err := s.repositoryDeck.Create(gameID, collectionID, repositoriesDeck.CreateRequest{
+func (s *deck) Create(gameID, collectionID string, req CreateRequest) (*entitiesDeck.Deck, error) {
+	return s.repositoryDeck.Create(gameID, collectionID, repositoriesDeck.CreateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	d.FillCachedImage(s.cfg, gameID, collectionID)
-	return d, nil
 }
-func (s *deck) Item(gameID, collectionID, deckID string) (*entity.DeckInfo, error) {
-	d, err := s.repositoryDeck.GetByID(gameID, collectionID, deckID)
-	if err != nil {
-		return nil, err
-	}
-	d.FillCachedImage(s.cfg, gameID, collectionID)
-	return d, nil
+func (s *deck) Item(gameID, collectionID, deckID string) (*entitiesDeck.Deck, error) {
+	return s.repositoryDeck.GetByID(gameID, collectionID, deckID)
 }
 func (s *deck) List(gameID, collectionID, sortField, search string) ([]*entity.DeckInfo, *network.Meta, error) {
 	items, err := s.repositoryDeck.GetAll(gameID, collectionID)
@@ -80,18 +71,13 @@ func (s *deck) List(gameID, collectionID, sortField, search string) ([]*entity.D
 	}
 	return filteredItems, meta, nil
 }
-func (s *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*entity.DeckInfo, error) {
-	d, err := s.repositoryDeck.Update(gameID, collectionID, deckID, repositoriesDeck.UpdateRequest{
+func (s *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*entitiesDeck.Deck, error) {
+	return s.repositoryDeck.Update(gameID, collectionID, deckID, repositoriesDeck.UpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
 		ImageFile:   req.ImageFile,
 	})
-	if err != nil {
-		return nil, err
-	}
-	d.FillCachedImage(s.cfg, gameID, collectionID)
-	return d, nil
 }
 func (s *deck) Delete(gameID, collectionID, deckID string) error {
 	return s.repositoryDeck.DeleteByID(gameID, collectionID, deckID)

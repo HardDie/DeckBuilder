@@ -14,7 +14,7 @@ import (
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
-	"github.com/HardDie/DeckBuilder/internal/entity"
+	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -662,7 +662,7 @@ func (tt *deckTest) fuzzItem(t *testing.T, deckID, deckName string) error {
 	}
 	return nil
 }
-func (tt *deckTest) fuzzCreate(t *testing.T, deckName string) (*entity.DeckInfo, error) {
+func (tt *deckTest) fuzzCreate(t *testing.T, deckName string) (*entitiesDeck.Deck, error) {
 	deck, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: deckName,
 	})
@@ -679,7 +679,7 @@ func (tt *deckTest) fuzzCreate(t *testing.T, deckName string) (*entity.DeckInfo,
 	}
 	return deck, nil
 }
-func (tt *deckTest) fuzzUpdate(t *testing.T, deckID, deckName string) (*entity.DeckInfo, error) {
+func (tt *deckTest) fuzzUpdate(t *testing.T, deckID, deckName string) (*entitiesDeck.Deck, error) {
 	deck, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name: deckName,
 	})
