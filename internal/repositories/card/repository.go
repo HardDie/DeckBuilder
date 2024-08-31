@@ -27,8 +27,16 @@ func New(cfg *config.Config, c dbCard.Card) Card {
 }
 
 func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {
-	c, err := r.card.Create(context.Background(), gameID, collectionID, deckID, req.Name,
-		req.Description, req.Image, req.Variables, req.Count)
+	c, err := r.card.Create(context.Background(), dbCard.CreateRequest{
+		GameID:       gameID,
+		CollectionID: collectionID,
+		DeckID:       deckID,
+		Name:         req.Name,
+		Description:  req.Description,
+		Image:        req.Image,
+		Variables:    req.Variables,
+		Count:        req.Count,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +80,17 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		oldCard.Count != req.Count ||
 		!utils.CompareMaps(oldCard.Variables, req.Variables) {
 		// Update data
-		newCard, err = r.card.Update(context.Background(), gameID, collectionID, deckID, cardID, req.Name, req.Description, req.Image, req.Variables, req.Count)
+		newCard, err = r.card.Update(context.Background(), dbCard.UpdateRequest{
+			GameID:       gameID,
+			CollectionID: collectionID,
+			DeckID:       deckID,
+			CardID:       cardID,
+			Name:         req.Name,
+			Description:  req.Description,
+			Image:        req.Image,
+			Variables:    req.Variables,
+			Count:        req.Count,
+		})
 		if err != nil {
 			return nil, err
 		}

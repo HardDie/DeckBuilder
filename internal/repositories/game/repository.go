@@ -28,7 +28,11 @@ func New(cfg *config.Config, g dbGame.Game) Game {
 }
 
 func (r *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
-	g, err := r.game.Create(context.Background(), req.Name, req.Description, req.Image)
+	g, err := r.game.Create(context.Background(), dbGame.CreateRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +81,11 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 		oldGame.Image != req.Image ||
 		req.ImageFile != nil {
 		// Update data
-		newGame, err = r.game.Update(context.Background(), req.Name, req.Description, req.Image)
+		newGame, err = r.game.Update(context.Background(), dbGame.UpdateRequest{
+			Name:        req.Name,
+			Description: req.Description,
+			Image:       req.Image,
+		})
 		if err != nil {
 			return nil, err
 		}

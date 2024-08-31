@@ -35,8 +35,8 @@ func New(db fsentry.IFSEntry, deck dbDeck.Deck) Card {
 	}
 }
 
-func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, description, image string, variables map[string]string, count int) (*entitiesCard.Card, error) {
-	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
+func (d *card) Create(ctx context.Context, req CreateRequest) (*entitiesCard.Card, error) {
+	ctx, list, err := d.rawCardList(ctx, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +52,11 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 	// Create a card with the found identifier
 	cardInfo := &model{
 		ID:          maxID,
-		Name:        fsentry_types.QS(name),
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
-		Variables:   convertMapString(variables),
-		Count:       count,
+		Name:        fsentry_types.QS(req.Name),
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
+		Variables:   convertMapString(req.Variables),
+		Count:       req.Count,
 		CreatedAt:   utils.Allocate(time.Now()),
 		UpdatedAt:   nil,
 	}
@@ -65,7 +65,7 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 	list[cardInfo.ID] = cardInfo
 
 	// Writing an array of cards to a file again
-	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
+	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -87,9 +87,9 @@ func (d *card) Create(ctx context.Context, gameID, collectionID, deckID, name, d
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID:       gameID,
-		CollectionID: collectionID,
-		DeckID:       deckID,
+		GameID:       req.GameID,
+		CollectionID: req.CollectionID,
+		DeckID:       req.DeckID,
 	}, nil
 }
 func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error) {
@@ -145,28 +145,28 @@ func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([
 	}
 	return cards, nil
 }
-func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, cardID int64, name, description, image string, variables map[string]string, count int) (*entitiesCard.Card, error) {
-	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
+func (d *card) Update(ctx context.Context, req UpdateRequest) (*entitiesCard.Card, error) {
+	ctx, list, err := d.rawCardList(ctx, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
 		return nil, err
 	}
 
-	card, ok := list[cardID]
+	card, ok := list[req.CardID]
 	if !ok {
 		return nil, er.CardNotExists
 	}
 
-	card.Name = fsentry_types.QS(name)
-	card.Description = fsentry_types.QS(description)
-	card.Image = fsentry_types.QS(image)
-	card.Variables = convertMapString(variables)
-	card.Count = count
+	card.Name = fsentry_types.QS(req.Name)
+	card.Description = fsentry_types.QS(req.Description)
+	card.Image = fsentry_types.QS(req.Image)
+	card.Variables = convertMapString(req.Variables)
+	card.Count = req.Count
 	card.UpdatedAt = utils.Allocate(time.Now())
 
 	list[card.ID] = card
 
 	// Writing an array of cards to a file again
-	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
+	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
@@ -188,9 +188,9 @@ func (d *card) Update(ctx context.Context, gameID, collectionID, deckID string, 
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID:       gameID,
-		CollectionID: collectionID,
-		DeckID:       deckID,
+		GameID:       req.GameID,
+		CollectionID: req.CollectionID,
+		DeckID:       req.DeckID,
 	}, nil
 }
 func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {

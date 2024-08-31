@@ -24,7 +24,12 @@ func New(cfg *config.Config, c dbCollection.Collection) Collection {
 }
 
 func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {
-	c, err := r.collection.Create(context.Background(), gameID, req.Name, req.Description, req.Image)
+	c, err := r.collection.Create(context.Background(), dbCollection.CreateRequest{
+		GameID:      gameID,
+		Name:        req.Name,
+		Description: req.Description,
+		Image:       req.Image,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +78,12 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 		oldCollection.Image != req.Image ||
 		req.ImageFile != nil {
 		// Update data
-		newCollection, err = r.collection.Update(context.Background(), gameID, req.Name, req.Description, req.Image)
+		newCollection, err = r.collection.Update(context.Background(), dbCollection.UpdateRequest{
+			GameID:      gameID,
+			Name:        req.Name,
+			Description: req.Description,
+			Image:       req.Image,
+		})
 		if err != nil {
 			return nil, err
 		}

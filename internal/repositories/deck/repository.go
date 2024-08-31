@@ -27,7 +27,13 @@ func New(cfg *config.Config, c dbCollection.Collection, d dbDeck.Deck) Deck {
 }
 
 func (r *deck) Create(gameID, collectionID string, req CreateRequest) (*entitiesDeck.Deck, error) {
-	d, err := r.deck.Create(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
+	d, err := r.deck.Create(context.Background(), dbDeck.CreateRequest{
+		GameID:       gameID,
+		CollectionID: collectionID,
+		Name:         req.Name,
+		Description:  req.Description,
+		Image:        req.Image,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +82,13 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 		oldDeck.Image != req.Image ||
 		req.ImageFile != nil {
 		// Update data
-		newDeck, err = r.deck.Update(context.Background(), gameID, collectionID, req.Name, req.Description, req.Image)
+		newDeck, err = r.deck.Update(context.Background(), dbDeck.UpdateRequest{
+			GameID:       gameID,
+			CollectionID: collectionID,
+			Name:         req.Name,
+			Description:  req.Description,
+			Image:        req.Image,
+		})
 		if err != nil {
 			return nil, err
 		}

@@ -34,15 +34,15 @@ func New(db fsentry.IFSEntry, game dbGame.Game) Collection {
 	}
 }
 
-func (d *collection) Create(ctx context.Context, gameID, name, description, image string) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, gameID)
+func (d *collection) Create(ctx context.Context, req CreateRequest) (*entitiesCollection.Collection, error) {
+	game, err := d.game.Get(ctx, req.GameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.CreateFolder(name, model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
+	info, err := d.db.CreateFolder(req.Name, model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
 	}, d.gamesPath, game.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
@@ -58,12 +58,12 @@ func (d *collection) Create(ctx context.Context, gameID, name, description, imag
 	return &entitiesCollection.Collection{
 		ID:          info.Id,
 		Name:        info.Name.String(),
-		Description: description,
-		Image:       image,
+		Description: req.Description,
+		Image:       req.Image,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID: gameID,
+		GameID: req.GameID,
 	}, nil
 }
 func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCollection.Collection, error) {
@@ -162,15 +162,15 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 		GameID: gameID,
 	}, nil
 }
-func (d *collection) Update(ctx context.Context, gameID, name, description, image string) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, gameID)
+func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCollection.Collection, error) {
+	game, err := d.game.Get(ctx, req.GameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.UpdateFolder(name, model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
+	info, err := d.db.UpdateFolder(req.Name, model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
 	}, d.gamesPath, game.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
@@ -197,7 +197,7 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID: gameID,
+		GameID: req.GameID,
 	}, nil
 }
 func (d *collection) Delete(ctx context.Context, gameID, name string) error {

@@ -29,10 +29,10 @@ func New(db fsentry.IFSEntry) Game {
 	}
 }
 
-func (d *game) Create(_ context.Context, name, description, image string) (*entitiesGame.Game, error) {
-	info, err := d.db.CreateFolder(name, model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
+func (d *game) Create(_ context.Context, req CreateRequest) (*entitiesGame.Game, error) {
+	info, err := d.db.CreateFolder(req.Name, model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
 	}, d.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
@@ -48,8 +48,8 @@ func (d *game) Create(_ context.Context, name, description, image string) (*enti
 	return &entitiesGame.Game{
 		ID:          info.Id,
 		Name:        info.Name.String(),
-		Description: description,
-		Image:       image,
+		Description: req.Description,
+		Image:       req.Image,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 	}, nil
@@ -131,10 +131,10 @@ func (d *game) Move(_ context.Context, oldName, newName string) (*entitiesGame.G
 		UpdatedAt:   updatedAt,
 	}, nil
 }
-func (d *game) Update(_ context.Context, name, description, image string) (*entitiesGame.Game, error) {
-	info, err := d.db.UpdateFolder(name, &model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
+func (d *game) Update(_ context.Context, req UpdateRequest) (*entitiesGame.Game, error) {
+	info, err := d.db.UpdateFolder(req.Name, &model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
 	}, d.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {

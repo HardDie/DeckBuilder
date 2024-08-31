@@ -34,16 +34,16 @@ func New(db fsentry.IFSEntry, collection dbCollection.Collection) Deck {
 	}
 }
 
-func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*entitiesDeck.Deck, error) {
-	collection, err := d.collection.Get(ctx, gameID, collectionID)
+func (d *deck) Create(ctx context.Context, req CreateRequest) (*entitiesDeck.Deck, error) {
+	collection, err := d.collection.Get(ctx, req.GameID, req.CollectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.CreateFolder(name, model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
-	}, d.gamesPath, gameID, collection.ID)
+	info, err := d.db.CreateFolder(req.Name, model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
+	}, d.gamesPath, req.GameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorExist) {
 			return nil, er.DeckExist
@@ -55,7 +55,7 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 	}
 
 	// Create folder for cards
-	_, err = d.db.CreateFolder("cards", nil, d.gamesPath, gameID, collection.ID, info.Id)
+	_, err = d.db.CreateFolder("cards", nil, d.gamesPath, req.GameID, collection.ID, info.Id)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
@@ -64,13 +64,13 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 	return &entitiesDeck.Deck{
 		ID:          info.Id,
 		Name:        info.Name.String(),
-		Description: description,
-		Image:       image,
+		Description: req.Description,
+		Image:       req.Image,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID:       gameID,
-		CollectionID: collectionID,
+		GameID:       req.GameID,
+		CollectionID: req.CollectionID,
 	}, nil
 }
 func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (*entitiesDeck.Deck, error) {
@@ -151,8 +151,8 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var dInfo model
 
+	var dInfo model
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
@@ -171,16 +171,16 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*entitiesDeck.Deck, error) {
-	collection, err := d.collection.Get(ctx, gameID, collectionID)
+func (d *deck) Update(ctx context.Context, req UpdateRequest) (*entitiesDeck.Deck, error) {
+	collection, err := d.collection.Get(ctx, req.GameID, req.CollectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.UpdateFolder(name, model{
-		Description: fsentry_types.QS(description),
-		Image:       fsentry_types.QS(image),
-	}, d.gamesPath, gameID, collection.ID)
+	info, err := d.db.UpdateFolder(req.Name, model{
+		Description: fsentry_types.QS(req.Description),
+		Image:       fsentry_types.QS(req.Image),
+	}, d.gamesPath, req.GameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -190,8 +190,8 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var dInfo model
 
+	var dInfo model
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
@@ -206,8 +206,8 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 
-		GameID:       gameID,
-		CollectionID: collectionID,
+		GameID:       req.GameID,
+		CollectionID: req.CollectionID,
 	}, nil
 }
 func (d *deck) Delete(ctx context.Context, gameID, collectionID, name string) error {
