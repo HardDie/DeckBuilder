@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/HardDie/fsentry"
 	"github.com/HardDie/fsentry/pkg/fsentry_error"
 	"github.com/HardDie/fsentry/pkg/fsentry_types"
 
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
-	dbCommon "github.com/HardDie/DeckBuilder/internal/db/common"
+	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type deck struct {
@@ -32,13 +34,13 @@ func New(db fsentry.IFSEntry, collection dbCollection.Collection) Deck {
 	}
 }
 
-func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
+func (d *deck) Create(ctx context.Context, gameID, collectionID, name, description, image string) (*entitiesDeck.Deck, error) {
 	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.CreateFolder(name, &dbCommon.Info{
+	info, err := d.db.CreateFolder(name, model{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
 	}, d.gamesPath, gameID, collection.ID)
@@ -58,57 +60,56 @@ func (d *deck) Create(ctx context.Context, gameID, collectionID, name, descripti
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &DeckInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesDeck.Deck{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: description,
 		Image:       image,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (context.Context, *DeckInfo, error) {
+func (d *deck) Get(ctx context.Context, gameID, collectionID, name string) (*entitiesDeck.Deck, error) {
 	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
-		return ctx, nil, err
+		return nil, err
 	}
 
 	info, err := d.db.GetFolder(name, d.gamesPath, gameID, collection.ID)
 	if err != nil {
 		if errors.Is(err, fsentry_error.ErrorNotExist) {
-			return ctx, nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry_error.ErrorBadName) {
-			return ctx, nil, er.BadName
+			return nil, er.BadName
 		} else {
-			return ctx, nil, er.InternalError.AddMessage(err.Error())
+			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var dInfo dbCommon.Info
 
+	var dInfo model
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
-		return ctx, nil, er.InternalError.AddMessage(err.Error())
+		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	ctx = context.WithValue(ctx, "deckID", info.Id)
-	return ctx, &DeckInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesDeck.Deck{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckInfo, error) {
+func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
 	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -119,9 +120,9 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckIn
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	var decks []*DeckInfo
+	var decks []*entitiesDeck.Deck
 	for _, folder := range list.Folders {
-		_, deck, err := d.Get(ctx, gameID, collection.ID, folder)
+		deck, err := d.Get(ctx, gameID, collection.ID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -134,7 +135,7 @@ func (d *deck) List(ctx context.Context, gameID, collectionID string) ([]*DeckIn
 	}
 	return decks, nil
 }
-func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName string) (*DeckInfo, error) {
+func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName string) (*entitiesDeck.Deck, error) {
 	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
@@ -150,33 +151,33 @@ func (d *deck) Move(ctx context.Context, gameID, collectionID, oldName, newName 
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var dInfo dbCommon.Info
+	var dInfo model
 
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &DeckInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesDeck.Deck{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
 	}, nil
 }
-func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*DeckInfo, error) {
+func (d *deck) Update(ctx context.Context, gameID, collectionID, name, description, image string) (*entitiesDeck.Deck, error) {
 	collection, err := d.collection.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.UpdateFolder(name, &dbCommon.Info{
+	info, err := d.db.UpdateFolder(name, model{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
 	}, d.gamesPath, gameID, collection.ID)
@@ -189,21 +190,21 @@ func (d *deck) Update(ctx context.Context, gameID, collectionID, name, descripti
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
-	var dInfo dbCommon.Info
+	var dInfo model
 
 	err = json.Unmarshal(info.Data, &dInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	return &DeckInfo{
-		ID:        info.Id,
-		Name:      info.Name.String(),
-		CreatedAt: info.CreatedAt,
-		UpdatedAt: info.UpdatedAt,
-
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesDeck.Deck{
+		ID:          info.Id,
+		Name:        info.Name.String(),
 		Description: dInfo.Description.String(),
 		Image:       dInfo.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 
 		GameID:       gameID,
 		CollectionID: collectionID,
@@ -228,7 +229,7 @@ func (d *deck) Delete(ctx context.Context, gameID, collectionID, name string) er
 	return nil
 }
 func (d *deck) ImageCreate(ctx context.Context, gameID, collectionID, deckID string, data []byte) error {
-	ctx, deck, err := d.Get(ctx, gameID, collectionID, deckID)
+	deck, err := d.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
@@ -244,7 +245,7 @@ func (d *deck) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 	return nil
 }
 func (d *deck) ImageGet(ctx context.Context, gameID, collectionID, deckID string) ([]byte, error) {
-	ctx, deck, err := d.Get(ctx, gameID, collectionID, deckID)
+	deck, err := d.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +261,7 @@ func (d *deck) ImageGet(ctx context.Context, gameID, collectionID, deckID string
 	return data, nil
 }
 func (d *deck) ImageDelete(ctx context.Context, gameID, collectionID, deckID string) error {
-	ctx, deck, err := d.Get(ctx, gameID, collectionID, deckID)
+	deck, err := d.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return err
 	}
@@ -274,4 +275,14 @@ func (d *deck) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 		}
 	}
 	return nil
+}
+
+func (d *deck) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
+	if createdAt == nil {
+		createdAt = utils.Allocate(time.Now())
+	}
+	if updatedAt == nil {
+		updatedAt = createdAt
+	}
+	return *createdAt, *updatedAt
 }

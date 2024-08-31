@@ -2,7 +2,6 @@ package deck
 
 import (
 	"context"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
@@ -11,7 +10,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type deck struct {
@@ -35,7 +33,7 @@ func (r *deck) Create(gameID, collectionID string, req CreateRequest) (*entities
 	}
 
 	if d.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(d), nil
+		return d, nil
 	}
 
 	if d.Image != "" {
@@ -51,30 +49,21 @@ func (r *deck) Create(gameID, collectionID string, req CreateRequest) (*entities
 		}
 	}
 
-	return r.oldEntityToNew(d), nil
+	return d, nil
 }
 func (r *deck) GetByID(gameID, collectionID, deckID string) (*entitiesDeck.Deck, error) {
-	_, resp, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
-	return r.oldEntityToNew(resp), err
+	return r.deck.Get(context.Background(), gameID, collectionID, deckID)
 }
 func (r *deck) GetAll(gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
-	items, err := r.deck.List(context.Background(), gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*entitiesDeck.Deck, 0, len(items))
-	for _, item := range items {
-		res = append(res, r.oldEntityToNew(item))
-	}
-	return res, nil
+	return r.deck.List(context.Background(), gameID, collectionID)
 }
 func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*entitiesDeck.Deck, error) {
-	_, oldDeck, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
+	oldDeck, err := r.deck.Get(context.Background(), gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
 	}
 
-	var newDeck *dbDeck.DeckInfo
+	var newDeck *entitiesDeck.Deck
 	if oldDeck.Name != req.Name {
 		// Rename folder
 		newDeck, err = r.deck.Move(context.Background(), gameID, collectionID, oldDeck.Name, req.Name)
@@ -100,7 +89,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 
 	// If the image has not been changed
 	if newDeck.Image == oldDeck.Image && req.ImageFile == nil {
-		return r.oldEntityToNew(newDeck), nil
+		return newDeck, nil
 	}
 
 	// If image exist, delete
@@ -112,7 +101,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 	}
 
 	if newDeck.Image == "" && req.ImageFile == nil {
-		return r.oldEntityToNew(newDeck), nil
+		return newDeck, nil
 	}
 
 	if newDeck.Image != "" {
@@ -128,7 +117,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 		}
 	}
 
-	return r.oldEntityToNew(newDeck), nil
+	return newDeck, nil
 }
 func (r *deck) DeleteByID(gameID, collectionID, deckID string) error {
 	return r.deck.Delete(context.Background(), gameID, collectionID, deckID)
@@ -197,31 +186,4 @@ func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []b
 
 	// Write image to file
 	return r.deck.ImageCreate(context.Background(), gameID, collectionID, deckID, data)
-}
-
-func (r *deck) oldEntityToNew(g *dbDeck.DeckInfo) *entitiesDeck.Deck {
-	if g == nil {
-		return nil
-	}
-	createdAt, updatedAt := r.convertCreateUpdate(g.CreatedAt, g.UpdatedAt)
-	return &entitiesDeck.Deck{
-		ID:          g.ID,
-		Name:        g.Name,
-		Description: g.Description,
-		Image:       g.Image,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID:       g.GameID,
-		CollectionID: g.CollectionID,
-	}
-}
-func (r *deck) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
-	if createdAt == nil {
-		createdAt = utils.Allocate(time.Now())
-	}
-	if updatedAt == nil {
-		updatedAt = createdAt
-	}
-	return *createdAt, *updatedAt
 }

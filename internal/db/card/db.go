@@ -275,7 +275,7 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 }
 
 func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, map[int64]*cardInfo, error) {
-	ctx, deck, err := d.deck.Get(ctx, gameID, collectionID, deckID)
+	deck, err := d.deck.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return ctx, nil, err
 	}

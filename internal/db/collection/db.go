@@ -11,7 +11,6 @@ import (
 	"github.com/HardDie/fsentry/pkg/fsentry_error"
 	"github.com/HardDie/fsentry/pkg/fsentry_types"
 
-	dbCommon "github.com/HardDie/DeckBuilder/internal/db/common"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -41,7 +40,7 @@ func (d *collection) Create(ctx context.Context, gameID, name, description, imag
 		return nil, err
 	}
 
-	info, err := d.db.CreateFolder(name, &model{
+	info, err := d.db.CreateFolder(name, model{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
 	}, d.gamesPath, game.ID)
@@ -84,7 +83,7 @@ func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCol
 		}
 	}
 
-	var cInfo dbCommon.Info
+	var cInfo model
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
@@ -145,7 +144,7 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 		}
 	}
 
-	var cInfo dbCommon.Info
+	var cInfo model
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
@@ -169,7 +168,7 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 		return nil, err
 	}
 
-	info, err := d.db.UpdateFolder(name, &dbCommon.Info{
+	info, err := d.db.UpdateFolder(name, model{
 		Description: fsentry_types.QS(description),
 		Image:       fsentry_types.QS(image),
 	}, d.gamesPath, game.ID)
@@ -183,7 +182,7 @@ func (d *collection) Update(ctx context.Context, gameID, name, description, imag
 		}
 	}
 
-	var cInfo dbCommon.Info
+	var cInfo model
 	err = json.Unmarshal(info.Data, &cInfo)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
