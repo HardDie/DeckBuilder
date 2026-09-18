@@ -9,12 +9,12 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
+	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 	serversCard "github.com/HardDie/DeckBuilder/internal/servers/card"
 	serversCollection "github.com/HardDie/DeckBuilder/internal/servers/collection"
 	serversDeck "github.com/HardDie/DeckBuilder/internal/servers/deck"
@@ -55,7 +55,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// db methods
 	core := dbCore.New(db)
-	settings := dbSettings.New(db)
 
 	err := core.Init()
 	if err != nil {
@@ -63,7 +62,8 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	}
 
 	// system
-	serviceSystem := servicesSystem.New(cfg, settings)
+	repositorySettings := repositoriesSettings.New(cfg, db)
+	serviceSystem := servicesSystem.New(repositorySettings)
 	serverSystem := serversSystem.New(cfg, serviceSystem)
 	api.RegisterSystemServer(routes, serverSystem)
 

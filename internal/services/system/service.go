@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/HardDie/DeckBuilder/internal/config"
-	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 )
@@ -14,9 +12,9 @@ type system struct {
 	repositorySettings repositoriesSettings.Settings
 }
 
-func New(cfg *config.Config, settings dbSettings.Settings) System {
+func New(repositorySettings repositoriesSettings.Settings) System {
 	return &system{
-		repositorySettings: repositoriesSettings.New(cfg, settings),
+		repositorySettings: repositorySettings,
 	}
 }
 
@@ -24,22 +22,17 @@ func (s *system) Quit() {
 	os.Exit(0)
 }
 func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
-	// Load default value
 	settings := entitiesSettings.Default()
 
-	// Try to read settings from file
 	set, err := s.repositorySettings.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	// If got no settings from file
 	if set == nil {
-		// Return default value
 		return &settings, nil
 	}
 
-	// Update default values
 	settings.Lang = set.Lang
 	settings.EnableBackShadow = set.EnableBackShadow
 	settings.CardSize.ScaleX = set.CardSize.ScaleX
