@@ -20,12 +20,12 @@ func New(db *fsentry.DB) Core {
 	}
 }
 
-func (d *core) Init() error {
-	err := d.db.Init()
+func (r *core) Init() error {
+	err := r.db.Init()
 	if err != nil {
 		return er.InternalError.AddMessage(err.Error())
 	}
-	_, err = d.db.CreateFolder[any](d.gamesPath, nil)
+	_, err = r.db.CreateFolder[any](r.gamesPath, nil)
 	if err != nil {
 		if !errors.Is(err, fsentry.ErrExist) {
 			return er.InternalError.AddMessage(err.Error())
@@ -34,8 +34,8 @@ func (d *core) Init() error {
 	return nil
 }
 
-func (d *core) Drop() error {
-	err := d.db.Drop()
+func (r *core) Drop() error {
+	err := r.db.Drop()
 	if err != nil {
 		return er.InternalError.AddMessage(err.Error())
 	}

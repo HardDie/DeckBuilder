@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -45,7 +45,7 @@ func initDeck(t testing.TB, name string) deckEnv {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 	err = core.Init()
 	if err != nil {
 		t.Fatal("error init core", err)

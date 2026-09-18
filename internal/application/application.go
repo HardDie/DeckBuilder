@@ -8,10 +8,10 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
@@ -53,8 +53,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		logger.Error.Fatal(err)
 	}
 
-	// db methods
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 
 	err := core.Init()
 	if err != nil {

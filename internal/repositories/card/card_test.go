@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 )
 
 var (
@@ -43,7 +43,7 @@ func initCard(t testing.TB, name string) cardEnv {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 	err = core.Init()
 	if err != nil {
 		t.Fatal("error init core", err)

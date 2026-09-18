@@ -10,11 +10,11 @@ import (
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
@@ -25,7 +25,7 @@ import (
 type deckTest struct {
 	gameID, collectionID string
 	cfg                  *config.Config
-	core                 dbCore.Core
+	core                 repositoriesCore.Core
 
 	serviceGame       servicesGame.Game
 	serviceCollection servicesCollection.Collection
@@ -49,7 +49,7 @@ func newDeckTest(t testing.TB) *deckTest {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 
 	repositoryGame := repositoriesGame.New(cfg, db)
 	repositoryCollection := repositoriesCollection.New(cfg, db)

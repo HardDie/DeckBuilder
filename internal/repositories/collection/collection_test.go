@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -44,7 +44,7 @@ func initCollection(t testing.TB, name string) collectionEnv {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 	err = core.Init()
 	if err != nil {
 		t.Fatal("error init core", err)

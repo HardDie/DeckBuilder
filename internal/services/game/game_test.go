@@ -10,17 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
+	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type gameTest struct {
 	cfg  *config.Config
-	core dbCore.Core
+	core repositoriesCore.Core
 
 	serviceGame Game
 }
@@ -40,7 +40,7 @@ func newGameTest(t testing.TB) *gameTest {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(db)
+	core := repositoriesCore.New(db)
 	repositoryGame := repositoriesGame.New(cfg, db)
 
 	return &gameTest{
