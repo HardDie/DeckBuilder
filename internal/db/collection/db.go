@@ -2,30 +2,26 @@ package collection
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
+	"github.com/HardDie/fsentry"
 
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type collection struct {
-	db        fsentry.IFSEntry
+	db        *fsentry.DB
 	gamesPath string
 
 	game dbGame.Game
 }
 
-func New(db fsentry.IFSEntry, game dbGame.Game) Collection {
+func New(db *fsentry.DB, game dbGame.Game) Collection {
 	return &collection{
 		db:        db,
 		gamesPath: "games",
@@ -41,66 +37,42 @@ func (d *collection) Create(ctx context.Context, req CreateRequest) (*entitiesCo
 	}
 
 	info, err := d.db.CreateFolder(req.Name, model{
-		Description: fsentry_types.QS(req.Description),
-		Image:       fsentry_types.QS(req.Image),
+		Description: fsentry.QuotedString(req.Description),
+		Image:       fsentry.QuotedString(req.Image),
 	}, d.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorExist) {
+		if errors.Is(err, fsentry.ErrExist) {
 			return nil, er.CollectionExist
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
-	return &entitiesCollection.Collection{
-		ID:          info.Id,
-		Name:        info.Name.String(),
-		Description: req.Description,
-		Image:       req.Image,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID: req.GameID,
-	}, nil
+	return d.toEntity(info, req.GameID), nil
 }
+
 func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.GetFolder(name, d.gamesPath, game.ID)
+	info, err := d.db.GetFolder[model](name, d.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	var cInfo model
-	err = json.Unmarshal(info.Data, &cInfo)
-	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
-	}
-
-	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
-	return &entitiesCollection.Collection{
-		ID:          info.Id,
-		Name:        info.Name.String(),
-		Description: cInfo.Description.String(),
-		Image:       cInfo.Image.String(),
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID: gameID,
-	}, nil
+	return d.toEntity(info, gameID), nil
 }
+
 func (d *collection) List(ctx context.Context, gameID string) ([]*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
@@ -127,41 +99,27 @@ func (d *collection) List(ctx context.Context, gameID string) ([]*entitiesCollec
 	}
 	return collections, nil
 }
+
 func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.MoveFolder(oldName, newName, d.gamesPath, game.ID)
+	info, err := d.db.MoveFolder[model](oldName, newName, d.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	var cInfo model
-	err = json.Unmarshal(info.Data, &cInfo)
-	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
-	}
-
-	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
-	return &entitiesCollection.Collection{
-		ID:          info.Id,
-		Name:        info.Name.String(),
-		Description: cInfo.Description.String(),
-		Image:       cInfo.Image.String(),
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID: gameID,
-	}, nil
+	return d.toEntity(info, gameID), nil
 }
+
 func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCollection.Collection, error) {
 	game, err := d.game.Get(ctx, req.GameID)
 	if err != nil {
@@ -169,37 +127,22 @@ func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCo
 	}
 
 	info, err := d.db.UpdateFolder(req.Name, model{
-		Description: fsentry_types.QS(req.Description),
-		Image:       fsentry_types.QS(req.Image),
+		Description: fsentry.QuotedString(req.Description),
+		Image:       fsentry.QuotedString(req.Image),
 	}, d.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	var cInfo model
-	err = json.Unmarshal(info.Data, &cInfo)
-	if err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
-	}
-
-	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
-	return &entitiesCollection.Collection{
-		ID:          info.Id,
-		Name:        info.Name.String(),
-		Description: cInfo.Description.String(),
-		Image:       cInfo.Image.String(),
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID: req.GameID,
-	}, nil
+	return d.toEntity(info, req.GameID), nil
 }
+
 func (d *collection) Delete(ctx context.Context, gameID, name string) error {
 	game, err := d.game.Get(ctx, gameID)
 	if err != nil {
@@ -208,9 +151,9 @@ func (d *collection) Delete(ctx context.Context, gameID, name string) error {
 
 	err = d.db.RemoveFolder(name, d.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return er.BadName
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -218,6 +161,7 @@ func (d *collection) Delete(ctx context.Context, gameID, name string) error {
 	}
 	return nil
 }
+
 func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID string, data []byte) error {
 	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
@@ -226,7 +170,7 @@ func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID strin
 
 	err = d.db.CreateBinary("image", data, d.gamesPath, gameID, collection.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorExist) {
+		if errors.Is(err, fsentry.ErrExist) {
 			return er.CollectionImageExist.AddMessage(err.Error())
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -234,15 +178,16 @@ func (d *collection) ImageCreate(ctx context.Context, gameID, collectionID strin
 	}
 	return nil
 }
+
 func (d *collection) ImageGet(ctx context.Context, gameID, collectionID string) ([]byte, error) {
 	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := d.db.GetBinary("image", d.gamesPath, gameID, collection.ID)
+	data, err := d.db.GetBinary("image", nil, d.gamesPath, gameID, collection.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionImageNotExists.AddMessage(err.Error())
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
@@ -250,6 +195,7 @@ func (d *collection) ImageGet(ctx context.Context, gameID, collectionID string) 
 	}
 	return data, nil
 }
+
 func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID string) error {
 	collection, err := d.Get(ctx, gameID, collectionID)
 	if err != nil {
@@ -258,7 +204,7 @@ func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID strin
 
 	err = d.db.RemoveBinary("image", d.gamesPath, gameID, collection.ID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CollectionImageNotExists.AddMessage(err.Error())
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -267,12 +213,25 @@ func (d *collection) ImageDelete(ctx context.Context, gameID, collectionID strin
 	return nil
 }
 
-func (d *collection) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
-	if createdAt == nil {
-		createdAt = utils.Allocate(time.Now())
+func (d *collection) toEntity(info fsentry.FolderInfo[model], gameID string) *entitiesCollection.Collection {
+	createdAt, updatedAt := d.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.ID,
+		Name:        info.Name,
+		Description: info.Data.Description.String(),
+		Image:       info.Data.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+		GameID:      gameID,
 	}
-	if updatedAt == nil {
+}
+
+func (d *collection) convertCreateUpdate(createdAt, updatedAt time.Time) (time.Time, time.Time) {
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	if updatedAt.IsZero() {
 		updatedAt = createdAt
 	}
-	return *createdAt, *updatedAt
+	return createdAt, updatedAt
 }

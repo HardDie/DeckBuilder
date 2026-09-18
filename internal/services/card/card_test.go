@@ -59,7 +59,7 @@ func newCardTest(t testing.TB) *cardTest {
 
 	core := dbCore.New(fs)
 	game := dbGame.New(db)
-	collection := dbCollection.New(fs, game)
+	collection := dbCollection.New(db, game)
 	deck := dbDeck.New(fs, collection)
 	card := dbCard.New(fs, deck)
 

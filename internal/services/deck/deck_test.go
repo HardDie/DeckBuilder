@@ -56,7 +56,7 @@ func newDeckTest(t testing.TB) *deckTest {
 
 	core := dbCore.New(fs)
 	game := dbGame.New(db)
-	collection := dbCollection.New(fs, game)
+	collection := dbCollection.New(db, game)
 	deck := dbDeck.New(fs, collection)
 
 	repositoryGame := repositoriesGame.New(cfg, game)

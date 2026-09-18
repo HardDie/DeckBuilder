@@ -52,7 +52,7 @@ func newCollectionTest(t testing.TB) *collectionTest {
 
 	core := dbCore.New(fs)
 	game := dbGame.New(db)
-	collection := dbCollection.New(fs, game)
+	collection := dbCollection.New(db, game)
 
 	repositoryGame := repositoriesGame.New(cfg, game)
 	repositoryCollection := repositoriesCollection.New(cfg, collection)
