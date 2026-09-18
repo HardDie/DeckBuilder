@@ -13,3 +13,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [005](005-tts-generate-local-paths.md) | Generate sprite sheets + TTS JSON with local image paths | Accepted |
 | [006](006-docs-layout.md) | README, CURSOR.md, `docs/` (ADRs, use cases) | Accepted |
 | [007](007-tts-official-api.md) | TTS integration follows api.tabletopsimulator.com | Accepted |
+| [008](008-require-go-1.27.md) | Require Go 1.27.1 | Accepted |

@@ -280,7 +280,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 	gameName := "image_one"
 	gameID := utils.NameToID(gameName)
 	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://avatars.githubusercontent.com/apple"
+	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
 
 	// Check no game
 	_, _, err := tt.serviceGame.GetImage(gameID)

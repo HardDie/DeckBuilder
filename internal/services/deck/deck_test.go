@@ -373,7 +373,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 	deckType := "image_one"
 	deckID := utils.NameToID(deckType)
 	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://avatars.githubusercontent.com/apple"
+	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
 
 	// Check no deck
 	_, _, err := tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, deckID)
@@ -731,7 +731,7 @@ func FuzzDeck(f *testing.F) {
 				Name: tt.gameID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 
 			// Create collection
@@ -739,7 +739,7 @@ func FuzzDeck(f *testing.F) {
 				Name: tt.collectionID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 		}
 

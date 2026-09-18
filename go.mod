@@ -1,6 +1,6 @@
 module github.com/HardDie/DeckBuilder
 
-go 1.19
+go 1.27.1
 
 require (
 	github.com/HardDie/fsentry v0.0.11

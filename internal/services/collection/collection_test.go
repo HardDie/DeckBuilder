@@ -379,7 +379,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 	collectionName := "image_one"
 	collectionID := utils.NameToID(collectionName)
 	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://avatars.githubusercontent.com/apple"
+	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
 
 	// Check no collection
 	_, _, err := tt.serviceCollection.GetImage(tt.gameID, collectionID)
@@ -730,7 +730,7 @@ func FuzzCollection(f *testing.F) {
 				Name: tt.gameID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 
 		}

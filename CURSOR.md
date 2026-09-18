@@ -126,7 +126,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 | Layer | Choice |
 |---|---|
 | GUI | Vue SPA in `gui/` submodule; production assets `web/dist` (`//go:embed`) |
-| HTTP | Go 1.19+, `gorilla/mux`, listen `127.0.0.1:5000` |
+| HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
 | API docs | go-swagger comments in `internal/api`; `make swagger` → `web/swagger.json` |

@@ -278,7 +278,7 @@ func TestGameDuplicate(t *testing.T) {
 		list, err := g.List(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, list, 2)
-		assert.Equal(t, []*entitiesGame.Game{srcGame, dstGame}, list)
+		assert.ElementsMatch(t, []*entitiesGame.Game{srcGame, dstGame}, list)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {

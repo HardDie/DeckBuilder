@@ -389,7 +389,7 @@ func (tt *cardTest) testItem(t *testing.T) {
 func (tt *cardTest) testImage(t *testing.T) {
 	cardTitle := "image_one"
 	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://avatars.githubusercontent.com/apple"
+	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
 
 	// Check no card
 	_, _, err := tt.serviceCard.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", 1)
@@ -797,7 +797,7 @@ func FuzzCard(f *testing.F) {
 				Name: tt.gameID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 
 			// Create collection
@@ -805,7 +805,7 @@ func FuzzCard(f *testing.F) {
 				Name: tt.collectionID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 
 			// Create deck
@@ -813,7 +813,7 @@ func FuzzCard(f *testing.F) {
 				Name: tt.deckID,
 			})
 			if err != nil {
-				f.Fatal(err)
+				t.Fatal(err)
 			}
 		}
 
