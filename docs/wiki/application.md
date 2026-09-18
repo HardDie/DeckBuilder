@@ -6,7 +6,7 @@ Composition root. Only this package constructs the graph and starts HTTP.
 
 | Name | Meaning |
 |---|---|
-| `Application` | Holds config, router, TTS. `Run` binds `127.0.0.1:5000`, then +1 on failure (max 20). |
+| `Application` | Holds config, router, TTS. `Listen` binds `127.0.0.1:5000`, then +1 on failure (max 20). |
 | `Get(debugFlag, version)` | Builds config, stores, layers, middleware. Fatals on store `Init` errors. |
 
 ## Variables in `Get`
@@ -26,8 +26,11 @@ Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 
 | Method | Role | Called from |
 |---|---|---|
-| `Get` | Wire everything | `cmd/deck_builder` |
-| `Run` | Bind loopback (retry port), optionally open browser, `http.Serve` | `cmd/deck_builder` |
+| `Get` | Wire everything | `cmd/deck_builder`, `desktop/` |
+| `Listen` | Bind loopback (retry port), set TTS port | `Run`, `desktop/` |
+| `Serve` | `http.Serve` the mux | `Run`, `desktop/` |
+| `Handler` | The mux (for Wails `AssetServer.Handler`) | `desktop/` |
+| `Run` | `Listen` + optional browser + `Serve` | `cmd/deck_builder` |
 | `corsSetupHeaders` / `corsMiddleware` | Allow GUI-dev on another origin | `routes.Use` |
 
 No catalog logic lives here. Adding a new HTTP feature means a `New` + `Register*` pair in this file, not a new listen path.

@@ -3,26 +3,29 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 )
 
-// App is the Wails bindings stub. Catalog and generate stay on the HTTP API;
-// do not add REST replacements here until the shell loads 127.0.0.1:<port>.
+// App is the Wails bindings stub. Catalog and generate stay on the HTTP API.
 type App struct {
 	ctx context.Context
+	ln  net.Listener
 }
 
-// NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(ln net.Listener) *App {
+	return &App{ln: ln}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
+func (a *App) shutdown(_ context.Context) {
+	if a.ln != nil {
+		_ = a.ln.Close()
+	}
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

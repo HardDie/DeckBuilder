@@ -10,7 +10,7 @@ build: ## build app for all platforms
 	cd deployment && ./build_all.sh
 
 .PHONY: wails-dev
-wails-dev: ## run Wails desktop app (Vue UI; needs HTTP on :5000)
+wails-dev: ## run Wails desktop app (starts loopback HTTP + Vue UI)
 	cd desktop && wails dev
 
 .PHONY: web-build

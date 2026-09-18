@@ -7,7 +7,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 1. **SPA (embedded `web/dist`)** — the authoring UI. It talks only to this process over HTTP. SPA routes such as `/games/{id}/…` are SPA paths; Go forwards them to `index.html` so reloads work.
 2. **REST API (`/api/…`)** — JSON (and multipart) for CRUD, images, generate, search, replace, system. TTS Lua downloads the last generated object from `GET /api/tts/data`.
 
-**Not this product:** a multi-user cloud service, a TTS plugin inside the game (beyond a one-shot External Editor TCP poke), or a second in-process desktop toolkit such as Wails. The process is a **loopback HTTP server** on `127.0.0.1:5000`.
+**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process; it does not replace `/api` with bindings.
 
 ---
 
@@ -34,7 +34,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 - Binding on non-loopback interfaces or adding auth.
 - Changing the domain tree (game/collection/deck/card).
 - Replacing fsentry with SQL.
-- Merging the GUI into this Go module as a Wails/webview app.
+- Replacing `/api` with Wails Go bindings.
 
 ---
 
@@ -188,7 +188,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
 ├── cmd/deck_builder/       # production main, swagger:meta, -debug, version ldflags
-├── desktop/                # Wails v2 scaffold (own module; not the HTTP server)
+├── desktop/                # Wails v2 window (own module; starts the same HTTP application)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
 │   ├── api/                # route registration + swagger types
@@ -231,7 +231,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails lives in `desktop/` as a future window ([ADR 010](docs/architecture/010-wails-shell.md)); do not replace `/api` with bindings yet.
+- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); do not replace `/api` with bindings.
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”

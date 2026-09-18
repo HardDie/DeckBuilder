@@ -6,7 +6,7 @@
 
 ## `desktop/`
 
-Wails v2 scaffold (separate Go module). Vue UI copied from `gui/` into `desktop/frontend`; still talks HTTP (`/api` → `127.0.0.1:5000`: Vite for GET in `wails dev`, `AssetServer.Handler` for POST/PATCH/DELETE). Not the production binary ([ADR 010](../architecture/010-wails-shell.md)). `cd desktop && wails dev`.
+Wails v2 window (separate Go module). Starts the same `internal/application` HTTP server (no browser). Vue UI copied from `gui/` into `desktop/frontend`; `fetch('/api/...')` hits that mux (`AssetServer.Handler` for non-GET; Vite GET in `wails dev` still targets `:5000`). Not the production `cmd/deck_builder` binary ([ADR 010](../architecture/010-wails-shell.md)). `make wails-dev`.
 
 ## `web/`
 

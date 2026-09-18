@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 
 	"github.com/HardDie/fsentry"
@@ -126,20 +127,33 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	}, nil
 }
 
-func (app *Application) Run() error {
+func (app *Application) Handler() http.Handler {
+	return app.router
+}
+
+func (app *Application) Listen() (net.Listener, int, error) {
 	ln, port, err := listenLoopback(config.HTTPHost, config.HTTPPort, config.HTTPPortAttempts)
+	if err != nil {
+		return nil, 0, err
+	}
+	app.tts.SetHTTPPort(port)
+	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
+	return ln, port, nil
+}
+
+func (app *Application) Serve(ln net.Listener) error {
+	return http.Serve(ln, app.router)
+}
+
+func (app *Application) Run() error {
+	ln, port, err := app.Listen()
 	if err != nil {
 		return err
 	}
-
-	app.tts.SetHTTPPort(port)
-
-	http.Handle("/", app.router)
-	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
 	if !app.cfg.Debug {
 		network.OpenBrowser(fmt.Sprintf("http://%s:%d", config.HTTPHost, port))
 	}
-	return http.Serve(ln, nil)
+	return app.Serve(ln)
 }
 
 // CORS headers
