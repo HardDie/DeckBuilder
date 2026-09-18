@@ -3,7 +3,7 @@ package card
 import (
 	"time"
 
-	"github.com/HardDie/fsentry/pkg/fsentry_types"
+	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
 )
 
 type model struct {

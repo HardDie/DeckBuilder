@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/HardDie/fsentry"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"

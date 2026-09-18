@@ -3,10 +3,11 @@ module github.com/HardDie/DeckBuilder
 go 1.27.1
 
 require (
-	github.com/HardDie/fsentry v0.0.11
+	github.com/HardDie/fsentry v0.1.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-openapi/runtime v0.26.0
 	github.com/gorilla/mux v1.8.0
+	github.com/otiai10/copy v1.11.0
 	github.com/stretchr/testify v1.8.2
 )
 
@@ -26,10 +27,9 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/otiai10/copy v1.11.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

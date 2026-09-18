@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/HardDie/fsentry"
-	"github.com/HardDie/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
+	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
 
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )

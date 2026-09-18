@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/HardDie/fsentry"
-	"github.com/HardDie/fsentry/pkg/fsentry_error"
-	"github.com/HardDie/fsentry/pkg/fsentry_types"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
+	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
 
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HardDie/fsentry"
-	"github.com/HardDie/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
+	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"

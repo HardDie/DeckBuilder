@@ -3,7 +3,7 @@ package application
 import (
 	"net/http"
 
-	"github.com/HardDie/fsentry"
+	fsentryv1 "github.com/HardDie/fsentry"
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/api"
@@ -14,6 +14,7 @@ import (
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -54,6 +55,11 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// fsentry db
 	fs := fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty())
+
+	db := fsentryv1.New(cfg.Data, fsentryv1.WithPretty())
+	if err := db.Init(); err != nil {
+		logger.Error.Fatal(err)
+	}
 
 	// db methods
 	core := dbCore.New(fs)

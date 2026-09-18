@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/HardDie/fsentry"
+	"github.com/HardDie/DeckBuilder/internal/fsentry"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"

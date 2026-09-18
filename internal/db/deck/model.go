@@ -1,6 +1,6 @@
 package deck
 
-import "github.com/HardDie/fsentry/pkg/fsentry_types"
+import "github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
 
 type model struct {
 	Description fsentry_types.QuotedString `json:"description"`
