@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
+	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
@@ -16,6 +16,7 @@ import (
 	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	legacyfs "github.com/HardDie/DeckBuilder/internal/fsentry"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
@@ -47,10 +48,14 @@ func newDeckTest(t testing.TB) *deckTest {
 	cfg := config.Get(false, "")
 	cfg.SetDataPath(dir)
 
-	fs := fsentry.NewFSEntry(cfg.Games())
+	fs := legacyfs.NewFSEntry(cfg.Games())
+	db := fsentry.New(cfg.Games(), fsentry.WithPretty(), fsentry.WithNoLockFile())
+	if err := db.Init(); err != nil {
+		t.Fatal("error init db", err)
+	}
 
 	core := dbCore.New(fs)
-	game := dbGame.New(fs)
+	game := dbGame.New(db)
 	collection := dbCollection.New(fs, game)
 	deck := dbDeck.New(fs, collection)
 

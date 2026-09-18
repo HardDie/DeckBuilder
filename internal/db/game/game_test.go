@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/fsentry"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
+	legacyfs "github.com/HardDie/DeckBuilder/internal/fsentry"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -38,10 +38,12 @@ func initGame(t testing.TB, name string) Game {
 	cfg := config.Get(false, "")
 	cfg.SetDataPath(dir)
 
-	// Init fsentry object
-	fs := fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty())
+	fs := legacyfs.NewFSEntry(cfg.Data, legacyfs.WithPretty())
+	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())
+	if err = db.Init(); err != nil {
+		t.Fatal("error init db", err)
+	}
 
-	// Init core directory
 	core := dbCore.New(fs)
 	err = core.Init()
 	if err != nil {
@@ -54,7 +56,7 @@ func initGame(t testing.TB, name string) Game {
 		}
 	})
 
-	return New(fs)
+	return New(db)
 }
 
 func TestGameCreate(t *testing.T) {
@@ -319,34 +321,34 @@ func TestGameUpdateInfo(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		oldName := "success_1"
-		newName := "success_2"
+		oldName := "success_old"
+		newName := "success_new"
 
 		g := initGame(t, "game_update_info__success")
-		_, err := g.Create(ctx, CreateRequest{Name: oldName})
+		created, err := g.Create(ctx, CreateRequest{Name: oldName})
 		assert.NoError(t, err)
 		err = g.UpdateInfo(ctx, oldName, newName)
 		assert.NoError(t, err)
-		list, err := g.List(ctx)
+		got, err := g.Get(ctx, newName)
 		assert.NoError(t, err)
-		assert.Len(t, list, 0)
-		err = g.UpdateInfo(ctx, oldName, oldName)
-		assert.NoError(t, err)
-		list, err = g.List(ctx)
-		assert.NoError(t, err)
-		assert.Len(t, list, 1)
+		assert.Equal(t, utils.NameToID(newName), got.ID)
+		assert.Equal(t, newName, got.Name)
+		assert.Equal(t, created.CreatedAt, got.CreatedAt)
+		assert.Equal(t, created.UpdatedAt, got.UpdatedAt)
+		_, err = g.Get(ctx, oldName)
+		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_update_info__not_exist")
 		err := g.UpdateInfo(ctx, "not_exist", "good")
-		assert.ErrorIs(t, err, fsentry_error.ErrorNotExist)
+		assert.ErrorIs(t, err, fsentry.ErrNotExist)
 	})
 
 	t.Run("bad_name_1", func(t *testing.T) {
 		g := initGame(t, "game_update_info__bad_name_1")
 		err := g.UpdateInfo(ctx, "---", "good")
-		assert.ErrorIs(t, err, fsentry_error.ErrorBadName)
+		assert.ErrorIs(t, err, fsentry.ErrBadName)
 	})
 
 	t.Run("bad_name_2", func(t *testing.T) {
@@ -355,7 +357,7 @@ func TestGameUpdateInfo(t *testing.T) {
 		_, err := g.Create(ctx, CreateRequest{Name: name})
 		assert.NoError(t, err)
 		err = g.UpdateInfo(ctx, name, "---")
-		assert.ErrorIs(t, err, fsentry_error.ErrorBadName)
+		assert.ErrorIs(t, err, fsentry.ErrBadName)
 	})
 }
 func TestImageCreate(t *testing.T) {
