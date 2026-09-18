@@ -5,3 +5,6 @@
 /deployment/out/
 /cmd/deck_builder/resource.syso
 /web/dist/
+/desktop/build/bin
+/desktop/frontend/dist
+/desktop/frontend/node_modules

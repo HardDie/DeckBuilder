@@ -15,3 +15,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [007](007-tts-official-api.md) | TTS integration follows api.tabletopsimulator.com | Accepted |
 | [008](008-require-go-1.27.md) | Require Go 1.27.1 | Accepted |
 | [009](009-catalog-timestamps.md) | Normalize catalog createdAt/updatedAt in memory | Accepted |
+| [010](010-wails-shell.md) | Wails desktop shell beside loopback HTTP | Accepted |

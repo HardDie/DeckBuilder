@@ -9,6 +9,10 @@ help: ## help information about make commands
 build: ## build app for all platforms
 	cd deployment && ./build_all.sh
 
+.PHONY: wails-dev
+wails-dev: ## run Wails desktop scaffold (not the HTTP server)
+	cd desktop && wails dev
+
 .PHONY: web-build
 web-build: ## build web interface
 	cd gui && yarn install

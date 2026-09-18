@@ -173,6 +173,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Image + zip + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
 | Embedded UI + swagger | `web/` |
+| Wails window (scaffold) | `desktop/` |
 | One-off CLIs | `tools/` |
 
 ### Tree
@@ -186,7 +187,8 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── architecture/       # ADRs
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
-├── cmd/deck_builder/       # main, swagger:meta, -debug, version ldflags
+├── cmd/deck_builder/       # production main, swagger:meta, -debug, version ldflags
+├── desktop/                # Wails v2 scaffold (own module; not the HTTP server)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
 │   ├── api/                # route registration + swagger types
@@ -229,7 +231,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`.
+- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails lives in `desktop/` as a future window ([ADR 010](docs/architecture/010-wails-shell.md)); do not replace `/api` with bindings yet.
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”

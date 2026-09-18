@@ -2,7 +2,11 @@
 
 ## `cmd/deck_builder`
 
-`main`: parse `-debug`, stamp `Version` / git commits, `application.Get`, open browser unless debug, `app.Run()`. Swagger `meta` comments live on this package.
+`main`: parse `-debug`, stamp `Version` / git commits, `application.Get`, `app.Run()` (listen + optional browser). Swagger `meta` comments live on this package.
+
+## `desktop/`
+
+Wails v2 scaffold (separate Go module). Placeholder vanilla frontend. Not wired to the catalog HTTP API yet ([ADR 010](../architecture/010-wails-shell.md)). `cd desktop && wails dev`.
 
 ## `web/`
 
