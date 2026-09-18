@@ -66,7 +66,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	settings := dbSettings.New(db)
 	game := dbGame.New(db)
 	collection := dbCollection.New(db, game)
-	deck := dbDeck.New(fs, collection)
+	deck := dbDeck.New(db, collection)
 	card := dbCard.New(fs, deck)
 
 	err := core.Init()
