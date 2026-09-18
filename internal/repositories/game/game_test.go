@@ -1,7 +1,6 @@
 package game
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -20,7 +19,7 @@ var (
 	img = []byte("some_image")
 )
 
-func initGame(t testing.TB, name string) Game {
+func initGame(t testing.TB, name string) *game {
 	// Create temp dir
 	dir, err := os.MkdirTemp("", name)
 	if err != nil {
@@ -54,12 +53,10 @@ func initGame(t testing.TB, name string) Game {
 		}
 	})
 
-	return New(db)
+	return New(cfg, db).(*game)
 }
 
 func TestGameCreate(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		wait := &entitiesGame.Game{
 			Name:        "success",
@@ -69,7 +66,7 @@ func TestGameCreate(t *testing.T) {
 		wait.ID = utils.NameToID(wait.Name)
 
 		g := initGame(t, "game_create__success")
-		got, err := g.Create(ctx, CreateRequest{
+		got, err := g.create(CreateRequest{
 			Name:        wait.Name,
 			Description: wait.Description,
 			Image:       wait.Image,
@@ -82,34 +79,32 @@ func TestGameCreate(t *testing.T) {
 
 	t.Run("exist", func(t *testing.T) {
 		g := initGame(t, "game_create__exist")
-		_, err := g.Create(ctx, CreateRequest{Name: "exist"})
+		_, err := g.create(CreateRequest{Name: "exist"})
 		assert.NoError(t, err)
-		_, err = g.Create(ctx, CreateRequest{Name: "exist"})
+		_, err = g.create(CreateRequest{Name: "exist"})
 		assert.ErrorIs(t, err, er.GameExist)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
 		g := initGame(t, "game_create__bad_name")
-		_, err := g.Create(ctx, CreateRequest{Name: "---"})
+		_, err := g.create(CreateRequest{Name: "---"})
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameGet(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 		desc := "descrption"
 		img := "https://some.url/image"
 
 		g := initGame(t, "game_get__success")
-		wait, err := g.Create(ctx, CreateRequest{
+		wait, err := g.create(CreateRequest{
 			Name:        name,
 			Description: desc,
 			Image:       img,
 		})
 		assert.NoError(t, err)
-		got, err := g.Get(ctx, name)
+		got, err := g.get(name)
 		assert.NoError(t, err)
 		wait.CreatedAt = got.CreatedAt
 		wait.UpdatedAt = got.UpdatedAt
@@ -118,32 +113,30 @@ func TestGameGet(t *testing.T) {
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_get__not_exist")
-		_, err := g.Get(ctx, "not_exist")
+		_, err := g.get("not_exist")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
 		g := initGame(t, "game_get__bad_name")
-		_, err := g.Create(ctx, CreateRequest{Name: "---"})
+		_, err := g.create(CreateRequest{Name: "---"})
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameList(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 		desc := "descrption"
 		img := "https://some.url/image"
 
 		g := initGame(t, "game_list__success")
-		wait, err := g.Create(ctx, CreateRequest{
+		wait, err := g.create(CreateRequest{
 			Name:        name,
 			Description: desc,
 			Image:       img,
 		})
 		assert.NoError(t, err)
-		got, err := g.List(ctx)
+		got, err := g.list()
 		assert.NoError(t, err)
 		assert.Len(t, got, 1)
 		wait.CreatedAt = got[0].CreatedAt
@@ -153,14 +146,12 @@ func TestGameList(t *testing.T) {
 
 	t.Run("empty", func(t *testing.T) {
 		g := initGame(t, "game_list__empty")
-		got, err := g.List(ctx)
+		got, err := g.list()
 		assert.NoError(t, err)
 		assert.Equal(t, []*entitiesGame.Game(nil), got)
 	})
 }
 func TestGameMove(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		oldName := "success_old"
 		newName := "success_new"
@@ -168,13 +159,13 @@ func TestGameMove(t *testing.T) {
 		img := "https://some.url/image"
 
 		g := initGame(t, "game_move__success")
-		oldGame, err := g.Create(ctx, CreateRequest{
+		oldGame, err := g.create(CreateRequest{
 			Name:        oldName,
 			Description: desc,
 			Image:       img,
 		})
 		assert.NoError(t, err)
-		newGame, err := g.Move(ctx, oldName, newName)
+		newGame, err := g.move(oldName, newName)
 		assert.NoError(t, err)
 
 		oldGame.ID = utils.NameToID(newName)
@@ -186,7 +177,7 @@ func TestGameMove(t *testing.T) {
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_move__not_exist")
-		_, err := g.Move(ctx, "not_exist", "new_name")
+		_, err := g.move("not_exist", "new_name")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
@@ -194,24 +185,22 @@ func TestGameMove(t *testing.T) {
 		oldName := "bad_name_old"
 		newName := "---"
 		g := initGame(t, "game_move__bad_name")
-		_, err := g.Create(ctx, CreateRequest{Name: oldName})
+		_, err := g.create(CreateRequest{Name: oldName})
 		assert.NoError(t, err)
-		_, err = g.Move(ctx, oldName, newName)
+		_, err = g.move(oldName, newName)
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameUpdate(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 		newDesc := "desc"
 		newImage := "img"
 
 		g := initGame(t, "game_update__success")
-		wait, err := g.Create(ctx, CreateRequest{Name: name})
+		wait, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		got, err := g.Update(ctx, UpdateRequest{
+		got, err := g.update(updateRequest{
 			Name:        name,
 			Description: newDesc,
 			Image:       newImage,
@@ -225,57 +214,53 @@ func TestGameUpdate(t *testing.T) {
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_update__not_exist")
-		_, err := g.Update(ctx, UpdateRequest{Name: "not_exist"})
+		_, err := g.update(updateRequest{Name: "not_exist"})
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
 		g := initGame(t, "game_update__bad_name")
-		_, err := g.Update(ctx, UpdateRequest{Name: "---"})
+		_, err := g.update(updateRequest{Name: "---"})
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameDelete(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 		g := initGame(t, "game_delete__success")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.Delete(ctx, name)
+		err = g.delete(name)
 		assert.NoError(t, err)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_delete__not_exist")
-		err := g.Delete(ctx, "not_exist")
+		err := g.delete("not_exist")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
 		g := initGame(t, "game_delete__bad_name")
-		err := g.Delete(ctx, "---")
+		err := g.delete("---")
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameDuplicate(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		srcName := "success_origin"
 		dstName := "success_copy"
 		g := initGame(t, "game_duplicate__success")
-		srcGame, err := g.Create(ctx, CreateRequest{Name: srcName})
+		srcGame, err := g.create(CreateRequest{Name: srcName})
 		assert.NoError(t, err)
 		srcGame.CreatedAt = srcGame.CreatedAt.Truncate(time.Nanosecond)
 		srcGame.UpdatedAt = srcGame.UpdatedAt.Truncate(time.Nanosecond)
-		dstGame, err := g.Duplicate(ctx, srcName, dstName)
+		dstGame, err := g.duplicate(srcName, dstName)
 		assert.NoError(t, err)
 		dstGame.CreatedAt = dstGame.CreatedAt.Truncate(time.Nanosecond)
 		dstGame.UpdatedAt = dstGame.UpdatedAt.Truncate(time.Nanosecond)
 		assert.NotEqual(t, srcGame, dstGame)
-		list, err := g.List(ctx)
+		list, err := g.list()
 		assert.NoError(t, err)
 		assert.Len(t, list, 2)
 		assert.ElementsMatch(t, []*entitiesGame.Game{srcGame, dstGame}, list)
@@ -283,7 +268,7 @@ func TestGameDuplicate(t *testing.T) {
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_duplicate__not_exist")
-		_, err := g.Duplicate(ctx, "not_exist", "new")
+		_, err := g.duplicate("not_exist", "new")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
@@ -291,17 +276,17 @@ func TestGameDuplicate(t *testing.T) {
 		srcName := "exist_origin"
 		dstName := "exist"
 		g := initGame(t, "game_duplicate__exist")
-		_, err := g.Create(ctx, CreateRequest{Name: srcName})
+		_, err := g.create(CreateRequest{Name: srcName})
 		assert.NoError(t, err)
-		_, err = g.Create(ctx, CreateRequest{Name: dstName})
+		_, err = g.create(CreateRequest{Name: dstName})
 		assert.NoError(t, err)
-		_, err = g.Duplicate(ctx, srcName, dstName)
+		_, err = g.duplicate(srcName, dstName)
 		assert.ErrorIs(t, err, er.GameExist)
 	})
 
 	t.Run("bad_name_1", func(t *testing.T) {
 		g := initGame(t, "game_duplicate__bad_name_1")
-		_, err := g.Duplicate(ctx, "---", "good")
+		_, err := g.duplicate("---", "good")
 		assert.ErrorIs(t, err, er.BadName)
 	})
 
@@ -309,65 +294,61 @@ func TestGameDuplicate(t *testing.T) {
 		srcName := "good"
 		dstName := "---"
 		g := initGame(t, "game_duplicate__bad_name_2")
-		_, err := g.Create(ctx, CreateRequest{Name: srcName})
+		_, err := g.create(CreateRequest{Name: srcName})
 		assert.NoError(t, err)
-		_, err = g.Duplicate(ctx, srcName, dstName)
+		_, err = g.duplicate(srcName, dstName)
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
 func TestGameUpdateInfo(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		oldName := "success_old"
 		newName := "success_new"
 
 		g := initGame(t, "game_update_info__success")
-		created, err := g.Create(ctx, CreateRequest{Name: oldName})
+		created, err := g.create(CreateRequest{Name: oldName})
 		assert.NoError(t, err)
-		err = g.UpdateInfo(ctx, oldName, newName)
+		err = g.updateInfo(oldName, newName)
 		assert.NoError(t, err)
-		got, err := g.Get(ctx, newName)
+		got, err := g.get(newName)
 		assert.NoError(t, err)
 		assert.Equal(t, utils.NameToID(newName), got.ID)
 		assert.Equal(t, newName, got.Name)
 		assert.Equal(t, created.CreatedAt, got.CreatedAt)
 		assert.Equal(t, created.UpdatedAt, got.UpdatedAt)
-		_, err = g.Get(ctx, oldName)
+		_, err = g.get(oldName)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t, "game_update_info__not_exist")
-		err := g.UpdateInfo(ctx, "not_exist", "good")
+		err := g.updateInfo("not_exist", "good")
 		assert.ErrorIs(t, err, fsentry.ErrNotExist)
 	})
 
 	t.Run("bad_name_1", func(t *testing.T) {
 		g := initGame(t, "game_update_info__bad_name_1")
-		err := g.UpdateInfo(ctx, "---", "good")
+		err := g.updateInfo("---", "good")
 		assert.ErrorIs(t, err, fsentry.ErrBadName)
 	})
 
 	t.Run("bad_name_2", func(t *testing.T) {
 		name := "good"
 		g := initGame(t, "game_update_info__bad_name_2")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.UpdateInfo(ctx, name, "---")
+		err = g.updateInfo(name, "---")
 		assert.ErrorIs(t, err, fsentry.ErrBadName)
 	})
 }
 func TestImageCreate(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 
 		g := initGame(t, "game_image_create__success")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.ImageCreate(ctx, name, img)
+		err = g.imageCreate(name, img)
 		assert.NoError(t, err)
 	})
 
@@ -375,11 +356,11 @@ func TestImageCreate(t *testing.T) {
 		name := "image_exist"
 
 		g := initGame(t, "game_image_create__image_exist")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.ImageCreate(ctx, name, img)
+		err = g.imageCreate(name, img)
 		assert.NoError(t, err)
-		err = g.ImageCreate(ctx, name, img)
+		err = g.imageCreate(name, img)
 		assert.ErrorIs(t, err, er.GameImageExist)
 	})
 
@@ -387,22 +368,20 @@ func TestImageCreate(t *testing.T) {
 		name := "game_not_exist"
 
 		g := initGame(t, "game_image_create__game_not_exist")
-		err := g.ImageCreate(ctx, name, img)
+		err := g.imageCreate(name, img)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }
 func TestImageGet(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 
 		g := initGame(t, "game_image_get__success")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.ImageCreate(ctx, name, img)
+		err = g.imageCreate(name, img)
 		assert.NoError(t, err)
-		got, err := g.ImageGet(ctx, name)
+		got, err := g.imageGet(name)
 		assert.NoError(t, err)
 		assert.Equal(t, img, got)
 	})
@@ -411,9 +390,9 @@ func TestImageGet(t *testing.T) {
 		name := "image_not_exist"
 
 		g := initGame(t, "game_image_get__image_not_exist")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		_, err = g.ImageGet(ctx, name)
+		_, err = g.imageGet(name)
 		assert.ErrorIs(t, err, er.GameImageNotExists)
 	})
 
@@ -421,22 +400,20 @@ func TestImageGet(t *testing.T) {
 		name := "game_not_exist"
 
 		g := initGame(t, "game_image_get__game_not_exist")
-		_, err := g.ImageGet(ctx, name)
+		_, err := g.imageGet(name)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }
 func TestImageDelete(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success", func(t *testing.T) {
 		name := "success"
 
 		g := initGame(t, "game_image_delete__success")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.ImageCreate(ctx, name, img)
+		err = g.imageCreate(name, img)
 		assert.NoError(t, err)
-		err = g.ImageDelete(ctx, name)
+		err = g.imageDelete(name)
 		assert.NoError(t, err)
 	})
 
@@ -444,9 +421,9 @@ func TestImageDelete(t *testing.T) {
 		name := "image_not_exist"
 
 		g := initGame(t, "game_image_delete__image_not_exist")
-		_, err := g.Create(ctx, CreateRequest{Name: name})
+		_, err := g.create(CreateRequest{Name: name})
 		assert.NoError(t, err)
-		err = g.ImageDelete(ctx, name)
+		err = g.imageDelete(name)
 		assert.ErrorIs(t, err, er.GameImageNotExists)
 	})
 
@@ -454,7 +431,7 @@ func TestImageDelete(t *testing.T) {
 		name := "game_not_exist"
 
 		g := initGame(t, "game_image_delete__game_not_exist")
-		err := g.ImageDelete(ctx, name)
+		err := g.imageDelete(name)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }

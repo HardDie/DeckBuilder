@@ -11,7 +11,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -22,7 +21,7 @@ var (
 )
 
 type collectionEnv struct {
-	game       dbGame.Game
+	db         *fsentry.DB
 	collection Collection
 }
 
@@ -58,20 +57,19 @@ func initCollection(t testing.TB, name string) collectionEnv {
 		}
 	})
 
-	game := dbGame.New(db)
 	return collectionEnv{
-		game:       game,
-		collection: New(db, game),
+		db:         db,
+		collection: New(db),
 	}
 }
 
-func (e collectionEnv) createGame(t testing.TB, ctx context.Context, name string) string {
+func (e collectionEnv) createGame(t testing.TB, _ context.Context, name string) string {
 	t.Helper()
-	got, err := e.game.Create(ctx, dbGame.CreateRequest{Name: name})
+	info, err := e.db.CreateFolder[any](name, nil, "games")
 	if err != nil {
 		t.Fatal("error create game", err)
 	}
-	return got.ID
+	return info.ID
 }
 
 func TestCollectionCreate(t *testing.T) {

@@ -12,7 +12,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -23,7 +22,7 @@ var (
 )
 
 type deckEnv struct {
-	game       dbGame.Game
+	db         *fsentry.DB
 	collection dbCollection.Collection
 	deck       Deck
 }
@@ -60,29 +59,34 @@ func initDeck(t testing.TB, name string) deckEnv {
 		}
 	})
 
-	game := dbGame.New(db)
-	collection := dbCollection.New(db, game)
+	collection := dbCollection.New(db)
 	return deckEnv{
-		game:       game,
+		db:         db,
 		collection: collection,
 		deck:       New(db, collection),
 	}
 }
 
-func (e deckEnv) createParents(t testing.TB, ctx context.Context, gameName, collectionName string) (string, string) {
+func (e deckEnv) createGame(t testing.TB, name string) string {
 	t.Helper()
-	game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: gameName})
+	info, err := e.db.CreateFolder[any](name, nil, "games")
 	if err != nil {
 		t.Fatal("error create game", err)
 	}
+	return info.ID
+}
+
+func (e deckEnv) createParents(t testing.TB, ctx context.Context, gameName, collectionName string) (string, string) {
+	t.Helper()
+	gameID := e.createGame(t, gameName)
 	collection, err := e.collection.Create(ctx, dbCollection.CreateRequest{
-		GameID: game.ID,
+		GameID: gameID,
 		Name:   collectionName,
 	})
 	if err != nil {
 		t.Fatal("error create collection", err)
 	}
-	return game.ID, collection.ID
+	return gameID, collection.ID
 }
 
 func TestDeckCreate(t *testing.T) {
@@ -144,9 +148,8 @@ func TestDeckCreate(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_create__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.Create(ctx, CreateRequest{GameID: game.ID, CollectionID: "missing", Name: "ok"})
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: "missing", Name: "ok"})
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -198,9 +201,8 @@ func TestDeckGet(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_get__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.Get(ctx, game.ID, "missing", "ok")
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.Get(ctx, gameID, "missing", "ok")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -259,9 +261,8 @@ func TestDeckList(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_list__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.List(ctx, game.ID, "missing")
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.List(ctx, gameID, "missing")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -320,9 +321,8 @@ func TestDeckMove(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_move__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.Move(ctx, game.ID, "missing", "old", "new")
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.Move(ctx, gameID, "missing", "old", "new")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -376,9 +376,8 @@ func TestDeckUpdate(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_update__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.Update(ctx, UpdateRequest{GameID: game.ID, CollectionID: "missing", Name: "ok"})
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.Update(ctx, UpdateRequest{GameID: gameID, CollectionID: "missing", Name: "ok"})
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -420,9 +419,8 @@ func TestDeckDelete(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_delete__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		err = e.deck.Delete(ctx, game.ID, "missing", "ok")
+		gameID := e.createGame(t, "parent_game")
+		err := e.deck.Delete(ctx, gameID, "missing", "ok")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -467,9 +465,8 @@ func TestDeckImageCreate(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_image_create__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		err = e.deck.ImageCreate(ctx, game.ID, "missing", "ok", img)
+		gameID := e.createGame(t, "parent_game")
+		err := e.deck.ImageCreate(ctx, gameID, "missing", "ok", img)
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -515,9 +512,8 @@ func TestDeckImageGet(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_image_get__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		_, err = e.deck.ImageGet(ctx, game.ID, "missing", "ok")
+		gameID := e.createGame(t, "parent_game")
+		_, err := e.deck.ImageGet(ctx, gameID, "missing", "ok")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 
@@ -564,9 +560,8 @@ func TestDeckImageDelete(t *testing.T) {
 
 	t.Run("collection_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_image_delete__collection_not_exist")
-		game, err := e.game.Create(ctx, dbGame.CreateRequest{Name: "parent_game"})
-		assert.NoError(t, err)
-		err = e.deck.ImageDelete(ctx, game.ID, "missing", "ok")
+		gameID := e.createGame(t, "parent_game")
+		err := e.deck.ImageDelete(ctx, gameID, "missing", "ok")
 		assert.ErrorIs(t, err, er.CollectionNotExists)
 	})
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/HardDie/fsentry"
 
-	dbGame "github.com/HardDie/DeckBuilder/internal/db/game"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -17,21 +16,31 @@ import (
 type collection struct {
 	db        *fsentry.DB
 	gamesPath string
-
-	game dbGame.Game
 }
 
-func New(db *fsentry.DB, game dbGame.Game) Collection {
+func New(db *fsentry.DB) Collection {
 	return &collection{
 		db:        db,
 		gamesPath: "games",
-
-		game: game,
 	}
 }
 
+func (d *collection) getGame(_ context.Context, gameID string) (string, error) {
+	info, err := d.db.GetFolder[any](gameID, d.gamesPath)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return "", er.BadName
+		} else {
+			return "", er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return info.ID, nil
+}
+
 func (d *collection) Create(ctx context.Context, req CreateRequest) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, req.GameID)
+	gameIDResolved, err := d.getGame(ctx, req.GameID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +48,7 @@ func (d *collection) Create(ctx context.Context, req CreateRequest) (*entitiesCo
 	info, err := d.db.CreateFolder(req.Name, model{
 		Description: fsentry.QuotedString(req.Description),
 		Image:       fsentry.QuotedString(req.Image),
-	}, d.gamesPath, game.ID)
+	}, d.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrExist) {
 			return nil, er.CollectionExist
@@ -54,12 +63,12 @@ func (d *collection) Create(ctx context.Context, req CreateRequest) (*entitiesCo
 }
 
 func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, gameID)
+	gameIDResolved, err := d.getGame(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.GetFolder[model](name, d.gamesPath, game.ID)
+	info, err := d.db.GetFolder[model](name, d.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -74,19 +83,19 @@ func (d *collection) Get(ctx context.Context, gameID, name string) (*entitiesCol
 }
 
 func (d *collection) List(ctx context.Context, gameID string) ([]*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, gameID)
+	gameIDResolved, err := d.getGame(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	list, err := d.db.List(d.gamesPath, game.ID)
+	list, err := d.db.List(d.gamesPath, gameIDResolved)
 	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	var collections []*entitiesCollection.Collection
 	for _, folder := range list.Folders {
-		collection, err := d.Get(ctx, game.ID, folder)
+		collection, err := d.Get(ctx, gameIDResolved, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -101,12 +110,12 @@ func (d *collection) List(ctx context.Context, gameID string) ([]*entitiesCollec
 }
 
 func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, gameID)
+	gameIDResolved, err := d.getGame(ctx, gameID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := d.db.MoveFolder[model](oldName, newName, d.gamesPath, game.ID)
+	info, err := d.db.MoveFolder[model](oldName, newName, d.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -121,7 +130,7 @@ func (d *collection) Move(ctx context.Context, gameID, oldName, newName string) 
 }
 
 func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCollection.Collection, error) {
-	game, err := d.game.Get(ctx, req.GameID)
+	gameIDResolved, err := d.getGame(ctx, req.GameID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +138,7 @@ func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCo
 	info, err := d.db.UpdateFolder(req.Name, model{
 		Description: fsentry.QuotedString(req.Description),
 		Image:       fsentry.QuotedString(req.Image),
-	}, d.gamesPath, game.ID)
+	}, d.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -144,12 +153,12 @@ func (d *collection) Update(ctx context.Context, req UpdateRequest) (*entitiesCo
 }
 
 func (d *collection) Delete(ctx context.Context, gameID, name string) error {
-	game, err := d.game.Get(ctx, gameID)
+	gameIDResolved, err := d.getGame(ctx, gameID)
 	if err != nil {
 		return err
 	}
 
-	err = d.db.RemoveFolder(name, d.gamesPath, game.ID)
+	err = d.db.RemoveFolder(name, d.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
