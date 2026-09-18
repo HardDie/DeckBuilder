@@ -10,7 +10,7 @@
 
 ## `tools/copy_cards_variables`
 
-Offline helper that reads card JSON using **legacy** `QuotedString` types. Not on the HTTP path. Update it when card payload types move to v0.1 `fsentry.QuotedString`.
+Offline helper that copies `variables` between two `cards/.info.json` files. Uses `fsentry.QuotedString`. Not on the HTTP path.
 
 ## `tools/join`
 

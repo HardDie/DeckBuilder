@@ -21,8 +21,8 @@ List/search add filtering and sorting in the **service**, not in db.
 
 | Variable | Type | Module | Used by |
 |---|---|---|---|
-| `fs` | legacy `internal/fsentry` `IFSEntry` (`NewFSEntry`) | vendored v0.0.11 | `db/core`, `db/card` |
-| `db` | `github.com/HardDie/fsentry` `*DB` (`New` + `Init`) | v0.1.x | `db/settings`, `db/game`, `db/collection`, `db/deck` |
+| `fs` | `internal/fsentry` `IFSEntry` (`NewFSEntry`) | vendored v0.0.11 | `db/core` |
+| `db` | `github.com/HardDie/fsentry` `*DB` (`New` + `Init`) | v0.1.4 | `db/settings`, `db/game`, `db/collection`, `db/deck`, `db/card` |
 
 Both point at `cfg.Data`. Production `db.Init()` takes the lock file `.fsentry.lock`. Tests that mix old `core` with new aggregates pass `WithNoLockFile()`.
 

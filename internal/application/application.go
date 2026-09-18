@@ -53,7 +53,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// static files
 	api.RegisterStaticServer(routes)
 
-	// fsentry db
 	fs := fsentry.NewFSEntry(cfg.Data, fsentry.WithPretty())
 
 	db := fsentryv1.New(cfg.Data, fsentryv1.WithPretty())
@@ -67,7 +66,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	game := dbGame.New(db)
 	collection := dbCollection.New(db, game)
 	deck := dbDeck.New(db, collection)
-	card := dbCard.New(fs, deck)
+	card := dbCard.New(db, deck)
 
 	err := core.Init()
 	if err != nil {

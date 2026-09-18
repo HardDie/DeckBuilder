@@ -2,14 +2,12 @@
 
 Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs), `db.go`, sometimes `model.go` (JSON payload in `.info.json`).
 
-`internal/db/legacy` is leftover from an earlier migration experiment; do not use it for new code.
-
 ## Two store types
 
 | Package | Handle | Library |
 |---|---|---|
-| `core`, `card` | `fsentry.IFSEntry` | `internal/fsentry` (copied v0.0.11) |
-| `settings`, `game`, `collection`, `deck` | `*fsentry.DB` | `github.com/HardDie/fsentry` v0.1.x |
+| `core` | `fsentry.IFSEntry` | `internal/fsentry` (copied v0.0.11) |
+| `settings`, `game`, `collection`, `deck`, `card` | `*fsentry.DB` | `github.com/HardDie/fsentry` v0.1.4 |
 
 Callers: `application.Get` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
 
@@ -97,11 +95,11 @@ Used by collection repository and as a parent lookup from `db/deck`.
 
 Used by deck repository and as parent from `db/card`.
 
-## `card` (legacy handle)
+## `card`
 
 | Field | Meaning |
 |---|---|
-| `db` | `IFSEntry` (old API) |
+| `db` | `*fsentry.DB` |
 | `gamesPath` | `"games"` |
 | `deck` | parent deck (existence check) |
 
@@ -110,7 +108,5 @@ Cards are **not** folders. The `cards` folder payload is `map[id]*model`. Images
 | Method | Disk | Used by |
 |---|---|---|
 | `Create`/`Update`/`Delete` | `UpdateFolder("cards", list, gamesPath, game, collection, deck)` | card repository |
-| `List`/`Get` | read that folder payload | repository |
+| `List`/`Get` | `GetFolder[map[int64]*model]("cards", …)` | repository |
 | `Image*` | `CreateBinary`/`GetBinary`/`RemoveBinary` under `…/cards` | repository |
-
-Until this package moves to `*fsentry.DB`, `application` must keep constructing `fs`.

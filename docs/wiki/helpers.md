@@ -32,11 +32,11 @@ Process-wide generate status (`empty`, `in_progress`, `done`, `error`). `GET /ap
 
 ## `internal/utils`
 
-`NameToID`, multipart file extract, sort helpers, `Allocate`. Used across servers, services, db (legacy card timestamps).
+`NameToID`, multipart file extract, sort helpers, `Allocate`. Used across servers, services, db (card timestamps).
 
 ## `internal/fsentry`
 
-Vendored v0.0.11 (`NewFSEntry`, `IFSEntry`, `pkg/fsentry_error`, `pkg/fsentry_types`). Only `db/core` and `db/card` (and their tests) should keep importing this. New aggregates use `github.com/HardDie/fsentry`.
+Vendored v0.0.11 (`NewFSEntry`, `IFSEntry`). Only `db/core` (and tests that call `core.Init`/`Drop`) should import this. Catalog aggregates use `github.com/HardDie/fsentry`.
 
 ## `internal/logger`, `internal/network` callers
 

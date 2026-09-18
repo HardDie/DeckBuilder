@@ -9,9 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
+	"github.com/HardDie/fsentry"
 
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
@@ -19,14 +17,16 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
+type cardList map[int64]*model
+
 type card struct {
-	db        fsentry.IFSEntry
+	db        *fsentry.DB
 	gamesPath string
 
 	deck dbDeck.Deck
 }
 
-func New(db fsentry.IFSEntry, deck dbDeck.Deck) Card {
+func New(db *fsentry.DB, deck dbDeck.Deck) Card {
 	return &card{
 		db:        db,
 		gamesPath: "games",
@@ -41,7 +41,6 @@ func (d *card) Create(ctx context.Context, req CreateRequest) (*entitiesCard.Car
 		return nil, err
 	}
 
-	// Search for the largest card ID
 	maxID := int64(1)
 	for _, card := range list {
 		if card.ID >= maxID {
@@ -49,49 +48,33 @@ func (d *card) Create(ctx context.Context, req CreateRequest) (*entitiesCard.Car
 		}
 	}
 
-	// Create a card with the found identifier
 	cardInfo := &model{
 		ID:          maxID,
-		Name:        fsentry_types.QS(req.Name),
-		Description: fsentry_types.QS(req.Description),
-		Image:       fsentry_types.QS(req.Image),
+		Name:        fsentry.QuotedString(req.Name),
+		Description: fsentry.QuotedString(req.Description),
+		Image:       fsentry.QuotedString(req.Image),
 		Variables:   convertMapString(req.Variables),
 		Count:       req.Count,
 		CreatedAt:   utils.Allocate(time.Now()),
 		UpdatedAt:   nil,
 	}
 
-	// Add a card to the card array
 	list[cardInfo.ID] = cardInfo
 
-	// Writing an array of cards to a file again
 	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	createdAt, updatedAt := d.convertCreateUpdate(cardInfo.CreatedAt, cardInfo.UpdatedAt)
-	return &entitiesCard.Card{
-		ID:          cardInfo.ID,
-		Name:        cardInfo.Name.String(),
-		Description: cardInfo.Description.String(),
-		Image:       cardInfo.Image.String(),
-		Variables:   convertMapQuotedString(cardInfo.Variables),
-		Count:       cardInfo.Count,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID:       req.GameID,
-		CollectionID: req.CollectionID,
-		DeckID:       req.DeckID,
-	}, nil
+	return d.toEntity(cardInfo, req.GameID, req.CollectionID, req.DeckID), nil
 }
+
 func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, cardID int64) (*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
@@ -103,22 +86,9 @@ func (d *card) Get(ctx context.Context, gameID, collectionID, deckID string, car
 		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	createdAt, updatedAt := d.convertCreateUpdate(card.CreatedAt, card.UpdatedAt)
-	return &entitiesCard.Card{
-		ID:          card.ID,
-		Name:        card.Name.String(),
-		Description: card.Description.String(),
-		Image:       card.Image.String(),
-		Variables:   convertMapQuotedString(card.Variables),
-		Count:       card.Count,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID:       gameID,
-		CollectionID: collectionID,
-		DeckID:       deckID,
-	}, nil
+	return d.toEntity(card, gameID, collectionID, deckID), nil
 }
+
 func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([]*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
@@ -127,24 +97,11 @@ func (d *card) List(ctx context.Context, gameID, collectionID, deckID string) ([
 
 	var cards []*entitiesCard.Card
 	for _, item := range list {
-		createdAt, updatedAt := d.convertCreateUpdate(item.CreatedAt, item.UpdatedAt)
-		cards = append(cards, &entitiesCard.Card{
-			ID:          item.ID,
-			Name:        item.Name.String(),
-			Description: item.Description.String(),
-			Image:       item.Image.String(),
-			Variables:   convertMapQuotedString(item.Variables),
-			Count:       item.Count,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-
-			GameID:       gameID,
-			CollectionID: collectionID,
-			DeckID:       deckID,
-		})
+		cards = append(cards, d.toEntity(item, gameID, collectionID, deckID))
 	}
 	return cards, nil
 }
+
 func (d *card) Update(ctx context.Context, req UpdateRequest) (*entitiesCard.Card, error) {
 	ctx, list, err := d.rawCardList(ctx, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
@@ -156,43 +113,29 @@ func (d *card) Update(ctx context.Context, req UpdateRequest) (*entitiesCard.Car
 		return nil, er.CardNotExists
 	}
 
-	card.Name = fsentry_types.QS(req.Name)
-	card.Description = fsentry_types.QS(req.Description)
-	card.Image = fsentry_types.QS(req.Image)
+	card.Name = fsentry.QuotedString(req.Name)
+	card.Description = fsentry.QuotedString(req.Description)
+	card.Image = fsentry.QuotedString(req.Image)
 	card.Variables = convertMapString(req.Variables)
 	card.Count = req.Count
 	card.UpdatedAt = utils.Allocate(time.Now())
 
 	list[card.ID] = card
 
-	// Writing an array of cards to a file again
 	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, req.GameID, req.CollectionID, req.DeckID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	createdAt, updatedAt := d.convertCreateUpdate(card.CreatedAt, card.UpdatedAt)
-	return &entitiesCard.Card{
-		ID:          card.ID,
-		Name:        card.Name.String(),
-		Description: card.Description.String(),
-		Image:       card.Image.String(),
-		Variables:   convertMapQuotedString(card.Variables),
-		Count:       card.Count,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-
-		GameID:       req.GameID,
-		CollectionID: req.CollectionID,
-		DeckID:       req.DeckID,
-	}, nil
+	return d.toEntity(card, req.GameID, req.CollectionID, req.DeckID), nil
 }
+
 func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
 	ctx, list, err := d.rawCardList(ctx, gameID, collectionID, deckID)
 	if err != nil {
@@ -205,12 +148,11 @@ func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, 
 
 	delete(list, cardID)
 
-	// Writing an array of cards to a file again
 	_, err = d.db.UpdateFolder("cards", list, d.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry_error.ErrorBadName) {
+		} else if errors.Is(err, fsentry.ErrBadName) {
 			return er.BadName
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -219,6 +161,7 @@ func (d *card) Delete(ctx context.Context, gameID, collectionID, deckID string, 
 
 	return nil
 }
+
 func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID string, cardID int64, data []byte) error {
 	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
@@ -227,7 +170,7 @@ func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 
 	err = d.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorExist) {
+		if errors.Is(err, fsentry.ErrExist) {
 			return er.CardImageExist.AddMessage(err.Error())
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -235,15 +178,16 @@ func (d *card) ImageCreate(ctx context.Context, gameID, collectionID, deckID str
 	}
 	return nil
 }
+
 func (d *card) ImageGet(ctx context.Context, gameID, collectionID, deckID string, cardID int64) ([]byte, error) {
 	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := d.db.GetBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, gameID, collectionID, deckID, "cards")
+	data, err := d.db.GetBinary(fmt.Sprintf("%d", card.ID), nil, d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CardImageNotExists.AddMessage(err.Error())
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
@@ -251,6 +195,7 @@ func (d *card) ImageGet(ctx context.Context, gameID, collectionID, deckID string
 	}
 	return data, nil
 }
+
 func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID string, cardID int64) error {
 	card, err := d.Get(ctx, gameID, collectionID, deckID, cardID)
 	if err != nil {
@@ -259,7 +204,7 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 
 	err = d.db.RemoveBinary(fmt.Sprintf("%d", card.ID), d.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CardImageNotExists.AddMessage(err.Error())
 		} else {
 			return er.InternalError.AddMessage(err.Error())
@@ -268,43 +213,55 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 	return nil
 }
 
-func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, map[int64]*model, error) {
+func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, cardList, error) {
 	deck, err := d.deck.Get(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return ctx, nil, err
 	}
 
-	// Get all the cards
-	info, err := d.db.GetFolder("cards", d.gamesPath, gameID, collectionID, deck.ID)
+	info, err := d.db.GetFolder[cardList]("cards", d.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
 		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
 
-	// Parsing an array of cards from json
-	var list map[int64]*model
-	err = json.Unmarshal(info.Data, &list)
-	if err != nil {
-		return ctx, nil, er.InternalError.AddMessage(err.Error())
-	}
-
+	list := info.Data
 	if list == nil {
-		list = make(map[int64]*model)
+		list = make(cardList)
 	}
 	return ctx, list, nil
 }
-func convertMapString(in map[string]string) map[string]fsentry_types.QuotedString {
-	res := make(map[string]fsentry_types.QuotedString)
+
+func (d *card) toEntity(item *model, gameID, collectionID, deckID string) *entitiesCard.Card {
+	createdAt, updatedAt := d.convertCreateUpdate(item.CreatedAt, item.UpdatedAt)
+	return &entitiesCard.Card{
+		ID:           item.ID,
+		Name:         item.Name.String(),
+		Description:  item.Description.String(),
+		Image:        item.Image.String(),
+		Variables:    convertMapQuotedString(item.Variables),
+		Count:        item.Count,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+		GameID:       gameID,
+		CollectionID: collectionID,
+		DeckID:       deckID,
+	}
+}
+
+func convertMapString(in map[string]string) map[string]fsentry.QuotedString {
+	res := make(map[string]fsentry.QuotedString)
 	for key, val := range in {
-		keyJson, _ := json.Marshal(strconv.Quote(key))
-		res[string(keyJson)] = fsentry_types.QS(val)
+		keyJSON, _ := json.Marshal(strconv.Quote(key))
+		res[string(keyJSON)] = fsentry.QuotedString(val)
 	}
 	return res
 }
-func convertMapQuotedString(in map[string]fsentry_types.QuotedString) map[string]string {
+
+func convertMapQuotedString(in map[string]fsentry.QuotedString) map[string]string {
 	res := make(map[string]string)
-	for keyJson, val := range in {
+	for keyJSON, val := range in {
 		var key string
-		_ = json.Unmarshal([]byte(keyJson), &key)
+		_ = json.Unmarshal([]byte(keyJSON), &key)
 		key, _ = strconv.Unquote(key)
 		res[key] = val.String()
 	}

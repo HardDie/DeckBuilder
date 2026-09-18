@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_types"
+	"github.com/HardDie/fsentry"
 )
 
 type Cards struct {
@@ -17,10 +17,10 @@ type Cards struct {
 	UpdatedAt *time.Time `json:"updatedAt"`
 	Data      map[string]struct {
 		ID          int                                   `json:"id"`
-		Name        fsentry_types.QuotedString            `json:"name"`
-		Description fsentry_types.QuotedString            `json:"description"`
-		Image       fsentry_types.QuotedString            `json:"image"`
-		Variables   map[string]fsentry_types.QuotedString `json:"variables"`
+		Name        fsentry.QuotedString            `json:"name"`
+		Description fsentry.QuotedString            `json:"description"`
+		Image       fsentry.QuotedString            `json:"image"`
+		Variables   map[string]fsentry.QuotedString `json:"variables"`
 		Count       int                                   `json:"count"`
 		CreatedAt   *time.Time                            `json:"createdAt"`
 		UpdatedAt   *time.Time                            `json:"updatedAt"`
