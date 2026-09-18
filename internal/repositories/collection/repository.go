@@ -3,7 +3,6 @@ package collection
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/HardDie/fsentry"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type collection struct {
@@ -363,7 +363,7 @@ func (r *collection) imageDelete(gameID, collectionID string) error {
 }
 
 func (r *collection) toEntity(info fsentry.FolderInfo[model], gameID string) *entitiesCollection.Collection {
-	createdAt, updatedAt := r.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	createdAt, updatedAt := utils.NormalizeTimestamps(info.CreatedAt, info.UpdatedAt)
 	return &entitiesCollection.Collection{
 		ID:          info.ID,
 		Name:        info.Name,
@@ -373,14 +373,4 @@ func (r *collection) toEntity(info fsentry.FolderInfo[model], gameID string) *en
 		UpdatedAt:   updatedAt,
 		GameID:      gameID,
 	}
-}
-
-func (r *collection) convertCreateUpdate(createdAt, updatedAt time.Time) (time.Time, time.Time) {
-	if createdAt.IsZero() {
-		createdAt = time.Now()
-	}
-	if updatedAt.IsZero() {
-		updatedAt = createdAt
-	}
-	return createdAt, updatedAt
 }

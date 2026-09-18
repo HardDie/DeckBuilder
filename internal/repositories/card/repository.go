@@ -175,6 +175,7 @@ func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*
 		}
 	}
 
+	now := time.Now()
 	cardInfo := &model{
 		ID:          maxID,
 		Name:        fsentry.QuotedString(req.Name),
@@ -182,8 +183,8 @@ func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*
 		Image:       fsentry.QuotedString(req.Image),
 		Variables:   convertMapString(req.Variables),
 		Count:       req.Count,
-		CreatedAt:   utils.Allocate(time.Now()),
-		UpdatedAt:   nil,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	list[cardInfo.ID] = cardInfo
@@ -245,7 +246,7 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 	card.Image = fsentry.QuotedString(req.Image)
 	card.Variables = convertMapString(req.Variables)
 	card.Count = req.Count
-	card.UpdatedAt = utils.Allocate(time.Now())
+	card.UpdatedAt = time.Now()
 
 	list[card.ID] = card
 
@@ -395,7 +396,7 @@ func (r *card) rawCardList(gameID, collectionID, deckID string) (cardList, error
 }
 
 func (r *card) toEntity(item *model, gameID, collectionID, deckID string) *entitiesCard.Card {
-	createdAt, updatedAt := r.convertCreateUpdate(item.CreatedAt, item.UpdatedAt)
+	createdAt, updatedAt := utils.NormalizeTimestamps(item.CreatedAt, item.UpdatedAt)
 	return &entitiesCard.Card{
 		ID:           item.ID,
 		Name:         item.Name.String(),
@@ -429,14 +430,4 @@ func convertMapQuotedString(in map[string]fsentry.QuotedString) map[string]strin
 		res[key] = val.String()
 	}
 	return res
-}
-
-func (r *card) convertCreateUpdate(createdAt, updatedAt *time.Time) (time.Time, time.Time) {
-	if createdAt == nil {
-		createdAt = utils.Allocate(time.Now())
-	}
-	if updatedAt == nil {
-		updatedAt = createdAt
-	}
-	return *createdAt, *updatedAt
 }

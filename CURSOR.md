@@ -117,7 +117,7 @@ Storage is **[fsentry](https://github.com/HardDie/fsentry)** (folders + JSON sid
 | Linux / Windows | `./DeckBuilderData` next to the working directory |
 | macOS | `~/DeckBuilderData` (cannot write next to a `.app`) |
 
-Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; `Data/result/` last generate; settings in the same fsentry tree. **Never assume SQL, migrations, or a user-config JSON besides this store.**
+Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; `Data/result/` last generate; settings in the same fsentry tree. **Never assume SQL, migrations, or a user-config JSON besides this store.** Catalog `createdAt`/`updatedAt` are always written on create/update; preview null/empty values are filled in memory when mapping to entities ([ADR 009](docs/architecture/009-catalog-timestamps.md)).
 
 ---
 

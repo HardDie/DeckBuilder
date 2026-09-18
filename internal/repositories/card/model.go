@@ -13,6 +13,6 @@ type model struct {
 	Image       fsentry.QuotedString            `json:"image"`
 	Variables   map[string]fsentry.QuotedString `json:"variables"`
 	Count       int                             `json:"count"`
-	CreatedAt   *time.Time                      `json:"createdAt"`
-	UpdatedAt   *time.Time                      `json:"updatedAt"`
+	CreatedAt   time.Time                       `json:"createdAt"`
+	UpdatedAt   time.Time                       `json:"updatedAt"`
 }

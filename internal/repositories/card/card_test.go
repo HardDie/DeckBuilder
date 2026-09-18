@@ -1,7 +1,9 @@
 package card
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -544,4 +546,50 @@ func TestCardImageDelete(t *testing.T) {
 		err := e.card.imageDelete("missing", "ok", "ok", 1)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
+}
+
+func TestCardLegacyTimestamps(t *testing.T) {
+	e := initCard(t, "card_legacy_timestamps")
+	gameID, collectionID, deckID := e.createParents(t, "parent_game", "parent_collection", "parent_deck")
+	created, err := e.card.create(gameID, collectionID, deckID, CreateRequest{Name: "legacy"})
+	assert.NoError(t, err)
+
+	path := filepath.Join(e.card.cfg.Games(), gameID, collectionID, deckID, "cards", ".info.json")
+	raw, err := os.ReadFile(path)
+	assert.NoError(t, err)
+	var info struct {
+		ID        string                     `json:"id"`
+		Name      json.RawMessage            `json:"name"`
+		CreatedAt json.RawMessage            `json:"createdAt"`
+		UpdatedAt json.RawMessage            `json:"updatedAt"`
+		Data      map[string]json.RawMessage `json:"data"`
+	}
+	assert.NoError(t, json.Unmarshal(raw, &info))
+	var cardPayload map[string]json.RawMessage
+	assert.NoError(t, json.Unmarshal(info.Data["1"], &cardPayload))
+	cardPayload["createdAt"] = json.RawMessage("null")
+	cardPayload["updatedAt"] = json.RawMessage("null")
+	cardRaw, err := json.Marshal(cardPayload)
+	assert.NoError(t, err)
+	info.Data["1"] = cardRaw
+	out, err := json.Marshal(info)
+	assert.NoError(t, err)
+	assert.NoError(t, os.WriteFile(path, out, 0o644))
+
+	got, err := e.card.get(gameID, collectionID, deckID, created.ID)
+	assert.NoError(t, err)
+	assert.False(t, got.CreatedAt.IsZero())
+	assert.False(t, got.UpdatedAt.IsZero())
+
+	raw, err = os.ReadFile(path)
+	assert.NoError(t, err)
+	var stored struct {
+		Data map[string]struct {
+			CreatedAt *time.Time `json:"createdAt"`
+			UpdatedAt *time.Time `json:"updatedAt"`
+		} `json:"data"`
+	}
+	assert.NoError(t, json.Unmarshal(raw, &stored))
+	assert.Nil(t, stored.Data["1"].CreatedAt)
+	assert.Nil(t, stored.Data["1"].UpdatedAt)
 }

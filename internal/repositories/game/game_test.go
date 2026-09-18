@@ -1,7 +1,9 @@
 package game
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -434,4 +436,36 @@ func TestImageDelete(t *testing.T) {
 		err := g.imageDelete(name)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
+}
+
+func TestGameLegacyTimestamps(t *testing.T) {
+	g := initGame(t, "game_legacy_timestamps")
+	created, err := g.create(CreateRequest{Name: "legacy"})
+	assert.NoError(t, err)
+
+	path := filepath.Join(g.cfg.Games(), created.ID, ".info.json")
+	raw, err := os.ReadFile(path)
+	assert.NoError(t, err)
+	var info map[string]json.RawMessage
+	assert.NoError(t, json.Unmarshal(raw, &info))
+	info["createdAt"] = json.RawMessage("null")
+	info["updatedAt"] = json.RawMessage("null")
+	out, err := json.Marshal(info)
+	assert.NoError(t, err)
+	assert.NoError(t, os.WriteFile(path, out, 0o644))
+
+	got, err := g.get(created.ID)
+	assert.NoError(t, err)
+	assert.False(t, got.CreatedAt.IsZero())
+	assert.False(t, got.UpdatedAt.IsZero())
+
+	raw, err = os.ReadFile(path)
+	assert.NoError(t, err)
+	var stored struct {
+		CreatedAt *time.Time `json:"createdAt"`
+		UpdatedAt *time.Time `json:"updatedAt"`
+	}
+	assert.NoError(t, json.Unmarshal(raw, &stored))
+	assert.Nil(t, stored.CreatedAt)
+	assert.Nil(t, stored.UpdatedAt)
 }

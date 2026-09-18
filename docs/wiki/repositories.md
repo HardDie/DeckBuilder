@@ -22,7 +22,7 @@ Glue between services and db: image files, zip, HTTP download. Each catalog repo
 | `Import` | unzip into games dir, `GetByID`, `UpdateInfo` if renamed | service/server |
 | `GetImage` | `db.ImageGet` | service GetImage |
 
-`UpdateInfo` is the import path: rewrite folder display name without bumping timestamps (`db/game.UpdateInfo` → fsentry `UpdateFolderNameWithoutTimestamp`).
+`UpdateInfo` is the import path: rewrite folder display name without bumping timestamps (`UpdateFolderNameWithoutTimestamp`).
 
 ## Collection / deck / card
 

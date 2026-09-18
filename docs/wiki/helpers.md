@@ -32,7 +32,7 @@ Process-wide generate status (`empty`, `in_progress`, `done`, `error`). `GET /ap
 
 ## `internal/utils`
 
-`NameToID`, multipart file extract, sort helpers, `Allocate`. Used across servers, services, db (card timestamps).
+`NameToID`, multipart file extract, sort helpers, `Allocate`, `NormalizeTimestamps`. Used across servers, services, repositories. `NormalizeTimestamps` fills preview null/empty `createdAt`/`updatedAt` when mapping to entities; it does not rewrite files ([ADR 009](../architecture/009-catalog-timestamps.md)).
 
 ## `internal/logger`, `internal/network` callers
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"path/filepath"
-	"time"
 
 	"github.com/HardDie/fsentry"
 
@@ -390,7 +389,7 @@ func (r *game) imageDelete(gameID string) error {
 }
 
 func (r *game) toEntity(info fsentry.FolderInfo[model]) *entitiesGame.Game {
-	createdAt, updatedAt := r.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	createdAt, updatedAt := utils.NormalizeTimestamps(info.CreatedAt, info.UpdatedAt)
 	return &entitiesGame.Game{
 		ID:          info.ID,
 		Name:        info.Name,
@@ -399,14 +398,4 @@ func (r *game) toEntity(info fsentry.FolderInfo[model]) *entitiesGame.Game {
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 	}
-}
-
-func (r *game) convertCreateUpdate(createdAt, updatedAt time.Time) (time.Time, time.Time) {
-	if createdAt.IsZero() {
-		createdAt = time.Now()
-	}
-	if updatedAt.IsZero() {
-		updatedAt = createdAt
-	}
-	return createdAt, updatedAt
 }
