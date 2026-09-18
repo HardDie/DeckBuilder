@@ -20,7 +20,7 @@ The product should feel like a desktop app. Today [ADR 001](001-loopback-http-em
 
 Use option 3.
 
-`desktop/` is a Wails v2.11 vanilla project (`wails.json`, `app.go`, placeholder `frontend/`). It does not serve the catalog. Production entry remains `cmd/deck_builder`.
+`desktop/` is a Wails v2.16 project (`wails.json`, `app.go`). The Vue UI is a copy of `gui/` under `desktop/frontend`. `fetch('/api/...')` is unchanged. In `wails dev`, GET `/api` is proxied by Vite to `127.0.0.1:5000`; Wails does **not** send POST/PATCH/DELETE to Vite, so `AssetServer.Handler` reverse-proxies those to the same loopback server. Bindings are not the catalog API. Production entry remains `cmd/deck_builder`. Wails CLI must be v2.16+ (Go 1.27 breaks binding generation on v2.11).
 
 A nested module (`github.com/HardDie/DeckBuilder/desktop`) keeps CGO/webview out of root `go test ./...`.
 
@@ -34,7 +34,7 @@ A nested module (`github.com/HardDie/DeckBuilder/desktop`) keeps CGO/webview out
 ### Negative and risks
 
 * Two binaries until the shell is wired. Do not invent a second HTTP stack inside Wails.
-* Do not point `frontend:dir` at `gui/` until the shell is meant to replace `web/dist` embed.
+* Do not replace `/api` with Wails bindings in the same step as the window shell.
 
 ### Neutral
 

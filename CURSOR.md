@@ -55,7 +55,7 @@ JSON envelope: `{ "data": …, "meta": { "total", "cardsTotal?" }, "error": … 
 
 ## HTTP contract
 
-Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports. Fail startup if all 20 fail. CORS is `*` with `GET,POST,PATCH,DELETE` (the SPA may be served from the same origin when embedded; CORS exists for local GUI-dev against the API).
+Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports. Fail startup if all 20 fail. CORS is `*` with `GET,POST,PATCH,DELETE,OPTIONS`; preflight `OPTIONS` returns 204 (needed when the Wails/Vite origin is not the API).
 
 | Method | Route | Role |
 |---|---|---|
