@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/HardDie/fsentry"
@@ -9,6 +10,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
@@ -37,7 +39,9 @@ import (
 )
 
 type Application struct {
+	cfg    *config.Config
 	router *mux.Router
+	tts    servicesTTS.TTS
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -116,14 +120,26 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	routes.Use(corsMiddleware)
 	return &Application{
+		cfg:    cfg,
 		router: routes,
+		tts:    serviceTTS,
 	}, nil
 }
 
 func (app *Application) Run() error {
+	ln, port, err := listenLoopback(config.HTTPHost, config.HTTPPort, config.HTTPPortAttempts)
+	if err != nil {
+		return err
+	}
+
+	app.tts.SetHTTPPort(port)
+
 	http.Handle("/", app.router)
-	logger.Info.Println("Listening on :5000...")
-	return http.ListenAndServe("127.0.0.1:5000", nil)
+	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
+	if !app.cfg.Debug {
+		network.OpenBrowser(fmt.Sprintf("http://%s:%d", config.HTTPHost, port))
+	}
+	return http.Serve(ln, nil)
 }
 
 // CORS headers

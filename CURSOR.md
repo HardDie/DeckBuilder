@@ -55,7 +55,7 @@ JSON envelope: `{ "data": …, "meta": { "total", "cardsTotal?" }, "error": … 
 
 ## HTTP contract
 
-Listen: **`127.0.0.1:5000` only**. CORS is `*` with `GET,POST,PATCH,DELETE` (the SPA may be served from the same origin when embedded; CORS exists for local GUI-dev against the API).
+Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports. Fail startup if all 20 fail. CORS is `*` with `GET,POST,PATCH,DELETE` (the SPA may be served from the same origin when embedded; CORS exists for local GUI-dev against the API).
 
 | Method | Route | Role |
 |---|---|---|
@@ -126,7 +126,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 | Layer | Choice |
 |---|---|
 | GUI | Vue SPA in `gui/` submodule; production assets `web/dist` (`//go:embed`) |
-| HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` |
+| HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
 | API docs | go-swagger comments in `internal/api`; `make swagger` → `web/swagger.json` |
@@ -230,7 +230,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 ## Key facts to keep in mind
 
 - **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`.
-- **Loopback only.** `ListenAndServe("127.0.0.1:5000")`. Do not bind `:5000` on all interfaces.
+- **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
 - **Quit is delayed 60s** and cancelled when other handlers call `StopQuit` (so navigating the SPA does not kill the process immediately). `-debug` never quits.

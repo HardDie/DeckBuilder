@@ -16,6 +16,10 @@ const (
 	MaxWidth  = 10
 	MaxHeight = 7
 	MaxCount  = MaxWidth*MaxHeight - 1
+
+	HTTPHost         = "127.0.0.1"
+	HTTPPort         = 5000
+	HTTPPortAttempts = 20
 )
 
 type Config struct {

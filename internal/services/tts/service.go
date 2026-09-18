@@ -3,13 +3,16 @@ package tts
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 
+	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 type tts struct {
 	dataForTTS []byte
+	httpPort   int
 }
 
 type Message struct {
@@ -19,7 +22,11 @@ type Message struct {
 }
 
 func New() TTS {
-	return &tts{}
+	return &tts{httpPort: config.HTTPPort}
+}
+
+func (s *tts) SetHTTPPort(port int) {
+	s.httpPort = port
 }
 
 func (s *tts) SendToTTS(data any) {
@@ -41,8 +48,8 @@ func (s *tts) SendToTTS(data any) {
 	msg := Message{
 		MessageID: 3,
 		GUID:      "-1",
-		Script: `
-WebRequest.get("http://127.0.0.1:5000/api/tts/data", function(request)
+		Script: fmt.Sprintf(`
+WebRequest.get("http://%s:%d/api/tts/data", function(request)
 	if request.is_error then
 		print('Downloading json error: ', request.error)
 		return
@@ -54,7 +61,7 @@ WebRequest.get("http://127.0.0.1:5000/api/tts/data", function(request)
 			print('Object were spawned! Done!')
 		end
 	})
-end)`,
+end)`, config.HTTPHost, s.httpPort),
 	}
 
 	jsonData, err := json.Marshal(msg)

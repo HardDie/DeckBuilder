@@ -24,7 +24,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 var (
@@ -65,10 +64,6 @@ func main() {
 	app, err := application.Get(*debugFlag, version)
 	if err != nil {
 		logger.Error.Fatal(err.Error())
-	}
-
-	if !*debugFlag {
-		network.OpenBrowser("http://127.0.0.1:5000")
 	}
 
 	err = app.Run()
