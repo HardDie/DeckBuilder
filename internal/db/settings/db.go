@@ -1,52 +1,44 @@
 package settings
 
 import (
-	"encoding/json"
 	"errors"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/fsentry"
 
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 type settings struct {
-	db fsentry.IFSEntry
+	db *fsentry.DB
 }
 
-func New(db fsentry.IFSEntry) Settings {
+func New(db *fsentry.DB) Settings {
 	return &settings{
 		db: db,
 	}
 }
 
 func (d *settings) Get() (*SettingInfo, error) {
-	info, err := d.db.GetEntry("settings")
+	info, err := d.db.GetEntry[SettingInfo]("settings")
 	if err != nil {
-		if errors.Is(err, fsentry_error.ErrorNotExist) {
+		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.SettingsNotExists.AddMessage(err.Error())
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
-	}
-	setting := &SettingInfo{}
-
-	err = json.Unmarshal(info.Data, setting)
-	if err != nil {
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
-
-	return setting, nil
+	setting := info.Data
+	return &setting, nil
 }
+
 func (d *settings) Set(data *SettingInfo) error {
-	err := d.db.CreateEntry("settings", data)
+	_, err := d.db.CreateEntry("settings", data)
 	if err == nil {
 		return nil
 	}
-	if !errors.Is(err, fsentry_error.ErrorExist) {
+	if !errors.Is(err, fsentry.ErrExist) {
 		return err
 	}
-	err = d.db.UpdateEntry("settings", data)
+	_, err = d.db.UpdateEntry("settings", data)
 	if err != nil {
 		return er.InternalError.AddMessage(err.Error())
 	}

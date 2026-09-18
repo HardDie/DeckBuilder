@@ -63,7 +63,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// db methods
 	core := dbCore.New(fs)
-	settings := dbSettings.New(fs)
+	settings := dbSettings.New(db)
 	game := dbGame.New(fs)
 	collection := dbCollection.New(fs, game)
 	deck := dbDeck.New(fs, collection)
