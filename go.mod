@@ -7,7 +7,6 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-openapi/runtime v0.26.0
 	github.com/gorilla/mux v1.8.0
-	github.com/otiai10/copy v1.11.0
 	github.com/stretchr/testify v1.8.2
 )
 

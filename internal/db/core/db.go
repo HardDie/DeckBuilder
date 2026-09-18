@@ -3,18 +3,17 @@ package core
 import (
 	"errors"
 
-	"github.com/HardDie/DeckBuilder/internal/fsentry"
-	"github.com/HardDie/DeckBuilder/internal/fsentry/pkg/fsentry_error"
+	"github.com/HardDie/fsentry"
 
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 type core struct {
-	db        fsentry.IFSEntry
+	db        *fsentry.DB
 	gamesPath string
 }
 
-func New(db fsentry.IFSEntry) Core {
+func New(db *fsentry.DB) Core {
 	return &core{
 		db:        db,
 		gamesPath: "games",
@@ -26,14 +25,15 @@ func (d *core) Init() error {
 	if err != nil {
 		return er.InternalError.AddMessage(err.Error())
 	}
-	_, err = d.db.CreateFolder(d.gamesPath, nil)
+	_, err = d.db.CreateFolder[any](d.gamesPath, nil)
 	if err != nil {
-		if !errors.Is(err, fsentry_error.ErrorExist) {
+		if !errors.Is(err, fsentry.ErrExist) {
 			return er.InternalError.AddMessage(err.Error())
 		}
 	}
 	return nil
 }
+
 func (d *core) Drop() error {
 	err := d.db.Drop()
 	if err != nil {

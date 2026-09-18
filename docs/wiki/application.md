@@ -15,13 +15,12 @@ Composition root. Only this package constructs the graph and starts HTTP.
 |---|---|---|
 | `cfg` | Paths, debug, stamped version | Almost every New below |
 | `routes` | Root mux | `api.Register*` |
-| `fs` | Legacy fsentry handle on `cfg.Data` | `dbCore.New` |
-| `db` | v0.1 `*fsentry.DB` on `cfg.Data`, then `db.Init()` | settings, game, collection, deck, card |
+| `db` | `*fsentry.DB` on `cfg.Data`, then `db.Init()` | every `db/*.New` |
 | `core` | Ensures `games/` exists | `core.Init()` at startup; tests also `Drop()` |
 | `settings` … `card` | db aggregates | repositories / system service |
 | `service*` / `server*` | Business + HTTP | `api.Register*` |
 
-Order matters: `db.Init()` (root + lock) then `core.Init()` (legacy `games/` folder).
+Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 
 ## Methods
 

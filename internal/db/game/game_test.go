@@ -13,7 +13,6 @@ import (
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
-	legacyfs "github.com/HardDie/DeckBuilder/internal/fsentry"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -38,13 +37,12 @@ func initGame(t testing.TB, name string) Game {
 	cfg := config.Get(false, "")
 	cfg.SetDataPath(dir)
 
-	fs := legacyfs.NewFSEntry(cfg.Data, legacyfs.WithPretty())
 	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())
 	if err = db.Init(); err != nil {
 		t.Fatal("error init db", err)
 	}
 
-	core := dbCore.New(fs)
+	core := dbCore.New(db)
 	err = core.Init()
 	if err != nil {
 		t.Fatal("error init core", err)

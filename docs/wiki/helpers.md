@@ -34,10 +34,6 @@ Process-wide generate status (`empty`, `in_progress`, `done`, `error`). `GET /ap
 
 `NameToID`, multipart file extract, sort helpers, `Allocate`. Used across servers, services, db (card timestamps).
 
-## `internal/fsentry`
-
-Vendored v0.0.11 (`NewFSEntry`, `IFSEntry`). Only `db/core` (and tests that call `core.Init`/`Drop`) should import this. Catalog aggregates use `github.com/HardDie/fsentry`.
-
 ## `internal/logger`, `internal/network` callers
 
 Almost every server. Keep messages user-safe; put fsentry detail in `AddMessage` for logs/HTTP body as existing code does.

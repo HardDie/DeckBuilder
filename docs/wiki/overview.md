@@ -15,16 +15,16 @@ Creating a game:
 
 List/search add filtering and sorting in the **service**, not in db.
 
-## Two fsentry handles
+## One fsentry handle
 
-`application.Get` builds both:
+`application.Get` builds a single `*fsentry.DB`:
 
-| Variable | Type | Module | Used by |
-|---|---|---|---|
-| `fs` | `internal/fsentry` `IFSEntry` (`NewFSEntry`) | vendored v0.0.11 | `db/core` |
-| `db` | `github.com/HardDie/fsentry` `*DB` (`New` + `Init`) | v0.1.4 | `db/settings`, `db/game`, `db/collection`, `db/deck`, `db/card` |
+```go
+db := fsentry.New(cfg.Data, fsentry.WithPretty())
+db.Init() // production lock file `.fsentry.lock`
+```
 
-Both point at `cfg.Data`. Production `db.Init()` takes the lock file `.fsentry.lock`. Tests that mix old `core` with new aggregates pass `WithNoLockFile()`.
+Every `internal/db/*` package takes this handle. Tests pass `WithNoLockFile()`.
 
 ## On-disk layout (production)
 
@@ -34,7 +34,7 @@ DB root = `cfg.Data` (`DeckBuilderData`, or `~/DeckBuilderData` on macOS).
 <data>/
   settings.json          # db/settings entry (v0.1 GetEntry/CreateEntry)
   .fsentry.lock          # v0.1 inter-process lock
-  games/                 # created by db/core.Init (legacy CreateFolder)
+  games/                 # created by db/core.Init (CreateFolder)
     <gameId>/            # folder + .info.json (description, image URL)
       image.bin
       <collectionId>/
