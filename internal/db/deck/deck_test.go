@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -22,9 +21,8 @@ var (
 )
 
 type deckEnv struct {
-	db         *fsentry.DB
-	collection dbCollection.Collection
-	deck       Deck
+	db   *fsentry.DB
+	deck Deck
 }
 
 func initDeck(t testing.TB, name string) deckEnv {
@@ -59,11 +57,9 @@ func initDeck(t testing.TB, name string) deckEnv {
 		}
 	})
 
-	collection := dbCollection.New(db)
 	return deckEnv{
-		db:         db,
-		collection: collection,
-		deck:       New(db, collection),
+		db:   db,
+		deck: New(db),
 	}
 }
 
@@ -76,17 +72,20 @@ func (e deckEnv) createGame(t testing.TB, name string) string {
 	return info.ID
 }
 
-func (e deckEnv) createParents(t testing.TB, ctx context.Context, gameName, collectionName string) (string, string) {
+func (e deckEnv) createCollection(t testing.TB, gameID, name string) string {
 	t.Helper()
-	gameID := e.createGame(t, gameName)
-	collection, err := e.collection.Create(ctx, dbCollection.CreateRequest{
-		GameID: gameID,
-		Name:   collectionName,
-	})
+	info, err := e.db.CreateFolder[any](name, nil, "games", gameID)
 	if err != nil {
 		t.Fatal("error create collection", err)
 	}
-	return gameID, collection.ID
+	return info.ID
+}
+
+func (e deckEnv) createParents(t testing.TB, _ context.Context, gameName, collectionName string) (string, string) {
+	t.Helper()
+	gameID := e.createGame(t, gameName)
+	collectionID := e.createCollection(t, gameID, collectionName)
+	return gameID, collectionID
 }
 
 func TestDeckCreate(t *testing.T) {
@@ -131,11 +130,10 @@ func TestDeckCreate(t *testing.T) {
 	t.Run("same_name_other_collection", func(t *testing.T) {
 		e := initDeck(t, "deck_create__same_name_other_collection")
 		gameID, collectionA := e.createParents(t, ctx, "parent_game", "collection_a")
-		collectionB, err := e.collection.Create(ctx, dbCollection.CreateRequest{GameID: gameID, Name: "collection_b"})
+		collectionB := e.createCollection(t, gameID, "collection_b")
+		_, err := e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionA, Name: "shared"})
 		assert.NoError(t, err)
-		_, err = e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionA, Name: "shared"})
-		assert.NoError(t, err)
-		_, err = e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionB.ID, Name: "shared"})
+		_, err = e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionB, Name: "shared"})
 		assert.NoError(t, err)
 	})
 
@@ -250,11 +248,10 @@ func TestDeckList(t *testing.T) {
 	t.Run("isolated_by_collection", func(t *testing.T) {
 		e := initDeck(t, "deck_list__isolated_by_collection")
 		gameID, collectionA := e.createParents(t, ctx, "parent_game", "collection_a")
-		collectionB, err := e.collection.Create(ctx, dbCollection.CreateRequest{GameID: gameID, Name: "collection_b"})
+		collectionB := e.createCollection(t, gameID, "collection_b")
+		_, err := e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionA, Name: "only_a"})
 		assert.NoError(t, err)
-		_, err = e.deck.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionA, Name: "only_a"})
-		assert.NoError(t, err)
-		got, err := e.deck.List(ctx, gameID, collectionB.ID)
+		got, err := e.deck.List(ctx, gameID, collectionB)
 		assert.NoError(t, err)
 		assert.Equal(t, []*entitiesDeck.Deck(nil), got)
 	})

@@ -4,21 +4,21 @@ import (
 	"context"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 )
 
 type deck struct {
 	cfg        *config.Config
-	collection dbCollection.Collection
+	collection repositoriesCollection.Collection
 	deck       dbDeck.Deck
 }
 
-func New(cfg *config.Config, c dbCollection.Collection, d dbDeck.Deck) Deck {
+func New(cfg *config.Config, c repositoriesCollection.Collection, d dbDeck.Deck) Deck {
 	return &deck{
 		cfg:        cfg,
 		collection: c,
@@ -149,7 +149,7 @@ func (r *deck) GetImage(gameID, collectionID, deckID string) ([]byte, string, er
 }
 func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
 	// Get all collections in selected game
-	listCollections, err := r.collection.List(context.Background(), gameID)
+	listCollections, err := r.collection.GetAll(gameID)
 	if err != nil {
 		return make([]*entitiesDeck.Deck, 0), err
 	}

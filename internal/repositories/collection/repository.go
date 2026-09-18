@@ -1,35 +1,36 @@
 package collection
 
 import (
-	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 type collection struct {
-	cfg        *config.Config
-	collection dbCollection.Collection
+	cfg       *config.Config
+	db        *fsentry.DB
+	gamesPath string
 }
 
-func New(cfg *config.Config, c dbCollection.Collection) Collection {
+func New(cfg *config.Config, db *fsentry.DB) Collection {
 	return &collection{
-		cfg:        cfg,
-		collection: c,
+		cfg:       cfg,
+		db:        db,
+		gamesPath: "games",
 	}
 }
 
 func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {
-	c, err := r.collection.Create(context.Background(), dbCollection.CreateRequest{
-		GameID:      gameID,
-		Name:        req.Name,
-		Description: req.Description,
-		Image:       req.Image,
-	})
+	c, err := r.create(gameID, req)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,6 @@ func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollecti
 	}
 
 	if c.Image != "" {
-		// Download image
 		err = r.createImage(gameID, c.ID, c.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
@@ -53,22 +53,24 @@ func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollecti
 
 	return c, nil
 }
+
 func (r *collection) GetByID(gameID, collectionID string) (*entitiesCollection.Collection, error) {
-	return r.collection.Get(context.Background(), gameID, collectionID)
+	return r.get(gameID, collectionID)
 }
+
 func (r *collection) GetAll(gameID string) ([]*entitiesCollection.Collection, error) {
-	return r.collection.List(context.Background(), gameID)
+	return r.list(gameID)
 }
+
 func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*entitiesCollection.Collection, error) {
-	oldCollection, err := r.collection.Get(context.Background(), gameID, collectionID)
+	oldCollection, err := r.get(gameID, collectionID)
 	if err != nil {
 		return nil, err
 	}
 
 	var newCollection *entitiesCollection.Collection
 	if oldCollection.Name != req.Name {
-		// Rename folder
-		newCollection, err = r.collection.Move(context.Background(), gameID, oldCollection.Name, req.Name)
+		newCollection, err = r.move(gameID, oldCollection.Name, req.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -77,9 +79,7 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	if oldCollection.Description != req.Description ||
 		oldCollection.Image != req.Image ||
 		req.ImageFile != nil {
-		// Update data
-		newCollection, err = r.collection.Update(context.Background(), dbCollection.UpdateRequest{
-			GameID:      gameID,
+		newCollection, err = r.update(gameID, updateRequest{
 			Name:        req.Name,
 			Description: req.Description,
 			Image:       req.Image,
@@ -90,18 +90,15 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	}
 
 	if newCollection == nil {
-		// If nothing has changed
 		newCollection = oldCollection
 	}
 
-	// If the image has not been changed
 	if newCollection.Image == oldCollection.Image && req.ImageFile == nil {
 		return newCollection, nil
 	}
 
-	// If image exist, delete
 	if data, _, _ := r.GetImage(gameID, newCollection.ID); data != nil {
-		err = r.collection.ImageDelete(context.Background(), gameID, collectionID)
+		err = r.imageDelete(gameID, collectionID)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +109,6 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	}
 
 	if newCollection.Image != "" {
-		// Download image
 		err = r.createImage(gameID, newCollection.ID, newCollection.Image)
 		if err != nil {
 			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
@@ -126,11 +122,13 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 
 	return newCollection, nil
 }
+
 func (r *collection) DeleteByID(gameID, collectionID string) error {
-	return r.collection.Delete(context.Background(), gameID, collectionID)
+	return r.delete(gameID, collectionID)
 }
+
 func (r *collection) GetImage(gameID, collectionID string) ([]byte, string, error) {
-	data, err := r.collection.ImageGet(context.Background(), gameID, collectionID)
+	data, err := r.imageGet(gameID, collectionID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -144,7 +142,6 @@ func (r *collection) GetImage(gameID, collectionID string) ([]byte, string, erro
 }
 
 func (r *collection) createImage(gameID, collectionID, imageURL string) error {
-	// Download image
 	imageBytes, err := network.DownloadBytes(imageURL)
 	if err != nil {
 		return err
@@ -152,13 +149,238 @@ func (r *collection) createImage(gameID, collectionID, imageURL string) error {
 
 	return r.createImageFromByte(gameID, collectionID, imageBytes)
 }
+
 func (r *collection) createImageFromByte(gameID, collectionID string, data []byte) error {
-	// Validate image
 	_, err := images.ValidateImage(data)
 	if err != nil {
 		return err
 	}
 
-	// Write image to file
-	return r.collection.ImageCreate(context.Background(), gameID, collectionID, data)
+	return r.imageCreate(gameID, collectionID, data)
+}
+
+func (r *collection) getGame(gameID string) (string, error) {
+	info, err := r.db.GetFolder[any](gameID, r.gamesPath)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return "", er.BadName
+		} else {
+			return "", er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return info.ID, nil
+}
+
+func (r *collection) create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := r.db.CreateFolder(req.Name, model{
+		Description: fsentry.QuotedString(req.Description),
+		Image:       fsentry.QuotedString(req.Image),
+	}, r.gamesPath, gameIDResolved)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrExist) {
+			return nil, er.CollectionExist
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return r.toEntity(info, gameID), nil
+}
+
+func (r *collection) get(gameID, name string) (*entitiesCollection.Collection, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := r.db.GetFolder[model](name, r.gamesPath, gameIDResolved)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return r.toEntity(info, gameID), nil
+}
+
+func (r *collection) list(gameID string) ([]*entitiesCollection.Collection, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := r.db.List(r.gamesPath, gameIDResolved)
+	if err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+
+	var collections []*entitiesCollection.Collection
+	for _, folder := range list.Folders {
+		collection, err := r.get(gameIDResolved, folder)
+		if err != nil {
+			logger.Error.Println(folder, err.Error())
+			continue
+		}
+		if folder != collection.ID {
+			logger.Error.Println("Corrupted collection folder:", folder)
+			continue
+		}
+		collections = append(collections, collection)
+	}
+	return collections, nil
+}
+
+func (r *collection) move(gameID, oldName, newName string) (*entitiesCollection.Collection, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := r.db.MoveFolder[model](oldName, newName, r.gamesPath, gameIDResolved)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return r.toEntity(info, gameID), nil
+}
+
+type updateRequest struct {
+	Name        string
+	Description string
+	Image       string
+}
+
+func (r *collection) update(gameID string, req updateRequest) (*entitiesCollection.Collection, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := r.db.UpdateFolder(req.Name, model{
+		Description: fsentry.QuotedString(req.Description),
+		Image:       fsentry.QuotedString(req.Image),
+	}, r.gamesPath, gameIDResolved)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return nil, er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	return r.toEntity(info, gameID), nil
+}
+
+func (r *collection) delete(gameID, name string) error {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return err
+	}
+
+	err = r.db.RemoveFolder(name, r.gamesPath, gameIDResolved)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return er.BadName
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return nil
+}
+
+func (r *collection) imageCreate(gameID, collectionID string, data []byte) error {
+	collection, err := r.get(gameID, collectionID)
+	if err != nil {
+		return err
+	}
+
+	err = r.db.CreateBinary("image", data, r.gamesPath, gameID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrExist) {
+			return er.CollectionImageExist.AddMessage(err.Error())
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return nil
+}
+
+func (r *collection) imageGet(gameID, collectionID string) ([]byte, error) {
+	collection, err := r.get(gameID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := r.db.GetBinary("image", nil, r.gamesPath, gameID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return nil, er.CollectionImageNotExists.AddMessage(err.Error())
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return data, nil
+}
+
+func (r *collection) imageDelete(gameID, collectionID string) error {
+	collection, err := r.get(gameID, collectionID)
+	if err != nil {
+		return err
+	}
+
+	err = r.db.RemoveBinary("image", r.gamesPath, gameID, collection.ID)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return er.CollectionImageNotExists.AddMessage(err.Error())
+		} else {
+			return er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return nil
+}
+
+func (r *collection) toEntity(info fsentry.FolderInfo[model], gameID string) *entitiesCollection.Collection {
+	createdAt, updatedAt := r.convertCreateUpdate(info.CreatedAt, info.UpdatedAt)
+	return &entitiesCollection.Collection{
+		ID:          info.ID,
+		Name:        info.Name,
+		Description: info.Data.Description.String(),
+		Image:       info.Data.Image.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+		GameID:      gameID,
+	}
+}
+
+func (r *collection) convertCreateUpdate(createdAt, updatedAt time.Time) (time.Time, time.Time) {
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	if updatedAt.IsZero() {
+		updatedAt = createdAt
+	}
+	return createdAt, updatedAt
 }

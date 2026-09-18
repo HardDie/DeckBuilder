@@ -10,7 +10,6 @@ import (
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	dbCollection "github.com/HardDie/DeckBuilder/internal/db/collection"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
@@ -48,10 +47,9 @@ func newCollectionTest(t testing.TB) *collectionTest {
 	}
 
 	core := dbCore.New(db)
-	collection := dbCollection.New(db)
 
 	repositoryGame := repositoriesGame.New(cfg, db)
-	repositoryCollection := repositoriesCollection.New(cfg, collection)
+	repositoryCollection := repositoriesCollection.New(cfg, db)
 
 	return &collectionTest{
 		gameID: "test_collection__game",
