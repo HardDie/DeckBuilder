@@ -16,15 +16,17 @@ This layout follows the same split as [HardDie/ytmemchat_wails](https://github.c
 
 1. **Only README.**
 2. **README + a single ARCHITECTURE.md at repo root.**
-3. **README (users) + CURSOR.md (agents) + `docs/architecture` (ADRs) + `docs/use-cases`.**
+3. **README (users) + CURSOR.md (agents) + `docs/architecture` (ADRs) + `docs/use-cases` + `docs/wiki` (package notes).**
 
 ## Decision
 
 Use option 3.
 
-Keep README short ([Make a README](https://www.makeareadme.com/)): what it is, GUI link, TTS Saved Objects steps, build, swagger URL, license. Operator detail that is already in README (render folder, copy JSON) stays there until someone adds a wiki.
+Keep README short ([Make a README](https://www.makeareadme.com/)): what it is, GUI link, TTS Saved Objects steps, build, swagger URL, license. Operator how-tos that outgrow the README can go in the wiki; HTTP contracts stay in CURSOR.md.
 
 Use cases describe **behavior that exists in this repo**. Copy `_TEMPLATE.md`. Status is Implemented (or Planned only for agreed future work listed in the index).
+
+Developer module notes (packages, fields, who calls what) live in **[docs/wiki](../wiki/Home.md)**. They explain current code; they do not replace ADRs. Copy `docs/wiki/*.md` (including `_Sidebar.md` and `_Footer.md`) into the GitHub wiki remote, same as [fsentry](https://github.com/HardDie/fsentry/tree/master/docs/wiki).
 
 ## Consequences
 
@@ -39,4 +41,4 @@ Use cases describe **behavior that exists in this repo**. Copy `_TEMPLATE.md`. S
 
 ### Neutral
 
-* No `docs/wiki` unless operator how-tos outgrow the README.
+* Wiki markdown uses GitHub wiki slugs (`[DB](DB)`, `Home.md`, `_Sidebar.md`), not Jekyll.

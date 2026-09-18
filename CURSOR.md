@@ -153,7 +153,7 @@ GUI-only development typically runs the Vue app separately against this API (COR
 
 ## Where things live
 
-This file stays lean. **[README.md](README.md)** is the short user entry (what the app is, build, TTS copy path). This file is the agent/implementation spec. Decisions: **[docs/architecture](docs/architecture/INDEX.md)**. Scenarios: **[docs/use-cases](docs/use-cases/INDEX.md)**.
+This file stays lean. **[README.md](README.md)** is the short user entry (what the app is, build, TTS copy path). This file is the agent/implementation spec. Decisions: **[docs/architecture](docs/architecture/INDEX.md)**. Scenarios: **[docs/use-cases](docs/use-cases/INDEX.md)**. Package walkthrough: **[docs/wiki](docs/wiki/Home.md)** (GitHub wiki source; copy into `DeckBuilder.wiki.git`).
 
 | If you need… | Read |
 |---|---|
@@ -161,6 +161,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | TTS Lua, External Editor, Custom Deck | **[api.tabletopsimulator.com](https://api.tabletopsimulator.com/)** — [External Editor](https://api.tabletopsimulator.com/externaleditorapi/), [spawnObjectJSON](https://api.tabletopsimulator.com/base/), [Custom Deck](https://api.tabletopsimulator.com/custom-game-objects/), [WebRequest](https://api.tabletopsimulator.com/webrequest/manager/) |
 | Architecture decisions | **[docs/architecture](docs/architecture/INDEX.md)** |
 | Use cases | **[docs/use-cases](docs/use-cases/INDEX.md)** |
+| Go modules, fields, who calls what | **[docs/wiki](docs/wiki/Home.md)** |
 | HTTP routes + swagger comments | `internal/api` |
 | Process wiring | `internal/application/application.go` |
 | Paths, sheet limits | `internal/config` |
@@ -183,7 +184,8 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 ├── CURSOR.md
 ├── docs/
 │   ├── architecture/       # ADRs
-│   └── use-cases/
+│   ├── use-cases/
+│   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
 ├── cmd/deck_builder/       # main, swagger:meta, -debug, version ldflags
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
@@ -247,6 +249,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **Keep [README.md](README.md) short.** User-facing install, TTS copy path, and honest limitations stay there. Deep contracts stay here.
 - **New core decisions get an ADR** in `docs/architecture/` (next number, update `INDEX.md`).
 - **New user-visible behavior gets a use case** from `docs/use-cases/_TEMPLATE.md` and a row in `INDEX.md`.
+- **Wiki pages** live in `docs/wiki/` as GitHub wiki markdown (`Home.md`, `_Sidebar.md`, slug links without `.md`). Copy into `DeckBuilder.wiki.git` to publish.
 - Prefer the smallest change that preserves the GUI contract over a layer rewrite.
 - Do not collapse `servers` / `services` / `db` “to simplify” without an ADR.
 - Do not put business rules in `internal/api` (comments + registration only).

@@ -62,4 +62,5 @@ http://localhost:5000/docs
 - Users: this README (product, TTS export, build).
 - Agents and contributors: [CURSOR.md](CURSOR.md) (HTTP contract, packages, generate rules).
 - Decisions: [docs/architecture](docs/architecture/INDEX.md). Scenarios: [docs/use-cases](docs/use-cases/INDEX.md).
+- Go packages (fields, methods, callers): [docs/wiki](docs/wiki/Home.md). Sync to the GitHub wiki with `git clone https://github.com/HardDie/DeckBuilder.wiki.git` and copy `docs/wiki/*.md`.
 
