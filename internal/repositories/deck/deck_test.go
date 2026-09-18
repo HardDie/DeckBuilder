@@ -11,7 +11,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
-	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -59,7 +58,7 @@ func initDeck(t testing.TB, name string) deckEnv {
 
 	return deckEnv{
 		db:   db,
-		deck: New(cfg, db, repositoriesCollection.New(cfg, db)).(*deck),
+		deck: New(cfg, db).(*deck),
 	}
 }
 
@@ -532,6 +531,30 @@ func TestDeckImageDelete(t *testing.T) {
 	t.Run("game_not_exist", func(t *testing.T) {
 		e := initDeck(t, "deck_image_delete__game_not_exist")
 		err := e.deck.imageDelete("missing", "ok", "ok")
+		assert.ErrorIs(t, err, er.GameNotExists)
+	})
+}
+
+func TestGetAllDecksInGame(t *testing.T) {
+	t.Run("unique_by_name_and_image", func(t *testing.T) {
+		e := initDeck(t, "deck_all_in_game__unique")
+		gameID, collectionA := e.createParents(t, "parent_game", "collection_a")
+		collectionB := e.createCollection(t, gameID, "collection_b")
+		_, err := e.deck.create(gameID, collectionA, CreateRequest{Name: "shared", Image: "https://img"})
+		assert.NoError(t, err)
+		_, err = e.deck.create(gameID, collectionB, CreateRequest{Name: "shared", Image: "https://img"})
+		assert.NoError(t, err)
+		_, err = e.deck.create(gameID, collectionB, CreateRequest{Name: "other"})
+		assert.NoError(t, err)
+
+		got, err := e.deck.GetAllDecksInGame(gameID)
+		assert.NoError(t, err)
+		assert.Len(t, got, 2)
+	})
+
+	t.Run("game_not_exist", func(t *testing.T) {
+		e := initDeck(t, "deck_all_in_game__game_not_exist")
+		_, err := e.deck.GetAllDecksInGame("missing")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }

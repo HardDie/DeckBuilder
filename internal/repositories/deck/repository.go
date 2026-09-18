@@ -12,23 +12,20 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type deck struct {
-	cfg        *config.Config
-	db         *fsentry.DB
-	gamesPath  string
-	collection repositoriesCollection.Collection
+	cfg       *config.Config
+	db        *fsentry.DB
+	gamesPath string
 }
 
-func New(cfg *config.Config, db *fsentry.DB, c repositoriesCollection.Collection) Deck {
+func New(cfg *config.Config, db *fsentry.DB) Deck {
 	return &deck{
-		cfg:        cfg,
-		db:         db,
-		gamesPath:  "games",
-		collection: c,
+		cfg:       cfg,
+		db:        db,
+		gamesPath: "games",
 	}
 }
 
@@ -145,16 +142,21 @@ func (r *deck) GetImage(gameID, collectionID, deckID string) ([]byte, string, er
 }
 
 func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
-	listCollections, err := r.collection.GetAll(gameID)
+	gameIDResolved, err := r.getGame(gameID)
 	if err != nil {
 		return make([]*entitiesDeck.Deck, 0), err
+	}
+
+	list, err := r.db.List(r.gamesPath, gameIDResolved)
+	if err != nil {
+		return make([]*entitiesDeck.Deck, 0), er.InternalError.AddMessage(err.Error())
 	}
 
 	uniqueDecks := make(map[string]struct{})
 
 	decks := make([]*entitiesDeck.Deck, 0)
-	for _, collection := range listCollections {
-		collectionDecks, err := r.GetAll(gameID, collection.ID)
+	for _, folder := range list.Folders {
+		collectionDecks, err := r.GetAll(gameID, folder)
 		if err != nil {
 			return make([]*entitiesDeck.Deck, 0), err
 		}
@@ -188,8 +190,8 @@ func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []b
 	return r.imageCreate(gameID, collectionID, deckID, data)
 }
 
-func (r *deck) getCollection(gameID, collectionID string) (string, error) {
-	gameInfo, err := r.db.GetFolder[any](gameID, r.gamesPath)
+func (r *deck) getGame(gameID string) (string, error) {
+	info, err := r.db.GetFolder[any](gameID, r.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
@@ -199,8 +201,16 @@ func (r *deck) getCollection(gameID, collectionID string) (string, error) {
 			return "", er.InternalError.AddMessage(err.Error())
 		}
 	}
+	return info.ID, nil
+}
 
-	info, err := r.db.GetFolder[any](collectionID, r.gamesPath, gameInfo.ID)
+func (r *deck) getCollection(gameID, collectionID string) (string, error) {
+	gameIDResolved, err := r.getGame(gameID)
+	if err != nil {
+		return "", err
+	}
+
+	info, err := r.db.GetFolder[any](collectionID, r.gamesPath, gameIDResolved)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return "", er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)

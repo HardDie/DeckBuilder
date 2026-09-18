@@ -53,7 +53,7 @@ func newDeckTest(t testing.TB) *deckTest {
 
 	repositoryGame := repositoriesGame.New(cfg, db)
 	repositoryCollection := repositoriesCollection.New(cfg, db)
-	repositoryDeck := repositoriesDeck.New(cfg, db, repositoryCollection)
+	repositoryDeck := repositoriesDeck.New(cfg, db)
 
 	return &deckTest{
 		gameID:       "test_deck__game",

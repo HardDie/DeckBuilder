@@ -79,7 +79,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterCollectionServer(routes, serverCollection)
 
 	// deck
-	repositoryDeck := repositoriesDeck.New(cfg, db, repositoryCollection)
+	repositoryDeck := repositoriesDeck.New(cfg, db)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
 	serverDeck := serversDeck.New(*cfg, serviceDeck, serverSystem)
 	api.RegisterDeckServer(routes, serverDeck)
