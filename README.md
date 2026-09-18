@@ -56,3 +56,10 @@ The resulting files can be found in the deployment/out folder
 ```
 http://localhost:5000/docs
 ```
+
+## Documentation
+
+- Users: this README (product, TTS export, build).
+- Agents and contributors: [CURSOR.md](CURSOR.md) (HTTP contract, packages, generate rules).
+- Decisions: [docs/architecture](docs/architecture/INDEX.md). Scenarios: [docs/use-cases](docs/use-cases/INDEX.md).
+
