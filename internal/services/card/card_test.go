@@ -12,7 +12,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -54,12 +53,11 @@ func newCardTest(t testing.TB) *cardTest {
 	}
 
 	core := dbCore.New(db)
-	deck := dbDeck.New(db)
-	card := dbCard.New(db, deck)
+	card := dbCard.New(db)
 
 	repositoryGame := repositoriesGame.New(cfg, db)
 	repositoryCollection := repositoriesCollection.New(cfg, db)
-	repositoryDeck := repositoriesDeck.New(cfg, repositoryCollection, deck)
+	repositoryDeck := repositoriesDeck.New(cfg, db, repositoryCollection)
 	repositoryCard := repositoriesCard.New(cfg, card)
 
 	return &cardTest{

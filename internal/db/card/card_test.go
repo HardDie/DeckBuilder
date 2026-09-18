@@ -11,7 +11,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
@@ -22,7 +21,6 @@ var (
 
 type cardEnv struct {
 	db   *fsentry.DB
-	deck dbDeck.Deck
 	card Card
 }
 
@@ -58,11 +56,9 @@ func initCard(t testing.TB, name string) cardEnv {
 		}
 	})
 
-	deck := dbDeck.New(db)
 	return cardEnv{
 		db:   db,
-		deck: deck,
-		card: New(db, deck),
+		card: New(db),
 	}
 }
 
@@ -84,19 +80,25 @@ func (e cardEnv) createCollection(t testing.TB, gameID, name string) string {
 	return info.ID
 }
 
-func (e cardEnv) createParents(t testing.TB, ctx context.Context, gameName, collectionName, deckName string) (string, string, string) {
+func (e cardEnv) createDeck(t testing.TB, gameID, collectionID, name string) string {
 	t.Helper()
-	gameID := e.createGame(t, gameName)
-	collectionID := e.createCollection(t, gameID, collectionName)
-	deck, err := e.deck.Create(ctx, dbDeck.CreateRequest{
-		GameID:       gameID,
-		CollectionID: collectionID,
-		Name:         deckName,
-	})
+	info, err := e.db.CreateFolder[any](name, nil, "games", gameID, collectionID)
 	if err != nil {
 		t.Fatal("error create deck", err)
 	}
-	return gameID, collectionID, deck.ID
+	_, err = e.db.CreateFolder[any]("cards", nil, "games", gameID, collectionID, info.ID)
+	if err != nil {
+		t.Fatal("error create cards folder", err)
+	}
+	return info.ID
+}
+
+func (e cardEnv) createParents(t testing.TB, _ context.Context, gameName, collectionName, deckName string) (string, string, string) {
+	t.Helper()
+	gameID := e.createGame(t, gameName)
+	collectionID := e.createCollection(t, gameID, collectionName)
+	deckID := e.createDeck(t, gameID, collectionID, deckName)
+	return gameID, collectionID, deckID
 }
 
 func TestCardCreate(t *testing.T) {
@@ -153,11 +155,10 @@ func TestCardCreate(t *testing.T) {
 	t.Run("isolated_by_deck", func(t *testing.T) {
 		e := initCard(t, "card_create__isolated_by_deck")
 		gameID, collectionID, deckA := e.createParents(t, ctx, "parent_game", "parent_collection", "deck_a")
-		deckB, err := e.deck.Create(ctx, dbDeck.CreateRequest{GameID: gameID, CollectionID: collectionID, Name: "deck_b"})
-		assert.NoError(t, err)
+		deckB := e.createDeck(t, gameID, collectionID, "deck_b")
 		cardA, err := e.card.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionID, DeckID: deckA, Name: "shared"})
 		assert.NoError(t, err)
-		cardB, err := e.card.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionID, DeckID: deckB.ID, Name: "shared"})
+		cardB, err := e.card.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionID, DeckID: deckB, Name: "shared"})
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), cardA.ID)
 		assert.Equal(t, int64(1), cardB.ID)
@@ -281,11 +282,10 @@ func TestCardList(t *testing.T) {
 	t.Run("isolated_by_deck", func(t *testing.T) {
 		e := initCard(t, "card_list__isolated_by_deck")
 		gameID, collectionID, deckA := e.createParents(t, ctx, "parent_game", "parent_collection", "deck_a")
-		deckB, err := e.deck.Create(ctx, dbDeck.CreateRequest{GameID: gameID, CollectionID: collectionID, Name: "deck_b"})
+		deckB := e.createDeck(t, gameID, collectionID, "deck_b")
+		_, err := e.card.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionID, DeckID: deckA, Name: "only_a"})
 		assert.NoError(t, err)
-		_, err = e.card.Create(ctx, CreateRequest{GameID: gameID, CollectionID: collectionID, DeckID: deckA, Name: "only_a"})
-		assert.NoError(t, err)
-		got, err := e.card.List(ctx, gameID, collectionID, deckB.ID)
+		got, err := e.card.List(ctx, gameID, collectionID, deckB)
 		assert.NoError(t, err)
 		assert.Equal(t, []*entitiesCard.Card(nil), got)
 	})

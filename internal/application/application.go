@@ -10,7 +10,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	dbCard "github.com/HardDie/DeckBuilder/internal/db/card"
 	dbCore "github.com/HardDie/DeckBuilder/internal/db/core"
-	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	dbSettings "github.com/HardDie/DeckBuilder/internal/db/settings"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
@@ -58,8 +57,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// db methods
 	core := dbCore.New(db)
 	settings := dbSettings.New(db)
-	deck := dbDeck.New(db)
-	card := dbCard.New(db, deck)
+	card := dbCard.New(db)
 
 	err := core.Init()
 	if err != nil {
@@ -84,7 +82,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	api.RegisterCollectionServer(routes, serverCollection)
 
 	// deck
-	repositoryDeck := repositoriesDeck.New(cfg, repositoryCollection, deck)
+	repositoryDeck := repositoriesDeck.New(cfg, db, repositoryCollection)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
 	serverDeck := serversDeck.New(*cfg, serviceDeck, serverSystem)
 	api.RegisterDeckServer(routes, serverDeck)

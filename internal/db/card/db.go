@@ -11,7 +11,6 @@ import (
 
 	"github.com/HardDie/fsentry"
 
-	dbDeck "github.com/HardDie/DeckBuilder/internal/db/deck"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -22,16 +21,12 @@ type cardList map[int64]*model
 type card struct {
 	db        *fsentry.DB
 	gamesPath string
-
-	deck dbDeck.Deck
 }
 
-func New(db *fsentry.DB, deck dbDeck.Deck) Card {
+func New(db *fsentry.DB) Card {
 	return &card{
 		db:        db,
 		gamesPath: "games",
-
-		deck: deck,
 	}
 }
 
@@ -213,13 +208,49 @@ func (d *card) ImageDelete(ctx context.Context, gameID, collectionID, deckID str
 	return nil
 }
 
+func (d *card) getDeck(_ context.Context, gameID, collectionID, deckID string) (string, error) {
+	gameInfo, err := d.db.GetFolder[any](gameID, d.gamesPath)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return "", er.BadName
+		} else {
+			return "", er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	collectionInfo, err := d.db.GetFolder[any](collectionID, d.gamesPath, gameInfo.ID)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return "", er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return "", er.BadName
+		} else {
+			return "", er.InternalError.AddMessage(err.Error())
+		}
+	}
+
+	info, err := d.db.GetFolder[any](deckID, d.gamesPath, gameInfo.ID, collectionInfo.ID)
+	if err != nil {
+		if errors.Is(err, fsentry.ErrNotExist) {
+			return "", er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+		} else if errors.Is(err, fsentry.ErrBadName) {
+			return "", er.BadName
+		} else {
+			return "", er.InternalError.AddMessage(err.Error())
+		}
+	}
+	return info.ID, nil
+}
+
 func (d *card) rawCardList(ctx context.Context, gameID, collectionID, deckID string) (context.Context, cardList, error) {
-	deck, err := d.deck.Get(ctx, gameID, collectionID, deckID)
+	deckIDResolved, err := d.getDeck(ctx, gameID, collectionID, deckID)
 	if err != nil {
 		return ctx, nil, err
 	}
 
-	info, err := d.db.GetFolder[cardList]("cards", d.gamesPath, gameID, collectionID, deck.ID)
+	info, err := d.db.GetFolder[cardList]("cards", d.gamesPath, gameID, collectionID, deckIDResolved)
 	if err != nil {
 		return ctx, nil, er.InternalError.AddMessage(err.Error())
 	}
