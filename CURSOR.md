@@ -23,7 +23,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 - Recursive **search** across the tree.
 - **Replace** local `file://` (or disk) image paths in generated JSON with hosted URLs so a table can be shared.
 - Optional **TTS spawn**: after generate, try TCP `127.0.0.1:39999` (TTS External Editor) and tell the game to `WebRequest.get` `/api/tts/data`.
-- Settings (language `en`/`ru`, card scale, back shadow) persisted in the fsentry store; **quit** from the UI with a delay (skipped in `-debug`).
+- Settings (language `en`/`ru`, card scale, back shadow) persisted in the fsentry store; **quit** from the UI (skipped in `-debug`).
 
 **Known limitation (do not “fix” by inventing a host)**
 
@@ -72,7 +72,7 @@ Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports
 | POST | `/api/replace/prepare` | Extract unique FaceURL/BackURL keys |
 | POST | `/api/replace` | Rewrite JSON with mapping file |
 | GET | `/api/tts/data` | One-shot last generated JSON for TTS Lua |
-| DELETE | `/api/system/quit` | Start 60s quit timer (no-op in `-debug`) |
+| DELETE | `/api/system/quit` | Exit process immediately (no-op in `-debug`) |
 | GET/PATCH | `/api/system/settings` | Settings (`lang` on PATCH today) |
 | GET | `/api/system/status` | Generator progress; **clears** `done`/`error` after read |
 | GET | `/api/system/version` | Stamped version string |
@@ -230,7 +230,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
-- **Quit is delayed 60s** and cancelled when other handlers call `StopQuit` (so navigating the SPA does not kill the process immediately). `-debug` never quits.
+- **Quit is immediate** (`DELETE /api/system/quit` → `os.Exit(0)`). `-debug` never quits.
 - **TTS TCP is best-effort Execute Lua on Global (`39999`, `messageID` 3, `guid` `-1`).** If TTS is not running, generate still writes `result/`. `/api/tts/data` is one-shot (clears the buffer). Official protocol: [External Editor API](https://api.tabletopsimulator.com/externaleditorapi/).
 - **IDs:** string ids come from fsentry (name-derived). Card ids are integers. Path params named `{card}` are still parsed as that integer id.
 - **Deck image = card back** for that deck’s sheets. Missing backside fails generate.

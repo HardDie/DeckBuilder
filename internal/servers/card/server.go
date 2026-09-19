@@ -13,26 +13,22 @@ import (
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type card struct {
-	cfg          config.Config
-	serviceCard  servicesCard.Card
-	serverSystem serversSystem.System
+	cfg         config.Config
+	serviceCard servicesCard.Card
 }
 
 func New(
 	cfg config.Config,
 	serviceCard servicesCard.Card,
-	serverSystem serversSystem.System,
 ) Card {
 	return &card{
-		cfg:          cfg,
-		serviceCard:  serviceCard,
-		serverSystem: serverSystem,
+		cfg:         cfg,
+		serviceCard: serviceCard,
 	}
 }
 
@@ -135,8 +131,6 @@ func (s *card) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func (s *card) ListHandler(w http.ResponseWriter, r *http.Request) {
-	s.serverSystem.StopQuit()
-
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	deckID := mux.Vars(r)["deck"]

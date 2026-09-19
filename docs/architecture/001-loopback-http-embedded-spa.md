@@ -22,7 +22,7 @@ Options include a single Wails/webview binary, a public web service, or a local 
 
 Use option 3.
 
-`cmd/deck_builder` starts `internal/application`, which binds **only** `127.0.0.1:5000`. Release builds embed the GUI. `-debug` skips opening the browser and does not honor quit. `DELETE /api/system/quit` starts a 60s timer (cancelled when other API traffic hits `StopQuit`) so closing a tab does not immediately kill a long generate.
+`cmd/deck_builder` starts `internal/application`, which binds **only** `127.0.0.1:5000`. Release builds embed the GUI. `-debug` skips opening the browser and does not honor quit. `DELETE /api/system/quit` exits immediately (`os.Exit(0)`).
 
 The GUI repository stays separate; this repo vendors built assets via `make web-build`, not source.
 

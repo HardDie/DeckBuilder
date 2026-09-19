@@ -44,7 +44,6 @@ type Application struct {
 	tts               servicesTTS.TTS
 	serviceGame       servicesGame.Game
 	serviceCollection servicesCollection.Collection
-	serverSystem      serversSystem.System
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -86,13 +85,13 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, db)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
-	serverDeck := serversDeck.New(*cfg, serviceDeck, serverSystem)
+	serverDeck := serversDeck.New(*cfg, serviceDeck)
 	api.RegisterDeckServer(routes, serverDeck)
 
 	// card
 	repositoryCard := repositoriesCard.New(cfg, db)
 	serviceCard := servicesCard.New(cfg, repositoryCard)
-	serverCard := serversCard.New(*cfg, serviceCard, serverSystem)
+	serverCard := serversCard.New(*cfg, serviceCard)
 	api.RegisterCardServer(routes, serverCard)
 
 	// image
@@ -126,7 +125,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		tts:               serviceTTS,
 		serviceGame:       serviceGame,
 		serviceCollection: serviceCollection,
-		serverSystem:      serverSystem,
 	}, nil
 }
 
@@ -140,10 +138,6 @@ func (app *Application) GameService() servicesGame.Game {
 
 func (app *Application) CollectionService() servicesCollection.Collection {
 	return app.serviceCollection
-}
-
-func (app *Application) SystemServer() serversSystem.System {
-	return app.serverSystem
 }
 
 func (app *Application) Handler() http.Handler {

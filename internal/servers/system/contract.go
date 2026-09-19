@@ -8,5 +8,4 @@ type System interface {
 	UpdateSettingsHandler(w http.ResponseWriter, r *http.Request)
 	StatusHandler(w http.ResponseWriter, r *http.Request)
 	GetVersionHandler(w http.ResponseWriter, r *http.Request)
-	StopQuit()
 }

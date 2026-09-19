@@ -11,26 +11,22 @@ import (
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 type deck struct {
-	cfg          config.Config
-	serviceDeck  servicesDeck.Deck
-	serverSystem serversSystem.System
+	cfg         config.Config
+	serviceDeck servicesDeck.Deck
 }
 
 func New(
 	cfg config.Config,
 	serviceDeck servicesDeck.Deck,
-	serverSystem serversSystem.System,
 ) Deck {
 	return &deck{
-		cfg:          cfg,
-		serviceDeck:  serviceDeck,
-		serverSystem: serverSystem,
+		cfg:         cfg,
+		serviceDeck: serviceDeck,
 	}
 }
 
@@ -126,8 +122,6 @@ func (s *deck) ItemHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func (s *deck) ListHandler(w http.ResponseWriter, r *http.Request) {
-	s.serverSystem.StopQuit()
-
 	gameID := mux.Vars(r)["game"]
 	collectionID := mux.Vars(r)["collection"]
 	sort := r.URL.Query().Get("sort")

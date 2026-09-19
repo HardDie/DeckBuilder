@@ -10,7 +10,6 @@ import (
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/network"
-	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
 	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -48,7 +47,6 @@ type App struct {
 	cfg        config.Config
 	game       servicesGame.Game
 	collection servicesCollection.Collection
-	system     serversSystem.System
 }
 
 func NewApp(
@@ -56,9 +54,8 @@ func NewApp(
 	cfg config.Config,
 	game servicesGame.Game,
 	collection servicesCollection.Collection,
-	system serversSystem.System,
 ) *App {
-	return &App{ln: ln, cfg: cfg, game: game, collection: collection, system: system}
+	return &App{ln: ln, cfg: cfg, game: game, collection: collection}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -72,8 +69,6 @@ func (a *App) shutdown(_ context.Context) {
 }
 
 func (a *App) ListGames(sort, search string) (*ListGamesResult, error) {
-	a.system.StopQuit()
-
 	items, err := a.game.List(sort, search)
 	if err != nil {
 		return nil, err
@@ -142,8 +137,6 @@ func (a *App) DuplicateGame(gameID, name string) (*GameResult, error) {
 }
 
 func (a *App) ListCollections(gameID, sort, search string) (*ListCollectionsResult, error) {
-	a.system.StopQuit()
-
 	items, err := a.collection.List(gameID, sort, search)
 	if err != nil {
 		return nil, err
