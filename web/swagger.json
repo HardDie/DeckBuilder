@@ -59,234 +59,6 @@
         }
       }
     },
-    "/api/games/{game}/collections": {
-      "get": {
-        "description": "Get a list of existing collections\nSort values: name, name_desc, created, created_desc",
-        "tags": [
-          "Collections"
-        ],
-        "summary": "# Get collections list",
-        "operationId": "RequestListOfCollections",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Sort",
-            "name": "sort",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "x-go-name": "Search",
-            "name": "search",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseListOfCollections"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "post": {
-        "description": "Allows you to create a new collection",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "tags": [
-          "Collections"
-        ],
-        "summary": "# Create collection",
-        "operationId": "RequestCreateCollection",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Description",
-            "name": "description",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Image",
-            "name": "image",
-            "in": "formData"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "uint8"
-            },
-            "x-go-name": "ImageFile",
-            "name": "imageFile",
-            "in": "formData"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseCreateCollection"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/games/{game}/collections/{collection}": {
-      "get": {
-        "description": "Get an existing collection",
-        "tags": [
-          "Collections"
-        ],
-        "summary": "# Get collection",
-        "operationId": "RequestCollection",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseCollection"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "delete": {
-        "description": "Allows you to delete an existing collection",
-        "tags": [
-          "Collections"
-        ],
-        "summary": "# Delete collection",
-        "operationId": "RequestDeleteCollection",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDeleteCollection"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "patch": {
-        "description": "Allows you to update an existing collection",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "tags": [
-          "Collections"
-        ],
-        "summary": "# Update collection",
-        "operationId": "RequestUpdateCollection",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Collection",
-            "name": "collection",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Description",
-            "name": "description",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Image",
-            "name": "image",
-            "in": "formData"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "uint8"
-            },
-            "x-go-name": "ImageFile",
-            "name": "imageFile",
-            "in": "formData"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseUpdateCollection"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/{game}/collections/{collection}/decks": {
       "get": {
         "description": "Get a list of existing decks\nSort values: name, name_desc, created, created_desc",
@@ -1759,20 +1531,6 @@
         }
       }
     },
-    "ResponseCollection": {
-      "description": "Collection",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Collection"
-          }
-        }
-      }
-    },
     "ResponseCollectionImage": {
       "description": "Collection image",
       "schema": {
@@ -1816,20 +1574,6 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/Card"
-          }
-        }
-      }
-    },
-    "ResponseCreateCollection": {
-      "description": "Status of collection creation",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Collection"
           }
         }
       }
@@ -1884,9 +1628,6 @@
     },
     "ResponseDeleteCard": {
       "description": "Card deletion status"
-    },
-    "ResponseDeleteCollection": {
-      "description": "Collection deletion status"
     },
     "ResponseDeleteDeck": {
       "description": "Deck deletion status"
@@ -1996,28 +1737,6 @@
             "type": "array",
             "items": {
               "$ref": "#/definitions/Card"
-            },
-            "x-go-name": "Data"
-          },
-          "meta": {
-            "$ref": "#/definitions/Meta"
-          }
-        }
-      }
-    },
-    "ResponseListOfCollections": {
-      "description": "List of collections",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/Collection"
             },
             "x-go-name": "Data"
           },
@@ -2151,20 +1870,6 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/Card"
-          }
-        }
-      }
-    },
-    "ResponseUpdateCollection": {
-      "description": "Status of collection update",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Collection"
           }
         }
       }

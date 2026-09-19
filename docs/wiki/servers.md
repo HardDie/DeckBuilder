@@ -14,15 +14,17 @@ Catalog servers typically hold:
 | `service*` | Use-case methods |
 | `serverSystem` | `StopQuit()` at the start of most handlers |
 
-## Catalog servers (`game`, `collection`, `deck`, `card`)
+## Catalog servers (`game`, `deck`, `card`)
+
+Game and collection CRUD live on Wails bindings (`desktop/app.go`). HTTP catalog servers left:
 
 | Handler | HTTP | Service call |
 |---|---|---|
-| `ListHandler` | GET collection (not games) | `List(sort, search)` |
-| `CreateHandler` | POST multipart (not games) | `Create(…)` |
-| `ItemHandler` | GET `{id}` (not games) | `Item(id)` |
-| `UpdateHandler` | PATCH multipart (not games) | `Update` |
-| `DeleteHandler` | DELETE (not games) | `Delete` |
+| `ListHandler` | GET decks/cards | `List(sort, search)` |
+| `CreateHandler` | POST multipart | `Create(…)` |
+| `ItemHandler` | GET `{id}` | `Item(id)` |
+| `UpdateHandler` | PATCH multipart | `Update` |
+| `DeleteHandler` | DELETE | `Delete` |
 | `ExportHandler` / `ImportHandler` | game zip | repository via service |
 
 `calculateCachedImage` fills `dto.*.CachedImage` from `cfg.*ImagePath`.

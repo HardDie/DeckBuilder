@@ -23,21 +23,14 @@ The HTTP `internal/servers` layer exists to adapt mux/swagger. When catalog traf
 
 Use option 4.
 
-Migrated desktop verbs (game HTTP routes removed; Wails only):
+Migrated desktop verbs (HTTP routes removed; Wails only):
 
-* `App.ListGames` / `CreateGame` / `ReadGame` / `UpdateGame` / `DeleteGame` / `DuplicateGame`
-
-Migrated desktop verbs (collection HTTP still registered):
-
-* `App.ListCollections(gameID, sort, search)` — `{ data, meta }`
-* `App.CreateCollection(gameID, req)` — `{ data }`
-* `App.ReadCollection(gameID, collectionID)` — `{ data }`
-* `App.UpdateCollection(gameID, collectionID, req)` — `{ data }`
-* `App.DeleteCollection(gameID, collectionID)`
+* Games: `ListGames` / `CreateGame` / `ReadGame` / `UpdateGame` / `DeleteGame` / `DuplicateGame`
+* Collections: `ListCollections` / `CreateCollection` / `ReadCollection` / `UpdateCollection` / `DeleteCollection`
 
 Each duplicates DTO/`cachedImage` mapping in `desktop/app.go` instead of extending the HTTP server interface. `application.Get` exposes config, game/collection services, and `servers/system`. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, decks, and cards stay on HTTP. Collection REST remains for `cmd/deck_builder` / `gui/` until those routes are removed.
+`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, decks, and cards stay on HTTP. `cmd/deck_builder` / `gui/` no longer have game or collection CRUD REST.
 
 This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
 
@@ -50,7 +43,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 ### Negative and risks
 
-* Two copies of mapping exist while a verb still has both a binding and an HTTP handler (collections, game zip import).
+* Two copies of mapping exist while a verb still has both a binding and an HTTP handler (game zip import).
 * Wails error toasts are a second path next to the fetch wrapper.
 
 ### Neutral

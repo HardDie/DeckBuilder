@@ -8,9 +8,9 @@
 
 ## Main scenario (happy path)
 
-1. Client `POST /api/games/{game}/collections` (multipart name/description/image).
+1. Desktop UI calls `App.CreateCollection` with `name`, `description`, optional `image` URL and/or `imageFile` bytes.
 2. Collection is stored under that game; `dto.Collection` is returned.
-3. List/get/patch/delete use `/api/games/{game}/collections` and `/{collection}`.
+3. List/get/update/delete use `ListCollections`, `ReadCollection`, `UpdateCollection`, `DeleteCollection`.
 
 ## Alternative scenarios and errors
 

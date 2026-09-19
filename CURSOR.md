@@ -7,7 +7,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 1. **SPA (embedded `web/dist`)** — the authoring UI. It talks only to this process over HTTP. SPA routes such as `/games/{id}/…` are SPA paths; Go forwards them to `index.html` so reloads work.
 2. **REST API (`/api/…`)** — JSON (and multipart) for CRUD, images, generate, search, replace, system. TTS Lua downloads the last generated object from `GET /api/tts/data`.
 
-**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, export/import, generate, and verbs not yet moved.
+**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, export/import, generate, decks, cards, and verbs not yet moved.
 
 ---
 
@@ -61,8 +61,6 @@ Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports
 |---|---|---|
 | GET | `/api/games/{game}/export` | Zip archive |
 | POST | `/api/games/import` | Import zip (`file`, optional `name`) |
-| GET/POST | `/api/games/{game}/collections` | List / create |
-| GET/PATCH/DELETE | `/api/games/{game}/collections/{collection}` | Item / update / delete |
 | GET | `/api/games/{game}/decks` | All decks in a game |
 | GET/POST | `/api/games/{game}/collections/{collection}/decks` | List / create |
 | GET/PATCH/DELETE | `…/decks/{deck}` | Item / update / delete |
