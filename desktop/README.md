@@ -1,6 +1,6 @@
 # Wails shell
 
-Wails v2 window with a copy of the Vue GUI (`gui/` → `desktop/frontend`). Game, collection, and card catalog verbs use Wails bindings; export/import/generate and decks stay `fetch('/api/...')`. The process starts the same loopback HTTP server as `cmd/deck_builder` (no browser). In `wails dev`, Vite GET `/api` still targets `http://127.0.0.1:5000`.
+Wails v2 window with a copy of the Vue GUI (`gui/` → `desktop/frontend`). Game, collection, deck, and card catalog verbs use Wails bindings; export/import/generate stay `fetch('/api/...')`. The process starts the same loopback HTTP server as `cmd/deck_builder` (no browser). In `wails dev`, Vite GET `/api` still targets `http://127.0.0.1:5000`.
 
 `cmd/deck_builder` remains the production HTTP+SPA binary. This module is separate so root `go test ./...` does not compile CGO.
 

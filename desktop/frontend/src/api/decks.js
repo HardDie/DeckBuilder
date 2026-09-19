@@ -1,38 +1,56 @@
+import { List, ListAllUnique, Create, Read, Update, Delete } from '../../wailsjs/go/deck/Deck'
+import { withBindingError, writeRequestFromBody } from '@/api/wails'
+
 export default {
   list(requestData) {
-    return fetch(
-      `/api/games/${requestData.gameId}/collections/${
-        requestData.collectionId
-      }/decks?${new URLSearchParams(requestData.config)}`,
-    ).then(response => response.json())
+    const config = requestData.config || {}
+    return withBindingError(
+      List(
+        requestData.gameId || '',
+        requestData.collectionId || '',
+        config.sort || '',
+        config.search || '',
+      ),
+    )
   },
   read(requestData) {
-    return fetch(
-      `/api/games/${requestData.gameId}/collections/${requestData.collectionId}/decks/${requestData.deckId}`,
-    ).then(response => response.json())
+    return withBindingError(
+      Read(
+        requestData.gameId || '',
+        requestData.collectionId || '',
+        requestData.deckId || requestData.id || '',
+      ),
+    )
   },
   create(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/collections/${requestData.collectionId}/decks`, {
-      method: 'POST',
-      body: requestData.body,
-    }).then(response => response.json())
+    return withBindingError(
+      writeRequestFromBody(requestData.body).then(req =>
+        Create(requestData.gameId || '', requestData.collectionId || '', req),
+      ),
+    )
   },
   update(requestData) {
-    return fetch(
-      `/api/games/${requestData.gameId}/collections/${requestData.collectionId}/decks/${requestData.deckId}`,
-      {
-        method: 'PATCH',
-        body: requestData.body,
-      },
-    ).then(response => response.json())
+    return withBindingError(
+      writeRequestFromBody(requestData.body).then(req =>
+        Update(
+          requestData.gameId || '',
+          requestData.collectionId || '',
+          requestData.deckId || requestData.id || '',
+          req,
+        ),
+      ),
+    )
   },
   delete(requestData) {
-    return fetch(
-      `/api/games/${requestData.gameId}/collections/${requestData.collectionId}/decks/${requestData.deckId}`,
-      { method: 'DELETE' },
+    return withBindingError(
+      Delete(
+        requestData.gameId || '',
+        requestData.collectionId || '',
+        requestData.deckId || requestData.id || '',
+      ),
     )
   },
   deckSuggestions(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/decks`).then(response => response.json())
+    return withBindingError(ListAllUnique(requestData.gameId || ''))
   },
 }

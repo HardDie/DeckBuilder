@@ -27,13 +27,14 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 
 * `desktop/bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate`
 * `desktop/bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
+* `desktop/bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
 
-`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config and game/collection/card services. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config and catalog services. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, and decks stay on HTTP. `cmd/deck_builder` / `gui/` no longer have game, collection, or card CRUD REST.
+`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
 
-Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice. Same when deck moves to bindings.
+Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice.
 
 This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
 
@@ -51,4 +52,4 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 ### Neutral
 
-* Images, generate, TTS `WebRequest.get`, and not-yet-migrated CRUD stay on HTTP.
+* Images, generate, and TTS `WebRequest.get` stay on HTTP.

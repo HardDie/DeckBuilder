@@ -18,7 +18,6 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	serversDeck "github.com/HardDie/DeckBuilder/internal/servers/deck"
 	serversGame "github.com/HardDie/DeckBuilder/internal/servers/game"
 	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
@@ -43,6 +42,7 @@ type Application struct {
 	tts               servicesTTS.TTS
 	serviceGame       servicesGame.Game
 	serviceCollection servicesCollection.Collection
+	serviceDeck       servicesDeck.Deck
 	serviceCard       servicesCard.Card
 }
 
@@ -85,8 +85,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, db)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
-	serverDeck := serversDeck.New(*cfg, serviceDeck)
-	api.RegisterDeckServer(routes, serverDeck)
 
 	// card
 	repositoryCard := repositoriesCard.New(cfg, db)
@@ -123,6 +121,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		tts:               serviceTTS,
 		serviceGame:       serviceGame,
 		serviceCollection: serviceCollection,
+		serviceDeck:       serviceDeck,
 		serviceCard:       serviceCard,
 	}, nil
 }
@@ -137,6 +136,10 @@ func (app *Application) GameService() servicesGame.Game {
 
 func (app *Application) CollectionService() servicesCollection.Collection {
 	return app.serviceCollection
+}
+
+func (app *Application) DeckService() servicesDeck.Deck {
+	return app.serviceDeck
 }
 
 func (app *Application) CardService() servicesCard.Card {

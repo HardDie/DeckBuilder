@@ -7,6 +7,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
+	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -46,6 +47,18 @@ func CollectionDTO(cfg config.Config, gameID string, item entitiesCollection.Col
 		Description: item.Description,
 		Image:       item.Image,
 		CachedImage: fmt.Sprintf(cfg.CollectionImagePath+"?%s", gameID, item.ID, utils.HashForTime(&item.UpdatedAt)),
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
+	}
+}
+
+func DeckDTO(cfg config.Config, item entitiesDeck.Deck) dto.Deck {
+	return dto.Deck{
+		ID:          item.ID,
+		Name:        item.Name,
+		Description: item.Description,
+		Image:       item.Image,
+		CachedImage: fmt.Sprintf(cfg.DeckImagePath+"?%s", item.GameID, item.CollectionID, item.ID, utils.HashForTime(&item.UpdatedAt)),
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	}
