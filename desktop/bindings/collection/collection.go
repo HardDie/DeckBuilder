@@ -49,7 +49,7 @@ func (c *Collection) Create(gameID string, req catalog.WriteRequest) (*Result, e
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
-		ImageFile:   req.ImageFile,
+		ImageFile:   req.ImageBytes(),
 	})
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (c *Collection) Update(gameID, collectionID string, req catalog.WriteReques
 		Name:        req.Name,
 		Description: req.Description,
 		Image:       req.Image,
-		ImageFile:   req.ImageFile,
+		ImageFile:   req.ImageBytes(),
 	})
 	if err != nil {
 		return nil, err

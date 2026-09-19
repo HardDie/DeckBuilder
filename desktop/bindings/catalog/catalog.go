@@ -17,6 +17,13 @@ type WriteRequest struct {
 	ImageFile   []byte `json:"imageFile"`
 }
 
+func (r WriteRequest) ImageBytes() []byte {
+	if len(r.ImageFile) == 0 {
+		return nil
+	}
+	return r.ImageFile
+}
+
 func GameDTO(cfg config.Config, item entitiesGame.Game) dto.Game {
 	return dto.Game{
 		ID:          item.ID,

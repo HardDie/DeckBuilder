@@ -32,6 +32,8 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 
 `GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, decks, and cards stay on HTTP. `cmd/deck_builder` / `gui/` no longer have game or collection CRUD REST.
 
+Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice. Same when deck/card move to bindings.
+
 This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
 
 ## Consequences
