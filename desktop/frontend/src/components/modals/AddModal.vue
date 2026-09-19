@@ -95,7 +95,7 @@
 
 <script setup>
 import UiModal from '@/components/ui/uiModal.vue'
-import { computed, defineEmits, defineProps, reactive, watch, toRef, ref, nextTick } from 'vue'
+import { computed, reactive, watch, toRef, ref } from 'vue'
 import { ArchiveOutlined } from '@vicons/material'
 import api from '@/api'
 import { useRoute } from 'vue-router'

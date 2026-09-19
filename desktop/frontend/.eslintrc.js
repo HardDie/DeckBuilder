@@ -1,6 +1,9 @@
 /* eslint-env node */
 module.exports = {
   root: true,
+  env: {
+    'vue/setup-compiler-macros': true,
+  },
   extends: ['eslint:recommended', 'plugin:vue/vue3-recommended', 'prettier'],
   plugins: ['prettier'],
   rules: {

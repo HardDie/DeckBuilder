@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps, reactive, ref, computed, watch } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import UiModal from '@/components/ui/uiModal.vue'
 import { ArchiveOutlined } from '@vicons/material'
 

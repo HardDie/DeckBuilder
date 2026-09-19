@@ -22,7 +22,7 @@
 
 <script setup>
 import UiModal from '@/components/ui/uiModal.vue'
-import { computed, defineEmits, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const emit = defineEmits(['update:show', 'submit'])
 const props = defineProps({

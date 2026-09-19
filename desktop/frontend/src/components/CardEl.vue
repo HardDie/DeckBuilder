@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps, computed, toRefs, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, toRefs, onMounted, onBeforeUnmount } from 'vue'
 
 const emit = defineEmits([
   'card-click',

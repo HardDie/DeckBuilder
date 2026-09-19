@@ -135,7 +135,7 @@
 <script setup>
 import { AddFilled, NoteAddOutlined, SearchOutlined, ChangeCircleOutlined } from '@vicons/material'
 import { Icon } from '@vicons/utils'
-import { defineProps, ref, defineEmits, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores/main'
 

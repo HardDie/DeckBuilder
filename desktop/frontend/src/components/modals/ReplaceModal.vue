@@ -48,7 +48,7 @@
 </template>
 <script setup>
 import UiModal from '@/components/ui/uiModal.vue'
-import { computed, defineEmits, defineProps, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ArchiveOutlined } from '@vicons/material'
 import { useReplaceStore } from '@/stores/replace'
 

@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, computed, defineProps, defineEmits } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { useItemsStore } from '@/stores/items'
 
 const props = defineProps({
