@@ -23,18 +23,21 @@ The HTTP `internal/servers` layer exists to adapt mux/swagger. When catalog traf
 
 Use option 4.
 
-Migrated desktop verbs (HTTP routes removed; Wails only):
+Migrated desktop verbs (game HTTP routes removed; Wails only):
 
-* `App.ListGames(sort, search)` — `{ data, meta }` (was `GET /api/games`)
-* `App.CreateGame(req)` — `{ data }` (was `POST /api/games`; image file bytes instead of multipart)
-* `App.ReadGame(gameID)` — `{ data }` (was `GET /api/games/{game}`)
-* `App.UpdateGame(gameID, req)` — `{ data }` (was `PATCH /api/games/{game}`)
-* `App.DeleteGame(gameID)` (was `DELETE /api/games/{game}`)
-* `App.DuplicateGame(gameID, name)` — `{ data }` (was `POST /api/games/{game}/duplicate`)
+* `App.ListGames` / `CreateGame` / `ReadGame` / `UpdateGame` / `DeleteGame` / `DuplicateGame`
 
-Each duplicates DTO/`cachedImage` mapping in `desktop/app.go` instead of extending the HTTP server interface. `application.Get` exposes config, `services/game`, and `servers/system` so `desktop/` does not re-wire repositories. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+Migrated desktop verbs (collection HTTP still registered):
 
-`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, and other aggregates stay on HTTP. `cmd/deck_builder` / `gui/` no longer have list/create/read/update/delete/duplicate game REST.
+* `App.ListCollections(gameID, sort, search)` — `{ data, meta }`
+* `App.CreateCollection(gameID, req)` — `{ data }`
+* `App.ReadCollection(gameID, collectionID)` — `{ data }`
+* `App.UpdateCollection(gameID, collectionID, req)` — `{ data }`
+* `App.DeleteCollection(gameID, collectionID)`
+
+Each duplicates DTO/`cachedImage` mapping in `desktop/app.go` instead of extending the HTTP server interface. `application.Get` exposes config, game/collection services, and `servers/system`. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+
+`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, decks, and cards stay on HTTP. Collection REST remains for `cmd/deck_builder` / `gui/` until those routes are removed.
 
 This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
 
@@ -47,7 +50,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 ### Negative and risks
 
-* Two copies of mapping exist only while a verb still has both a binding and an HTTP handler (game zip import still maps DTOs in `servers/game`).
+* Two copies of mapping exist while a verb still has both a binding and an HTTP handler (collections, game zip import).
 * Wails error toasts are a second path next to the fetch wrapper.
 
 ### Neutral

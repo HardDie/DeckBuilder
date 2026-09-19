@@ -36,7 +36,7 @@ func main() {
 		}
 	}()
 
-	app := NewApp(ln, *backend.Config(), backend.GameService(), backend.SystemServer())
+	app := NewApp(ln, *backend.Config(), backend.GameService(), backend.CollectionService(), backend.SystemServer())
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",

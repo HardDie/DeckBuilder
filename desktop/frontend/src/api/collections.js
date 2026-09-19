@@ -1,29 +1,45 @@
+import {
+  ListCollections,
+  CreateCollection,
+  ReadCollection,
+  UpdateCollection,
+  DeleteCollection,
+} from '../../wailsjs/go/main/App'
+import { withBindingError, writeRequestFromBody } from '@/api/wails'
+
 export default {
   list(requestData) {
-    return fetch(
-      `/api/games/${requestData.gameId}/collections?${new URLSearchParams(requestData.config)}`,
-    ).then(response => response.json())
+    const config = requestData.config || {}
+    return withBindingError(
+      ListCollections(requestData.gameId || '', config.sort || '', config.search || ''),
+    )
   },
   read(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/collections/${requestData.collectionId}`).then(
-      response => response.json(),
+    return withBindingError(
+      ReadCollection(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
     )
   },
   create(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/collections`, {
-      method: 'POST',
-      body: requestData.body,
-    }).then(response => response.json())
+    return withBindingError(
+      writeRequestFromBody(requestData.body).then(req =>
+        CreateCollection(requestData.gameId || '', req),
+      ),
+    )
   },
   update(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/collections/${requestData.collectionId}`, {
-      method: 'PATCH',
-      body: requestData.body,
-    }).then(response => response.json())
+    return withBindingError(
+      writeRequestFromBody(requestData.body).then(req =>
+        UpdateCollection(
+          requestData.gameId || '',
+          requestData.collectionId || requestData.id || '',
+          req,
+        ),
+      ),
+    )
   },
   delete(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/collections/${requestData.collectionId}`, {
-      method: 'DELETE',
-    })
+    return withBindingError(
+      DeleteCollection(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
+    )
   },
 }
