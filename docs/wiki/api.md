@@ -8,7 +8,6 @@ Registers mux routes and holds **go-swagger** request/response types. Handlers o
 |---|---|---|
 | `game.go` | `/api/games/import`, `/api/games/{game}/export` | `servers/game.Game` |
 | `deck.go` | decks under a collection; also `GET /api/games/{game}/decks` | deck server |
-| `card.go` | `…/decks/{deck}/cards` | card server |
 | `image.go` | `…/image` for game/collection/deck/card | `servers/image` |
 | `search.go` | `/api/search` and nested | search server |
 | `replace.go` | `/api/replace/prepare`, `/api/replace` | replace server |

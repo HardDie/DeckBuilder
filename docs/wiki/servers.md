@@ -13,13 +13,13 @@ Catalog servers typically hold:
 | `cfg` | For `CachedImage` URL templates |
 | `service*` | Use-case methods |
 
-## Catalog servers (`game`, `deck`, `card`)
+## Catalog servers (`game`, `deck`)
 
-Game and collection CRUD live on Wails bindings (`desktop/bindings/game`, `desktop/bindings/collection`). HTTP catalog servers left:
+Game, collection, and card CRUD live on Wails bindings (`desktop/bindings/game`, `desktop/bindings/collection`, `desktop/bindings/card`). HTTP catalog servers left:
 
 | Handler | HTTP | Service call |
 |---|---|---|
-| `ListHandler` | GET decks/cards | `List(sort, search)` |
+| `ListHandler` | GET decks | `List(sort, search)` |
 | `CreateHandler` | POST multipart | `Create(…)` |
 | `ItemHandler` | GET `{id}` | `Item(id)` |
 | `UpdateHandler` | PATCH multipart | `Update` |

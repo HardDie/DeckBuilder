@@ -6,7 +6,7 @@ Composition root. Only this package constructs the graph and starts HTTP.
 
 | Name | Meaning |
 |---|---|
-| `Application` | Holds config, router, TTS, game/collection services. `Listen` binds `127.0.0.1:5000`, then +1 on failure (max 20). |
+| `Application` | Holds config, router, TTS, game/collection/card services. `Listen` binds `127.0.0.1:5000`, then +1 on failure (max 20). |
 | `Get(debugFlag, version)` | Builds config, stores, layers, middleware. Fatals on store `Init` errors. |
 
 ## Variables in `Get`
@@ -30,7 +30,7 @@ Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 | `Listen` | Bind loopback (retry port), set TTS port | `Run`, `desktop/` |
 | `Serve` | `http.Serve` the mux | `Run`, `desktop/` |
 | `Handler` | The mux (for Wails `AssetServer.Handler`) | `desktop/` |
-| `Config` / `GameService` / `CollectionService` | Dependencies for Wails bindings | `desktop/` |
+| `Config` / `GameService` / `CollectionService` / `CardService` | Dependencies for Wails bindings | `desktop/` |
 | `Run` | `Listen` + optional browser + `Serve` | `cmd/deck_builder` |
 | `corsSetupHeaders` / `corsMiddleware` | Allow GUI-dev on another origin | `routes.Use` |
 
