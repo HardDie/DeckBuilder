@@ -1,33 +1,26 @@
-import {
-  ListGames,
-  CreateGame,
-  ReadGame,
-  UpdateGame,
-  DeleteGame,
-  DuplicateGame,
-} from '../../wailsjs/go/main/App'
+import { List, Create, Read, Update, Delete, Duplicate } from '../../wailsjs/go/game/Game'
 import { withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
   list(requestData) {
     const config = requestData.config || {}
-    return withBindingError(ListGames(config.sort || '', config.search || ''))
+    return withBindingError(List(config.sort || '', config.search || ''))
   },
   read(requestData) {
-    return withBindingError(ReadGame(requestData.gameId || ''))
+    return withBindingError(Read(requestData.gameId || ''))
   },
   create(requestData) {
-    return withBindingError(writeRequestFromBody(requestData.body).then(req => CreateGame(req)))
+    return withBindingError(writeRequestFromBody(requestData.body).then(req => Create(req)))
   },
   update(requestData) {
     return withBindingError(
       writeRequestFromBody(requestData.body).then(req =>
-        UpdateGame(requestData.gameId || requestData.id || '', req),
+        Update(requestData.gameId || requestData.id || '', req),
       ),
     )
   },
   delete(requestData) {
-    return withBindingError(DeleteGame(requestData.gameId || requestData.id || ''))
+    return withBindingError(Delete(requestData.gameId || requestData.id || ''))
   },
   export(requestData) {
     return fetch(`/api/games/${requestData.gameId}/export`)
@@ -40,7 +33,7 @@ export default {
   },
   duplicate(requestData) {
     return withBindingError(
-      DuplicateGame(requestData.gameId || requestData.id || '', requestData.body?.name || ''),
+      Duplicate(requestData.gameId || requestData.id || '', requestData.body?.name || ''),
     )
   },
   generate(requestData) {

@@ -1,6 +1,6 @@
 # `internal/servers`
 
-HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services**. Wails bindings in `desktop/app.go` call **services** directly and copy DTO mapping (HTTP servers are not the Wails API).
+HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services**. Wails bindings in `desktop/bindings/` call **services** directly and copy DTO mapping (HTTP servers are not the Wails API).
 
 Each aggregate: `contract.go` (handler interface) + `server.go`.
 
@@ -15,7 +15,7 @@ Catalog servers typically hold:
 
 ## Catalog servers (`game`, `deck`, `card`)
 
-Game and collection CRUD live on Wails bindings (`desktop/app.go`). HTTP catalog servers left:
+Game and collection CRUD live on Wails bindings (`desktop/bindings/game`, `desktop/bindings/collection`). HTTP catalog servers left:
 
 | Handler | HTTP | Service call |
 |---|---|---|

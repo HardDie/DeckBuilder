@@ -13,6 +13,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
+	"github.com/HardDie/DeckBuilder/desktop/bindings/collection"
+	"github.com/HardDie/DeckBuilder/desktop/bindings/game"
 	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -36,7 +38,10 @@ func main() {
 		}
 	}()
 
-	app := NewApp(ln, *backend.Config(), backend.GameService(), backend.CollectionService())
+	cfg := *backend.Config()
+	app := NewApp(ln)
+	games := game.New(cfg, backend.GameService())
+	collections := collection.New(cfg, backend.CollectionService())
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",
@@ -50,7 +55,8 @@ func main() {
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
-			app,
+			games,
+			collections,
 		},
 	})
 

@@ -1,45 +1,31 @@
-import {
-  ListCollections,
-  CreateCollection,
-  ReadCollection,
-  UpdateCollection,
-  DeleteCollection,
-} from '../../wailsjs/go/main/App'
+import { List, Create, Read, Update, Delete } from '../../wailsjs/go/collection/Collection'
 import { withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
   list(requestData) {
     const config = requestData.config || {}
-    return withBindingError(
-      ListCollections(requestData.gameId || '', config.sort || '', config.search || ''),
-    )
+    return withBindingError(List(requestData.gameId || '', config.sort || '', config.search || ''))
   },
   read(requestData) {
     return withBindingError(
-      ReadCollection(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
+      Read(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
     )
   },
   create(requestData) {
     return withBindingError(
-      writeRequestFromBody(requestData.body).then(req =>
-        CreateCollection(requestData.gameId || '', req),
-      ),
+      writeRequestFromBody(requestData.body).then(req => Create(requestData.gameId || '', req)),
     )
   },
   update(requestData) {
     return withBindingError(
       writeRequestFromBody(requestData.body).then(req =>
-        UpdateCollection(
-          requestData.gameId || '',
-          requestData.collectionId || requestData.id || '',
-          req,
-        ),
+        Update(requestData.gameId || '', requestData.collectionId || requestData.id || '', req),
       ),
     )
   },
   delete(requestData) {
     return withBindingError(
-      DeleteCollection(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
+      Delete(requestData.gameId || '', requestData.collectionId || requestData.id || ''),
     )
   },
 }

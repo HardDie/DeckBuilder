@@ -17,7 +17,7 @@ The HTTP `internal/servers` layer exists to adapt mux/swagger. When catalog traf
 1. **Keep every catalog call on HTTP** in the Wails window forever.
 2. **Replace all `/api` routes with bindings in one pass.**
 3. **Share a non-HTTP method on `internal/servers`** used by both `ListHandler` and Wails.
-4. **Copy handler mapping into `desktop/app.go`** and call **services** from bindings. Remove the REST route when that verb is unused.
+4. **Copy handler mapping into `desktop/bindings/<aggregate>`** and call **services** from bindings. Bind each aggregate struct in `wails.Run`. Remove the REST route when that verb is unused.
 
 ## Decision
 
@@ -25,10 +25,10 @@ Use option 4.
 
 Migrated desktop verbs (HTTP routes removed; Wails only):
 
-* Games: `ListGames` / `CreateGame` / `ReadGame` / `UpdateGame` / `DeleteGame` / `DuplicateGame`
-* Collections: `ListCollections` / `CreateCollection` / `ReadCollection` / `UpdateCollection` / `DeleteCollection`
+* `desktop/bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate`
+* `desktop/bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
 
-Each duplicates DTO/`cachedImage` mapping in `desktop/app.go` instead of extending the HTTP server interface. `application.Get` exposes config and game/collection services. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config and game/collection services. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
 `GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, decks, and cards stay on HTTP. `cmd/deck_builder` / `gui/` no longer have game or collection CRUD REST.
 
@@ -39,7 +39,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 ### Positive
 
 * Desktop bindings do not grow the HTTP server interface that we expect to delete with the mux.
-* Bindings sit next to services, which is the layer that remains after HTTP adapters go away.
+* Each catalog aggregate is its own bound struct under `desktop/bindings/`.
 
 ### Negative and risks
 

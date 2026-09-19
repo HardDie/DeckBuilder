@@ -226,7 +226,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game and collection catalog verbs use Wails bindings ([ADR 011](docs/architecture/011-wails-bindings.md)).
+- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game and collection catalog verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
