@@ -17,89 +17,6 @@
   "host": "localhost:5000",
   "basePath": "/",
   "paths": {
-    "/api/games": {
-      "get": {
-        "description": "Get a list of existing games\nSort values: name, name_desc, created, created_desc",
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Get games list",
-        "operationId": "RequestListOfGames",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Sort",
-            "name": "sort",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "x-go-name": "Search",
-            "name": "search",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseListOfGames"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "post": {
-        "description": "Allows you to create a new game",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Create game",
-        "operationId": "RequestCreateGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Description",
-            "name": "description",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Image",
-            "name": "image",
-            "in": "formData"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "uint8"
-            },
-            "x-go-name": "ImageFile",
-            "name": "imageFile",
-            "in": "formData"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseCreateGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/import": {
       "post": {
         "description": "Creat game from archive",
@@ -135,116 +52,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ResponseGameImport"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/games/{game}": {
-      "get": {
-        "description": "Get an existing game",
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Get game",
-        "operationId": "RequestGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "delete": {
-        "description": "Allows you to delete an existing game",
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Delete game",
-        "operationId": "RequestDeleteGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDeleteGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "patch": {
-        "description": "Allows you to update an existing game",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Update game",
-        "operationId": "RequestUpdateGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Description",
-            "name": "description",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Image",
-            "name": "image",
-            "in": "formData"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "uint8"
-            },
-            "x-go-name": "ImageFile",
-            "name": "imageFile",
-            "in": "formData"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseUpdateGame"
           },
           "default": {
             "$ref": "#/responses/ResponseError"
@@ -1238,50 +1045,6 @@
         }
       }
     },
-    "/api/games/{game}/duplicate": {
-      "post": {
-        "description": "Allows you to create a copy of an existing game",
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Duplicate game",
-        "operationId": "RequestDuplicateGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "name"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "x-go-name": "Name"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseDuplicateGame"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/{game}/export": {
       "get": {
         "description": "Get an existing game archive",
@@ -2085,20 +1848,6 @@
         }
       }
     },
-    "ResponseCreateGame": {
-      "description": "Status of game creation",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Game"
-          }
-        }
-      }
-    },
     "ResponseDataTTS": {
       "description": "",
       "schema": {
@@ -2142,23 +1891,6 @@
     "ResponseDeleteDeck": {
       "description": "Deck deletion status"
     },
-    "ResponseDeleteGame": {
-      "description": "Game deletion status"
-    },
-    "ResponseDuplicateGame": {
-      "description": "Status of game duplicate",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Game"
-          }
-        }
-      }
-    },
     "ResponseError": {
       "description": "Default error response",
       "schema": {
@@ -2169,20 +1901,6 @@
         "properties": {
           "error": {
             "$ref": "#/definitions/Err"
-          }
-        }
-      }
-    },
-    "ResponseGame": {
-      "description": "Game",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Game"
           }
         }
       }
@@ -2331,28 +2049,6 @@
         }
       }
     },
-    "ResponseListOfGames": {
-      "description": "List of games",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/Game"
-            },
-            "x-go-name": "Data"
-          },
-          "meta": {
-            "$ref": "#/definitions/Meta"
-          }
-        }
-      }
-    },
     "ResponsePrepareReplace": {
       "description": "",
       "schema": {
@@ -2483,20 +2179,6 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/Deck"
-          }
-        }
-      }
-    },
-    "ResponseUpdateGame": {
-      "description": "Status of game update",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Game"
           }
         }
       }

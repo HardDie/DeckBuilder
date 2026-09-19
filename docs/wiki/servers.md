@@ -18,12 +18,11 @@ Catalog servers typically hold:
 
 | Handler | HTTP | Service call |
 |---|---|---|
-| `ListHandler` | GET collection | `List(sort, search)` |
-| `CreateHandler` | POST multipart | `Create(…)` |
-| `ItemHandler` | GET `{id}` | `Item(id)` |
-| `UpdateHandler` | PATCH multipart | `Update` |
-| `DeleteHandler` | DELETE | `Delete` |
-| `DuplicateHandler` | POST `/duplicate` (game only) | `Duplicate` |
+| `ListHandler` | GET collection (not games) | `List(sort, search)` |
+| `CreateHandler` | POST multipart (not games) | `Create(…)` |
+| `ItemHandler` | GET `{id}` (not games) | `Item(id)` |
+| `UpdateHandler` | PATCH multipart (not games) | `Update` |
+| `DeleteHandler` | DELETE (not games) | `Delete` |
 | `ExportHandler` / `ImportHandler` | game zip | repository via service |
 
 `calculateCachedImage` fills `dto.*.CachedImage` from `cfg.*ImagePath`.

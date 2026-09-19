@@ -6,7 +6,7 @@ Registers mux routes and holds **go-swagger** request/response types. Handlers o
 
 | File | Registers | Server interface |
 |---|---|---|
-| `game.go` | `/api/games` | `servers/game.Game` |
+| `game.go` | `/api/games/import`, `/api/games/{game}/export` | `servers/game.Game` |
 | `collection.go` | `/api/games/{game}/collections` | collection server |
 | `deck.go` | decks under a collection; also `GET /api/games/{game}/decks` | deck server |
 | `card.go` | `…/decks/{deck}/cards` | card server |

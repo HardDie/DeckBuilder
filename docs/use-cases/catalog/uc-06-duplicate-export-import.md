@@ -8,7 +8,7 @@
 
 ## Main scenario (happy path)
 
-1. **Duplicate:** `POST /api/games/{game}/duplicate` with JSON `{ "name" }` creates a new game folder tree.
+1. **Duplicate:** `App.DuplicateGame(gameID, name)` creates a new game folder tree.
 2. **Export:** `GET /api/games/{game}/export` returns a zip of that game.
 3. **Import:** `POST /api/games/import` multipart `file` (required) and optional `name` creates a game from the archive.
 

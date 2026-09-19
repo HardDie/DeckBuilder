@@ -4,16 +4,15 @@ DeckBuilder’s Go process is a loopback HTTP server (`127.0.0.1:5000`). The Vue
 
 ## Request flow (catalog example)
 
-Creating a game:
+Creating a game (desktop):
 
-1. Mux hits a handler registered in `internal/api` (`POST /api/games` → `servers/game.CreateHandler`).
-2. The **server** parses multipart (`name`, `description`, `image`, `imageFile`) and calls the **service**.
-3. The **service** forwards to the **repository** (no extra rules on create).
-4. The **repository** calls **db** `Create`, then optionally downloads or stores a binary image.
-5. **db** talks to fsentry: `CreateFolder` under `games/`.
-6. The server maps the **entity** to a **dto** (`CachedImage` URL) and `network.Response` wraps `{ "data": … }`.
+1. Wails `App.CreateGame` maps fields and calls the **service**.
+2. The **service** forwards to the **repository** (no extra rules on create).
+3. The **repository** calls **db** `Create`, then optionally downloads or stores a binary image.
+4. **db** talks to fsentry: `CreateFolder` under `games/`.
+5. The binding maps the **entity** to a **dto** (`CachedImage` URL) and returns `{ "data": … }`.
 
-List/search add filtering and sorting in the **service**, not in db.
+List/search add filtering and sorting in the **service**, not in db. Game zip import still goes through `POST /api/games/import` → `servers/game.ImportHandler`.
 
 ## One fsentry handle
 

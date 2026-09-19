@@ -17,24 +17,24 @@ The HTTP `internal/servers` layer exists to adapt mux/swagger. When catalog traf
 1. **Keep every catalog call on HTTP** in the Wails window forever.
 2. **Replace all `/api` routes with bindings in one pass.**
 3. **Share a non-HTTP method on `internal/servers`** used by both `ListHandler` and Wails.
-4. **Copy handler mapping into `desktop/app.go`** and call **services** (and `StopQuit`) from bindings. Leave REST routes until unused.
+4. **Copy handler mapping into `desktop/app.go`** and call **services** (and `StopQuit`) from bindings. Remove the REST route when that verb is unused.
 
 ## Decision
 
 Use option 4.
 
-Migrated desktop verbs so far:
+Migrated desktop verbs (HTTP routes removed; Wails only):
 
-* `App.ListGames(sort, search)` — `{ data, meta }` like `GET /api/games`
-* `App.CreateGame(req)` — `{ data }` like `POST /api/games` (name, description, image URL, image file bytes instead of multipart)
-* `App.ReadGame(gameID)` — `{ data }` like `GET /api/games/{game}`
-* `App.UpdateGame(gameID, req)` — `{ data }` like `PATCH /api/games/{game}` (same write fields as create)
-* `App.DeleteGame(gameID)` — like `DELETE /api/games/{game}`
-* `App.DuplicateGame(gameID, name)` — `{ data }` like `POST /api/games/{game}/duplicate`
+* `App.ListGames(sort, search)` — `{ data, meta }` (was `GET /api/games`)
+* `App.CreateGame(req)` — `{ data }` (was `POST /api/games`; image file bytes instead of multipart)
+* `App.ReadGame(gameID)` — `{ data }` (was `GET /api/games/{game}`)
+* `App.UpdateGame(gameID, req)` — `{ data }` (was `PATCH /api/games/{game}`)
+* `App.DeleteGame(gameID)` (was `DELETE /api/games/{game}`)
+* `App.DuplicateGame(gameID, name)` — `{ data }` (was `POST /api/games/{game}/duplicate`)
 
-Each duplicates DTO/`cachedImage` mapping from the matching `servers/game` handler instead of extending the HTTP server interface. `application.Get` exposes config, `services/game`, and `servers/system` so `desktop/` does not re-wire repositories. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+Each duplicates DTO/`cachedImage` mapping in `desktop/app.go` instead of extending the HTTP server interface. `application.Get` exposes config, `services/game`, and `servers/system` so `desktop/` does not re-wire repositories. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-HTTP catalog routes for those verbs remain for the browser/embed binary and tools. Export, import, and generate stay on `fetch` until migrated the same way.
+`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, TTS, and other aggregates stay on HTTP. `cmd/deck_builder` / `gui/` no longer have list/create/read/update/delete/duplicate game REST.
 
 This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
 
@@ -47,7 +47,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 ### Negative and risks
 
-* Two copies of mapping until those HTTP routes are removed; they can drift.
+* Two copies of mapping exist only while a verb still has both a binding and an HTTP handler (game zip import still maps DTOs in `servers/game`).
 * Wails error toasts are a second path next to the fetch wrapper.
 
 ### Neutral
