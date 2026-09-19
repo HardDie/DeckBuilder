@@ -40,9 +40,11 @@ import (
 )
 
 type Application struct {
-	cfg    *config.Config
-	router *mux.Router
-	tts    servicesTTS.TTS
+	cfg          *config.Config
+	router       *mux.Router
+	tts          servicesTTS.TTS
+	serviceGame  servicesGame.Game
+	serverSystem serversSystem.System
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -121,10 +123,24 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	routes.Use(corsMiddleware)
 	return &Application{
-		cfg:    cfg,
-		router: routes,
-		tts:    serviceTTS,
+		cfg:          cfg,
+		router:       routes,
+		tts:          serviceTTS,
+		serviceGame:  serviceGame,
+		serverSystem: serverSystem,
 	}, nil
+}
+
+func (app *Application) Config() *config.Config {
+	return app.cfg
+}
+
+func (app *Application) GameService() servicesGame.Game {
+	return app.serviceGame
+}
+
+func (app *Application) SystemServer() serversSystem.System {
+	return app.serverSystem
 }
 
 func (app *Application) Handler() http.Handler {

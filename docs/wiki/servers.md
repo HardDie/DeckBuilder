@@ -1,6 +1,6 @@
 # `internal/servers`
 
-HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services** (and `servers/system.StopQuit` so SPA navigation cancels a pending quit).
+HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services** (and `servers/system.StopQuit` so SPA navigation cancels a pending quit). Wails bindings in `desktop/app.go` call **services** directly and copy DTO mapping from the matching handler (HTTP servers are not the Wails API).
 
 Each aggregate: `contract.go` (handler interface) + `server.go`.
 

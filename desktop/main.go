@@ -1,5 +1,5 @@
 // Wails desktop shell: same HTTP application as cmd/deck_builder, plus a webview.
-// Catalog stays on /api (see docs/architecture/010-wails-shell.md).
+// Catalog verbs move to bindings incrementally (see docs/architecture/011-wails-bindings.md).
 package main
 
 import (
@@ -36,7 +36,7 @@ func main() {
 		}
 	}()
 
-	app := NewApp(ln)
+	app := NewApp(ln, *backend.Config(), backend.GameService(), backend.SystemServer())
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",

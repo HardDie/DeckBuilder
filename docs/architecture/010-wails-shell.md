@@ -1,6 +1,6 @@
 # 10. Wails desktop shell beside the loopback HTTP server
 
-* **Status:** Accepted
+* **Status:** Accepted (the “bindings are not the catalog API” rule is superseded by [ADR 011](011-wails-bindings.md))
 * **Date:** 2026-09-18
 * **Authors:** @oleg
 

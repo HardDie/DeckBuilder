@@ -6,7 +6,7 @@
 
 ## `desktop/`
 
-Wails v2 window (separate Go module). Starts the same `internal/application` HTTP server (no browser). Vue UI copied from `gui/` into `desktop/frontend`; `fetch('/api/...')` hits that mux (`AssetServer.Handler` for non-GET; Vite GET in `wails dev` still targets `:5000`). Not the production `cmd/deck_builder` binary ([ADR 010](../architecture/010-wails-shell.md)). `make wails-dev`.
+Wails v2 window (separate Go module). Starts the same `internal/application` HTTP server (no browser). Vue UI copied from `gui/` into `desktop/frontend`. Most game catalog verbs use Wails bindings; export/import/generate and other aggregates still `fetch('/api/...')` ([ADR 011](../architecture/011-wails-bindings.md)). `AssetServer.Handler` serves remaining `/api` (Vite GET in `wails dev` still targets `:5000`). Not the production `cmd/deck_builder` binary ([ADR 010](../architecture/010-wails-shell.md)). `make wails-dev`.
 
 ## `web/`
 
