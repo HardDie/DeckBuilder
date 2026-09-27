@@ -5,7 +5,6 @@
 </template>
 
 <script setup>
-import api from '@/api'
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSystemStore } from '@/stores/system'
@@ -16,10 +15,6 @@ const router = useRoute()
 onMounted(() => {
   systemStore.fetchVersion()
 })
-
-window.onbeforeunload = function () {
-  api.system.quit()
-}
 </script>
 
 <style lang="scss">

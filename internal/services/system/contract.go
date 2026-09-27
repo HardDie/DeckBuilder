@@ -5,7 +5,6 @@ import (
 )
 
 type System interface {
-	Quit()
 	GetSettings() (*entitiesSettings.Settings, error)
 	UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error)
 }

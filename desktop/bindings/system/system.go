@@ -33,13 +33,6 @@ func New(cfg config.Config, svc servicesSystem.System) *System {
 	return &System{cfg: cfg, svc: svc}
 }
 
-func (s *System) Quit() {
-	if s.cfg.Debug {
-		return
-	}
-	s.svc.Quit()
-}
-
 func (s *System) GetSettings() (*SettingsResult, error) {
 	setting, err := s.svc.GetSettings()
 	if err != nil {

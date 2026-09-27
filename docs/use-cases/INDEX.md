@@ -17,7 +17,7 @@ Scenarios for **behavior that exists in this repository**. Copy [_TEMPLATE.md](_
 | UC-09 | Poll generate progress | `internal/progress` | Implemented | [generate/uc-09-poll-status.md](generate/uc-09-poll-status.md) |
 | UC-10 | Spawn last generate in TTS | `internal/services/tts` | Implemented | [generate/uc-10-tts-spawn.md](generate/uc-10-tts-spawn.md) |
 | UC-11 | Map local image paths to URLs | `internal/services/replace` | Implemented | [replace/uc-11-replace-urls.md](replace/uc-11-replace-urls.md) |
-| UC-12 | Settings, version, and quit | `internal/services/system` | Implemented | [system/uc-12-settings-version-quit.md](system/uc-12-settings-version-quit.md) |
+| UC-12 | Settings and version | `internal/services/system` | Implemented | [system/uc-12-settings-version.md](system/uc-12-settings-version.md) |
 
 ## Layout
 

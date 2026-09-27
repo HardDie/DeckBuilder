@@ -32,6 +32,5 @@ Game, collection, deck, and card CRUD live on Wails bindings (`desktop/bindings/
 | `search` | recursive search | `services/search` |
 | `replace` | prepare + replace | `services/replace` |
 | `tts` | `GET /api/tts/data` | `services/tts` one-shot buffer |
-| `system` | quit, settings, status, version | `services/system`, `progress` |
 
 Servers must not import `internal/db` or fsentry.

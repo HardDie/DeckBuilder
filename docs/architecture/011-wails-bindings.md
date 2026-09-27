@@ -29,7 +29,7 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 * `desktop/bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
-* `desktop/bindings/system.System`: `Quit` / `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
+* `desktop/bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
 
 `desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, and the system service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
@@ -55,4 +55,4 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 * Images, generate, and TTS `WebRequest.get` stay on HTTP.
 * Image reads stay the `cachedImage` URL ([ADR 012](012-card-image-urls.md)).
-* System quit, settings, status, and version left HTTP.
+* System settings, status, and version left HTTP.

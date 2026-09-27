@@ -10,10 +10,6 @@ export function GetVersion() {
   return window['go']['system']['System']['GetVersion']();
 }
 
-export function Quit() {
-  return window['go']['system']['System']['Quit']();
-}
-
 export function Status() {
   return window['go']['system']['System']['Status']();
 }

@@ -6,8 +6,6 @@ export function GetSettings():Promise<system.SettingsResult>;
 
 export function GetVersion():Promise<system.VersionResult>;
 
-export function Quit():Promise<void>;
-
 export function Status():Promise<system.StatusResult>;
 
 export function UpdateSettings(arg1:system.UpdateSettingsRequest):Promise<system.SettingsResult>;

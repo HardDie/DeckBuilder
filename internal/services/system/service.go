@@ -2,7 +2,6 @@ package system
 
 import (
 	"log"
-	"os"
 
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
@@ -18,9 +17,6 @@ func New(repositorySettings repositoriesSettings.Settings) System {
 	}
 }
 
-func (s *system) Quit() {
-	os.Exit(0)
-}
 func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
 	settings := entitiesSettings.Default()
 

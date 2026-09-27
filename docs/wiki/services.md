@@ -19,7 +19,6 @@ Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 
 | Method | Behavior | Called from |
 |---|---|---|
-| `Quit` | `os.Exit(0)`; debug skip is in the binding | system binding |
 | `GetSettings` | defaults merged with db settings | `GetSettings` binding; generator (scale, shadow) |
 | `UpdateSettings` | today only persists `lang` if `en`/`ru` | `UpdateSettings` binding |
 

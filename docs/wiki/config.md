@@ -6,7 +6,7 @@ Process-wide paths and generate limits. Constructed once via `config.Get(debugFl
 
 | Field | Meaning |
 |---|---|
-| `Debug` | `-debug`: skip browser open; `/system/quit` is a no-op |
+| `Debug` | `-debug`: skip browser open |
 | `Version` | String from ldflags / `debug.ReadBuildInfo` |
 | `Data` | fsentry root (`DeckBuilderData` or `~/DeckBuilderData` on darwin) |
 | `Game` | Relative catalog folder name, always `"games"` |
