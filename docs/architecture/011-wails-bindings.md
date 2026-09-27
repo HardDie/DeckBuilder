@@ -53,3 +53,4 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 ### Neutral
 
 * Images, generate, and TTS `WebRequest.get` stay on HTTP.
+* Image reads stay the `cachedImage` URL ([ADR 012](012-card-image-urls.md)).

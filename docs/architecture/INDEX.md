@@ -17,3 +17,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [009](009-catalog-timestamps.md) | Normalize catalog createdAt/updatedAt in memory | Accepted |
 | [010](010-wails-shell.md) | Wails desktop shell beside loopback HTTP | Accepted |
 | [011](011-wails-bindings.md) | Incremental Wails catalog bindings beside HTTP | Accepted |
+| [012](012-card-image-urls.md) | Card faces load from an image URL | Accepted |

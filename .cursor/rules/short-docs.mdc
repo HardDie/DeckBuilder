@@ -1,0 +1,37 @@
+---
+description: Keep CURSOR.md and architecture ADRs short; never pack many facts into one sentence.
+alwaysApply: true
+---
+
+# Short lines in CURSOR.md and ADRs
+
+Governs `CURSOR.md` and `docs/architecture/*.md` only.
+
+Never write long sentences in those files.
+
+One numbered title, then short sub-items. Do not pack a paragraph of facts into a single line.
+
+```markdown
+6. Bindings
+ 1. One Wails struct per pane under `bindings/`.
+ 2. `App` keeps Start/Stop and OBS HTTP.
+ 3. `AppVersion` is stamped at link time.
+```
+
+Do not:
+
+```markdown
+6. **Bindings**: GetSettings / SaveSettings, GetOBSStatus, Start / Stop … (rest of the contract in one sentence)
+```
+
+Tables, code fences, and the intended-tree listing may stay wide. Prose and bullet items stay short.
+
+# Stable numbered lists
+
+Do not edit a line that is still correct.
+
+Do not insert a new numbered sub-item in the middle of a list.
+
+That renumbers every later item. The git diff then looks like a large rewrite.
+
+Append the new sub-item at the end. Leave existing numbers unchanged.
