@@ -2,16 +2,16 @@
 
 **Module:** `internal/progress`  
 **Status:** Implemented  
-**Actors:** GUI polling `/api/system/status`  
+**Actors:** GUI polling system `Status`  
 **Goal:** Show type, message, 0–1 progress, and status of the current job  
 **Preconditions:** None (singleton always exists)
 
 ## Main scenario (happy path)
 
 1. Generate (UC-08) calls `SetType` / `SetMessage` / `SetProgress` / `SetStatus`.
-2. Client `GET /api/system/status` receives `dto.Status`.
+2. Client `System.Status` receives `dto.Status`.
 3. While `in_progress`, further polls return updated progress.
-4. When `done` or `error`, **this GET flushes** the singleton back to `empty` (`StatusHandler`).
+4. When `done` or `error`, **this call flushes** the singleton back to `empty` (`Status`).
 
 ## Alternative scenarios and errors
 

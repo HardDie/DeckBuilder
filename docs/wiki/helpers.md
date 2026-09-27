@@ -28,7 +28,7 @@ Lays out TTS 10×7 sheets, last cell hidden/back. Used only by **generator**.
 
 ## `internal/progress`
 
-Process-wide generate status (`empty`, `in_progress`, `done`, `error`). `GET /api/system/status` **clears** `done`/`error` after read. Used by generator (write) and system server (read).
+Process-wide generate status (`empty`, `in_progress`, `done`, `error`). System `Status` **clears** `done`/`error` after read. Used by generator (write) and the system binding (read).
 
 ## `internal/utils`
 

@@ -19,9 +19,9 @@ Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 
 | Method | Behavior | Called from |
 |---|---|---|
-| `Quit` | `os.Exit` after delay unless `cfg.Debug` | system server |
-| `GetSettings` | defaults merged with db settings | GET settings; generator (scale, shadow) |
-| `UpdateSettings` | today only persists `lang` if `en`/`ru` | PATCH settings |
+| `Quit` | `os.Exit(0)`; debug skip is in the binding | system binding |
+| `GetSettings` | defaults merged with db settings | `GetSettings` binding; generator (scale, shadow) |
+| `UpdateSettings` | today only persists `lang` if `en`/`ru` | `UpdateSettings` binding |
 
 Holds `repositorySettings` built from `db/settings`.
 

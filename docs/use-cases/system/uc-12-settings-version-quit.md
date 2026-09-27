@@ -8,16 +8,16 @@
 
 ## Main scenario (happy path)
 
-1. `GET /api/system/settings` returns defaults (`en`, back shadow off, scale 1) merged with fsentry settings.
-2. `PATCH /api/system/settings` with `{ "lang": "en"|"ru" }` saves language when it changed.
-3. `GET /api/system/version` returns the ldflag / `go install` version string.
-4. `DELETE /api/system/quit` (non-debug) exits immediately (`os.Exit(0)`).
+1. `System.GetSettings` returns defaults (`en`, back shadow off, scale 1) merged with fsentry settings.
+2. `System.UpdateSettings` with `{ "lang": "en"|"ru" }` saves language when it changed.
+3. `System.GetVersion` returns the ldflag / `go install` version string.
+4. `System.Quit` (non-debug) exits immediately (`os.Exit(0)`).
 
 ## Alternative scenarios and errors
 
 * **2a. Unknown lang:** ignored; settings unchanged.
-* **4a. `-debug`:** quit handler returns without exiting.
-* **Settings fields `enable_back_shadow` and `card_size`:** stored and used by generate when present on disk; **PATCH currently only applies `lang`.**
+* **4a. `-debug`:** `Quit` returns without exiting.
+* **Settings fields `enable_back_shadow` and `card_size`:** stored and used by generate when present on disk; **`UpdateSettings` currently only applies `lang`.**
 
 ## Postconditions
 

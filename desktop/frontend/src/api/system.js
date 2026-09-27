@@ -1,11 +1,26 @@
+import {
+  GetSettings,
+  GetVersion,
+  Quit,
+  Status,
+  UpdateSettings,
+} from '../../wailsjs/go/system/System'
+import { withBindingError } from '@/api/wails'
+
 export default {
   quit() {
-    return fetch('/api/system/quit', { method: 'DELETE' })
+    return withBindingError(Quit())
+  },
+  getSettings() {
+    return withBindingError(GetSettings())
+  },
+  updateSettings(body) {
+    return withBindingError(UpdateSettings({ lang: body?.lang || '' }))
   },
   checkStatus() {
-    return fetch('/api/system/status').then(response => response.json())
+    return withBindingError(Status())
   },
   getVersion() {
-    return fetch('/api/system/version').then(response => response.json())
+    return withBindingError(GetVersion())
   },
 }

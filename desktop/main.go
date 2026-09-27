@@ -17,6 +17,7 @@ import (
 	"github.com/HardDie/DeckBuilder/desktop/bindings/collection"
 	"github.com/HardDie/DeckBuilder/desktop/bindings/deck"
 	"github.com/HardDie/DeckBuilder/desktop/bindings/game"
+	bindingsSystem "github.com/HardDie/DeckBuilder/desktop/bindings/system"
 	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -46,6 +47,7 @@ func main() {
 	collections := collection.New(cfg, backend.CollectionService())
 	decks := deck.New(cfg, backend.DeckService())
 	cards := card.New(cfg, backend.CardService())
+	systems := bindingsSystem.New(cfg, backend.SystemService())
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",
@@ -63,6 +65,7 @@ func main() {
 			collections,
 			decks,
 			cards,
+			systems,
 		},
 	})
 

@@ -276,6 +276,22 @@ export namespace dto {
 		    return a;
 		}
 	}
+	export class CardSize {
+	    scaleX: number;
+	    scaleY: number;
+	    scaleZ: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CardSize(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.scaleX = source["scaleX"];
+	        this.scaleY = source["scaleY"];
+	        this.scaleZ = source["scaleZ"];
+	    }
+	}
 	export class Collection {
 	    id: string;
 	    name: string;
@@ -408,6 +424,58 @@ export namespace dto {
 		    return a;
 		}
 	}
+	export class Settings {
+	    lang: string;
+	    enable_back_shadow: boolean;
+	    card_size: CardSize;
+	
+	    static createFrom(source: any = {}) {
+	        return new Settings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.lang = source["lang"];
+	        this.enable_back_shadow = source["enable_back_shadow"];
+	        this.card_size = this.convertValues(source["card_size"], CardSize);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Status {
+	    type: string;
+	    message: string;
+	    progress: number;
+	    status: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Status(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.message = source["message"];
+	        this.progress = source["progress"];
+	        this.status = source["status"];
+	    }
+	}
 
 }
 
@@ -492,6 +560,95 @@ export namespace network {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.total = source["total"];
 	        this.cardsTotal = source["cardsTotal"];
+	    }
+	}
+
+}
+
+export namespace system {
+	
+	export class SettingsResult {
+	    data: dto.Settings;
+	
+	    static createFrom(source: any = {}) {
+	        return new SettingsResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], dto.Settings);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class StatusResult {
+	    data: dto.Status;
+	
+	    static createFrom(source: any = {}) {
+	        return new StatusResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], dto.Status);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UpdateSettingsRequest {
+	    lang: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateSettingsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.lang = source["lang"];
+	    }
+	}
+	export class VersionResult {
+	    data: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new VersionResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = source["data"];
 	    }
 	}
 

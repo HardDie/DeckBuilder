@@ -1125,113 +1125,6 @@
         }
       }
     },
-    "/api/system/quit": {
-      "delete": {
-        "description": "Close app on back side",
-        "tags": [
-          "System"
-        ],
-        "summary": "# Close application",
-        "operationId": "RequestQuit",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseQuit"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/system/settings": {
-      "get": {
-        "description": "Get default or changed settings",
-        "tags": [
-          "System"
-        ],
-        "summary": "# Get settings",
-        "operationId": "RequestSettings",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseSettings"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      },
-      "patch": {
-        "description": "API to update settings",
-        "tags": [
-          "System"
-        ],
-        "summary": "# Update settings",
-        "operationId": "RequestUpdateSettings",
-        "parameters": [
-          {
-            "name": "Body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "lang"
-              ],
-              "properties": {
-                "lang": {
-                  "type": "string",
-                  "x-go-name": "Lang"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseUpdateSettings"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/system/status": {
-      "get": {
-        "description": "API to get status of process",
-        "tags": [
-          "System"
-        ],
-        "summary": "# Get progress status",
-        "operationId": "RequestStatus",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseStatus"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
-    "/api/system/version": {
-      "get": {
-        "description": "API to get version of application",
-        "tags": [
-          "System"
-        ],
-        "summary": "# Get app version",
-        "operationId": "RequestVersion",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseVersion"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/tts/data": {
       "get": {
         "description": "API for TTS for downloading JSON file inside game",
@@ -1297,27 +1190,6 @@
             "type": "string"
           },
           "x-go-name": "Variables"
-        }
-      },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
-    },
-    "CardSize": {
-      "type": "object",
-      "properties": {
-        "scaleX": {
-          "type": "number",
-          "format": "double",
-          "x-go-name": "ScaleX"
-        },
-        "scaleY": {
-          "type": "number",
-          "format": "double",
-          "x-go-name": "ScaleY"
-        },
-        "scaleZ": {
-          "type": "number",
-          "format": "double",
-          "x-go-name": "ScaleZ"
         }
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
@@ -1464,46 +1336,6 @@
         }
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/network"
-    },
-    "Settings": {
-      "type": "object",
-      "properties": {
-        "card_size": {
-          "$ref": "#/definitions/CardSize"
-        },
-        "enable_back_shadow": {
-          "type": "boolean",
-          "x-go-name": "EnableBackShadow"
-        },
-        "lang": {
-          "type": "string",
-          "x-go-name": "Lang"
-        }
-      },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
-    },
-    "Status": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string",
-          "x-go-name": "Message"
-        },
-        "progress": {
-          "type": "number",
-          "format": "float",
-          "x-go-name": "Progress"
-        },
-        "status": {
-          "type": "string",
-          "x-go-name": "Status"
-        },
-        "type": {
-          "type": "string",
-          "x-go-name": "Type"
-        }
-      },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
     }
   },
   "responses": {
@@ -1787,9 +1619,6 @@
         }
       }
     },
-    "ResponseQuit": {
-      "description": "Quit"
-    },
     "ResponseReplaceReplace": {
       "description": "",
       "schema": {
@@ -1832,34 +1661,6 @@
         }
       }
     },
-    "ResponseSettings": {
-      "description": "Settings",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Settings"
-          }
-        }
-      }
-    },
-    "ResponseStatus": {
-      "description": "Status",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Status"
-          }
-        }
-      }
-    },
     "ResponseUpdateCard": {
       "description": "Status of card update",
       "schema": {
@@ -1884,35 +1685,6 @@
         "properties": {
           "data": {
             "$ref": "#/definitions/Deck"
-          }
-        }
-      }
-    },
-    "ResponseUpdateSettings": {
-      "description": "Settings",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Settings"
-          }
-        }
-      }
-    },
-    "ResponseVersion": {
-      "description": "Version",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "type": "string",
-            "x-go-name": "Data"
           }
         }
       }

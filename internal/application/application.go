@@ -23,7 +23,6 @@ import (
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
 	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
 	serversSearch "github.com/HardDie/DeckBuilder/internal/servers/search"
-	serversSystem "github.com/HardDie/DeckBuilder/internal/servers/system"
 	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
@@ -44,6 +43,7 @@ type Application struct {
 	serviceCollection servicesCollection.Collection
 	serviceDeck       servicesDeck.Deck
 	serviceCard       servicesCard.Card
+	serviceSystem     servicesSystem.System
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -69,8 +69,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// system
 	repositorySettings := repositoriesSettings.New(cfg, db)
 	serviceSystem := servicesSystem.New(repositorySettings)
-	serverSystem := serversSystem.New(cfg, serviceSystem)
-	api.RegisterSystemServer(routes, serverSystem)
 
 	// game
 	repositoryGame := repositoriesGame.New(cfg, db)
@@ -123,6 +121,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		serviceCollection: serviceCollection,
 		serviceDeck:       serviceDeck,
 		serviceCard:       serviceCard,
+		serviceSystem:     serviceSystem,
 	}, nil
 }
 
@@ -144,6 +143,10 @@ func (app *Application) DeckService() servicesDeck.Deck {
 
 func (app *Application) CardService() servicesCard.Card {
 	return app.serviceCard
+}
+
+func (app *Application) SystemService() servicesSystem.System {
+	return app.serviceSystem
 }
 
 func (app *Application) Handler() http.Handler {

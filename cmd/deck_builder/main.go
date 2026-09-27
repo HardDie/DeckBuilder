@@ -35,7 +35,7 @@ var (
 func main() {
 	// If the flag is set, run the game in debug mode.
 	// - Do not request the url and don't open the browser
-	// - Do not close the application when /system/quit is requested
+	// - Do not close the application when System.Quit is called
 	debugFlag := flag.Bool("debug", false, "")
 	flag.Parse()
 

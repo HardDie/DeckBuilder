@@ -5,7 +5,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 **Two surfaces**
 
 1. **SPA (embedded `web/dist`)** — the authoring UI. It talks only to this process over HTTP. SPA routes such as `/games/{id}/…` are SPA paths; Go forwards them to `index.html` so reloads work.
-2. **REST API (`/api/…`)** — JSON (and multipart) for CRUD, images, generate, search, replace, system. TTS Lua downloads the last generated object from `GET /api/tts/data`.
+2. **REST API (`/api/…`)** — JSON (and multipart) for CRUD, images, generate, search, replace. TTS Lua downloads the last generated object from `GET /api/tts/data`.
 
 **Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, export/import, generate, and verbs not yet moved.
 
@@ -67,16 +67,12 @@ Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports
 | POST | `/api/replace/prepare` | Extract unique FaceURL/BackURL keys |
 | POST | `/api/replace` | Rewrite JSON with mapping file |
 | GET | `/api/tts/data` | One-shot last generated JSON for TTS Lua |
-| DELETE | `/api/system/quit` | Exit process immediately (no-op in `-debug`) |
-| GET/PATCH | `/api/system/settings` | Settings (`lang` on PATCH today) |
-| GET | `/api/system/status` | Generator progress; **clears** `done`/`error` after read |
-| GET | `/api/system/version` | Stamped version string |
 | GET | `/docs`, `/swagger.json` | Redoc + spec |
 | GET | `/` and SPA asset paths | Embedded GUI |
 
 Do not invent REST aliases. If the GUI needs a field, add it on the existing DTO with `json` tags and keep `error` / `data` wrapping.
 
-**Generate** returns immediately; work runs in a goroutine. The GUI polls `/api/system/status`. Status values: `empty`, `in_progress`, `done`, `error`.
+**Generate** returns immediately; work runs in a goroutine. The GUI polls system `Status`. Status values: `empty`, `in_progress`, `done`, `error`.
 
 **Sprite sheets:** pages follow TTS [Custom Deck](https://api.tabletopsimulator.com/custom-game-objects/) defaults: **width 10 × height 7**. One cell is reserved (`MaxCount = 69`) because, with `BackIsHidden` false (our generate default), TTS uses **the last slot of the face sheet as the hidden image**, not a separate back. `page_drawer.Save` draws the back into that last cell and still writes a dedicated back file for `BackURL`. Overflow starts a new page. Card scale / back shadow come from settings. Output: images + JSON in `cfg.Results()`.
 
@@ -221,11 +217,11 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game, collection, deck, and card catalog verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
+- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game, collection, deck, card, and system verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
-- **`GET /api/system/status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
-- **Quit is immediate** (`DELETE /api/system/quit` → `os.Exit(0)`). `-debug` never quits.
+- **System `Status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
+- **Quit is immediate** (`System.Quit` → `os.Exit(0)`). `-debug` never quits.
 - **TTS TCP is best-effort Execute Lua on Global (`39999`, `messageID` 3, `guid` `-1`).** If TTS is not running, generate still writes `result/`. `/api/tts/data` is one-shot (clears the buffer). Official protocol: [External Editor API](https://api.tabletopsimulator.com/externaleditorapi/).
 - **IDs:** string ids come from fsentry (name-derived). Card ids are integers. Path params named `{card}` are still parsed as that integer id.
 - **Deck image = card back** for that deck’s sheets. Missing backside fails generate.
