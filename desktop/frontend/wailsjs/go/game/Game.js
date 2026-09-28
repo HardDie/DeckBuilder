@@ -14,6 +14,10 @@ export function Duplicate(arg1, arg2) {
   return window['go']['game']['Game']['Duplicate'](arg1, arg2);
 }
 
+export function Export(arg1) {
+  return window['go']['game']['Game']['Export'](arg1);
+}
+
 export function List(arg1, arg2) {
   return window['go']['game']['Game']['List'](arg1, arg2);
 }

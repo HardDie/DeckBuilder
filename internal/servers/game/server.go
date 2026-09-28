@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
@@ -24,19 +22,6 @@ func New(cfg config.Config, serviceGame servicesGame.Game) Game {
 	return &game{
 		cfg:         cfg,
 		serviceGame: serviceGame,
-	}
-}
-
-func (s *game) ExportHandler(w http.ResponseWriter, r *http.Request) {
-	gameID := mux.Vars(r)["game"]
-	archive, e := s.serviceGame.Export(gameID)
-	if e != nil {
-		network.ResponseError(w, e)
-		return
-	}
-	w.Header().Set("Content-Type", "application/zip")
-	if _, err := w.Write(archive); err != nil {
-		er.IfErrorLog(err)
 	}
 }
 

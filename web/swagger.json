@@ -817,37 +817,6 @@
         }
       }
     },
-    "/api/games/{game}/export": {
-      "get": {
-        "description": "Get an existing game archive",
-        "produces": [
-          "application/json",
-          "application/zip"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Export game to archive",
-        "operationId": "RequestArchiveGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameArchive"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/{game}/generate": {
       "post": {
         "description": "Allow to run the background process of generating images and json item for the game",
@@ -1335,16 +1304,6 @@
           "error": {
             "$ref": "#/definitions/Err"
           }
-        }
-      }
-    },
-    "ResponseGameArchive": {
-      "description": "Game archive",
-      "schema": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "format": "uint8"
         }
       }
     },

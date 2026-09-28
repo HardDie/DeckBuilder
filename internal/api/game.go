@@ -12,7 +12,6 @@ import (
 func RegisterGameServer(route *mux.Router, srv serversGame.Game) {
 	GamesRoute := route.PathPrefix("/api/games").Subrouter()
 	GamesRoute.HandleFunc("/import", srv.ImportHandler).Methods(http.MethodPost)
-	GamesRoute.HandleFunc("/{game}/export", srv.ExportHandler).Methods(http.MethodGet)
 }
 
 type UnimplementedGameServer struct {
@@ -22,38 +21,6 @@ var (
 	// Validation
 	_ serversGame.Game = &UnimplementedGameServer{}
 )
-
-// Requesting an existing game archive
-//
-// swagger:parameters RequestArchiveGame
-type RequestArchiveGame struct {
-	// In: path
-	// Required: true
-	Game string `json:"game"`
-}
-
-// Game archive
-//
-// swagger:response ResponseGameArchive
-type ResponseGameArchive struct {
-	// In: body
-	Body []byte
-}
-
-// swagger:route GET /api/games/{game}/export Games RequestArchiveGame
-//
-// # Export game to archive
-//
-// Get an existing game archive
-//
-//	Produces:
-//	- application/json
-//	- application/zip
-//
-//	Responses:
-//	  200: ResponseGameArchive
-//	  default: ResponseError
-func (s *UnimplementedGameServer) ExportHandler(w http.ResponseWriter, r *http.Request) {}
 
 // Creating game from archive
 //

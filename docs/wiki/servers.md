@@ -19,7 +19,7 @@ Game, collection, deck, and card CRUD live on Wails bindings (`desktop/bindings/
 
 | Handler | HTTP | Service call |
 |---|---|---|
-| `ExportHandler` / `ImportHandler` | game zip | repository via service |
+| `ImportHandler` | game zip | repository via service |
 
 `calculateCachedImage` fills `dto.*.CachedImage` from `cfg.*ImagePath`.
 

@@ -1,4 +1,4 @@
-import { List, Create, Read, Update, Delete, Duplicate } from '../../wailsjs/go/game/Game'
+import { List, Create, Read, Update, Delete, Duplicate, Export } from '../../wailsjs/go/game/Game'
 import { withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
@@ -23,7 +23,7 @@ export default {
     return withBindingError(Delete(requestData.gameId || requestData.id || ''))
   },
   export(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/export`)
+    return withBindingError(Export(requestData.gameId || requestData.id || ''))
   },
   import(requestData) {
     return fetch('/api/games/import', {

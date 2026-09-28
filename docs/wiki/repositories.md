@@ -18,7 +18,7 @@ Glue between services and db: image files, zip, HTTP download. Each catalog repo
 | `Update` | `Move` if name changed, then `Update` payload, maybe replace image | service |
 | `Delete` | `db.Delete` | service |
 | `Duplicate` | `db.Duplicate` | service |
-| `Export` | zip `cfg.Games()/id` via `internal/fs` | service/server |
+| `Export` | zip `cfg.Games()/id` via `internal/fs` | service, Wails `game.Export` |
 | `Import` | unzip into games dir, `GetByID`, `UpdateInfo` if renamed | service/server |
 | `GetImage` | `db.ImageGet` | service GetImage |
 

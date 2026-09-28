@@ -12,7 +12,7 @@ Creating a game (desktop):
 4. **db** talks to fsentry: `CreateFolder` under `games/`.
 5. The binding maps the **entity** to a **dto** (`CachedImage` URL) and returns `{ "data": … }`.
 
-List/search add filtering and sorting in the **service**, not in db. Game zip import still goes through `POST /api/games/import` → `servers/game.ImportHandler`.
+List/search add filtering and sorting in the **service**, not in db. Game zip export is the `game.Export` binding (native save dialog, then write the zip). Game zip import still goes through `POST /api/games/import` → `servers/game.ImportHandler`.
 
 ## One fsentry handle
 

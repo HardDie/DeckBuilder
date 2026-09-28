@@ -114,17 +114,9 @@ export const useItemsStore = defineStore('items', () => {
 
   function fetchExportGame(requestData) {
     isApiPending.value = true
-    return api.games
-      .export(requestData)
-      .then(response => {
-        response.blob().then(data => {
-          const a = document.createElement('a')
-          a.href = URL.createObjectURL(data)
-          a.download = `${requestData.gameId}.zip`
-          a.click()
-        })
-      })
-      .finally(() => (isApiPending.value = false))
+    return api.games.export(requestData).finally(() => {
+      isApiPending.value = false
+    })
   }
 
   function fetchDuplicateGame(requestData) {

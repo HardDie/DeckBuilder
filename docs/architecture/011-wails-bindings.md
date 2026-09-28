@@ -25,7 +25,7 @@ Use option 4.
 
 Migrated desktop verbs (HTTP routes removed; Wails only):
 
-* `desktop/bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate`
+* `desktop/bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate` / `Export`
 * `desktop/bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
@@ -34,7 +34,11 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 
 `desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, and the search service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-`GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
+`POST /api/games/import`, generate, images, and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
+
+* `game.Export` opens a native save dialog.
+* The binding writes the zip to the chosen path.
+* Cancel writes nothing.
 
 Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice.
 

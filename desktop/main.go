@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"net/http"
@@ -60,8 +61,11 @@ func main() {
 			Handler: apiHandler(backend.Handler()),
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
-		OnShutdown:       app.shutdown,
+		OnStartup: func(ctx context.Context) {
+			app.startup(ctx)
+			game.BindWindow(games, ctx)
+		},
+		OnShutdown: app.shutdown,
 		Bind: []interface{}{
 			games,
 			collections,

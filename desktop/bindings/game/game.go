@@ -1,6 +1,13 @@
 package game
 
 import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	"github.com/HardDie/DeckBuilder/desktop/bindings/catalog"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -20,10 +27,19 @@ type Result struct {
 type Game struct {
 	cfg config.Config
 	svc servicesGame.Game
+	ctx context.Context
 }
 
 func New(cfg config.Config, svc servicesGame.Game) *Game {
 	return &Game{cfg: cfg, svc: svc}
+}
+
+// BindWindow stores the Wails context used by native dialogs.
+func BindWindow(g *Game, ctx context.Context) {
+	if g == nil {
+		return
+	}
+	g.ctx = ctx
 }
 
 func (g *Game) List(sort, search string) (*ListResult, error) {
@@ -88,4 +104,62 @@ func (g *Game) Duplicate(gameID, name string) (*Result, error) {
 		return nil, err
 	}
 	return &Result{Data: catalog.GameDTO(g.cfg, *item)}, nil
+}
+
+// Export asks for a zip path, then writes that game archive there.
+// A cancelled dialog returns nil.
+func (g *Game) Export(gameID string) error {
+	item, err := g.svc.Item(gameID)
+	if err != nil {
+		return err
+	}
+	if g.ctx == nil {
+		return fmt.Errorf("window is not ready")
+	}
+
+	path, err := runtime.SaveFileDialog(g.ctx, runtime.SaveDialogOptions{
+		Title:                "Export game",
+		DefaultFilename:      exportFilename(item.Name, gameID),
+		CanCreateDirectories: true,
+		Filters: []runtime.FileFilter{
+			{DisplayName: "Zip archive (*.zip)", Pattern: "*.zip"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if path == "" {
+		return nil
+	}
+	if !strings.HasSuffix(strings.ToLower(path), ".zip") {
+		path += ".zip"
+	}
+
+	data, err := g.svc.Export(gameID)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o644)
+}
+
+func exportFilename(name, gameID string) string {
+	name = strings.TrimSpace(strings.NewReplacer(
+		"/", "_",
+		"\\", "_",
+		":", "_",
+		"*", "_",
+		"?", "_",
+		"\"", "_",
+		"<", "_",
+		">", "_",
+		"|", "_",
+	).Replace(name))
+	name = strings.Trim(name, ". ")
+	if name == "" {
+		name = gameID
+	}
+	if name == "" {
+		name = "game"
+	}
+	return name + ".zip"
 }

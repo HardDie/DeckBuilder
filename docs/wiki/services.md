@@ -12,6 +12,7 @@ Typical fields: `cfg`, `repository*`.
 | `List(sortField, search)` | `GetAll` then in-memory filter + `utils.Sort` | servers |
 | `GetImage` | repository binary + content type | `servers/image` |
 | `Duplicate` (game) | repository duplicate | game server |
+| `Export` (game) | zip bytes of the game folder | `game.Export` binding |
 
 Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 

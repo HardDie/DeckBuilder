@@ -9,12 +9,13 @@
 ## Main scenario (happy path)
 
 1. **Duplicate:** `App.DuplicateGame(gameID, name)` creates a new game folder tree.
-2. **Export:** `GET /api/games/{game}/export` returns a zip of that game.
+2. **Export:** `game.Export(gameID)` opens a native save dialog and writes a zip of that game.
 3. **Import:** `POST /api/games/import` multipart `file` (required) and optional `name` creates a game from the archive.
 
 ## Alternative scenarios and errors
 
 * **1a. Target name exists:** `GameExist`.
+* **2a. Dialog cancelled:** no file is written.
 * **3a. Corrupt zip:** `BadArchive`.
 
 ## Postconditions
