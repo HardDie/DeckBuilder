@@ -34,7 +34,7 @@ Depends on game/collection/deck/card **services** plus system (settings) and TTS
 
 ## `search`
 
-`RecursiveSearch(sort, search, gameID, collectionID)` walks services according to how many ids are set (all games vs one game vs one collection). Used by `servers/search`.
+`RecursiveSearch(sort, search, gameID, collectionID)` walks services according to how many ids are set (all games vs one game vs one collection). Used by the search binding.
 
 ## `replace`
 

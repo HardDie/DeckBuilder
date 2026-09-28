@@ -8,10 +8,10 @@
 
 ## Main scenario (happy path)
 
-1. Client `GET /api/search?search=&sort=` (optional filters).
+1. Client `Search.Root(sort, search)` (optional filters).
 2. Service walks all games (and nested objects) applying the same sort/search rules as list endpoints.
 3. Response `data` is `dto.RecursiveSearch` (id tuples, not full entities).
-4. Scoped walks: `GET /api/search/games/{game}` and `…/collections/{collection}`.
+4. Scoped walks: `Search.Game` and `Search.Collection`.
 
 ## Alternative scenarios and errors
 

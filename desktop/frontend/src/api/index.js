@@ -3,6 +3,7 @@ import collections from '@/api/collections'
 import decks from '@/api/decks'
 import cards from '@/api/cards'
 import system from '@/api/system'
+import search from '@/api/search'
 import replace from '@/api/replace'
 import { useToast } from 'vue-toastification'
 
@@ -23,5 +24,6 @@ export default {
   decks,
   cards,
   system,
+  search,
   replace,
 }

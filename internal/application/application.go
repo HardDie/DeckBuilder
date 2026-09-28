@@ -22,7 +22,6 @@ import (
 	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
 	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
-	serversSearch "github.com/HardDie/DeckBuilder/internal/servers/search"
 	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
@@ -44,6 +43,7 @@ type Application struct {
 	serviceDeck       servicesDeck.Deck
 	serviceCard       servicesCard.Card
 	serviceSystem     servicesSystem.System
+	serviceSearch     servicesSearch.Search
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -109,8 +109,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// recursive search
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
-	serverSearch := serversSearch.New(serviceSearch)
-	api.RegisterSearchServer(routes, serverSearch)
 
 	routes.Use(corsMiddleware)
 	return &Application{
@@ -122,6 +120,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		serviceDeck:       serviceDeck,
 		serviceCard:       serviceCard,
 		serviceSystem:     serviceSystem,
+		serviceSearch:     serviceSearch,
 	}, nil
 }
 
@@ -147,6 +146,10 @@ func (app *Application) CardService() servicesCard.Card {
 
 func (app *Application) SystemService() servicesSystem.System {
 	return app.serviceSystem
+}
+
+func (app *Application) SearchService() servicesSearch.Search {
+	return app.serviceSearch
 }
 
 func (app *Application) Handler() http.Handler {

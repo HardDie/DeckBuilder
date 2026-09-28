@@ -40,4 +40,4 @@ Games, collections, and decks use **string ids** (fsentry folder ids derived fro
 
 ### Neutral
 
-* Recursive search (`/api/search…`) returns typed id tuples (`dto.RecursiveSearch`) rather than flattening the tree into one entity type.
+* Recursive search returns typed id tuples (`dto.RecursiveSearch`) rather than flattening the tree into one entity type.

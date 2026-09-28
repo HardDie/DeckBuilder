@@ -424,6 +424,93 @@ export namespace dto {
 		    return a;
 		}
 	}
+	export class RecursiveSearchCard {
+	    gameId: string;
+	    collectionId: string;
+	    deckId: string;
+	    cardId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecursiveSearchCard(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.gameId = source["gameId"];
+	        this.collectionId = source["collectionId"];
+	        this.deckId = source["deckId"];
+	        this.cardId = source["cardId"];
+	    }
+	}
+	export class RecursiveSearchDeck {
+	    gameId: string;
+	    collectionId: string;
+	    deckId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecursiveSearchDeck(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.gameId = source["gameId"];
+	        this.collectionId = source["collectionId"];
+	        this.deckId = source["deckId"];
+	    }
+	}
+	export class RecursiveSearchCollection {
+	    gameId: string;
+	    collectionId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecursiveSearchCollection(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.gameId = source["gameId"];
+	        this.collectionId = source["collectionId"];
+	    }
+	}
+	export class RecursiveSearch {
+	    games?: string[];
+	    collections?: RecursiveSearchCollection[];
+	    decks?: RecursiveSearchDeck[];
+	    cards?: RecursiveSearchCard[];
+	
+	    static createFrom(source: any = {}) {
+	        return new RecursiveSearch(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.games = source["games"];
+	        this.collections = this.convertValues(source["collections"], RecursiveSearchCollection);
+	        this.decks = this.convertValues(source["decks"], RecursiveSearchDeck);
+	        this.cards = this.convertValues(source["cards"], RecursiveSearchCard);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
+	
 	export class Settings {
 	    lang: string;
 	    enable_back_shadow: boolean;
@@ -561,6 +648,43 @@ export namespace network {
 	        this.total = source["total"];
 	        this.cardsTotal = source["cardsTotal"];
 	    }
+	}
+
+}
+
+export namespace search {
+	
+	export class Result {
+	    data: dto.RecursiveSearch;
+	    meta?: network.Meta;
+	
+	    static createFrom(source: any = {}) {
+	        return new Result(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], dto.RecursiveSearch);
+	        this.meta = this.convertValues(source["meta"], network.Meta);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

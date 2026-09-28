@@ -1,9 +1,4 @@
-import {
-  GetSettings,
-  GetVersion,
-  Status,
-  UpdateSettings,
-} from '../../wailsjs/go/system/System'
+import { GetSettings, GetVersion, Status, UpdateSettings } from '../../wailsjs/go/system/System'
 import { withBindingError } from '@/api/wails'
 
 export default {

@@ -30,8 +30,9 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 * `desktop/bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
+* `desktop/bindings/search.Search`: `Root` / `Game` / `Collection`
 
-`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, and the system service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, and the search service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
 `GET /api/games/{game}/export`, `POST /api/games/import`, generate, images, and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
 
@@ -56,3 +57,4 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 * Images, generate, and TTS `WebRequest.get` stay on HTTP.
 * Image reads stay the `cachedImage` URL ([ADR 012](012-card-image-urls.md)).
 * System settings, status, and version left HTTP.
+* Recursive search left HTTP.
