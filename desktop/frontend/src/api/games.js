@@ -8,6 +8,7 @@ import {
   Export,
   Import,
 } from '../../wailsjs/go/game/Game'
+import { Game as GenerateGame } from '../../wailsjs/go/generator/Generator'
 import { withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
@@ -43,10 +44,10 @@ export default {
     )
   },
   generate(requestData) {
-    return fetch(`/api/games/${requestData.gameId}/generate`, {
-      method: 'POST',
-      body: JSON.stringify(requestData.body),
-    })
+    const body = requestData.body || {}
+    return withBindingError(
+      GenerateGame(requestData.gameId || '', body.sortOrder || '', Number(body.scale) || 0),
+    )
   },
 }
 

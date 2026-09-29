@@ -775,51 +775,6 @@
         }
       }
     },
-    "/api/games/{game}/generate": {
-      "post": {
-        "description": "Allow to run the background process of generating images and json item for the game",
-        "tags": [
-          "Generator"
-        ],
-        "summary": "# Start generating items for TTS",
-        "operationId": "RequestGameGenerate",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Game",
-            "name": "game",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "scale": {
-                  "type": "integer",
-                  "format": "int64",
-                  "x-go-name": "Scale"
-                },
-                "sortOrder": {
-                  "type": "string",
-                  "x-go-name": "SortOrder"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameGenerate"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/{game}/image": {
       "get": {
         "description": "Get an image of existing game",
@@ -1228,9 +1183,6 @@
           }
         }
       }
-    },
-    "ResponseGameGenerate": {
-      "description": "Generating game objects"
     },
     "ResponseGameImage": {
       "description": "Game image",

@@ -11,8 +11,6 @@ Registers mux routes and holds **go-swagger** request/response types. Handlers o
 | `tts_upload.go` | `/api/tts/data` | TTS server |
 | `static.go` | `/`, SPA fallback, `/docs`, swagger JSON | — |
 
-Generate and system routes live next to those servers’ register functions (same pattern).
-
 ## How it is used
 
 `application.Get` calls `RegisterImageServer` and the rest. The **real** handler is the implemented server, not `Unimplemented*`.

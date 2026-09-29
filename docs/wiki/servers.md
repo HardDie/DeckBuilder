@@ -15,7 +15,6 @@ Game, collection, deck, and card CRUD, plus game export and import, live on Wail
 | Package | Handlers | Downstream |
 |---|---|---|
 | `image` | `GameHandler`, `CollectionHandler`, `DeckHandler`, `CardHandler` | corresponding `service*.GetImage` |
-| `generator` | start generate | `services/generator.GenerateGame` |
 | `search` | recursive search | `services/search` |
 | `replace` | prepare + replace | `services/replace` |
 | `tts` | `GET /api/tts/data` | `services/tts` one-shot buffer |

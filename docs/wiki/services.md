@@ -30,7 +30,7 @@ Holds `repositorySettings` built from `db/settings`.
 
 | Method | Behavior |
 |---|---|
-| `GenerateGame` | Starts a goroutine; HTTP returns immediately. Walks game → collections → decks → cards, draws sheets via `page_drawer`, writes PNGs + TTS JSON under `cfg.Results()`, updates `progress`, optionally `services/tts.SendToTTS`. |
+| `GenerateGame` | Starts a goroutine; the binding returns immediately. Walks game → collections → decks → cards, draws sheets via `page_drawer`, writes PNGs + TTS JSON under `cfg.Results()`, updates `progress`, optionally `services/tts.SendToTTS`. |
 
 Depends on game/collection/deck/card **services** plus system (settings) and TTS. Do not start a second generate; progress is a process singleton.
 

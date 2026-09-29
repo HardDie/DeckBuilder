@@ -31,16 +31,20 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 * `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
 * `desktop/bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
 * `desktop/bindings/search.Search`: `Root` / `Game` / `Collection`
+* `desktop/bindings/generator.Generator`: `Game`
 
-`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, and the search service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-Generate, images, and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
+Images and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
 
 * `game.Export` opens a native save dialog.
 * The binding writes the zip to the chosen path.
 * Cancel writes nothing.
 * `game.Import` takes zip bytes and an optional name.
 * It returns the created game.
+* `generator.Game` starts generate and returns.
+* Drawing continues in a goroutine.
+* Scale below 1 becomes 1.
 
 Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice.
 
@@ -59,7 +63,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 
 ### Neutral
 
-* Images, generate, and TTS `WebRequest.get` stay on HTTP.
+* Images and TTS `WebRequest.get` stay on HTTP.
 * Image reads stay the `cachedImage` URL ([ADR 012](012-card-image-urls.md)).
 * System settings, status, and version left HTTP.
 * Recursive search left HTTP.

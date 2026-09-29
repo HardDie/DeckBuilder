@@ -20,7 +20,7 @@ Tabletop Simulator [Custom Deck](https://api.tabletopsimulator.com/custom-game-o
 
 Use option 2.
 
-`POST /api/games/{game}/generate` starts a background job: `internal/page_drawer` packs faces (max 10×7, last cell reserved → 69 playable cards per page; that last cell is drawn as the hidden/back slot), writes images + JSON under `result/`, updates `internal/progress`. Optional [External Editor](https://api.tabletopsimulator.com/externaleditorapi/) TCP to TTS port **39999** sends Execute Lua (`messageID` 3, Global `guid` `-1`) so the host runs `WebRequest.get` on `/api/tts/data` then `spawnObjectJSON` (buffer is one-shot). The `result/*.json` file is Saved Object shaped (`ObjectStates`); the HTTP payload is the inner **Bag** only.
+`generator.Game` starts a background job: `internal/page_drawer` packs faces (max 10×7, last cell reserved → 69 playable cards per page; that last cell is drawn as the hidden/back slot), writes images + JSON under `result/`, updates `internal/progress`. Optional [External Editor](https://api.tabletopsimulator.com/externaleditorapi/) TCP to TTS port **39999** sends Execute Lua (`messageID` 3, Global `guid` `-1`) so the host runs `WebRequest.get` on `/api/tts/data` then `spawnObjectJSON` (buffer is one-shot). The `result/*.json` file is Saved Object shaped (`ObjectStates`); the HTTP payload is the inner **Bag** only.
 
 `POST /api/replace/prepare` lists unique FaceURL/BackURL keys. `POST /api/replace` applies a mapping file. Automatic hosting is explicitly **future / out of scope**.
 

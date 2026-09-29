@@ -18,7 +18,6 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
 	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
 	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
@@ -43,6 +42,7 @@ type Application struct {
 	serviceCard       servicesCard.Card
 	serviceSystem     servicesSystem.System
 	serviceSearch     servicesSearch.Search
+	serviceGenerator  servicesGenerator.Generator
 }
 
 func Get(debugFlag bool, version string) (*Application, error) {
@@ -96,8 +96,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// generator
 	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
-	serverGenerator := serversGenerator.New(serviceGenerator)
-	api.RegisterGeneratorServer(routes, serverGenerator)
 
 	// replace
 	serviceReplace := servicesReplace.New(serviceTTS)
@@ -118,6 +116,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		serviceCard:       serviceCard,
 		serviceSystem:     serviceSystem,
 		serviceSearch:     serviceSearch,
+		serviceGenerator:  serviceGenerator,
 	}, nil
 }
 
@@ -147,6 +146,10 @@ func (app *Application) SystemService() servicesSystem.System {
 
 func (app *Application) SearchService() servicesSearch.Search {
 	return app.serviceSearch
+}
+
+func (app *Application) GeneratorService() servicesGenerator.Generator {
+	return app.serviceGenerator
 }
 
 func (app *Application) Handler() http.Handler {
