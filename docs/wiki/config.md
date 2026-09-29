@@ -6,7 +6,7 @@ Process-wide paths and generate limits. Constructed once via `config.Get(version
 
 | Field | Meaning |
 |---|---|
-| `Version` | String from ldflags / `debug.ReadBuildInfo` |
+| `Version` | This repository: ldflag, module version, or VCS revision |
 | `Data` | fsentry root (`DeckBuilderData` or `~/DeckBuilderData` on darwin) |
 | `Game` | Relative catalog folder name, always `"games"` |
 | `Cache` | `"cache"` (config only today) |

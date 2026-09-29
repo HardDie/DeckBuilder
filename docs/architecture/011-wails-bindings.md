@@ -37,7 +37,7 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 
 `desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
-Images and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog CRUD REST.
+Images and TTS stay on HTTP. Catalog CRUD is Wails only.
 
 * `game.Export` opens a native save dialog.
 * The binding writes the zip to the chosen path.

@@ -32,7 +32,7 @@ Then you can start the game, open Saved Objects and find this object.
 ## How to build
 Clone repository:
 ```
-git clone https://github.com/HardDie/DeckBuilder --recursive
+git clone https://github.com/HardDie/DeckBuilder
 ```
 
 Check that all necessary packages are installed

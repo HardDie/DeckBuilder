@@ -124,7 +124,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 ## Build & Run
 
 ```bash
-git clone https://github.com/HardDie/DeckBuilder --recursive
+git clone https://github.com/HardDie/DeckBuilder
 ./deployment/check_binary.sh
 make build       # deployment/build_all.sh → deployment/out (image + TTS server)
 make wails-dev   # Wails window
@@ -191,7 +191,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── errors/
 │   └── …
 ├── web/                    # swagger.json (not served)
-├── gui/                    # submodule: DeckBuilderGUI (not served over HTTP)
 ├── deployment/
 └── tools/                  # join, copy_cards_variables
 ```
@@ -225,6 +224,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **Deck image = card back** for that deck’s sheets. Missing backside fails generate.
 - **Keep swagger comments in `internal/api` in sync** when routes or bodies change (`make swagger`).
 - **macOS data path is home**, not next to the binary.
+- **Version** is this repository only: link-time stamp, module version, or VCS revision.
 
 ---
 

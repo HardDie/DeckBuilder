@@ -7,7 +7,6 @@ import (
 	"embed"
 	"errors"
 	"net/http"
-	"runtime/debug"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -22,14 +21,18 @@ import (
 	bindingsSearch "github.com/HardDie/DeckBuilder/desktop/bindings/search"
 	bindingsSystem "github.com/HardDie/DeckBuilder/desktop/bindings/system"
 	"github.com/HardDie/DeckBuilder/internal/application"
+	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
+
+// Version is set with -X at link time from this repository.
+var Version = ""
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	backend, err := application.Get(version())
+	backend, err := application.Get(config.ResolveVersion(Version))
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}
@@ -84,15 +87,4 @@ func main() {
 	if err != nil {
 		println("Error:", err.Error())
 	}
-}
-
-func version() string {
-	if info, available := debug.ReadBuildInfo(); available {
-		switch info.Main.Version {
-		case "", "(devel)":
-		default:
-			return info.Main.Version
-		}
-	}
-	return "unknown"
 }

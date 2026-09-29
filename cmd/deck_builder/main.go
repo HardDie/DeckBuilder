@@ -19,42 +19,16 @@
 package main
 
 import (
-	"runtime/debug"
-
 	"github.com/HardDie/DeckBuilder/internal/application"
+	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
-var (
-	Version        = ""
-	BackendCommit  = ""
-	FrontendCommit = ""
-)
+// Version is set with -X at link time from this repository.
+var Version = ""
 
 func main() {
-	if info, available := debug.ReadBuildInfo(); available {
-		switch info.Main.Version {
-		case "", "(devel)":
-			// skip
-		default:
-			// In case we installed the application as "go install ..." from github
-			Version = info.Main.Version
-		}
-	}
-
-	var version string
-	if BackendCommit != "" {
-		// If the application was built using the deployment script
-		version = "Backend: " + BackendCommit + ", Frontend: " + FrontendCommit
-	} else if Version != "" {
-		// If the application was installed as a "go install ..."
-		version = Version
-	} else {
-		// Bad case
-		version = "unknown"
-	}
-
-	app, err := application.Get(version)
+	app, err := application.Get(config.ResolveVersion(Version))
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}

@@ -2,7 +2,7 @@
 
 ## `cmd/deck_builder`
 
-`main`: stamp `Version` / git commits, `application.Get`, `app.Run()` (listen for images and TTS). Swagger `meta` comments live on this package. No browser.
+`main`: stamp `Version` from this repository, `application.Get`, `app.Run()` (listen for images and TTS). Swagger `meta` comments live on this package. No browser.
 
 ## `desktop/`
 

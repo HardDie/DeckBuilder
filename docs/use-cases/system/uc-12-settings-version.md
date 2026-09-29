@@ -10,7 +10,7 @@
 
 1. `System.GetSettings` returns defaults (`en`, back shadow off, scale 1) merged with fsentry settings.
 2. `System.UpdateSettings` with `{ "lang": "en"|"ru" }` saves language when it changed.
-3. `System.GetVersion` returns the ldflag / `go install` version string.
+3. `System.GetVersion` returns this repository's version.
 
 ## Alternative scenarios and errors
 
