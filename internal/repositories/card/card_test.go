@@ -37,7 +37,7 @@ func initCard(t testing.TB, name string) cardEnv {
 		}
 	})
 
-	cfg := config.Get(false, "")
+	cfg := config.Get("")
 	cfg.SetDataPath(dir)
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())

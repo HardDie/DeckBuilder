@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/network"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
@@ -19,7 +17,6 @@ import (
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
-	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
 	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
@@ -43,15 +40,13 @@ type Application struct {
 	serviceSystem     servicesSystem.System
 	serviceSearch     servicesSearch.Search
 	serviceGenerator  servicesGenerator.Generator
+	serviceReplace    servicesReplace.Replace
 }
 
-func Get(debugFlag bool, version string) (*Application, error) {
-	cfg := config.Get(debugFlag, version)
+func Get(version string) (*Application, error) {
+	cfg := config.Get(version)
 
 	routes := mux.NewRouter().StrictSlash(false)
-
-	// static files
-	api.RegisterStaticServer(routes)
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty())
 	if err := db.Init(); err != nil {
@@ -99,8 +94,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 
 	// replace
 	serviceReplace := servicesReplace.New(serviceTTS)
-	serverReplace := serversReplace.New(serviceReplace)
-	api.RegisterReplaceServer(routes, serverReplace)
 
 	// recursive search
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
@@ -117,6 +110,7 @@ func Get(debugFlag bool, version string) (*Application, error) {
 		serviceSystem:     serviceSystem,
 		serviceSearch:     serviceSearch,
 		serviceGenerator:  serviceGenerator,
+		serviceReplace:    serviceReplace,
 	}, nil
 }
 
@@ -152,6 +146,10 @@ func (app *Application) GeneratorService() servicesGenerator.Generator {
 	return app.serviceGenerator
 }
 
+func (app *Application) ReplaceService() servicesReplace.Replace {
+	return app.serviceReplace
+}
+
 func (app *Application) Handler() http.Handler {
 	return app.router
 }
@@ -171,12 +169,9 @@ func (app *Application) Serve(ln net.Listener) error {
 }
 
 func (app *Application) Run() error {
-	ln, port, err := app.Listen()
+	ln, _, err := app.Listen()
 	if err != nil {
 		return err
-	}
-	if !app.cfg.Debug {
-		network.OpenBrowser(fmt.Sprintf("http://%s:%d", config.HTTPHost, port))
 	}
 	return app.Serve(ln)
 }
@@ -184,7 +179,7 @@ func (app *Application) Run() error {
 // CORS headers
 func corsSetupHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, ContentType")
 }
 

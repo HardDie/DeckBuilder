@@ -2,15 +2,15 @@
 
 ## `cmd/deck_builder`
 
-`main`: parse `-debug`, stamp `Version` / git commits, `application.Get`, `app.Run()` (listen + optional browser). Swagger `meta` comments live on this package.
+`main`: stamp `Version` / git commits, `application.Get`, `app.Run()` (listen for images and TTS). Swagger `meta` comments live on this package. No browser.
 
 ## `desktop/`
 
-Wails v2 window (separate Go module). Starts the same `internal/application` HTTP server (no browser). Vue UI copied from `gui/` into `desktop/frontend`. Game, collection, deck, and card catalog verbs use Wails bindings. Game export is a Wails binding (native save dialog). Game import is a Wails binding. Generate is the `generator.Game` binding ([ADR 011](../architecture/011-wails-bindings.md)). `AssetServer.Handler` serves remaining `/api` (Vite GET in `wails dev` still targets `:5000`). Not the production `cmd/deck_builder` binary ([ADR 010](../architecture/010-wails-shell.md)). `make wails-dev`.
+Wails v2 window (separate Go module). Starts the same image and TTS HTTP server. Vue UI is `desktop/frontend`. Catalog, export, import, generate, and replace are Wails bindings ([ADR 011](../architecture/011-wails-bindings.md), [ADR 013](../architecture/013-http-images-and-tts.md)). `AssetServer.Handler` serves `/api` images (Vite GET in `wails dev` still targets `:5000`). `make wails-dev`.
 
 ## `web/`
 
-`//go:embed` of GUI `dist` + `swagger.json`. Served by `api/static.go`. Rebuild GUI with `make web-build`.
+`swagger.json` from `make swagger`. Not served over HTTP.
 
 ## `tools/copy_cards_variables`
 

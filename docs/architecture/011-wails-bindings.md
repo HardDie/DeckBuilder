@@ -1,6 +1,7 @@
 # 11. Incremental Wails catalog bindings beside HTTP
 
 * **Status:** Accepted
+* **Also:** [ADR 013](013-http-images-and-tts.md) moves replace off HTTP and drops the SPA.
 * **Date:** 2026-09-19
 * **Authors:** @oleg
 
@@ -32,6 +33,7 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 * `desktop/bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
 * `desktop/bindings/search.Search`: `Root` / `Game` / `Collection`
 * `desktop/bindings/generator.Generator`: `Game`
+* `desktop/bindings/replace.Replace`: `Prepare` / `Replace`
 
 `desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
@@ -48,7 +50,7 @@ Images and TTS stay on HTTP. `cmd/deck_builder` / `gui/` no longer have catalog 
 
 Wails JSON turns a missing `imageFile` into `[]`; HTTP `GetFileFromMultipart` uses `nil`. Bindings must pass `WriteRequest.ImageBytes()` (empty → nil), not the raw slice.
 
-This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. ADR 001 still describes the HTTP contract.
+This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 still describes the window + loopback process. [ADR 013](013-http-images-and-tts.md) describes the HTTP contract.
 
 ## Consequences
 

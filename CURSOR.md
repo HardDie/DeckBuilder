@@ -1,13 +1,22 @@
 # DeckBuilder Development Guidelines
 
-DeckBuilder is a **local authoring tool** for card games that export to [Tabletop Simulator](https://tabletopsimulator.com/) (TTS). This repository is the **Go HTTP backend**. The GUI lives in a separate repo, cloned as the `gui` git submodule ([HardDie/DeckBuilderGUI](https://github.com/HardDie/DeckBuilderGUI); README also points at [lmm1ng/DeckBuilderGUI](https://github.com/lmm1ng/DeckBuilderGUI)). Built frontend assets are copied into `web/dist` and **embedded** into the binary.
+DeckBuilder is a **local authoring tool** for card games that export to [Tabletop Simulator](https://tabletopsimulator.com/) (TTS).
 
-**Two surfaces**
+1. **UI**
+   1. Wails window in `desktop/`.
+   2. Vue sources live in `desktop/frontend`.
+2. **HTTP** ([ADR 013](docs/architecture/013-http-images-and-tts.md))
+   1. Loopback `127.0.0.1:5000`.
+   2. Entity image bytes.
+   3. `GET /api/tts/data` for TTS Lua.
 
-1. **SPA (embedded `web/dist`)** — the authoring UI. It talks only to this process over HTTP. SPA routes such as `/games/{id}/…` are SPA paths; Go forwards them to `index.html` so reloads work.
-2. **REST API (`/api/…`)** — JSON (and multipart) for images and replace. TTS Lua downloads the last generated object from `GET /api/tts/data`.
+**Not this product:**
 
-**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, and verbs not yet moved.
+1. A multi-user cloud service.
+2. A TTS plugin inside the game.
+3. More than a one-shot External Editor TCP poke.
+
+Catalog verbs are Wails bindings ([ADR 011](docs/architecture/011-wails-bindings.md)).
 
 ---
 
@@ -34,7 +43,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 - Binding on non-loopback interfaces or adding auth.
 - Changing the domain tree (game/collection/deck/card).
 - Replacing fsentry with SQL.
-- Removing the HTTP API in one pass (desktop bindings are incremental; TTS and images stay on HTTP).
+- Serving the Vue UI over HTTP. Images and TTS stay on loopback HTTP.
 
 ---
 
@@ -55,16 +64,12 @@ JSON envelope: `{ "data": …, "meta": { "total", "cardsTotal?" }, "error": … 
 
 ## HTTP contract
 
-Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports. Fail startup if all 20 fail. CORS is `*` with `GET,POST,PATCH,DELETE,OPTIONS`; preflight `OPTIONS` returns 204 (needed when the Wails/Vite origin is not the API).
+Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports. Fail startup if all 20 fail. CORS is `*` with `GET,OPTIONS`; preflight `OPTIONS` returns 204.
 
 | Method | Route | Role |
 |---|---|---|
 | GET | `/api/games/{game}/image` (and nested `…/image`) | Entity image bytes |
-| POST | `/api/replace/prepare` | Extract unique FaceURL/BackURL keys |
-| POST | `/api/replace` | Rewrite JSON with mapping file |
 | GET | `/api/tts/data` | One-shot last generated JSON for TTS Lua |
-| GET | `/docs`, `/swagger.json` | Redoc + spec |
-| GET | `/` and SPA asset paths | Embedded GUI |
 
 Do not invent REST aliases. If the GUI needs a field, add it on the existing DTO with `json` tags and keep `error` / `data` wrapping.
 
@@ -107,11 +112,11 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 
 | Layer | Choice |
 |---|---|
-| GUI | Vue SPA in `gui/` submodule; production assets `web/dist` (`//go:embed`) |
+| GUI | Vue in `desktop/frontend`; Wails window ([ADR 013](docs/architecture/013-http-images-and-tts.md)) |
 | HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
-| API docs | go-swagger comments in `internal/api`; `make swagger` → `web/swagger.json` |
+| API docs | go-swagger comments on image and TTS routes; `make swagger` → `web/swagger.json` (not served) |
 | Tests | `go test ./... -race`; fuzz targets under services |
 
 ---
@@ -121,15 +126,13 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 ```bash
 git clone https://github.com/HardDie/DeckBuilder --recursive
 ./deployment/check_binary.sh
-make web-build   # gui: yarn install && yarn build → web/dist
-make build       # deployment/build_all.sh → deployment/out
+make build       # deployment/build_all.sh → deployment/out (image + TTS server)
+make wails-dev   # Wails window
 make test
 make linter-run  # after make linter-install
 ```
 
-Local API + embedded UI: build `cmd/deck_builder` and run it. `-debug` skips opening the browser. Swagger UI: `http://localhost:5000/docs`.
-
-GUI-only development typically runs the Vue app separately against this API (CORS is open). Keep API contracts stable.
+`cmd/deck_builder` listens for images and TTS. It does not open a browser. The UI is `make wails-dev`.
 
 ---
 
@@ -154,7 +157,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Business logic | `internal/services` |
 | Image + zip + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
-| Embedded UI + swagger | `web/` |
+| Swagger spec (not served) | `web/swagger.json` |
 | Wails window (scaffold) | `desktop/` |
 | One-off CLIs | `tools/` |
 
@@ -169,8 +172,8 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── architecture/       # ADRs
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
-├── cmd/deck_builder/       # production main, swagger:meta, -debug, version ldflags
-├── desktop/                # Wails v2 window (own module; starts the same HTTP application)
+├── cmd/deck_builder/       # image + TTS HTTP server, swagger:meta, version ldflags
+├── desktop/                # Wails v2 window (own module; starts the same HTTP server)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
 │   ├── api/                # route registration + swagger types
@@ -184,11 +187,11 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── page_drawer/        # sheet layout
 │   ├── progress/           # singleton generate status
 │   ├── config/
-│   ├── network/            # JSON envelope, open browser
+│   ├── network/            # JSON envelope
 │   ├── errors/
 │   └── …
-├── web/                    # embed dist + swagger.json
-├── gui/                    # submodule: DeckBuilderGUI
+├── web/                    # swagger.json (not served)
+├── gui/                    # submodule: DeckBuilderGUI (not served over HTTP)
 ├── deployment/
 └── tools/                  # join, copy_cards_variables
 ```
@@ -213,7 +216,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game (including export and import), collection, deck, card, system, search, and generator verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
+- **The UI is the Wails window.** Game (including export and import), collection, deck, card, system, search, generator, and replace use bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md), [ADR 013](docs/architecture/013-http-images-and-tts.md)). HTTP serves images and TTS.
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the binding on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **System `Status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
@@ -236,5 +239,5 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - Prefer the smallest change that preserves the GUI contract over a layer rewrite.
 - Do not collapse `servers` / `services` / `db` “to simplify” without an ADR.
 - Do not put business rules in `internal/api` (comments + registration only).
-- Frontend is a submodule: `git clone --recursive`. Do not vendor a second copy of the GUI into `web/` by hand except via `make web-build`.
+- The Vue UI that ships is `desktop/frontend`. Do not embed it under `web/`.
 }

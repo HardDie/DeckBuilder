@@ -7,9 +7,7 @@ Registers mux routes and holds **go-swagger** request/response types. Handlers o
 | File | Registers | Server interface |
 |---|---|---|
 | `image.go` | `…/image` for game/collection/deck/card | `servers/image` |
-| `replace.go` | `/api/replace/prepare`, `/api/replace` | replace server |
 | `tts_upload.go` | `/api/tts/data` | TTS server |
-| `static.go` | `/`, SPA fallback, `/docs`, swagger JSON | — |
 
 ## How it is used
 

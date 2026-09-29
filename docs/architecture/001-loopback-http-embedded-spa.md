@@ -1,6 +1,6 @@
 # 1. Loopback HTTP process; GUI is a separate SPA
 
-* **Status:** Accepted
+* **Status:** Superseded by [013](013-http-images-and-tts.md)
 * **Date:** 2026-09-18
 * **Authors:** @oleg
 

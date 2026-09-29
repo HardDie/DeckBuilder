@@ -15,8 +15,6 @@ Game, collection, deck, and card CRUD, plus game export and import, live on Wail
 | Package | Handlers | Downstream |
 |---|---|---|
 | `image` | `GameHandler`, `CollectionHandler`, `DeckHandler`, `CardHandler` | corresponding `service*.GetImage` |
-| `search` | recursive search | `services/search` |
-| `replace` | prepare + replace | `services/replace` |
 | `tts` | `GET /api/tts/data` | `services/tts` one-shot buffer |
 
 Servers must not import `internal/db` or fsentry.

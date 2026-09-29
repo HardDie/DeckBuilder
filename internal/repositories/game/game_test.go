@@ -35,7 +35,7 @@ func initGame(t testing.TB, name string) *game {
 	})
 
 	// Init config with tmp dir
-	cfg := config.Get(false, "")
+	cfg := config.Get("")
 	cfg.SetDataPath(dir)
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())

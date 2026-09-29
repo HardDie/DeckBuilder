@@ -41,7 +41,7 @@ func newDeckTest(t testing.TB) *deckTest {
 		os.RemoveAll(dir)
 	})
 
-	cfg := config.Get(false, "")
+	cfg := config.Get("")
 	cfg.SetDataPath(dir)
 
 	db := fsentry.New(cfg.Games(), fsentry.WithPretty(), fsentry.WithNoLockFile())

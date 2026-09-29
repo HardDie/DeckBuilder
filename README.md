@@ -6,7 +6,7 @@
 
 ---
 
-The frontend for this application: https://github.com/lmm1ng/DeckBuilderGUI
+The app window is the Wails project in `desktop/`.
 
 [Video guide [ENG]](https://www.youtube.com/watch?v=jty_nEsGGJg)
 
@@ -40,22 +40,17 @@ Check that all necessary packages are installed
 ./deployment/check_binary.sh
 ```
 
-Build web
+Run the window
 ```
-make web-build
+make wails-dev
 ```
 
-Build binary
+Build the image and TTS server
 ```
 make build
 ```
 
 The resulting files can be found in the deployment/out folder
-
-## Swagger
-```
-http://localhost:5000/docs
-```
 
 ## Documentation
 

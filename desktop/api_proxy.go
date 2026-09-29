@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
-// Wails AssetServer only reverse-proxies GET to the Vite dev server; POST/PATCH/DELETE
-// (and GET when the file is missing from assets) go through Handler. Serve /api from
-// the same mux as the loopback HTTP server.
+// Image GETs use /api/.../image.
+// Wails does not put those files in the embed.
+// Handler serves them from the same mux as the loopback server.
+// In wails dev, Vite still proxies GET /api to that server.
 func apiHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.URL.Path, "/api") {

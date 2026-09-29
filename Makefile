@@ -10,22 +10,8 @@ build: ## build app for all platforms
 	cd deployment && ./build_all.sh
 
 .PHONY: wails-dev
-wails-dev: ## run Wails desktop app (starts loopback HTTP + Vue UI)
+wails-dev: ## run Wails desktop app (window + image/TTS HTTP)
 	cd desktop && wails dev
-
-.PHONY: web-build
-web-build: ## build web interface
-	cd gui && yarn install
-	cd gui && yarn build
-
-.PHONY: web-build-docker
-web-build-docker: ## build web interface using docker container
-	docker run --rm \
-		-v .:/app \
-		--workdir /app/gui \
-		-u $(shell id -u) \
-		--name node node:latest \
-		make
 
 .PHONY: swagger
 swagger: ## generate swagger json file

@@ -19,7 +19,6 @@
 package main
 
 import (
-	"flag"
 	"runtime/debug"
 
 	"github.com/HardDie/DeckBuilder/internal/application"
@@ -33,11 +32,6 @@ var (
 )
 
 func main() {
-	// If the flag is set, run the game in debug mode.
-	// - Do not request the url and don't open the browser
-	debugFlag := flag.Bool("debug", false, "")
-	flag.Parse()
-
 	if info, available := debug.ReadBuildInfo(); available {
 		switch info.Main.Version {
 		case "", "(devel)":
@@ -60,7 +54,7 @@ func main() {
 		version = "unknown"
 	}
 
-	app, err := application.Get(*debugFlag, version)
+	app, err := application.Get(version)
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}

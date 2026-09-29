@@ -8,10 +8,10 @@
 
 ## Main scenario (happy path)
 
-1. Client `POST /api/replace/prepare` multipart `file` = generated JSON.
-2. Response lists unique image keys (`Couple`) with empty values for the user to fill.
-3. Client `POST /api/replace` with `file` (original JSON) and `mapping` (filled keys → HTTP URLs).
-4. Response is new JSON with paths replaced; user can save a table others can load.
+1. The replace binding `Prepare` takes the generated JSON bytes.
+2. The result lists unique image keys (`Couple`) with empty values for the user to fill.
+3. `Replace` takes the original JSON and the mapping (filled keys → HTTP URLs).
+4. The result is new JSON with paths replaced; the user can save a table others can load.
 
 ## Alternative scenarios and errors
 

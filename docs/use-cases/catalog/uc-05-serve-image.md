@@ -2,7 +2,7 @@
 
 **Module:** `internal/servers/image`  
 **Status:** Implemented  
-**Actors:** GUI `<img>`, generator (via services), browsers  
+**Actors:** Wails `<img>`, TTS or other HTTP clients  
 **Goal:** Return stored image bytes for game/collection/deck/card  
 **Preconditions:** Entity exists and has image data on disk
 
@@ -19,4 +19,4 @@
 
 ## Postconditions
 
-* `dto.*` `cachedImage` fields point at these paths so the SPA does not read the data directory itself.
+* `dto.*` `cachedImage` fields point at these paths so the window does not read the data directory itself.

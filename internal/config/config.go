@@ -23,7 +23,6 @@ const (
 )
 
 type Config struct {
-	Debug   bool   `json:"debug"`
 	Version string `json:"version"`
 
 	Data   string `json:"data"`
@@ -37,7 +36,7 @@ type Config struct {
 	GameImagePath       string `json:"gameImagePath"`
 }
 
-func Get(debugFlag bool, version string) *Config {
+func Get(version string) *Config {
 	data := "DeckBuilderData"
 	if runtime.GOOS == "darwin" {
 		// We cannot create a data folder next to an executable file on the macOS system.
@@ -50,7 +49,6 @@ func Get(debugFlag bool, version string) *Config {
 	}
 
 	return &Config{
-		Debug:   debugFlag,
 		Version: version,
 
 		Data:   data,

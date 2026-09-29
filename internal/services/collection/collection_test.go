@@ -38,7 +38,7 @@ func newCollectionTest(t testing.TB) *collectionTest {
 		os.RemoveAll(dir)
 	})
 
-	cfg := config.Get(false, "")
+	cfg := config.Get("")
 	cfg.SetDataPath(dir)
 
 	db := fsentry.New(cfg.Games(), fsentry.WithPretty(), fsentry.WithNoLockFile())

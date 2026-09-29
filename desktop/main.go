@@ -1,5 +1,5 @@
-// Wails desktop shell: same HTTP application as cmd/deck_builder, plus a webview.
-// Catalog verbs move to bindings incrementally (see docs/architecture/011-wails-bindings.md).
+// Wails desktop shell. The window hosts the Vue UI.
+// Loopback HTTP serves images and TTS only.
 package main
 
 import (
@@ -7,7 +7,6 @@ import (
 	"embed"
 	"errors"
 	"net/http"
-	"os"
 	"runtime/debug"
 
 	"github.com/wailsapp/wails/v2"
@@ -19,6 +18,7 @@ import (
 	"github.com/HardDie/DeckBuilder/desktop/bindings/deck"
 	"github.com/HardDie/DeckBuilder/desktop/bindings/game"
 	bindingsGenerator "github.com/HardDie/DeckBuilder/desktop/bindings/generator"
+	bindingsReplace "github.com/HardDie/DeckBuilder/desktop/bindings/replace"
 	bindingsSearch "github.com/HardDie/DeckBuilder/desktop/bindings/search"
 	bindingsSystem "github.com/HardDie/DeckBuilder/desktop/bindings/system"
 	"github.com/HardDie/DeckBuilder/internal/application"
@@ -29,7 +29,7 @@ import (
 var assets embed.FS
 
 func main() {
-	backend, err := application.Get(os.Getenv("frontenddevserverurl") != "", version())
+	backend, err := application.Get(version())
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}
@@ -53,6 +53,7 @@ func main() {
 	systems := bindingsSystem.New(cfg, backend.SystemService())
 	searches := bindingsSearch.New(backend.SearchService())
 	generators := bindingsGenerator.New(backend.GeneratorService())
+	replaces := bindingsReplace.New(backend.ReplaceService())
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",
@@ -76,6 +77,7 @@ func main() {
 			systems,
 			searches,
 			generators,
+			replaces,
 		},
 	})
 

@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os/exec"
-	"runtime"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -26,47 +23,6 @@ type JSONResponse struct {
 	Meta *Meta `json:"meta,omitempty"`
 	// Error information
 	Error interface{} `json:"error,omitempty"`
-}
-
-func openBrowser(url string) {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		cmd = "xdg-open"
-	}
-	args = append(args, url)
-	err := exec.Command(cmd, args...).Start()
-	if err != nil {
-		logger.Error.Fatal("Can't run browser")
-	}
-}
-func OpenBrowser(url string) {
-	go func() {
-		for {
-			time.Sleep(time.Millisecond)
-			resp, err := http.Get(url)
-			if err != nil {
-				logger.Info.Println("Failed:", err)
-				continue
-			}
-			errors.IfErrorLog(resp.Body.Close())
-			if resp.StatusCode != http.StatusOK {
-				logger.Info.Println("Not OK:", resp.StatusCode)
-				continue
-			}
-
-			// Reached this point: server is up and running!
-			break
-		}
-		openBrowser(url)
-	}()
 }
 
 func RequestToObject(r io.ReadCloser, data interface{}) (e error) {

@@ -1,6 +1,7 @@
 # 10. Wails desktop shell beside the loopback HTTP server
 
 * **Status:** Accepted (the “bindings are not the catalog API” rule is superseded by [ADR 011](011-wails-bindings.md))
+* **Also:** [ADR 013](013-http-images-and-tts.md) drops the embedded SPA and the browser.
 * **Date:** 2026-09-18
 * **Authors:** @oleg
 
@@ -38,4 +39,4 @@ A nested module (`github.com/HardDie/DeckBuilder/desktop`) keeps CGO/webview out
 
 ### Neutral
 
-* ADR 001 stays in force for the HTTP contract. This ADR does not supersede it.
+* [ADR 013](013-http-images-and-tts.md) is the HTTP contract for the window.

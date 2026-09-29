@@ -652,6 +652,85 @@ export namespace network {
 
 }
 
+export namespace replace {
+	
+	export class Couple {
+	    key: string;
+	    value: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Couple(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.key = source["key"];
+	        this.value = source["value"];
+	    }
+	}
+	export class PrepareResult {
+	    data: Couple[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PrepareResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], Couple);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Result {
+	    data?: tts_entity.RootObjects;
+	
+	    static createFrom(source: any = {}) {
+	        return new Result(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = this.convertValues(source["data"], tts_entity.RootObjects);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace search {
 	
 	export class Result {
@@ -774,6 +853,101 @@ export namespace system {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = source["data"];
 	    }
+	}
+
+}
+
+export namespace tts_entity {
+	
+	export class Transform {
+	    posX: number;
+	    posY: number;
+	    posZ: number;
+	    scaleX: number;
+	    scaleY: number;
+	    scaleZ: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Transform(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.posX = source["posX"];
+	        this.posY = source["posY"];
+	        this.posZ = source["posZ"];
+	        this.scaleX = source["scaleX"];
+	        this.scaleY = source["scaleY"];
+	        this.scaleZ = source["scaleZ"];
+	    }
+	}
+	export class Bag {
+	    Name: string;
+	    Transform: Transform;
+	    Nickname: string;
+	    Description: string;
+	    ContainedObjects: any[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Bag(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Name = source["Name"];
+	        this.Transform = this.convertValues(source["Transform"], Transform);
+	        this.Nickname = source["Nickname"];
+	        this.Description = source["Description"];
+	        this.ContainedObjects = source["ContainedObjects"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class RootObjects {
+	    ObjectStates: Bag[];
+	
+	    static createFrom(source: any = {}) {
+	        return new RootObjects(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ObjectStates = this.convertValues(source["ObjectStates"], Bag);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

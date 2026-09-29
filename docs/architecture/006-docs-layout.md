@@ -22,7 +22,7 @@ This layout follows the same split as [HardDie/ytmemchat_wails](https://github.c
 
 Use option 3.
 
-Keep README short ([Make a README](https://www.makeareadme.com/)): what it is, GUI link, TTS Saved Objects steps, build, swagger URL, license. Operator how-tos that outgrow the README can go in the wiki; HTTP contracts stay in CURSOR.md.
+Keep README short ([Make a README](https://www.makeareadme.com/)): what it is, TTS Saved Objects steps, build, license. Operator how-tos that outgrow the README can go in the wiki; HTTP contracts stay in CURSOR.md.
 
 Use cases describe **behavior that exists in this repo**. Copy `_TEMPLATE.md`. Status is Implemented (or Planned only for agreed future work listed in the index).
 

@@ -8,7 +8,7 @@ Servers call `network.ResponseError` with these. db maps fsentry `ErrExist` / `E
 
 ## `internal/network`
 
-JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToObject`. Also opens the browser on non-debug start (`cmd` via application/network).
+JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToObject`.
 
 ## `internal/logger`
 

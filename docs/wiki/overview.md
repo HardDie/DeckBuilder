@@ -1,6 +1,6 @@
 # Overview
 
-DeckBuilder’s Go process is a loopback HTTP server (`127.0.0.1:5000`). The Vue GUI is a separate repo; production assets are embedded from `web/dist`.
+DeckBuilder’s UI is the Wails window in `desktop/`. The same process is a loopback HTTP server (`127.0.0.1:5000`) for entity images and `GET /api/tts/data`.
 
 ## Request flow (catalog example)
 

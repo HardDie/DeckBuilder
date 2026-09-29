@@ -6,7 +6,7 @@ These records describe **decisions already embodied in this repository**, so age
 
 | ID | Title | Status |
 |---|---|---|
-| [001](001-loopback-http-embedded-spa.md) | Loopback HTTP process; GUI is a separate SPA | Accepted |
+| [001](001-loopback-http-embedded-spa.md) | Loopback HTTP process; GUI is a separate SPA | Superseded |
 | [002](002-four-level-catalog.md) | Game → collection → deck → card | Accepted |
 | [003](003-fsentry-on-disk.md) | Catalog stored with fsentry under DeckBuilderData | Accepted |
 | [004](004-layered-go-packages.md) | api → servers → services → repositories → db | Accepted |
@@ -18,3 +18,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [010](010-wails-shell.md) | Wails desktop shell beside loopback HTTP | Accepted |
 | [011](011-wails-bindings.md) | Incremental Wails catalog bindings beside HTTP | Accepted |
 | [012](012-card-image-urls.md) | Card faces load from an image URL | Accepted |
+| [013](013-http-images-and-tts.md) | HTTP serves images and TTS; Wails hosts the UI | Accepted |
