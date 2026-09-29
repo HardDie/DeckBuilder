@@ -6,7 +6,6 @@ Registers mux routes and holds **go-swagger** request/response types. Handlers o
 
 | File | Registers | Server interface |
 |---|---|---|
-| `game.go` | `/api/games/import` | `servers/game.Game` |
 | `image.go` | `…/image` for game/collection/deck/card | `servers/image` |
 | `replace.go` | `/api/replace/prepare`, `/api/replace` | replace server |
 | `tts_upload.go` | `/api/tts/data` | TTS server |
@@ -16,7 +15,7 @@ Generate and system routes live next to those servers’ register functions (sam
 
 ## How it is used
 
-`application.Get` calls `RegisterGameServer(routes, serverGame)` and the rest. The **real** handler is the implemented server, not `Unimplemented*`.
+`application.Get` calls `RegisterImageServer` and the rest. The **real** handler is the implemented server, not `Unimplemented*`.
 
 Do not put fsentry, generate, or validation here. If the GUI needs a new field, add it on a DTO and a swagger struct in the same file as the route.
 

@@ -7,7 +7,7 @@ DeckBuilder is a **local authoring tool** for card games that export to [Tableto
 1. **SPA (embedded `web/dist`)** — the authoring UI. It talks only to this process over HTTP. SPA routes such as `/games/{id}/…` are SPA paths; Go forwards them to `index.html` so reloads work.
 2. **REST API (`/api/…`)** — JSON (and multipart) for CRUD, images, generate, replace. TTS Lua downloads the last generated object from `GET /api/tts/data`.
 
-**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, import, generate, and verbs not yet moved.
+**Not this product:** a multi-user cloud service, or a TTS plugin inside the game (beyond a one-shot External Editor TCP poke). The process is a **loopback HTTP server** on `127.0.0.1:5000`. The Wails window in `desktop/` runs that same HTTP stack in-process and migrates catalog verbs to bindings one at a time ([ADR 011](docs/architecture/011-wails-bindings.md)); HTTP remains for images, TTS, generate, and verbs not yet moved.
 
 ---
 
@@ -59,7 +59,6 @@ Listen: **`127.0.0.1:5000`**, then `:5001` … if bind fails, up to **20** ports
 
 | Method | Route | Role |
 |---|---|---|
-| POST | `/api/games/import` | Import zip (`file`, optional `name`) |
 | GET | `/api/games/{game}/image` (and nested `…/image`) | Entity image bytes |
 | POST | `/api/games/{game}/generate` | Start background render (`sortOrder`, `scale`) |
 | POST | `/api/replace/prepare` | Extract unique FaceURL/BackURL keys |
@@ -215,7 +214,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game (including export), collection, deck, card, system, and search verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
+- **This repo is the backend.** GUI changes belong in DeckBuilderGUI unless you are only embedding a new `web/dist`. Wails in `desktop/` runs the same HTTP application in a window ([ADR 010](docs/architecture/010-wails-shell.md)); game (including export and import), collection, deck, card, system, and search verbs use Wails bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md)).
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the HTTP handler on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **System `Status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”

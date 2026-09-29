@@ -4,24 +4,11 @@ HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Respon
 
 Each aggregate: `contract.go` (handler interface) + `server.go`.
 
-## Shared constructor fields
+## Catalog
 
-Catalog servers typically hold:
+Game, collection, deck, and card CRUD, plus game export and import, live on Wails bindings (`desktop/bindings/`). No game HTTP handlers remain.
 
-| Field | Meaning |
-|---|---|
-| `cfg` | For `CachedImage` URL templates |
-| `service*` | Use-case methods |
-
-## Catalog servers (`game`)
-
-Game, collection, deck, and card CRUD live on Wails bindings (`desktop/bindings/`). HTTP catalog left:
-
-| Handler | HTTP | Service call |
-|---|---|---|
-| `ImportHandler` | game zip | repository via service |
-
-`calculateCachedImage` fills `dto.*.CachedImage` from `cfg.*ImagePath`.
+`cachedImage` URLs are built in `desktop/bindings/catalog`.
 
 ## Other servers
 

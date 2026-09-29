@@ -19,7 +19,7 @@ Glue between services and db: image files, zip, HTTP download. Each catalog repo
 | `Delete` | `db.Delete` | service |
 | `Duplicate` | `db.Duplicate` | service |
 | `Export` | zip `cfg.Games()/id` via `internal/fs` | service, Wails `game.Export` |
-| `Import` | unzip into games dir, `GetByID`, `UpdateInfo` if renamed | service/server |
+| `Import` | unzip into games dir, `GetByID`, `UpdateInfo` if renamed | service, Wails `game.Import` |
 | `GetImage` | `db.ImageGet` | service GetImage |
 
 `UpdateInfo` is the import path: rewrite folder display name without bumping timestamps (`UpdateFolderNameWithoutTimestamp`).

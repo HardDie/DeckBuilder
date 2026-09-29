@@ -11,6 +11,7 @@ import (
 	"github.com/HardDie/DeckBuilder/desktop/bindings/catalog"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 )
@@ -140,6 +141,18 @@ func (g *Game) Export(gameID string) error {
 		return err
 	}
 	return os.WriteFile(path, data, 0o644)
+}
+
+// Import creates a game from zip bytes. name is optional.
+func (g *Game) Import(name string, data []byte) (*Result, error) {
+	if len(data) == 0 {
+		return nil, er.BadArchive.AddMessage("The file must be passed as an argument")
+	}
+	item, err := g.svc.Import(data, name)
+	if err != nil {
+		return nil, err
+	}
+	return &Result{Data: catalog.GameDTO(g.cfg, *item)}, nil
 }
 
 func exportFilename(name, gameID string) string {

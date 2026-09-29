@@ -13,6 +13,7 @@ Typical fields: `cfg`, `repository*`.
 | `GetImage` | repository binary + content type | `servers/image` |
 | `Duplicate` (game) | repository duplicate | game server |
 | `Export` (game) | zip bytes of the game folder | `game.Export` binding |
+| `Import` (game) | create a game from zip bytes; optional name | `game.Import` binding |
 
 Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 

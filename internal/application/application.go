@@ -18,7 +18,6 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	serversGame "github.com/HardDie/DeckBuilder/internal/servers/game"
 	serversGenerator "github.com/HardDie/DeckBuilder/internal/servers/generator"
 	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
 	serversReplace "github.com/HardDie/DeckBuilder/internal/servers/replace"
@@ -73,8 +72,6 @@ func Get(debugFlag bool, version string) (*Application, error) {
 	// game
 	repositoryGame := repositoriesGame.New(cfg, db)
 	serviceGame := servicesGame.New(cfg, repositoryGame)
-	serverGame := serversGame.New(*cfg, serviceGame)
-	api.RegisterGameServer(routes, serverGame)
 
 	// collection
 	repositoryCollection := repositoriesCollection.New(cfg, db)

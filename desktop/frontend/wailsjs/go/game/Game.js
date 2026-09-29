@@ -18,6 +18,10 @@ export function Export(arg1) {
   return window['go']['game']['Game']['Export'](arg1);
 }
 
+export function Import(arg1, arg2) {
+  return window['go']['game']['Game']['Import'](arg1, arg2);
+}
+
 export function List(arg1, arg2) {
   return window['go']['game']['Game']['List'](arg1, arg2);
 }

@@ -17,48 +17,6 @@
   "host": "localhost:5000",
   "basePath": "/",
   "paths": {
-    "/api/games/import": {
-      "post": {
-        "description": "Creat game from archive",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "tags": [
-          "Games"
-        ],
-        "summary": "# Import game from archive",
-        "operationId": "RequestImportGame",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "description": "Specify a name for the imported game",
-            "name": "name",
-            "in": "formData"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "uint8"
-            },
-            "x-go-name": "File",
-            "description": "Binary data of the imported file",
-            "name": "file",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ResponseGameImport"
-          },
-          "default": {
-            "$ref": "#/responses/ResponseError"
-          }
-        }
-      }
-    },
     "/api/games/{game}/collections/{collection}/decks": {
       "get": {
         "description": "Get a list of existing decks\nSort values: name, name_desc, created, created_desc",
@@ -1137,42 +1095,6 @@
       },
       "x-go-package": "github.com/HardDie/DeckBuilder/internal/errors"
     },
-    "Game": {
-      "type": "object",
-      "properties": {
-        "cachedImage": {
-          "type": "string",
-          "x-go-name": "CachedImage"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
-        },
-        "description": {
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "id": {
-          "type": "string",
-          "x-go-name": "ID"
-        },
-        "image": {
-          "type": "string",
-          "x-go-name": "Image"
-        },
-        "name": {
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "UpdatedAt"
-        }
-      },
-      "x-go-package": "github.com/HardDie/DeckBuilder/internal/dto"
-    },
     "Meta": {
       "type": "object",
       "properties": {
@@ -1317,20 +1239,6 @@
         "items": {
           "type": "integer",
           "format": "uint8"
-        }
-      }
-    },
-    "ResponseGameImport": {
-      "description": "Import game",
-      "schema": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/definitions/Game"
-          }
         }
       }
     },

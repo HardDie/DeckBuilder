@@ -1,4 +1,13 @@
-import { List, Create, Read, Update, Delete, Duplicate, Export } from '../../wailsjs/go/game/Game'
+import {
+  List,
+  Create,
+  Read,
+  Update,
+  Delete,
+  Duplicate,
+  Export,
+  Import,
+} from '../../wailsjs/go/game/Game'
 import { withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
@@ -26,10 +35,7 @@ export default {
     return withBindingError(Export(requestData.gameId || requestData.id || ''))
   },
   import(requestData) {
-    return fetch('/api/games/import', {
-      method: 'POST',
-      body: requestData,
-    }).then(response => response.json())
+    return withBindingError(importZip(requestData).then(({ name, file }) => Import(name, file)))
   },
   duplicate(requestData) {
     return withBindingError(
@@ -42,4 +48,16 @@ export default {
       body: JSON.stringify(requestData.body),
     })
   },
+}
+
+async function importZip(body) {
+  const file = body instanceof FormData ? body.get('file') : body?.file
+  const name = (body instanceof FormData ? body.get('name') : body?.name) || ''
+  if (!(file instanceof Blob) || file.size === 0) {
+    throw new Error('The file must be passed as an argument')
+  }
+  return {
+    name,
+    file: Array.from(new Uint8Array(await file.arrayBuffer())),
+  }
 }

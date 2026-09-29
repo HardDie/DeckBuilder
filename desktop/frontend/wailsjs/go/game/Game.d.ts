@@ -11,6 +11,8 @@ export function Duplicate(arg1:string,arg2:string):Promise<game.Result>;
 
 export function Export(arg1:string):Promise<void>;
 
+export function Import(arg1:string,arg2:Array<number>):Promise<game.Result>;
+
 export function List(arg1:string,arg2:string):Promise<game.ListResult>;
 
 export function Read(arg1:string):Promise<game.Result>;
