@@ -247,13 +247,14 @@ func TestCardList(t *testing.T) {
 		got, err := e.card.list(gameID, collectionID, deckID)
 		assert.NoError(t, err)
 		assert.Len(t, got, 2)
-		first.CreatedAt = first.CreatedAt.Truncate(time.Nanosecond)
-		first.UpdatedAt = first.UpdatedAt.Truncate(time.Nanosecond)
-		second.CreatedAt = second.CreatedAt.Truncate(time.Nanosecond)
-		second.UpdatedAt = second.UpdatedAt.Truncate(time.Nanosecond)
+		// JSON round-trip drops the location. UTC keeps the instant comparable.
+		first.CreatedAt = first.CreatedAt.UTC().Truncate(time.Nanosecond)
+		first.UpdatedAt = first.UpdatedAt.UTC().Truncate(time.Nanosecond)
+		second.CreatedAt = second.CreatedAt.UTC().Truncate(time.Nanosecond)
+		second.UpdatedAt = second.UpdatedAt.UTC().Truncate(time.Nanosecond)
 		for _, item := range got {
-			item.CreatedAt = item.CreatedAt.Truncate(time.Nanosecond)
-			item.UpdatedAt = item.UpdatedAt.Truncate(time.Nanosecond)
+			item.CreatedAt = item.CreatedAt.UTC().Truncate(time.Nanosecond)
+			item.UpdatedAt = item.UpdatedAt.UTC().Truncate(time.Nanosecond)
 		}
 		assert.ElementsMatch(t, []*entitiesCard.Card{first, second}, got)
 	})
