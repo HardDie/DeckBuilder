@@ -2,15 +2,11 @@
 
 ## `cmd/deck_builder`
 
-`main`: `version.String()` into `application.Get`, then `app.Run()` (listen for images and TTS). Stamp `-X github.com/HardDie/DeckBuilder/pkg/version.Build`. Swagger `meta` comments live on this package. No browser.
+`main`: `version.String()` into `application.Get`, then `app.Run()` (listen for images and TTS). Stamp `-X github.com/HardDie/DeckBuilder/pkg/version.Build`. No browser.
 
 ## `desktop/`
 
 Wails v2 window (separate Go module). Starts the same image and TTS HTTP server. Vue UI is `desktop/frontend`. Catalog, export, import, generate, and replace are Wails bindings ([ADR 011](../architecture/011-wails-bindings.md), [ADR 013](../architecture/013-http-images-and-tts.md)). `AssetServer.Handler` serves `/api` images (Vite GET in `wails dev` still targets `:5000`). `make wails-dev`. `make build` writes the binary to `desktop/build/bin`.
-
-## `web/`
-
-`swagger.json` from `make swagger`. Not served over HTTP.
 
 ## `tools/copy_cards_variables`
 

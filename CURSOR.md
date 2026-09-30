@@ -116,7 +116,6 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 | HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
-| API docs | go-swagger comments on image and TTS routes; `make swagger` → `web/swagger.json` (not served) |
 | Tests | `go test ./... -race`; fuzz targets under services |
 
 ---
@@ -146,7 +145,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Architecture decisions | **[docs/architecture](docs/architecture/INDEX.md)** |
 | Use cases | **[docs/use-cases](docs/use-cases/INDEX.md)** |
 | Go modules, fields, who calls what | **[docs/wiki](docs/wiki/Home.md)** |
-| HTTP routes + swagger comments | `internal/api` |
+| HTTP routes | `internal/api` |
 | Process wiring | `internal/application/application.go` |
 | Paths, sheet limits | `internal/config` |
 | Domain structs | `internal/entities` |
@@ -156,7 +155,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Business logic | `internal/services` |
 | Image + zip + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
-| Swagger spec (not served) | `web/swagger.json` |
 | Wails window (scaffold) | `desktop/` |
 | One-off CLIs | `tools/` |
 
@@ -171,11 +169,11 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── architecture/       # ADRs
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
-├── cmd/deck_builder/       # image + TTS HTTP server, swagger:meta
+├── cmd/deck_builder/       # image + TTS HTTP server
 ├── desktop/                # Wails v2 window (own module; starts the same HTTP server)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
-│   ├── api/                # route registration + swagger types
+│   ├── api/                # route registration
 │   ├── servers/            # HTTP adapters
 │   ├── services/           # use-case logic
 │   ├── repositories/       # images + persistence glue
@@ -190,13 +188,13 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── errors/
 │   └── …
 ├── pkg/version/            # exact git tag or 12-character commit hash
-├── web/                    # swagger.json (not served)
+├── web/                    # dist stub, not served
 └── tools/                  # join, copy_cards_variables
 ```
 
 **Layer rules**
 
-- **`api` registers routes** and holds swagger request/response types. Unimplemented structs exist so `go-swagger` can scan comments.
+- **`api` registers routes.** Handlers live in `servers`.
 - **`servers` parse HTTP** (mux vars, multipart) and map to services + `dto`. They must not talk to fsentry directly.
 - **`services` own rules** (validation, generate orchestration, replace). They depend on repositories / other services, not `net/http`.
 - **`repositories` + `db`** own disk. `db` is the fsentry mapping; repositories add image files and config paths.
@@ -221,7 +219,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **TTS TCP is best-effort Execute Lua on Global (`39999`, `messageID` 3, `guid` `-1`).** If TTS is not running, generate still writes `result/`. `/api/tts/data` is one-shot (clears the buffer). Official protocol: [External Editor API](https://api.tabletopsimulator.com/externaleditorapi/).
 - **IDs:** string ids come from fsentry (name-derived). Card ids are integers. Path params named `{card}` are still parsed as that integer id.
 - **Deck image = card back** for that deck’s sheets. Missing backside fails generate.
-- **Keep swagger comments in `internal/api` in sync** when routes or bodies change (`make swagger`).
 - **macOS data path is home**, not next to the binary.
 - **Version** is `pkg/version`.
   - Stamp `-X github.com/HardDie/DeckBuilder/pkg/version.Build`.

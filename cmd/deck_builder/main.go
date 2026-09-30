@@ -1,21 +1,4 @@
-// Package main DeckBuilder
-//
-// Entry point for the application.
-//
-// Terms Of Service:
-//
-//	Schemes: http
-//	Host: localhost:5000
-//	BasePath: /
-//	Version: 1.0.0
-//
-//	Consumes:
-//	- application/json
-//
-//	Produces:
-//	- application/json
-//
-// swagger:meta
+// Image and TTS HTTP server. No window.
 package main
 
 import (

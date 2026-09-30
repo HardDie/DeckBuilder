@@ -7,14 +7,14 @@ Developer notes for the Go process. The UI is the Wails window. Product intro an
 | [Overview](Overview) | Request flow, two fsentry handles, on-disk layout, IDs |
 | [Application](Application) | Composition root in `internal/application` |
 | [Config](Config) | Paths, generate limits, `Games()` vs `gamesPath` |
-| [API](API) | Route registration and swagger types |
+| [API](API) | Route registration |
 | [Servers](Servers) | HTTP adapters |
 | [Services](Services) | Rules: catalog, generate, search, replace, system, TTS |
 | [Repositories](Repositories) | Images, zip, config paths |
 | [DB](DB) | fsentry mapping, fields, methods, callers |
 | [Entities and DTOs](Entities-and-DTOs) | Domain vs GUI JSON vs TTS JSON |
 | [Helpers](Helpers) | errors, network, fs, images, progress, page_drawer |
-| [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, `desktop/` Wails window, `web/swagger.json`, `tools/` |
+| [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, `desktop/` Wails window, `tools/` |
 
 ## Layer rule
 

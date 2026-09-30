@@ -22,14 +22,6 @@ build: ## build the Wails app for this machine
 wails-dev: ## run Wails desktop app (window + image/TTS HTTP)
 	cd desktop && wails dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
-.PHONY: swagger
-swagger: ## generate swagger json file
-	./swagger generate spec -m -o web/swagger.json
-
-.PHONY: swagger-install-linux
-swagger-install-linux: ## install swagger for linux
-	curl -o swagger -L https://github.com/go-swagger/go-swagger/releases/download/v0.29.0/swagger_linux_amd64 && chmod +x swagger
-
 .PHONY: linter-install
 linter-install: ## install linters
 	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b ./bin

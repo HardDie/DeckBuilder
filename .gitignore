@@ -1,6 +1,5 @@
 .idea/
 /DeckBuilderData/
-/swagger
 /bin/
 /web/dist/
 /desktop/build/bin

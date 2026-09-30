@@ -14,7 +14,7 @@ The backend grew CRUD for four aggregates plus generate, search, replace, images
 
 1. **Handlers in `package main` / one `internal/http`.**
 2. **Hexagonal ports with many small packages per verb.**
-3. **Fixed layers used everywhere:** `internal/api` (routes + swagger types), `internal/servers` (HTTP), `internal/services` (rules), `internal/repositories` + `internal/db` (disk).
+3. **Fixed layers used everywhere:** `internal/api` (route registration), `internal/servers` (HTTP), `internal/services` (rules), `internal/repositories` + `internal/db` (disk).
 
 ## Decision
 
@@ -22,14 +22,11 @@ Use option 3. Wiring is only in `internal/application`. Each aggregate has `cont
 
 `internal/entities` are in-process structs. `internal/dto` is the JSON the GUI sees. `internal/tts_entity` is the TTS Saved Object schema — not the same as catalog cards.
 
-Swagger scans `internal/api` comments; unimplemented server structs satisfy the server interfaces so the spec stays next to routes.
-
 ## Consequences
 
 ### Positive
 
 * Services are testable without `net/http` (see fuzz tests under `internal/services/*`).
-* Swagger does not require running the server.
 * New endpoints follow an existing file to copy.
 
 ### Negative and risks
