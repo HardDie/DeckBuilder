@@ -1,16 +1,15 @@
 package game
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
-	"path/filepath"
 
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
-	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -153,40 +152,32 @@ func (r *game) Export(gameID string) ([]byte, error) {
 		return nil, err
 	}
 
-	return fs.ArchiveFolder(filepath.Join(r.cfg.Games(), g.ID), g.ID)
+	var buf bytes.Buffer
+	if err = r.db.ExportFolder(&buf, g.ID, r.gamesPath); err != nil {
+		return nil, er.InternalError.AddMessage(err.Error())
+	}
+	return buf.Bytes(), nil
 }
 
 func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
-	gameID := utils.NameToID(name)
-	if name != "" && gameID == "" {
-		return nil, er.BadName
-	}
-
-	resultGameID, err := fs.UnarchiveFolder(data, gameID, r.cfg)
+	id, err := r.db.ImportFolder(bytes.NewReader(data), name, r.gamesPath)
 	if err != nil {
-		return nil, err
-	}
-
-	g, err := r.GetByID(resultGameID)
-	if err != nil {
-		er.IfErrorLog(r.delete(resultGameID))
-		return nil, err
-	}
-
-	if name == "" && resultGameID != g.ID {
-		gameID = resultGameID
-		name = resultGameID
-	}
-
-	if name != "" {
-		g.ID = gameID
-		g.Name = name
-
-		if err = r.updateInfo(g.ID, name); err != nil {
-			return nil, err
+		if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		} else if errors.Is(err, fsentry.ErrBadArchive) {
+			return nil, er.BadArchive.AddMessage(err.Error())
+		} else if errors.Is(err, fsentry.ErrExist) {
+			return nil, er.GameExist.AddMessage(err.Error())
+		} else {
+			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
+	g, err := r.GetByID(id)
+	if err != nil {
+		er.IfErrorLog(r.delete(id))
+		return nil, err
+	}
 	return g, nil
 }
 
@@ -330,11 +321,6 @@ func (r *game) duplicate(srcName, dstName string) (*entitiesGame.Game, error) {
 		}
 	}
 	return r.toEntity(info), nil
-}
-
-func (r *game) updateInfo(name, newName string) error {
-	_, err := r.db.UpdateFolderNameWithoutTimestamp[model](name, newName, r.gamesPath)
-	return err
 }
 
 func (r *game) imageCreate(gameID string, data []byte) error {

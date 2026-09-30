@@ -18,11 +18,11 @@ Glue between services and db: image files, zip, HTTP download. Each catalog repo
 | `Update` | `Move` if name changed, then `Update` payload, maybe replace image | service |
 | `Delete` | `db.Delete` | service |
 | `Duplicate` | `db.Duplicate` | service |
-| `Export` | zip `cfg.Games()/id` via `internal/fs` | service, Wails `game.Export` |
-| `Import` | unzip into games dir, `GetByID`, `UpdateInfo` if renamed | service, Wails `game.Import` |
+| `Export` | `db.ExportFolder` of that game under `games/` | service, Wails `game.Export` |
+| `Import` | `db.ImportFolder` into `games/`, then `GetByID` | service, Wails `game.Import` |
 | `GetImage` | `db.ImageGet` | service GetImage |
 
-`UpdateInfo` is the import path: rewrite folder display name without bumping timestamps (`UpdateFolderNameWithoutTimestamp`).
+`Import` with a name asks fsentry to rewrite the folder id and `.info.json` name. Timestamps stay. An existing game with that destination id returns `GameExist` and is left unchanged. Importing under a different id leaves the archive's original game in place.
 
 ## Collection / deck / card
 

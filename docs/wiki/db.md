@@ -4,7 +4,7 @@ Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + req
 
 ## Handle
 
-All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.4 (`New` + `Init`). Callers: `application.Get` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
+All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.6 (`New` + `Init`). Callers: `application.Get` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
 
 ## Field: `gamesPath`
 
@@ -63,7 +63,7 @@ No `gamesPath`. One JSON **entry** named `settings`.
 |---|---|---|
 | `Create` / `Get` / `List` / `Move` / `Update` / `Delete` | folder CRUD under `games/` | game repository |
 | `Duplicate` | `DuplicateFolder` | repository Duplicate |
-| `UpdateInfo` | `UpdateFolderNameWithoutTimestamp` (renames folder, keeps timestamps) | repository Import |
+| `Export` / `Import` | `ExportFolder` / `ImportFolder` under `games/` | repository Export/Import |
 | `ImageCreate` / `Get` / `Delete` | binary `"image"` | repository images |
 
 `model`: `Description`, `Image` as `fsentry.QuotedString` (double-encoded JSON strings for display text).

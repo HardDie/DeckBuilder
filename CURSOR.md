@@ -153,7 +153,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | TTS Saved Object shapes | `internal/tts_entity` |
 | HTTP handlers | `internal/servers` |
 | Business logic | `internal/services` |
-| Image + zip + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
+| Image + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
 | Wails window (scaffold) | `desktop/` |
 | One-off CLIs | `tools/` |

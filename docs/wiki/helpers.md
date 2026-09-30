@@ -16,7 +16,7 @@ JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToOb
 
 ## `internal/fs`
 
-OS files: zip archive/unarchive game folders, write generate outputs, JSON helpers. Used by **game repository** export/import and **generator**, not by `internal/db`.
+OS files: write generate outputs, JSON helpers. Used by **generator**, image, and network. Game export/import uses fsentry `ExportFolder` / `ImportFolder`.
 
 ## `internal/images`
 

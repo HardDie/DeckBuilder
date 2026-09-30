@@ -1,9 +1,12 @@
 package game
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -302,45 +305,109 @@ func TestGameDuplicate(t *testing.T) {
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
-func TestGameUpdateInfo(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		oldName := "success_old"
-		newName := "success_new"
+func TestGameExportImport(t *testing.T) {
+	t.Run("round_trip", func(t *testing.T) {
+		g := initGame(t, "game_export_import__round_trip")
+		created, err := g.create(CreateRequest{
+			Name:        "My Game",
+			Description: "desc",
+		})
+		assert.NoError(t, err)
+		_, err = g.create(CreateRequest{Name: "Other"})
+		assert.NoError(t, err)
+		assert.NoError(t, g.imageCreate(created.ID, img))
 
-		g := initGame(t, "game_update_info__success")
-		created, err := g.create(CreateRequest{Name: oldName})
+		data, err := g.Export(created.ID)
 		assert.NoError(t, err)
-		err = g.updateInfo(oldName, newName)
+		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 		assert.NoError(t, err)
-		got, err := g.get(newName)
+		assert.NotEmpty(t, zr.File)
+		for _, f := range zr.File {
+			assert.True(t, strings.HasPrefix(f.Name, created.ID+"/"), f.Name)
+			assert.NotContains(t, f.Name, "other")
+		}
+
+		dst := initGame(t, "game_export_import__round_trip_dst")
+		got, err := dst.Import(data, "")
 		assert.NoError(t, err)
-		assert.Equal(t, utils.NameToID(newName), got.ID)
-		assert.Equal(t, newName, got.Name)
-		assert.Equal(t, created.CreatedAt, got.CreatedAt)
-		assert.Equal(t, created.UpdatedAt, got.UpdatedAt)
-		_, err = g.get(oldName)
-		assert.ErrorIs(t, err, er.GameNotExists)
+		assert.Equal(t, created.ID, got.ID)
+		assert.Equal(t, created.Name, got.Name)
+		assert.Equal(t, created.Description, got.Description)
+		assert.True(t, got.CreatedAt.Equal(created.CreatedAt))
+		assert.True(t, got.UpdatedAt.Equal(created.UpdatedAt))
+		bin, err := dst.imageGet(created.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, img, bin)
+		list, err := dst.list()
+		assert.NoError(t, err)
+		assert.Len(t, list, 1)
+	})
+
+	t.Run("rename_keeps_source", func(t *testing.T) {
+		g := initGame(t, "game_export_import__rename")
+		created, err := g.create(CreateRequest{
+			Name:        "My Game",
+			Description: "desc",
+		})
+		assert.NoError(t, err)
+		data, err := g.Export(created.ID)
+		assert.NoError(t, err)
+
+		got, err := g.Import(data, "Other Title")
+		assert.NoError(t, err)
+		assert.Equal(t, "other_title", got.ID)
+		assert.Equal(t, "Other Title", got.Name)
+		assert.Equal(t, created.Description, got.Description)
+		assert.True(t, got.CreatedAt.Equal(created.CreatedAt))
+		assert.True(t, got.UpdatedAt.Equal(created.UpdatedAt))
+
+		kept, err := g.get(created.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, created.Description, kept.Description)
+	})
+
+	t.Run("existing_destination", func(t *testing.T) {
+		g := initGame(t, "game_export_import__exist")
+		created, err := g.create(CreateRequest{
+			Name:        "My Game",
+			Description: "original",
+		})
+		assert.NoError(t, err)
+		data, err := g.Export(created.ID)
+		assert.NoError(t, err)
+		_, err = g.Update(created.ID, UpdateRequest{
+			Name:        created.Name,
+			Description: "edited",
+		})
+		assert.NoError(t, err)
+
+		_, err = g.Import(data, "")
+		assert.ErrorIs(t, err, er.GameExist)
+		kept, err := g.get(created.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, "edited", kept.Description)
+	})
+
+	t.Run("bad_archive", func(t *testing.T) {
+		g := initGame(t, "game_export_import__bad_archive")
+		_, err := g.Import([]byte("not a zip"), "")
+		assert.ErrorIs(t, err, er.BadArchive)
+	})
+
+	t.Run("bad_name", func(t *testing.T) {
+		g := initGame(t, "game_export_import__bad_name")
+		created, err := g.create(CreateRequest{Name: "My Game"})
+		assert.NoError(t, err)
+		data, err := g.Export(created.ID)
+		assert.NoError(t, err)
+		_, err = g.Import(data, "---")
+		assert.ErrorIs(t, err, er.BadName)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_update_info__not_exist")
-		err := g.updateInfo("not_exist", "good")
-		assert.ErrorIs(t, err, fsentry.ErrNotExist)
-	})
-
-	t.Run("bad_name_1", func(t *testing.T) {
-		g := initGame(t, "game_update_info__bad_name_1")
-		err := g.updateInfo("---", "good")
-		assert.ErrorIs(t, err, fsentry.ErrBadName)
-	})
-
-	t.Run("bad_name_2", func(t *testing.T) {
-		name := "good"
-		g := initGame(t, "game_update_info__bad_name_2")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.updateInfo(name, "---")
-		assert.ErrorIs(t, err, fsentry.ErrBadName)
+		g := initGame(t, "game_export_import__not_exist")
+		_, err := g.Export("missing")
+		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }
 func TestImageCreate(t *testing.T) {
