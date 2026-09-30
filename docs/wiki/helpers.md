@@ -1,5 +1,7 @@
 # Helpers and other `internal/` packages
 
+Developer reference. The map of the project is [Internals](Internals).
+
 ## `internal/errors`
 
 Sentinel errors (`GameExist`, `BadName`, …) with optional HTTP status. `.AddMessage` / `.HTTP` for wrapping. `IfErrorLog` logs and continues.

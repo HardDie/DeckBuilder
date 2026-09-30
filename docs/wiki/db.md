@@ -1,5 +1,7 @@
 # `internal/db`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs), `db.go`, sometimes `model.go` (JSON payload in `.info.json`).
 
 ## Handle

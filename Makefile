@@ -22,7 +22,7 @@ WAILS_TAGS := $(shell pkg-config --exists webkit2gtk-4.1 2>/dev/null && echo -ta
 .DEFAULT_GOAL := help
 
 .PHONY: help version dev build generate test test-integration test-all \
-	vet fmt tidy doc doc-all docs-site frontend-install clean ci \
+	vet fmt tidy doc doc-all docs-site frontend-install screenshots clean ci \
 	linter-install linter-run fuzz_game fuzz_collection fuzz_deck fuzz_card
 
 ## help: Show this list
@@ -102,6 +102,12 @@ docs-site:
 ## frontend-install: yarn install in frontend/
 frontend-install: require-wails
 	yarn --cwd frontend install
+
+## screenshots: Regenerate wiki guide images from the Vue window
+screenshots:
+	npm --prefix scripts/screenshots install
+	npm --prefix scripts/screenshots exec -- playwright install chromium
+	node scripts/screenshots/capture.mjs
 
 ## clean: Remove Wails/Go build artifacts
 clean:

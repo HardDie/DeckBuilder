@@ -42,3 +42,5 @@ Developer module notes (packages, fields, who calls what) live in **[docs/wiki](
 ### Neutral
 
 * Wiki markdown uses GitHub wiki slugs (`[DB](DB)`, `Home.md`, `_Sidebar.md`), not Jekyll.
+* Example art and screenshots live in `docs/wiki/images/`.
+* Copy that folder with the markdown when syncing the wiki.

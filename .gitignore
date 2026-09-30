@@ -6,3 +6,4 @@
 /frontend/dist/*
 !/frontend/dist/.gitkeep
 /frontend/node_modules
+/scripts/screenshots/node_modules

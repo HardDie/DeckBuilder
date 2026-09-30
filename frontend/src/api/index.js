@@ -5,6 +5,7 @@ import cards from '@/api/cards'
 import system from '@/api/system'
 import search from '@/api/search'
 import replace from '@/api/replace'
+import screenshotApi from '@/api/screenshot'
 import { useToast } from 'vue-toastification'
 
 const { fetch: originalFetch } = window
@@ -18,7 +19,7 @@ window.fetch = (...args) =>
     return response
   })
 
-export default {
+const live = {
   games,
   collections,
   decks,
@@ -27,3 +28,8 @@ export default {
   search,
   replace,
 }
+
+// Chosen once at load. Client-side routing drops the query; the module stays stubbed.
+const screenshot = new URLSearchParams(window.location.search).get('screenshot') === '1'
+
+export default screenshot ? screenshotApi : live

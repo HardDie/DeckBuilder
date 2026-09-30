@@ -1,5 +1,7 @@
 # Overview
 
+Developer reference. The map of the project is [Internals](Internals).
+
 DeckBuilder’s UI is the Wails window at the repo root. The same process is a loopback HTTP server (`127.0.0.1:5000`) for entity images and `GET /api/tts/data`.
 
 ## Request flow (catalog example)

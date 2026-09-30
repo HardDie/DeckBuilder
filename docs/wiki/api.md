@@ -1,5 +1,7 @@
 # `internal/api`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Registers mux routes. Handlers live in `internal/servers`.
 
 ## Files

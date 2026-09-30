@@ -1,0 +1,12 @@
+{
+  "name": "deckbuilder-screenshots",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "capture": "node capture.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}

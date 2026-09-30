@@ -1,5 +1,7 @@
 # `internal/application`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Composition root. Only this package constructs the graph and starts HTTP.
 
 ## Types

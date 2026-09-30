@@ -1,5 +1,7 @@
 # Entities, DTOs, TTS JSON
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Three different structs for “a card”. Do not reuse TTS types as API JSON.
 
 ## `internal/entities`

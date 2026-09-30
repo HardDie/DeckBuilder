@@ -1,5 +1,7 @@
 # `internal/services`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Rules that are not HTTP and not disk. Each package: `contract.go` + `service.go` (+ `*_test.go` / fuzz).
 
 ## Catalog (`game`, `collection`, `deck`, `card`)

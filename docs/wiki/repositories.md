@@ -1,5 +1,7 @@
 # `internal/repositories`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Glue between services and db: image files, zip, HTTP download. Each catalog repo holds `cfg` and the matching `db/*` interface.
 
 ## Fields (catalog)

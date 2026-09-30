@@ -1,5 +1,7 @@
 # Upload sheets to Steam Cloud
 
+Part of the [user guide](Guide).
+
 Generate writes `file:///` paths into `FaceURL` and `BackURL`. Tabletop Simulator can upload those loaded files to your Steam Cloud and swap the live objects onto `http://cloud-3.steamusercontent.com/ugc/…/` URLs. DeckBuilder does not perform that upload. The button is inside TTS.
 
 Why a Lua poke cannot do this: [ADR 016](https://github.com/HardDie/DeckBuilder/blob/master/docs/architecture/016-auto-upload-generated-images.md). Official UI: [Cloud Manager](https://kb.tabletopsimulator.com/custom-content/cloud-manager/).

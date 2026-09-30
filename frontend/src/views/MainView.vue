@@ -289,7 +289,7 @@ const onReplace = data => {
 }
 
 const onItemClick = id => {
-  router.push(`${route.fullPath}/${mainStore.itemType}/${id}`.replace('//', '/'))
+  router.push(`${route.path}/${mainStore.itemType}/${id}`.replace('//', '/'))
 }
 
 onBeforeUnmount(() => {

@@ -144,6 +144,8 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | If you need… | Read |
 |---|---|
 | Product, clone, build, TTS Saved Objects path | **[README.md](README.md)** |
+| How to use the app, with the example catalog | **[docs/wiki/Guide.md](docs/wiki/Guide.md)** |
+| Layers and how Render draws sheets | **[docs/wiki/Internals.md](docs/wiki/Internals.md)**, **[docs/wiki/Generation.md](docs/wiki/Generation.md)** |
 | TTS Lua, External Editor, Custom Deck | **[api.tabletopsimulator.com](https://api.tabletopsimulator.com/)** — [External Editor](https://api.tabletopsimulator.com/externaleditorapi/), [spawnObjectJSON](https://api.tabletopsimulator.com/base/), [Custom Deck](https://api.tabletopsimulator.com/custom-game-objects/), [WebRequest](https://api.tabletopsimulator.com/webrequest/manager/) |
 | Architecture decisions | **[docs/architecture](docs/architecture/INDEX.md)** |
 | Use cases | **[docs/use-cases](docs/use-cases/INDEX.md)** |

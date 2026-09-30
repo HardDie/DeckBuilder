@@ -1,5 +1,7 @@
 # `internal/config`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 Process-wide paths and generate limits. Constructed once via `config.Get(version)`.
 
 ## Fields

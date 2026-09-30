@@ -1,5 +1,7 @@
 # `internal/servers`
 
+Developer reference. The map of the project is [Internals](Internals).
+
 HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services**. Wails bindings in `bindings/` call **services** directly and copy DTO mapping (HTTP servers are not the Wails API).
 
 Each aggregate: `contract.go` (handler interface) + `server.go`.
