@@ -125,8 +125,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 
 ```bash
 git clone https://github.com/HardDie/DeckBuilder
-./deployment/check_binary.sh
-make build       # deployment/build_all.sh → deployment/out (image + TTS server)
+make build       # Wails app for this machine (desktop/build/bin)
 make wails-dev   # Wails window
 make test
 make linter-run  # after make linter-install
@@ -192,7 +191,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   └── …
 ├── pkg/version/            # exact git tag or 12-character commit hash
 ├── web/                    # swagger.json (not served)
-├── deployment/
 └── tools/                  # join, copy_cards_variables
 ```
 

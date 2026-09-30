@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="logo" src="deployment/512.png" height="150" />
+  <img alt="logo" src="desktop/build/appicon.png" height="150" />
   <h3 align="center">DeckBuilder</h3>
   <p align="center">Create your own deck of cards for the Tabletop Simulator</p>
 </p>
@@ -35,22 +35,17 @@ Clone repository:
 git clone https://github.com/HardDie/DeckBuilder
 ```
 
-Check that all necessary packages are installed
-```
-./deployment/check_binary.sh
-```
-
 Run the window
 ```
 make wails-dev
 ```
 
-Build the image and TTS server
+Build the app
 ```
 make build
 ```
 
-The resulting files can be found in the deployment/out folder
+The binary is in `desktop/build/bin`
 
 ## Documentation
 

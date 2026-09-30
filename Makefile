@@ -4,6 +4,8 @@ ifndef BUILD_VERSION
 BUILD_VERSION = $(shell go run ./pkg/version/cmd/version 2>/dev/null || echo dev)
 endif
 VERSION_LDFLAGS = -X github.com/HardDie/DeckBuilder/pkg/version.Build=$(BUILD_VERSION)
+# Ubuntu 24.04+ ships webkit2gtk-4.1; Wails needs this tag instead of 4.0.
+WAILS_TAGS := $(shell pkg-config --exists webkit2gtk-4.1 2>/dev/null && echo -tags webkit2_41)
 
 .PHONY: default
 default: help
@@ -13,12 +15,12 @@ help: ## help information about make commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: build
-build: ## build app for all platforms
-	cd deployment && ./build_all.sh
+build: ## build the Wails app for this machine
+	cd desktop && wails build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 
 .PHONY: wails-dev
 wails-dev: ## run Wails desktop app (window + image/TTS HTTP)
-	cd desktop && wails dev -ldflags "$(VERSION_LDFLAGS)"
+	cd desktop && wails dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 .PHONY: swagger
 swagger: ## generate swagger json file
