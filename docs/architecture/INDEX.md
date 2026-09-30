@@ -21,3 +21,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [013](013-http-images-and-tts.md) | HTTP serves images and TTS; Wails hosts the UI | Accepted |
 | [014](014-wails-at-module-root.md) | Wails project lives in the module root | Accepted |
 | [015](015-github-actions-test-and-release.md) | GitHub Actions tests on push; binaries on tag | Accepted |
+| [016](016-auto-upload-generated-images.md) | Auto-upload generated images to a web host | Proposed |

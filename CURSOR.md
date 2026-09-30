@@ -37,6 +37,9 @@ Catalog verbs are Wails bindings ([ADR 011](docs/architecture/011-wails-bindings
 **Known limitation (do not “fix” by inventing a host)**
 
 - Generated JSON currently points at **local image paths**. Users must keep files in `result/` (or run **replace** after uploading images). Automatic upload to image hosting is **out of scope unless explicitly requested**.
+- Future image hosts are [ADR 016](docs/architecture/016-auto-upload-generated-images.md).
+  1. Not implemented.
+  2. Steam Cloud via the Lua poke is rejected there.
 
 **Out of scope unless explicitly requested**
 
