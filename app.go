@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-// App owns the Wails window lifecycle. Catalog verbs live in desktop/bindings/*.
+// App owns the Wails window lifecycle. Catalog verbs live in bindings/*.
 type App struct {
 	ctx context.Context
 	ln  net.Listener

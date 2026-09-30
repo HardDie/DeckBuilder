@@ -18,7 +18,7 @@ The HTTP `internal/servers` layer exists to adapt mux/swagger. When catalog traf
 1. **Keep every catalog call on HTTP** in the Wails window forever.
 2. **Replace all `/api` routes with bindings in one pass.**
 3. **Share a non-HTTP method on `internal/servers`** used by both `ListHandler` and Wails.
-4. **Copy handler mapping into `desktop/bindings/<aggregate>`** and call **services** from bindings. Bind each aggregate struct in `wails.Run`. Remove the REST route when that verb is unused.
+4. **Copy handler mapping into `bindings/<aggregate>`** and call **services** from bindings. Bind each aggregate struct in `wails.Run`. Remove the REST route when that verb is unused.
 
 ## Decision
 
@@ -26,16 +26,16 @@ Use option 4.
 
 Migrated desktop verbs (HTTP routes removed; Wails only):
 
-* `desktop/bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate` / `Export` / `Import`
-* `desktop/bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
-* `desktop/bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
-* `desktop/bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
-* `desktop/bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
-* `desktop/bindings/search.Search`: `Root` / `Game` / `Collection`
-* `desktop/bindings/generator.Generator`: `Game`
-* `desktop/bindings/replace.Replace`: `Prepare` / `Replace`
+* `bindings/game.Game`: `List` / `Create` / `Read` / `Update` / `Delete` / `Duplicate` / `Export` / `Import`
+* `bindings/collection.Collection`: `List` / `Create` / `Read` / `Update` / `Delete`
+* `bindings/deck.Deck`: `List` / `ListAllUnique` / `Create` / `Read` / `Update` / `Delete`
+* `bindings/card.Card`: `List` / `Create` / `Read` / `Update` / `Delete`
+* `bindings/system.System`: `GetSettings` / `UpdateSettings` / `Status` / `GetVersion`
+* `bindings/search.Search`: `Root` / `Game` / `Collection`
+* `bindings/generator.Generator`: `Game`
+* `bindings/replace.Replace`: `Prepare` / `Replace`
 
-`desktop/app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `desktop/bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
 Images and TTS stay on HTTP. Catalog CRUD is Wails only.
 
@@ -57,7 +57,7 @@ This supersedes ADR 010’s rule that bindings are not the catalog API. ADR 010 
 ### Positive
 
 * Desktop bindings do not grow the HTTP server interface that we expect to delete with the mux.
-* Each catalog aggregate is its own bound struct under `desktop/bindings/`.
+* Each catalog aggregate is its own bound struct under `bindings/`.
 
 ### Negative and risks
 

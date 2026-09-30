@@ -2,6 +2,7 @@
 /DeckBuilderData/
 /bin/
 /web/dist/
-/desktop/build/bin
-/desktop/frontend/dist
-/desktop/frontend/node_modules
+/build/bin
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+/frontend/node_modules

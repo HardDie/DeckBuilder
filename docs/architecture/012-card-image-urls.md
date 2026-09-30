@@ -13,7 +13,7 @@
 3. Those bindings already return `cachedImage`.
 4. The value is `/api/.../image?<hash of updatedAt>`.
 5. `internal/servers/image` writes the file bytes and `Content-Type`.
-6. `desktop/main.go` mounts that mux as `AssetServer.Handler`.
+6. `main.go` mounts that mux as `AssetServer.Handler`.
 7. The Vue grid binds `:img="item.cachedImage"`.
 8. TTS still needs an HTTP image URL ([ADR 005](005-tts-generate-local-paths.md)).
 

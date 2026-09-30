@@ -31,7 +31,7 @@ Use option 2.
 5. Routes that stay:
    1. `GET /api/.../image`
    2. `GET /api/tts/data`
-6. Replace is `desktop/bindings/replace`.
+6. Replace is `bindings/replace`.
 7. `AssetServer.Handler` still forwards `/api` so `<img>` can load faces.
 8. `cmd/deck_builder` starts that HTTP server only.
 

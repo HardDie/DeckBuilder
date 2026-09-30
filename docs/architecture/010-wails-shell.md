@@ -2,7 +2,8 @@
 
 * **Status:** Accepted (the “bindings are not the catalog API” rule is superseded by [ADR 011](011-wails-bindings.md))
 * **Also:** [ADR 013](013-http-images-and-tts.md) drops the embedded SPA and the browser.
-* **Also:** The UI is `desktop/frontend`. There is no `gui/` submodule.
+* **Also:** The UI is `frontend/`. There is no `gui/` submodule.
+* **Also:** [ADR 014](014-wails-at-module-root.md) moves Wails to the module root.
 * **Date:** 2026-09-18
 * **Authors:** @oleg
 

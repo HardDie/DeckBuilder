@@ -8,7 +8,7 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"github.com/HardDie/DeckBuilder/desktop/bindings/catalog"
+	"github.com/HardDie/DeckBuilder/bindings/catalog"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	er "github.com/HardDie/DeckBuilder/internal/errors"

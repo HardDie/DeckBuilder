@@ -3,8 +3,8 @@
 DeckBuilder is a **local authoring tool** for card games that export to [Tabletop Simulator](https://tabletopsimulator.com/) (TTS).
 
 1. **UI**
-   1. Wails window in `desktop/`.
-   2. Vue sources live in `desktop/frontend`.
+   1. Wails window at the repo root.
+   2. Vue sources live in `frontend/`.
 2. **HTTP** ([ADR 013](docs/architecture/013-http-images-and-tts.md))
    1. Loopback `127.0.0.1:5000`.
    2. Entity image bytes.
@@ -56,7 +56,7 @@ Catalog verbs are Wails bindings ([ADR 011](docs/architecture/011-wails-bindings
 | Deck | string | “Monster”; **deck image is the card back** |
 | Card | `int64` | Face image, description, variables (`HP: 2`), `count` |
 
-List endpoints accept `sort` (`name`, `name_desc`, `created`, `created_desc`) and `search`. Create/update of named entities use **multipart/form-data** (`name`, `description`, optional `image` URL, optional `imageFile`). Card writes also send `variables` (JSON string) and `count` (desktop bindings map those fields).
+List endpoints accept `sort` (`name`, `name_desc`, `created`, `created_desc`) and `search`. Create/update of named entities use **multipart/form-data** (`name`, `description`, optional `image` URL, optional `imageFile`). Card writes also send `variables` (JSON string) and `count` (bindings map those fields).
 
 JSON envelope: `{ "data": …, "meta": { "total", "cardsTotal?" }, "error": … }`.
 
@@ -112,7 +112,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 
 | Layer | Choice |
 |---|---|
-| GUI | Vue in `desktop/frontend`; Wails window ([ADR 013](docs/architecture/013-http-images-and-tts.md)) |
+| GUI | Vue in `frontend/`; Wails window ([ADR 013](docs/architecture/013-http-images-and-tts.md)) |
 | HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
@@ -124,7 +124,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 
 ```bash
 git clone https://github.com/HardDie/DeckBuilder
-make build       # Wails app for this machine (desktop/build/bin)
+make build       # Wails app for this machine (build/bin)
 make wails-dev   # Wails window
 make test
 make linter-run  # after make linter-install
@@ -155,7 +155,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Business logic | `internal/services` |
 | Image + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
-| Wails window (scaffold) | `desktop/` |
+| Wails window | repo root (`main.go`, `frontend/`, `bindings/`) |
 | One-off CLIs | `tools/` |
 
 ### Tree
@@ -169,8 +169,14 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── architecture/       # ADRs
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
+├── main.go                 # Wails window
+├── app.go
+├── api_proxy.go            # AssetServer /api handler
+├── wails.json
+├── bindings/               # catalog verbs
+├── frontend/               # Vue UI
+├── build/                  # Wails packaging; binary in build/bin
 ├── cmd/deck_builder/       # image + TTS HTTP server
-├── desktop/                # Wails v2 window (own module; starts the same HTTP server)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
 │   ├── api/                # route registration
@@ -212,7 +218,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 
 ## Key facts to keep in mind
 
-- **The UI is the Wails window.** Game (including export and import), collection, deck, card, system, search, generator, and replace use bindings under `desktop/bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md), [ADR 013](docs/architecture/013-http-images-and-tts.md)). HTTP serves images and TTS.
+- **The UI is the Wails window.** Game (including export and import), collection, deck, card, system, search, generator, and replace use bindings under `bindings/` ([ADR 011](docs/architecture/011-wails-bindings.md), [ADR 013](docs/architecture/013-http-images-and-tts.md), [ADR 014](docs/architecture/014-wails-at-module-root.md)). HTTP serves images and TTS.
 - **Loopback only.** Bind `127.0.0.1` starting at port **5000**; if that fails, try the next port, at most **20** attempts. Do not bind on all interfaces.
 - **Generate is async.** Never block the binding on image drawing. Progress is a **process-wide singleton**; overlapping generates will clobber it — do not start a second generate without an explicit product decision.
 - **System `Status` consumes terminal states** (`done` / `error` → flush). Pollers must treat a following `empty` as “already observed.”
@@ -238,5 +244,5 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - Prefer the smallest change that preserves the GUI contract over a layer rewrite.
 - Do not collapse `servers` / `services` / `db` “to simplify” without an ADR.
 - Do not put business rules in `internal/api` (comments + registration only).
-- The Vue UI that ships is `desktop/frontend`. Do not embed it under `web/`.
+- The Vue UI that ships is `frontend/`. Do not embed it under `web/`.
 }

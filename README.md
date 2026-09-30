@@ -1,12 +1,12 @@
 <p align="center">
-  <img alt="logo" src="desktop/build/appicon.png" height="150" />
+  <img alt="logo" src="build/appicon.png" height="150" />
   <h3 align="center">DeckBuilder</h3>
   <p align="center">Create your own deck of cards for the Tabletop Simulator</p>
 </p>
 
 ---
 
-The app window is the Wails project in `desktop/`.
+The app window is the Wails project at the repo root.
 
 [Video guide [ENG]](https://www.youtube.com/watch?v=jty_nEsGGJg)
 
@@ -45,7 +45,7 @@ Build the app
 make build
 ```
 
-The binary is in `desktop/build/bin`
+The binary is in `build/bin`
 
 ## Documentation
 

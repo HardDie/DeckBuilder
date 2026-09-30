@@ -14,12 +14,12 @@ Developer notes for the Go process. The UI is the Wails window. Product intro an
 | [DB](DB) | fsentry mapping, fields, methods, callers |
 | [Entities and DTOs](Entities-and-DTOs) | Domain vs GUI JSON vs TTS JSON |
 | [Helpers](Helpers) | errors, network, fs, images, progress, page_drawer |
-| [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, `desktop/` Wails window, `tools/` |
+| [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, root Wails window, `tools/` |
 
 ## Layer rule
 
 ```text
-cmd → application → api + servers → services → repositories → db
+main / cmd → application → api + servers → services → repositories → db
                                       ↘ generator uses page_drawer, tts_entity, progress, fs
 ```
 

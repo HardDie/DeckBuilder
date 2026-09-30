@@ -1,7 +1,7 @@
 package collection
 
 import (
-	"github.com/HardDie/DeckBuilder/desktop/bindings/catalog"
+	"github.com/HardDie/DeckBuilder/bindings/catalog"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"

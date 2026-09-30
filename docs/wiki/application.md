@@ -26,13 +26,13 @@ Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 
 | Method | Role | Called from |
 |---|---|---|
-| `Get` | Wire everything | `cmd/deck_builder`, `desktop/` |
-| `Listen` | Bind loopback (retry port), set TTS port | `Run`, `desktop/` |
-| `Serve` | `http.Serve` the mux | `Run`, `desktop/` |
-| `Handler` | The mux (for Wails `AssetServer.Handler`) | `desktop/` |
-| `Config` / `GameService` / `CollectionService` / `DeckService` / `CardService` | Dependencies for Wails bindings | `desktop/` |
+| `Get` | Wire everything | `cmd/deck_builder`, `main.go` |
+| `Listen` | Bind loopback (retry port), set TTS port | `Run`, `main.go` |
+| `Serve` | `http.Serve` the mux | `Run`, `main.go` |
+| `Handler` | The mux (for Wails `AssetServer.Handler`) | `main.go` |
+| `Config` / `GameService` / `CollectionService` / `DeckService` / `CardService` | Dependencies for Wails bindings | `main.go` |
 | `Run` | `Listen` + `Serve` | `cmd/deck_builder` |
-| `ReplaceService` | Replace rules for the Wails binding | `desktop/` |
+| `ReplaceService` | Replace rules for the Wails binding | `main.go` |
 | `corsSetupHeaders` / `corsMiddleware` | `GET,OPTIONS` for image fetches | `routes.Use` |
 
 No catalog logic lives here. Adding a new HTTP feature means a `New` + `Register*` pair in this file, not a new listen path.

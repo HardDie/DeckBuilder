@@ -16,11 +16,11 @@ help: ## help information about make commands
 
 .PHONY: build
 build: ## build the Wails app for this machine
-	cd desktop && wails build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
+	wails build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 
 .PHONY: wails-dev
 wails-dev: ## run Wails desktop app (window + image/TTS HTTP)
-	cd desktop && wails dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
+	wails dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 .PHONY: linter-install
 linter-install: ## install linters

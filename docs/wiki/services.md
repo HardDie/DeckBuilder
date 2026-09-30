@@ -45,7 +45,7 @@ Depends on game/collection/deck/card **services** plus system (settings) and TTS
 | `Prepare` | Unique FaceURL/BackURL keys from a Saved Object JSON |
 | `Replace` | Apply mapping file; used so hosted URLs replace `file://` |
 
-Used by `desktop/bindings/replace`. Operates on `tts_entity` JSON, not the catalog.
+Used by `bindings/replace`. Operates on `tts_entity` JSON, not the catalog.
 
 ## `tts`
 
