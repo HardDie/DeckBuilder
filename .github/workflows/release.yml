@@ -1,0 +1,166 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: DeckBuilder
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  # proxy.golang.org sometimes RST large zips over HTTP/2 (genproto on arm runners).
+  GODEBUG: http2client=0
+  GOPROXY: https://proxy.golang.org,direct
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-amd64
+            os: ubuntu-latest
+            wails_platform: linux/amd64
+            wails_tags: webkit2_41
+            artifact: linux-amd64.tar.gz
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            wails_platform: linux/arm64
+            wails_tags: webkit2_41
+            artifact: linux-arm64.tar.gz
+          - name: windows-amd64
+            os: windows-latest
+            wails_platform: windows/amd64
+            artifact: windows-amd64.zip
+          - name: darwin-universal
+            os: macos-latest
+            wails_platform: darwin/universal
+            artifact: darwin-universal.zip
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require Wails project
+        shell: bash
+        run: |
+          if [ ! -f wails.json ]; then
+            echo "wails.json missing; scaffold the app before tagging a release."
+            exit 1
+          fi
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.1"
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Yarn
+        shell: bash
+        run: npm install -g yarn@1.22.22
+
+      - name: Linux Wails dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb gcc pkg-config
+
+      - name: Download Go modules
+        shell: bash
+        run: |
+          for i in 1 2 3 4 5; do
+            if go mod download; then
+              exit 0
+            fi
+            echo "go mod download failed (attempt ${i}); retrying..."
+            sleep $((i * 8))
+          done
+          exit 1
+
+      - name: Install Wails CLI
+        shell: bash
+        run: |
+          WAILS_VER="$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v2)"
+          go install "github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VER}"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build
+        shell: bash
+        run: |
+          VERSION="$(go run ./pkg/version/cmd/version)"
+          PRODUCT_VERSION="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          PRODUCT_VERSION="${PRODUCT_VERSION#v}"
+          export PRODUCT_VERSION
+          ./scripts/sync-product-version.sh
+          # -skipbindings: committed frontend/wailsjs. Generate locally after binding changes.
+          cmd=(wails build -skipbindings -clean -trimpath -platform "${{ matrix.wails_platform }}" -ldflags "-X github.com/HardDie/DeckBuilder/pkg/version.Build=${VERSION}")
+          # Ubuntu 24.04 has webkit2gtk-4.1 only; Wails still defaults to 4.0.
+          if [ -n "${{ matrix.wails_tags }}" ]; then
+            cmd+=(-tags "${{ matrix.wails_tags }}")
+          fi
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run -a "${cmd[@]}"
+          else
+            "${cmd[@]}"
+          fi
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          ARTIFACT="${APP_NAME}-${{ github.ref_name }}-${{ matrix.artifact }}"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            cp build/linux/install.sh "build/linux/${APP_NAME}.desktop" build/bin/
+            cp build/appicon.png "build/bin/${APP_NAME}.png"
+            chmod +x build/bin/install.sh
+          fi
+          cd build/bin
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            zip -r "../../dist/${ARTIFACT}" .
+          else
+            tar -czf "../../dist/${ARTIFACT}" .
+          fi
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path build/bin/* -DestinationPath "dist/$env:APP_NAME-${{ github.ref_name }}-${{ matrix.artifact }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/${{ env.APP_NAME }}-${{ github.ref_name }}-${{ matrix.artifact }}
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          ls -la
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*

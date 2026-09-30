@@ -6,6 +6,7 @@ The structure is:
 
 * bin - Output directory
 * darwin - macOS specific files
+* linux - user-level install files packed into Linux release archives
 * windows - Windows specific files
 
 ## Mac
@@ -19,6 +20,13 @@ The directory contains the following files:
 
 - `Info.plist` - the main plist file used for Mac builds. It is used when building using `wails build`.
 - `Info.dev.plist` - same as the main plist file but used when building using `wails dev`.
+
+## Linux
+
+The `linux` directory is packed into the Linux release archive next to the binary.
+
+- `install.sh` - copies the binary, icon, and desktop entry into the current user's XDG dirs. No root.
+- `DeckBuilder.desktop` - launcher template. `install.sh` fills `Exec` and `Icon`.
 
 ## Windows
 

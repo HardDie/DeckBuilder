@@ -2,6 +2,8 @@
 
 APP_NAME     := DeckBuilder
 INTERNAL     := ./internal/...
+# Exclude the Wails entrypoint (CGO) so package main tests run on CI.
+TEST_MAIN_TAGS := nomain
 GO           := go
 WAILS        := wails
 PKG          ?= ./pkg/version
@@ -41,7 +43,7 @@ dev: require-wails version
 ## build: Production binary for this machine (build/bin)
 build: require-wails version
 	$(WAILS) build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
-	@if [ "$$(uname)" = "Linux" ] && [ -f build/linux/install.sh ] && [ -f build/linux/$(APP_NAME).desktop ]; then \
+	@if [ "$$(uname)" = "Linux" ]; then \
 		cp build/linux/install.sh build/linux/$(APP_NAME).desktop build/bin/ && \
 		cp build/appicon.png build/bin/$(APP_NAME).png && \
 		chmod +x build/bin/install.sh; \
@@ -51,12 +53,12 @@ build: require-wails version
 generate: require-wails
 	$(WAILS) generate module
 
-## test: Unit tests for package main, bindings, internal, and pkg (with race)
+## test: Unit tests for package main, bindings, internal, and pkg (same as CI, with race)
 test:
-	$(GO) test -race -count=1 .
-	$(GO) test -race -count=1 ./bindings/...
-	$(GO) test -race -count=1 $(INTERNAL)
-	$(GO) test -race -count=1 ./pkg/...
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) .
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./bindings/...
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) $(INTERNAL)
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./pkg/...
 
 ## test-integration: Integration tests under internal (build tag integration)
 test-integration:
@@ -65,15 +67,15 @@ test-integration:
 ## test-all: Unit then integration tests
 test-all: test test-integration
 
-## ci: Same checks as test-all
+## ci: What GitHub Actions test.yml runs
 ci: test-all
 
-## vet: Go vet on package main, bindings, internal, and pkg
+## vet: Go vet on package main (no Wails CGO), bindings, internal, and pkg
 vet:
-	$(GO) vet .
-	$(GO) vet ./bindings/...
-	$(GO) vet $(INTERNAL)
-	$(GO) vet ./pkg/...
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) .
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./bindings/...
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) $(INTERNAL)
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./pkg/...
 
 ## fmt: Format Go files; fail if any file needed formatting
 fmt:

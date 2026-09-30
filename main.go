@@ -1,3 +1,5 @@
+//go:build !nomain
+
 // Wails desktop shell. The window hosts the Vue UI.
 // Loopback HTTP serves images and TTS only.
 package main

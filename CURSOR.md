@@ -116,7 +116,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 | HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
 | Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
-| Tests | `go test ./... -race`; fuzz targets under services |
+| Tests | `make test` (`-race -tags=nomain`); fuzz targets under services |
 
 ---
 

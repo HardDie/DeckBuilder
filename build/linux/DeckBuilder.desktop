@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=DeckBuilder
+Comment=Card decks for Tabletop Simulator
+Exec=__EXEC__
+Icon=__ICON__
+Terminal=false
+Categories=Utility;
+StartupWMClass=DeckBuilder

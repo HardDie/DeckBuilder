@@ -44,6 +44,7 @@ This supersedes the nested `desktop/` module in [ADR 010](010-wails-shell.md).
 
 1. `go test ./...` compiles the Wails packages.
 2. That compile needs CGO and a WebView.
+3. CI uses `-tags=nomain` ([ADR 015](015-github-actions-test-and-release.md)).
 
 ### Neutral
 

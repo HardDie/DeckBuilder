@@ -20,3 +20,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [012](012-card-image-urls.md) | Card faces load from an image URL | Accepted |
 | [013](013-http-images-and-tts.md) | HTTP serves images and TTS; Wails hosts the UI | Accepted |
 | [014](014-wails-at-module-root.md) | Wails project lives in the module root | Accepted |
+| [015](015-github-actions-test-and-release.md) | GitHub Actions tests on push; binaries on tag | Accepted |
