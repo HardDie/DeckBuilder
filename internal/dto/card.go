@@ -1,7 +1,5 @@
 package dto
 
-import "time"
-
 type Card struct {
 	ID          int64             `json:"id"`
 	Name        string            `json:"name"`
@@ -10,6 +8,6 @@ type Card struct {
 	CachedImage string            `json:"cachedImage,omitempty"`
 	Variables   map[string]string `json:"variables"`
 	Count       int               `json:"count"`
-	CreatedAt   time.Time         `json:"createdAt"`
-	UpdatedAt   time.Time         `json:"updatedAt"`
+	CreatedAt   string            `json:"createdAt"`
+	UpdatedAt   string            `json:"updatedAt"`
 }

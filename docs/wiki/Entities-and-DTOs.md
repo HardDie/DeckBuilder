@@ -19,7 +19,9 @@ In-process domain. Used by db → repositories → services → servers (then co
 
 ## `internal/dto`
 
-JSON the GUI sees. Same catalog fields plus `CachedImage` (API URL for `<img src>`). List responses go through `network.Response` with `meta.total` (and `cardsTotal` where relevant).
+JSON the GUI sees. Same catalog fields plus `CachedImage` (API URL for `<img src>`).
+Catalog `createdAt` / `updatedAt` are RFC3339 strings.
+List responses go through `network.Response` with `meta.total` (and `cardsTotal` where relevant).
 
 Recursive search DTO nests filtered games/collections/decks/cards.
 

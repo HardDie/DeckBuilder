@@ -10,7 +10,7 @@
 
 Preview builds stored `createdAt` / `updatedAt` inconsistently. Folder envelopes (`.info.json`) and card payloads could omit the fields, write JSON `null`, or leave an empty value. Each catalog repository had its own `convertCreateUpdate`: fill `createdAt` with now, copy it into `updatedAt` when that is also missing.
 
-Current writes always store both timestamps. Older projects and imported zips can still contain the preview shape. Higher layers (services, DTOs) expect non-zero `time.Time`.
+Current writes always store both timestamps. Older projects and imported zips can still contain the preview shape. Services expect non-zero `time.Time`.
 
 ## Considered options
 
@@ -40,4 +40,5 @@ New cards write `createdAt` and `updatedAt` together. Missing `updatedAt` still 
 
 ### Neutral
 
-* Entities and DTOs stay non-pointer `time.Time`.
+* Entities stay non-pointer `time.Time`.
+* DTO timestamps are RFC3339 strings.

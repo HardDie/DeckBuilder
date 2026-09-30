@@ -207,6 +207,9 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **`entities` vs `dto` vs `tts_entity`:** do not reuse TTS JSON structs as API DTOs. Cards in TTS have different IDs (`CardID` vs catalog `int64`).
 - **Import direction:** `application` → servers → services → repositories → db. `page_drawer` and `tts_entity` are used by generator, not by `api`.
 - **Do not add a new top-level `internal/` package** for a single handler; put it on an existing server.
+- **DTO timestamps are RFC3339 strings.**
+  1. Wails bindings cannot resolve `time.Time`.
+  2. Entities stay `time.Time`.
 
 ### Tests
 

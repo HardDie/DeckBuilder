@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
@@ -35,8 +36,8 @@ func GameDTO(cfg config.Config, item entitiesGame.Game) dto.Game {
 		Description: item.Description,
 		Image:       item.Image,
 		CachedImage: fmt.Sprintf(cfg.GameImagePath+"?%s", item.ID, utils.HashForTime(&item.UpdatedAt)),
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
+		CreatedAt:   formatTimestamp(item.CreatedAt),
+		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
 }
 
@@ -47,8 +48,8 @@ func CollectionDTO(cfg config.Config, gameID string, item entitiesCollection.Col
 		Description: item.Description,
 		Image:       item.Image,
 		CachedImage: fmt.Sprintf(cfg.CollectionImagePath+"?%s", gameID, item.ID, utils.HashForTime(&item.UpdatedAt)),
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
+		CreatedAt:   formatTimestamp(item.CreatedAt),
+		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
 }
 
@@ -59,8 +60,8 @@ func DeckDTO(cfg config.Config, item entitiesDeck.Deck) dto.Deck {
 		Description: item.Description,
 		Image:       item.Image,
 		CachedImage: fmt.Sprintf(cfg.DeckImagePath+"?%s", item.GameID, item.CollectionID, item.ID, utils.HashForTime(&item.UpdatedAt)),
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
+		CreatedAt:   formatTimestamp(item.CreatedAt),
+		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
 }
 
@@ -73,7 +74,12 @@ func CardDTO(cfg config.Config, item entitiesCard.Card) dto.Card {
 		CachedImage: fmt.Sprintf(cfg.CardImagePath+"?%s", item.GameID, item.CollectionID, item.DeckID, item.ID, utils.HashForTime(&item.UpdatedAt)),
 		Variables:   item.Variables,
 		Count:       item.Count,
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
+		CreatedAt:   formatTimestamp(item.CreatedAt),
+		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
+}
+
+// formatTimestamp matches encoding/json for time.Time.
+func formatTimestamp(t time.Time) string {
+	return t.Format(time.RFC3339Nano)
 }
