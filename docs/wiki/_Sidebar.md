@@ -11,5 +11,6 @@
 - [Entities and DTOs](Entities-and-DTOs)
 - [Helpers](Helpers)
 - [Cmd and tools](Cmd-and-tools)
+- [Steam Cloud](Steam-Cloud)
 
 [README](https://github.com/HardDie/DeckBuilder#readme) · [CURSOR.md](https://github.com/HardDie/DeckBuilder/blob/master/CURSOR.md)

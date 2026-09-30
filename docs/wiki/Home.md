@@ -15,6 +15,7 @@ Developer notes for the Go process. The UI is the Wails window. Product intro an
 | [Entities and DTOs](Entities-and-DTOs) | Domain vs GUI JSON vs TTS JSON |
 | [Helpers](Helpers) | errors, network, fs, images, progress, page_drawer |
 | [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, root Wails window, `tools/` |
+| [Steam Cloud](Steam-Cloud) | Upload generated sheets in TTS and swap local paths for cloud URLs |
 
 ## Layer rule
 
