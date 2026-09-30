@@ -9,5 +9,8 @@
   "author": {
     "name": "HardDie",
     "email": "oleg1995sysoev@yandex.ru"
+  },
+  "info": {
+    "productVersion": "1.0.2"
   }
 }
