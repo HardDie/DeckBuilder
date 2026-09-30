@@ -4,13 +4,13 @@
 **Status:** Implemented  
 **Actors:** GUI chrome (language, about)  
 **Goal:** Persist settings and show the build version  
-**Preconditions:** Server started with a version string
+**Preconditions:** Process started. Version is the stamped git tag, the commit hash, or `dev`
 
 ## Main scenario (happy path)
 
 1. `System.GetSettings` returns defaults (`en`, back shadow off, scale 1) merged with fsentry settings.
 2. `System.UpdateSettings` with `{ "lang": "en"|"ru" }` saves language when it changed.
-3. `System.GetVersion` returns this repository's version.
+3. `System.GetVersion` returns that version string.
 
 ## Alternative scenarios and errors
 

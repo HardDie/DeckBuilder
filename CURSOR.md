@@ -172,7 +172,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── architecture/       # ADRs
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
-├── cmd/deck_builder/       # image + TTS HTTP server, swagger:meta, version ldflags
+├── cmd/deck_builder/       # image + TTS HTTP server, swagger:meta
 ├── desktop/                # Wails v2 window (own module; starts the same HTTP server)
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
@@ -190,6 +190,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── network/            # JSON envelope
 │   ├── errors/
 │   └── …
+├── pkg/version/            # exact git tag or 12-character commit hash
 ├── web/                    # swagger.json (not served)
 ├── deployment/
 └── tools/                  # join, copy_cards_variables
@@ -224,7 +225,10 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **Deck image = card back** for that deck’s sheets. Missing backside fails generate.
 - **Keep swagger comments in `internal/api` in sync** when routes or bodies change (`make swagger`).
 - **macOS data path is home**, not next to the binary.
-- **Version** is this repository only: link-time stamp, module version, or VCS revision.
+- **Version** is `pkg/version`.
+  - Stamp `-X github.com/HardDie/DeckBuilder/pkg/version.Build`.
+  - Value is an exact git tag, or the 12-character commit hash.
+  - A blank stamp is `dev`.
 
 ---
 

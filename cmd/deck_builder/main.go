@@ -20,15 +20,12 @@ package main
 
 import (
 	"github.com/HardDie/DeckBuilder/internal/application"
-	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/pkg/version"
 )
 
-// Version is set with -X at link time from this repository.
-var Version = ""
-
 func main() {
-	app, err := application.Get(config.ResolveVersion(Version))
+	app, err := application.Get(version.String())
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}

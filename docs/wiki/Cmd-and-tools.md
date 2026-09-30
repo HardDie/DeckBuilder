@@ -2,7 +2,7 @@
 
 ## `cmd/deck_builder`
 
-`main`: stamp `Version` from this repository, `application.Get`, `app.Run()` (listen for images and TTS). Swagger `meta` comments live on this package. No browser.
+`main`: `version.String()` into `application.Get`, then `app.Run()` (listen for images and TTS). Stamp `-X github.com/HardDie/DeckBuilder/pkg/version.Build`. Swagger `meta` comments live on this package. No browser.
 
 ## `desktop/`
 

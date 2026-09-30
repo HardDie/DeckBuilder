@@ -1,3 +1,10 @@
+# Exact git tag when HEAD is tagged, otherwise the 12-character commit hash.
+# Override with BUILD_VERSION=… on the make command line or in the environment.
+ifndef BUILD_VERSION
+BUILD_VERSION = $(shell go run ./pkg/version/cmd/version 2>/dev/null || echo dev)
+endif
+VERSION_LDFLAGS = -X github.com/HardDie/DeckBuilder/pkg/version.Build=$(BUILD_VERSION)
+
 .PHONY: default
 default: help
 
@@ -11,7 +18,7 @@ build: ## build app for all platforms
 
 .PHONY: wails-dev
 wails-dev: ## run Wails desktop app (window + image/TTS HTTP)
-	cd desktop && wails dev
+	cd desktop && wails dev -ldflags "$(VERSION_LDFLAGS)"
 
 .PHONY: swagger
 swagger: ## generate swagger json file

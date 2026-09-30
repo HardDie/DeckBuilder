@@ -21,18 +21,15 @@ import (
 	bindingsSearch "github.com/HardDie/DeckBuilder/desktop/bindings/search"
 	bindingsSystem "github.com/HardDie/DeckBuilder/desktop/bindings/system"
 	"github.com/HardDie/DeckBuilder/internal/application"
-	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/pkg/version"
 )
-
-// Version is set with -X at link time from this repository.
-var Version = ""
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	backend, err := application.Get(config.ResolveVersion(Version))
+	backend, err := application.Get(version.String())
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}
