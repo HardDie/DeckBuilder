@@ -19,7 +19,7 @@ The job loads settings (card scale, back shadow), walks every collection and dec
 
 ## How a sheet is packed
 
-`internal/page_drawer` owns one page. TTS custom decks default to 10 columns by 7 rows. With `BackIsHidden` left false, TTS treats the **last cell of the face sheet** as the hidden card. That cell is not a playable face. `MaxCount` is `10*7 - 1`, so 69 faces per page. A 70th card starts another page.
+`internal/page_drawer` owns one page. Method-level notes: [Page drawer](Page-drawer). TTS custom decks default to 10 columns by 7 rows. With `BackIsHidden` left false, TTS treats the **last cell of the face sheet** as the hidden card. That cell is not a playable face. `MaxCount` is `10*7 - 1`, so 69 faces per page. A 70th card starts another page.
 
 For each deck:
 

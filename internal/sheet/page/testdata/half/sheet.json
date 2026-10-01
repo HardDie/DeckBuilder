@@ -1,0 +1,12 @@
+{
+  "backFile": "backside_half_b30a60.png",
+  "pages": [
+    {
+      "index": 1,
+      "faces": 1,
+      "faceFile": "4_half_1_1_2x2.jpg",
+      "columns": 2,
+      "rows": 2
+    }
+  ]
+}

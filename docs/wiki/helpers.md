@@ -26,7 +26,7 @@ Validate upload/download bytes (png/jpeg/…). Repositories refuse invalid image
 
 ## `internal/page_drawer`
 
-Lays out TTS 10×7 sheets, last cell hidden/back. Used only by **generator**.
+Lays out TTS 10×7 sheets, last cell hidden/back. Used only by **generator**. Methods, cell size, file names: [Page drawer](Page-drawer).
 
 ## `internal/progress`
 

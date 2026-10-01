@@ -22,3 +22,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [014](014-wails-at-module-root.md) | Wails project lives in the module root | Accepted |
 | [015](015-github-actions-test-and-release.md) | GitHub Actions tests on push; binaries on tag | Accepted |
 | [016](016-auto-upload-generated-images.md) | Auto-upload generated images to a web host | Proposed |
+| [017](017-sheet-draw-speed.md) | Sheet draw speed trials | Accepted |
