@@ -3,7 +3,6 @@ package game
 import (
 	"bytes"
 	"errors"
-	"net/http"
 
 	"github.com/HardDie/fsentry"
 
@@ -12,7 +11,7 @@ import (
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -162,15 +161,13 @@ func (r *game) Export(gameID string) ([]byte, error) {
 func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 	id, err := r.db.ImportFolder(bytes.NewReader(data), name, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if errors.Is(err, fsentry.ErrBadArchive) {
+		if errors.Is(err, fsentry.ErrBadArchive) {
 			return nil, er.BadArchive.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry.ErrExist) {
-			return nil, er.GameExist.AddMessage(err.Error())
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist:   er.GameExist,
+			Message: true,
+		})
 	}
 
 	g, err := r.GetByID(id)
@@ -182,20 +179,18 @@ func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 }
 
 func (r *game) createImage(gameID, imageURL string) error {
-	imageBytes, err := network.DownloadBytes(imageURL)
+	data, err := repositories.ImageBytes(imageURL, nil)
 	if err != nil {
 		return err
 	}
-
-	return r.createImageFromByte(gameID, imageBytes)
+	return r.imageCreate(gameID, data)
 }
 
 func (r *game) createImageFromByte(gameID string, data []byte) error {
-	_, err := images.ValidateImage(data)
+	data, err := repositories.ImageBytes("", data)
 	if err != nil {
 		return err
 	}
-
 	return r.imageCreate(gameID, data)
 }
 
@@ -205,13 +200,9 @@ func (r *game) create(req CreateRequest) (*entitiesGame.Game, error) {
 		Image:       fsentry.QuotedString(req.Image),
 	}, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrExist) {
-			return nil, er.GameExist
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist: er.GameExist,
+		})
 	}
 
 	return r.toEntity(info), nil
@@ -220,13 +211,10 @@ func (r *game) create(req CreateRequest) (*entitiesGame.Game, error) {
 func (r *game) get(name string) (*entitiesGame.Game, error) {
 	info, err := r.db.GetFolder[model](name, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info), nil
@@ -257,13 +245,10 @@ func (r *game) list() ([]*entitiesGame.Game, error) {
 func (r *game) move(oldName, newName string) (*entitiesGame.Game, error) {
 	info, err := r.db.MoveFolder[model](oldName, newName, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info), nil
@@ -281,13 +266,10 @@ func (r *game) update(req updateRequest) (*entitiesGame.Game, error) {
 		Image:       fsentry.QuotedString(req.Image),
 	}, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info), nil
@@ -296,13 +278,10 @@ func (r *game) update(req updateRequest) (*entitiesGame.Game, error) {
 func (r *game) delete(name string) error {
 	err := r.db.RemoveFolder(name, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return er.BadName
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameNotExists,
+			Message:  true,
+		})
 	}
 	return nil
 }
@@ -310,15 +289,11 @@ func (r *game) delete(name string) error {
 func (r *game) duplicate(srcName, dstName string) (*entitiesGame.Game, error) {
 	info, err := r.db.DuplicateFolder[model](srcName, dstName, r.gamesPath)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrExist) {
-			return nil, er.GameExist.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist:    er.GameExist,
+			NotExist: er.GameNotExists,
+			Message:  true,
+		})
 	}
 	return r.toEntity(info), nil
 }
@@ -331,11 +306,10 @@ func (r *game) imageCreate(gameID string, data []byte) error {
 
 	err = r.db.CreateBinary("image", data, r.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrExist) {
-			return er.GameImageExist.AddMessage(err.Error())
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist:   er.GameImageExist,
+			Message: true,
+		})
 	}
 	return nil
 }
@@ -348,11 +322,10 @@ func (r *game) imageGet(gameID string) ([]byte, error) {
 
 	data, err := r.db.GetBinary("image", nil, r.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.GameImageNotExists.AddMessage(err.Error())
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameImageNotExists,
+			Message:  true,
+		})
 	}
 	return data, nil
 }
@@ -365,11 +338,10 @@ func (r *game) imageDelete(gameID string) error {
 
 	err = r.db.RemoveBinary("image", r.gamesPath, game.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.GameImageNotExists.AddMessage(err.Error())
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.GameImageNotExists,
+			Message:  true,
+		})
 	}
 	return nil
 }

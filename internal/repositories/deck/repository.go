@@ -1,9 +1,6 @@
 package deck
 
 import (
-	"errors"
-	"net/http"
-
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -11,7 +8,7 @@ import (
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -171,20 +168,18 @@ func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
 }
 
 func (r *deck) createImage(gameID, collectionID, deckID, imageURL string) error {
-	imageBytes, err := network.DownloadBytes(imageURL)
+	data, err := repositories.ImageBytes(imageURL, nil)
 	if err != nil {
 		return err
 	}
-
-	return r.createImageFromByte(gameID, collectionID, deckID, imageBytes)
+	return r.imageCreate(gameID, collectionID, deckID, data)
 }
 
 func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []byte) error {
-	_, err := images.ValidateImage(data)
+	data, err := repositories.ImageBytes("", data)
 	if err != nil {
 		return err
 	}
-
 	return r.imageCreate(gameID, collectionID, deckID, data)
 }
 
@@ -194,15 +189,12 @@ func (r *deck) create(gameID, collectionID string, req CreateRequest) (*entities
 		Image:       fsentry.QuotedString(req.Image),
 	}, r.gamesPath, gameID, collectionID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrExist) {
-			return nil, er.DeckExist
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist: er.DeckExist,
+		})
 	}
 
 	_, err = r.db.CreateFolder[any]("cards", nil, r.gamesPath, gameID, collectionID, info.ID)
@@ -219,15 +211,13 @@ func (r *deck) create(gameID, collectionID string, req CreateRequest) (*entities
 func (r *deck) get(gameID, collectionID, name string) (*entitiesDeck.Deck, error) {
 	info, err := r.db.GetFolder[model](name, r.gamesPath, gameID, collectionID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info, gameID, collectionID), nil
@@ -261,15 +251,13 @@ func (r *deck) list(gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
 func (r *deck) move(gameID, collectionID, oldName, newName string) (*entitiesDeck.Deck, error) {
 	info, err := r.db.MoveFolder[model](oldName, newName, r.gamesPath, gameID, collectionID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info, gameID, collectionID), nil
@@ -287,15 +275,13 @@ func (r *deck) update(gameID, collectionID string, req updateRequest) (*entities
 		Image:       fsentry.QuotedString(req.Image),
 	}, r.gamesPath, gameID, collectionID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(info, gameID, collectionID), nil
@@ -304,15 +290,13 @@ func (r *deck) update(gameID, collectionID string, req updateRequest) (*entities
 func (r *deck) delete(gameID, collectionID, name string) error {
 	err := r.db.RemoveFolder(name, r.gamesPath, gameID, collectionID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
 		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckNotExists,
+			Message:  true,
+		})
 	}
 	return nil
 }
@@ -325,13 +309,13 @@ func (r *deck) imageCreate(gameID, collectionID, deckID string, data []byte) err
 
 	err = r.db.CreateBinary("image", data, r.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrExist) {
-			return er.DeckImageExist.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
 		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist:   er.DeckImageExist,
+			Message: true,
+		})
 	}
 	return nil
 }
@@ -344,13 +328,13 @@ func (r *deck) imageGet(gameID, collectionID, deckID string) ([]byte, error) {
 
 	data, err := r.db.GetBinary("image", nil, r.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.DeckImageNotExists.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
 		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckImageNotExists,
+			Message:  true,
+		})
 	}
 	return data, nil
 }
@@ -363,13 +347,13 @@ func (r *deck) imageDelete(gameID, collectionID, deckID string) error {
 
 	err = r.db.RemoveBinary("image", r.gamesPath, gameID, collectionID, deck.ID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.DeckImageNotExists.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
 			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
 		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.DeckImageNotExists,
+			Message:  true,
+		})
 	}
 	return nil
 }
