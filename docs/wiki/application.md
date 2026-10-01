@@ -16,11 +16,11 @@ Composition root. Only this package constructs the graph and starts HTTP.
 | Variable | Meaning | Who consumes it |
 |---|---|---|
 | `cfg` | Paths, stamped version | Almost every New below |
-| `routes` | Root mux | `api.Register*` |
+| `routes` | Root mux | `servers.Register` |
 | `db` | `*fsentry.DB` on `cfg.Data`, then `db.Init()` | `internal/repositories` |
 | `core` | `internal/repositories/core` ensures `games/` exists | `core.Init()` at startup; tests also `Drop()` |
 | `settings` … `card` | `internal/repositories/{settings,game,collection,deck,card}` | services |
-| `service*` / `server*` | Business + HTTP | `api.Register*` |
+| `service*` | Business rules | Wails bindings and `internal/servers` |
 
 Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 

@@ -12,7 +12,7 @@ Typical fields: `cfg`, `repository*`.
 |---|---|---|
 | `Create` / `Update` / `Delete` / `Item` | Thin pass-through to repository | servers |
 | `List(sortField, search)` | `GetAll` then in-memory filter + `utils.Sort` | servers |
-| `GetImage` | repository binary + content type | `servers/image` |
+| `GetImage` | repository binary + content type | `internal/servers` |
 | `Duplicate` (game) | repository duplicate | game server |
 | `Export` (game) | zip bytes of the game folder | `game.Export` binding |
 | `Import` (game) | create a game from zip bytes; optional name | `game.Import` binding |

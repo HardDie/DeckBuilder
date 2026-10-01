@@ -2,21 +2,16 @@
 
 Developer reference. The map of the project is [Internals](Internals).
 
-HTTP adapters: mux vars, multipart, map entities → DTOs, write `network.Response` / `ResponseError`. They call **services**. Wails bindings in `bindings/` call **services** directly and copy DTO mapping (HTTP servers are not the Wails API).
-
-Each aggregate: `contract.go` (handler interface) + `server.go`.
-
-## Catalog
-
-Game, collection, deck, and card CRUD, plus game export and import, live on Wails bindings (`bindings/`). No game HTTP handlers remain.
+One package serves the loopback GETs. It calls **services** and writes image bytes or `network.ResponseError`. Wails bindings in `bindings/` call **services** directly. Catalog writes are not HTTP.
 
 `cachedImage` URLs are built in `bindings/catalog`.
 
-## Other servers
+| Route | Downstream |
+|---|---|
+| `GET /api/games/{game}/image` | `game.GetImage` |
+| `GET /api/games/{game}/collections/{collection}/image` | `collection.GetImage` |
+| `GET /api/games/{game}/collections/{collection}/decks/{deck}/image` | `deck.GetImage` |
+| `GET /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image` | `card.GetImage` |
+| `GET /api/tts/data` | `services/tts` one-shot buffer |
 
-| Package | Handlers | Downstream |
-|---|---|---|
-| `image` | `GameHandler`, `CollectionHandler`, `DeckHandler`, `CardHandler` | corresponding `service*.GetImage` |
-| `tts` | `GET /api/tts/data` | `services/tts` one-shot buffer |
-
-Servers must not import `internal/repositories` or fsentry.
+`internal/servers` must not import `internal/repositories` or fsentry.

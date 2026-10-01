@@ -10,7 +10,7 @@ Scenarios for **behavior that exists in this repository**. Copy [_TEMPLATE.md](_
 | UC-02 | Manage collections under a game | `internal/services/collection` | Implemented | [catalog/uc-02-manage-collection.md](catalog/uc-02-manage-collection.md) |
 | UC-03 | Manage decks (including card back) | `internal/services/deck` | Implemented | [catalog/uc-03-manage-deck.md](catalog/uc-03-manage-deck.md) |
 | UC-04 | Manage cards, variables, and count | `internal/services/card` | Implemented | [catalog/uc-04-manage-card.md](catalog/uc-04-manage-card.md) |
-| UC-05 | Serve an entity image | `internal/servers/image` | Implemented | [catalog/uc-05-serve-image.md](catalog/uc-05-serve-image.md) |
+| UC-05 | Serve an entity image | `internal/servers` | Implemented | [catalog/uc-05-serve-image.md](catalog/uc-05-serve-image.md) |
 | UC-06 | Duplicate, export, and import a game | `internal/services/game` | Implemented | [catalog/uc-06-duplicate-export-import.md](catalog/uc-06-duplicate-export-import.md) |
 | UC-07 | Recursive search | `internal/services/search` | Implemented | [search/uc-07-recursive-search.md](search/uc-07-recursive-search.md) |
 | UC-08 | Generate TTS sheets and JSON | `internal/services/generator` | Implemented | [generate/uc-08-generate-game.md](generate/uc-08-generate-game.md) |

@@ -1,6 +1,6 @@
 # UC-05: Serve an entity image
 
-**Module:** `internal/servers/image`  
+**Module:** `internal/servers`  
 **Status:** Implemented  
 **Actors:** Wails `<img>`, TTS or other HTTP clients  
 **Goal:** Return stored image bytes for game/collection/deck/card  

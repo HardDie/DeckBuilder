@@ -22,7 +22,7 @@ These pages are the field notes. [Internals](Internals) is the map.
 | [Overview](Overview) | Request flow, fsentry handle, on-disk layout, IDs |
 | [Application](Application) | Composition root in `internal/application` |
 | [Config](Config) | Paths, generate limits, `Games()` vs `gamesPath` |
-| [API](API) | Route registration |
+| [API](API) | Image and TTS routes |
 | [Servers](Servers) | HTTP adapters |
 | [Services](Services) | Rules: catalog, generate, search, replace, system, TTS |
 | [Repositories](Repositories) | Images, zip, config paths |

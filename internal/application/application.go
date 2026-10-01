@@ -7,7 +7,6 @@ import (
 	"github.com/HardDie/fsentry"
 	"github.com/gorilla/mux"
 
-	"github.com/HardDie/DeckBuilder/internal/api"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
@@ -16,8 +15,7 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	serversImage "github.com/HardDie/DeckBuilder/internal/servers/image"
-	serversTTS "github.com/HardDie/DeckBuilder/internal/servers/tts"
+	"github.com/HardDie/DeckBuilder/internal/servers"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
@@ -80,14 +78,8 @@ func Get(version string) (*Application, error) {
 	repositoryCard := repositoriesCard.New(cfg, db)
 	serviceCard := servicesCard.New(cfg, repositoryCard)
 
-	// image
-	serverImage := serversImage.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
-	api.RegisterImageServer(routes, serverImage)
-
-	// tts service
 	serviceTTS := servicesTTS.New()
-	serverTTS := serversTTS.New(serviceTTS)
-	api.RegisterTTSServer(routes, serverTTS)
+	servers.Register(routes, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceTTS)
 
 	// generator
 	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)

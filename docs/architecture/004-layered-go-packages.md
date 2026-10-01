@@ -14,11 +14,11 @@ The backend grew CRUD for four aggregates plus generate, search, replace, images
 
 1. **Handlers in `package main` / one `internal/http`.**
 2. **Hexagonal ports with many small packages per verb.**
-3. **Fixed layers used everywhere:** `internal/api` (route registration), `internal/servers` (HTTP), `internal/services` (rules), `internal/repositories` (disk).
+3. **Fixed layers used everywhere:** `internal/servers` (image and TTS GET), `internal/services` (rules), `internal/repositories` (disk).
 
 ## Decision
 
-Use option 3. Wiring is only in `internal/application`. Each aggregate has `contract.go` (interface) and `server.go` / `service.go` / `repository.go`.
+Use option 3. Wiring is only in `internal/application`. Each aggregate has `contract.go`, `service.go`, and `repository.go`. Image and TTS GET live in `internal/servers`.
 
 `internal/entities` are in-process structs. `internal/dto` is the JSON the GUI sees. `internal/tts_entity` is the TTS Saved Object schema — not the same as catalog cards.
 

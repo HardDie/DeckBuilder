@@ -10,8 +10,7 @@ Wails bindings / cmd/deck_builder
         ▼
 internal/application          wires the process, owns the mux
         │
-        ├── internal/api      registers routes only
-        ├── internal/servers  HTTP adapters (images, TTS data)
+        ├── internal/servers  image and TTS GET
         │         │
         │         ▼
         ├── internal/services rules
@@ -30,19 +29,13 @@ Nothing in this package decides how a card is stored or how a sheet is drawn. A 
 
 Details: [Application](Application).
 
-## `api`
-
-Route table only. `internal/api` must not contain business rules. Two registrations remain: image GETs, and `GET /api/tts/data`.
-
-Details: [API](API).
-
 ## `servers`
 
-HTTP adapters. They read the request, call a service, and write the JSON envelope or the image bytes. They do not import fsentry.
+`internal/servers` registers and serves image GETs and `GET /api/tts/data`. It calls services and writes image bytes or the JSON error envelope. It does not import fsentry.
 
-The image server streams the file a repository already resolved, with a content type. The TTS server returns the last generated bag and then clears that buffer, so a second GET has nothing to serve.
+An image handler streams the file a repository already resolved, with a content type. The TTS handler returns the last generated bag. The service then clears that buffer, so a second GET has nothing to serve.
 
-Details: [Servers](Servers).
+Details: [Servers](Servers). [API](API) lists the routes.
 
 ## `services`
 

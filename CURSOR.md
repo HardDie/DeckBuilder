@@ -150,7 +150,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Architecture decisions | **[docs/architecture](docs/architecture/INDEX.md)** |
 | Use cases | **[docs/use-cases](docs/use-cases/INDEX.md)** |
 | Go modules, fields, who calls what | **[docs/wiki](docs/wiki/Home.md)** |
-| HTTP routes | `internal/api` |
+| HTTP routes | `internal/servers` |
 | Process wiring | `internal/application/application.go` |
 | Paths, sheet limits | `internal/config` |
 | Domain structs | `internal/entities` |
@@ -184,8 +184,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 ├── cmd/deck_builder/       # image + TTS HTTP server
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
-│   ├── api/                # route registration
-│   ├── servers/            # HTTP adapters
+│   ├── servers/            # image and TTS GET
 │   ├── services/           # use-case logic
 │   ├── repositories/       # images + persistence glue
 │   ├── entities/           # in-process domain
@@ -250,6 +249,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **Wiki pages** live in `docs/wiki/` as GitHub wiki markdown (`Home.md`, `_Sidebar.md`, slug links without `.md`). Copy into `DeckBuilder.wiki.git` to publish.
 - Prefer the smallest change that preserves the GUI contract over a layer rewrite.
 - Do not collapse `servers` / `services` / `repositories` “to simplify” without an ADR.
-- Do not put business rules in `internal/api` (comments + registration only).
+- Do not put business rules in `internal/servers`.
 - The Vue UI that ships is `frontend/`. Do not embed it under `web/`.
 }

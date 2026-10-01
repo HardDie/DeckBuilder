@@ -1,18 +1,15 @@
-# `internal/api`
+# HTTP routes
 
-Developer reference. The map of the project is [Internals](Internals).
+The routes live in `internal/servers`.
 
-Registers mux routes. Handlers live in `internal/servers`.
+`application.Get` calls `servers.Register`.
 
-## Files
+| Route | Response |
+|---|---|
+| `GET /api/games/{game}/image` | game image bytes |
+| `GET /api/games/{game}/collections/{collection}/image` | collection image bytes |
+| `GET /api/games/{game}/collections/{collection}/decks/{deck}/image` | deck image bytes |
+| `GET /api/games/{game}/collections/{collection}/decks/{deck}/cards/{card}/image` | card image bytes |
+| `GET /api/tts/data` | one-shot TTS JSON |
 
-| File | Registers | Server interface |
-|---|---|---|
-| `image.go` | `…/image` for game/collection/deck/card | `servers/image` |
-| `tts_upload.go` | `/api/tts/data` | TTS server |
-
-## How it is used
-
-`application.Get` calls `RegisterImageServer` and `RegisterTTSServer`.
-
-Do not put fsentry, generate, or validation here. If the GUI needs a new field, add it on a DTO.
+Details: [Servers](Servers).
