@@ -45,6 +45,15 @@ Build the app
 make build
 ```
 
+Sheet JPEGs use libjpeg-turbo through `github.com/pixiv/go-libjpeg` (cgo).
+On a Mac, install the library and point cgo at it before `make build` or `make wails-dev`:
+
+```
+brew install jpeg-turbo
+export CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include"
+export CGO_LDFLAGS="-L$(brew --prefix jpeg-turbo)/lib"
+```
+
 The binary is in `build/bin`
 
 ## Documentation

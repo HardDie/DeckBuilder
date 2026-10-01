@@ -12,6 +12,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/sheet/back"
 	"github.com/HardDie/DeckBuilder/internal/sheet/fit"
+	"github.com/HardDie/DeckBuilder/internal/sheet/grid"
 	"github.com/HardDie/DeckBuilder/internal/sheet/paint"
 )
 
@@ -100,15 +101,36 @@ func (p *Page) SetBacksideImageAndSave(img []byte) (string, error) {
 	return abs, nil
 }
 
-// Save writes the JPEG. An empty page writes nothing.
-func (p *Page) Save() (string, int, int, error) {
+// Sheet builds the page image and the JPEG path. It does not encode.
+// An empty page returns a nil image.
+func (p *Page) Sheet() (*image.RGBA, int, int, string, error) {
 	if p.IsEmpty() {
-		return "", 0, 0, nil
+		return nil, 0, 0, "", nil
 	}
 	p.back = fit.Resize(p.back, p.size.Width, p.size.Height)
-	sheet, cols, rows := paint.Canvas(p.size.Width, p.size.Height, p.faces, p.back)
+	cols, rows := grid.Size(len(p.faces) + 1)
+	var sheet *image.RGBA
+	// To switch, comment the live call and uncomment one other.
+	sheet, _, _ = paint.Canvas(p.size.Width, p.size.Height, p.faces, p.back)
+	// sheet = seq.Image(p.faces, p.back) // internal/sheet/draw/seq
+	// sheet = row.Image(p.faces, p.back) // internal/sheet/draw/row
+	// sheet = cell.Image(p.faces, p.back) // internal/sheet/draw/cell
+	// sheet = resize.Image(p.faces, p.back) // internal/sheet/draw/resize
+	// sheet = resize_row.Image(p.faces, p.back) // internal/sheet/draw/resize_row
+	// sheet = bilinear.Image(p.faces, p.back) // internal/sheet/draw/bilinear
+	// sheet = pages.Image(p.faces, p.back) // internal/sheet/draw/pages
+	// sheet = rgba.Image(p.faces, p.back) // internal/sheet/draw/rgba
 	name := fmt.Sprintf("%d_%s_%d_%d_%dx%d.jpg", p.commonIndex, p.title, p.index, len(p.faces), cols, rows)
-	abs, err := paint.WriteJPEG(filepath.Join(p.path, name), sheet)
+	return sheet, cols, rows, filepath.Join(p.path, name), nil
+}
+
+// Save writes the JPEG with image/jpeg. An empty page writes nothing.
+func (p *Page) Save() (string, int, int, error) {
+	sheet, cols, rows, path, err := p.Sheet()
+	if err != nil || sheet == nil {
+		return "", cols, rows, err
+	}
+	abs, err := paint.WriteJPEG(path, sheet)
 	if err != nil {
 		return "", 0, 0, err
 	}

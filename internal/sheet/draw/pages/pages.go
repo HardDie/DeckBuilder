@@ -14,6 +14,12 @@ type Sheet struct {
 	Back  image.Image
 }
 
+// Image draws one page with seq. It does not encode.
+// The app saves one page at a time, so this is that one page.
+func Image(faces []image.Image, back image.Image) *image.RGBA {
+	return seq.Image(faces, back)
+}
+
 // JPEGs returns one quality-80 JPEG per sheet, in order.
 func JPEGs(sheets []Sheet) ([][]byte, error) {
 	out := make([][]byte, len(sheets))

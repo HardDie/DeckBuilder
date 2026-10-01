@@ -23,6 +23,8 @@ import (
 	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
 	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
+	"github.com/HardDie/DeckBuilder/internal/sheet/draw/libjpeg"
+	sheetpage "github.com/HardDie/DeckBuilder/internal/sheet/page"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -230,7 +232,7 @@ func (s *generator) generateImages(
 		commonIndex++
 
 		// Create page drawer object
-		page := pageDrawer.New(deckInfo.ID, s.cfg.Results(), scale, commonIndex, cfg)
+		page := sheetpage.New(deckInfo.ID, s.cfg.Results(), scale, commonIndex, cfg)
 		var backsidePath string
 
 		// Iterate through all cards in deck
@@ -254,7 +256,7 @@ func (s *generator) generateImages(
 			// Start new page if current is full
 			if page.IsFull() {
 				pr.SetMessage("Saving the resulting page to disk...")
-				savePath, columns, rows, err := page.Save()
+				savePath, columns, rows, err := saveSheet(page)
 				if err != nil {
 					return nil, err
 				}
@@ -265,7 +267,7 @@ func (s *generator) generateImages(
 					Rows:     rows,
 				}
 				pr.SetMessage("Drawing cards on the page...")
-				page = (&pageDrawer.PageDrawer{}).Inherit(page)
+				page = (&sheetpage.Page{}).Inherit(page)
 				commonIndex++
 			}
 
@@ -288,7 +290,7 @@ func (s *generator) generateImages(
 
 		if !page.IsEmpty() {
 			pr.SetMessage("Saving the resulting page to disk...")
-			savePath, columns, rows, err := page.Save()
+			savePath, columns, rows, err := saveSheet(page)
 			if err != nil {
 				return nil, err
 			}
@@ -303,6 +305,22 @@ func (s *generator) generateImages(
 	}
 	pr.SetMessage("All image pages were successfully generated!")
 	return images, nil
+}
+
+// saveSheet writes the page with libjpeg-turbo at quality 80.
+func saveSheet(page *sheetpage.Page) (string, int, int, error) {
+	sheet, cols, rows, path, err := page.Sheet()
+	if err != nil || sheet == nil {
+		return "", cols, rows, err
+	}
+	body, err := libjpeg.Encode(sheet)
+	if err != nil {
+		return "", 0, 0, err
+	}
+	if err := fs.CreateAndProcess(path, body, fs.BinToWriter); err != nil {
+		return "", 0, 0, err
+	}
+	return fs.PathToAbsolutePath(path), cols, rows, nil
 }
 
 func (s *generator) generateJson(
