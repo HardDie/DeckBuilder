@@ -8,7 +8,7 @@ Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + req
 
 ## Handle
 
-All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.6 (`New` + `Init`). Callers: `application.Get` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
+All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.6 (`New` + `Init`). Callers: `wire` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
 
 ## Field: `gamesPath`
 
@@ -38,7 +38,7 @@ Omitting `gamesPath` would put games next to `settings.json`. Do not confuse it 
 
 | Method | Meaning | Used by |
 |---|---|---|
-| `Init` | `Init` + `CreateFolder[any]("games", nil)` (ignore exist) | `application.Get`, tests |
+| `Init` | `Init` + `CreateFolder[any]("games", nil)` (ignore exist) | `wire`, tests |
 | `Drop` | delete whole store root | tests cleanup |
 
 ## `settings`

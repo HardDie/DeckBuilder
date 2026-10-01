@@ -151,7 +151,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | Use cases | **[docs/use-cases](docs/use-cases/INDEX.md)** |
 | Go modules, fields, who calls what | **[docs/wiki](docs/wiki/Home.md)** |
 | HTTP routes | `internal/servers` |
-| Process wiring | `internal/application/application.go` |
+| Process wiring | `wire.go` |
 | Paths, sheet limits | `internal/config` |
 | Domain structs | `internal/entities` |
 | JSON DTOs | `internal/dto` |
@@ -175,6 +175,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── use-cases/
 │   └── wiki/               # GitHub wiki source (Home.md, _Sidebar.md)
 ├── main.go                 # Wails window
+├── wire.go                 # config, fsentry, services
 ├── app.go
 ├── api_proxy.go            # AssetServer /api handler
 ├── wails.json
@@ -182,7 +183,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 ├── frontend/               # Vue UI
 ├── build/                  # Wails packaging; binary in build/bin
 ├── internal/
-│   ├── application/        # mux, DI, ListenAndServe
 │   ├── servers/            # image and TTS GET
 │   ├── services/           # use-case logic
 │   ├── repositories/       # images + persistence glue
@@ -207,7 +207,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **`services` own rules** (validation, generate orchestration, replace). They depend on repositories / other services, not `net/http`.
 - **`repositories`** own disk: fsentry folders, image files, and config paths.
 - **`entities` vs `dto` vs `tts_entity`:** do not reuse TTS JSON structs as API DTOs. Cards in TTS have different IDs (`CardID` vs catalog `int64`).
-- **Import direction:** `application` → servers → services → repositories. `page_drawer` and `tts_entity` are used by generator, not by `api`.
+- **Import direction:** `main` → servers → services → repositories. `page_drawer` and `tts_entity` are used by generator, not by `api`.
 - **Do not add a new top-level `internal/` package** for a single handler; put it on an existing server.
 - **DTO timestamps are RFC3339 strings.**
   1. Wails bindings cannot resolve `time.Time`.

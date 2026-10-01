@@ -22,7 +22,6 @@ import (
 	bindingsReplace "github.com/HardDie/DeckBuilder/bindings/replace"
 	bindingsSearch "github.com/HardDie/DeckBuilder/bindings/search"
 	bindingsSystem "github.com/HardDie/DeckBuilder/bindings/system"
-	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/servers"
 	"github.com/HardDie/DeckBuilder/pkg/version"
@@ -32,17 +31,14 @@ import (
 var assets embed.FS
 
 func main() {
-	backend, err := application.Get(version.String())
-	if err != nil {
-		logger.Error.Fatal(err.Error())
-	}
+	backend := wire(version.String())
 
 	httpServer := servers.New(
-		backend.GameService(),
-		backend.CollectionService(),
-		backend.DeckService(),
-		backend.CardService(),
-		backend.TTSService(),
+		backend.game,
+		backend.collection,
+		backend.deck,
+		backend.card,
+		backend.tts,
 	)
 	ln, _, err := httpServer.Listen()
 	if err != nil {
@@ -54,16 +50,16 @@ func main() {
 		}
 	}()
 
-	cfg := *backend.Config()
+	cfg := *backend.cfg
 	app := NewApp(ln)
-	games := game.New(cfg, backend.GameService())
-	collections := collection.New(cfg, backend.CollectionService())
-	decks := deck.New(cfg, backend.DeckService())
-	cards := card.New(cfg, backend.CardService())
-	systems := bindingsSystem.New(cfg, backend.SystemService())
-	searches := bindingsSearch.New(backend.SearchService())
-	generators := bindingsGenerator.New(backend.GeneratorService())
-	replaces := bindingsReplace.New(backend.ReplaceService())
+	games := game.New(cfg, backend.game)
+	collections := collection.New(cfg, backend.collection)
+	decks := deck.New(cfg, backend.deck)
+	cards := card.New(cfg, backend.card)
+	systems := bindingsSystem.New(cfg, backend.system)
+	searches := bindingsSearch.New(backend.search)
+	generators := bindingsGenerator.New(backend.generator)
+	replaces := bindingsReplace.New(backend.replace)
 
 	err = wails.Run(&options.App{
 		Title:  "DeckBuilder",

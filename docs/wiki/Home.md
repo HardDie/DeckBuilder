@@ -20,7 +20,7 @@ These pages are the field notes. [Internals](Internals) is the map.
 | Page | What it covers |
 |---|---|
 | [Overview](Overview) | Request flow, fsentry handle, on-disk layout, IDs |
-| [Application](Application) | Composition root in `internal/application` |
+| [Application](Application) | Composition root in `wire.go` |
 | [Config](Config) | Paths, generate limits, `Games()` vs `gamesPath` |
 | [API](API) | Image and TTS routes |
 | [Servers](Servers) | HTTP adapters |

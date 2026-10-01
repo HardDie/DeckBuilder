@@ -2,7 +2,7 @@
 
 The routes live in `internal/servers`.
 
-`application.Get` calls `servers.Register`.
+`main.go` calls `servers.New`.
 
 | Route | Response |
 |---|---|

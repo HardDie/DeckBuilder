@@ -7,25 +7,24 @@ The window is Wails, at the repo root. The same process serves loopback HTTP for
 ```text
 main.go
         │
-        ▼
-internal/application          wires the process, owns the mux
+        ├── wire.go           config, fsentry, services
         │
-        ├── internal/servers  image and TTS GET
-        │         │
-        │         ▼
-        ├── internal/services rules
-        │         │
-        │         ▼
-        └── internal/repositories   images, zip, fsentry folders
+        └── internal/servers  image and TTS GET
+                  │
+                  ▼
+        internal/services     rules
+                  │
+                  ▼
+        internal/repositories images, zip, fsentry folders
 ```
 
 Bindings call services directly. `internal/servers` is the HTTP edge that is still left: image GETs and `GET /api/tts/data`.
 
-## `application`
+## `wire.go`
 
-Composition root. `Get` builds config, opens one `*fsentry.DB` on the data directory, constructs repositories, services, and servers, and registers routes. `Listen` binds `127.0.0.1:5000` and walks forward up to 20 ports. `Handler` is the mux Wails mounts so `<img>` tags can load `/api/.../image`.
+Composition root in package `main`. `wire` builds config, opens one `*fsentry.DB` on the data directory, creates the `games` folder, and constructs the services. `main.go` then builds `servers.New` and the Wails bindings.
 
-Nothing in this package decides how a card is stored or how a sheet is drawn. A new HTTP route is a constructor plus a register call here.
+Nothing in `wire` decides how a card is stored or how a sheet is drawn.
 
 Details: [Application](Application).
 

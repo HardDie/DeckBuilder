@@ -35,7 +35,7 @@ Migrated desktop verbs (HTTP routes removed; Wails only):
 * `bindings/generator.Generator`: `Game`
 * `bindings/replace.Replace`: `Prepare` / `Replace`
 
-`app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `bindings/catalog`. `application.Get` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
+`app.go` is window lifecycle only. Shared write fields and DTO/`cachedImage` mapping live in `bindings/catalog`. `wire` exposes config, catalog services, the system service, the search service, and the generator service. `cachedImage` URLs still point at `/api/.../image`. Binding errors are toasted in the Vue API layer because they skip the `window.fetch` wrapper.
 
 Images and TTS stay on HTTP. Catalog CRUD is Wails only.
 

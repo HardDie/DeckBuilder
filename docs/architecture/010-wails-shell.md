@@ -17,13 +17,13 @@ The product should feel like a desktop app. Today [ADR 001](001-loopback-http-em
 
 1. **Replace HTTP with Wails bindings** in one pass.
 2. **No Wails** — keep browser + embed forever.
-3. **Scaffold Wails in `desktop/`** as its own module; run the same `internal/application` HTTP stack in that process. Bindings are not the catalog API. The root binary remains the browser/embed entry.
+3. **Scaffold Wails in `desktop/`** as its own module; run the same loopback HTTP stack in that process. Bindings are not the catalog API. The root binary remains the browser/embed entry.
 
 ## Decision
 
 Use option 3.
 
-`desktop/` is a Wails v2.16 project (`wails.json`, `app.go`). The Vue UI is a copy of `gui/` under `desktop/frontend`. `fetch('/api/...')` is unchanged. The Wails process calls `application.Get` / `Listen` / `Serve` (loopback, port retry, no browser). TTS still uses that port. In `wails dev`, GET `/api` can go through Vite to `:5000`; Wails does **not** send POST/PATCH/DELETE to Vite, so `AssetServer.Handler` serves `/api` from the same mux. Bindings are not the catalog API. Production HTTP+SPA remains the root binary. Wails CLI must be v2.16+ (Go 1.27 breaks binding generation on v2.11).
+`desktop/` is a Wails v2.16 project (`wails.json`, `app.go`). The Vue UI is a copy of `gui/` under `desktop/frontend`. `fetch('/api/...')` is unchanged. The Wails process calls `wire` / `Listen` / `Serve` (loopback, port retry, no browser). TTS still uses that port. In `wails dev`, GET `/api` can go through Vite to `:5000`; Wails does **not** send POST/PATCH/DELETE to Vite, so `AssetServer.Handler` serves `/api` from the same mux. Bindings are not the catalog API. Production HTTP+SPA remains the root binary. Wails CLI must be v2.16+ (Go 1.27 breaks binding generation on v2.11).
 
 A nested module (`github.com/HardDie/DeckBuilder/desktop`) keeps CGO/webview out of root `go test ./...`.
 

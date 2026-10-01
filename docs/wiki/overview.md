@@ -17,7 +17,7 @@ List/search add filtering and sorting in the **service**, not in the repository.
 
 ## One fsentry handle
 
-`application.Get` builds a single `*fsentry.DB`:
+`wire` builds a single `*fsentry.DB`:
 
 ```go
 db := fsentry.New(cfg.Data, fsentry.WithPretty())

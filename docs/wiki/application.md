@@ -1,39 +1,20 @@
-# `internal/application`
+# `wire.go`
 
 Developer reference. The map of the project is [Internals](Internals).
 
-Composition root. Only this package constructs the graph and starts HTTP.
+Composition root in package `main`. `wire` loads config, opens fsentry, creates the `games` folder, and constructs the services. `main.go` calls `wire`, then `servers.New` and the Wails bindings.
 
-## Types
+## `wire(version)`
 
-| Name | Meaning |
+Fatals if the store `Init` fails. Fatals if the `games` folder `Init` fails.
+
+| Step | Meaning |
 |---|---|
-| `Application` | Holds config, router, TTS, and catalog services. `Listen` binds `127.0.0.1:5000`, then +1 on failure (max 20). |
-| `Get(version)` | Builds config, stores, layers, middleware. Fatals on store `Init` errors. |
-
-## Variables in `Get`
-
-| Variable | Meaning | Who consumes it |
-|---|---|---|
-| `cfg` | Paths, stamped version | Almost every New below |
-| `routes` | Root mux | `servers.Register` |
-| `db` | `*fsentry.DB` on `cfg.Data`, then `db.Init()` | `internal/repositories` |
-| `core` | `internal/repositories/core` ensures `games/` exists | `core.Init()` at startup; tests also `Drop()` |
-| `settings` … `card` | `internal/repositories/{settings,game,collection,deck,card}` | services |
-| `service*` | Business rules | Wails bindings and `internal/servers` |
+| `config.Get` | Paths and stamped version |
+| `fsentry.New` + `Init` | Store on `cfg.Data` |
+| `core.Init` | Creates `games/` |
+| services | settings, game, collection, deck, card, TTS, generator, replace, search |
 
 Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 
-## Methods
-
-| Method | Role | Called from |
-|---|---|---|
-| `Get` | Wire everything | `main.go` |
-| `Listen` | Bind loopback (retry port), set TTS port | `main.go` |
-| `Serve` | `http.Serve` the mux | `main.go` |
-| `Handler` | The mux (for Wails `AssetServer.Handler`) | `main.go` |
-| `Config` / `GameService` / `CollectionService` / `DeckService` / `CardService` | Dependencies for Wails bindings | `main.go` |
-| `ReplaceService` | Replace rules for the Wails binding | `main.go` |
-| `corsSetupHeaders` / `corsMiddleware` | `GET,OPTIONS` for image fetches | `routes.Use` |
-
-No catalog logic lives here. Adding a new HTTP feature means a `New` + `Register*` pair in this file, not a new listen path.
+`main.go` passes game, collection, deck, card, and TTS into `servers.New`. Bindings take the same services.

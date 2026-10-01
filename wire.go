@@ -1,4 +1,6 @@
-package application
+//go:build !nomain
+
+package main
 
 import (
 	"github.com/HardDie/fsentry"
@@ -22,20 +24,20 @@ import (
 	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
 )
 
-type Application struct {
-	cfg               *config.Config
-	serviceGame       servicesGame.Game
-	serviceCollection servicesCollection.Collection
-	serviceDeck       servicesDeck.Deck
-	serviceCard       servicesCard.Card
-	serviceSystem     servicesSystem.System
-	serviceTTS        servicesTTS.TTS
-	serviceSearch     servicesSearch.Search
-	serviceGenerator  servicesGenerator.Generator
-	serviceReplace    servicesReplace.Replace
+type services struct {
+	cfg        *config.Config
+	game       servicesGame.Game
+	collection servicesCollection.Collection
+	deck       servicesDeck.Deck
+	card       servicesCard.Card
+	system     servicesSystem.System
+	tts        servicesTTS.TTS
+	search     servicesSearch.Search
+	generator  servicesGenerator.Generator
+	replace    servicesReplace.Replace
 }
 
-func Get(version string) (*Application, error) {
+func wire(version string) *services {
 	cfg := config.Get(version)
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty())
@@ -44,93 +46,40 @@ func Get(version string) (*Application, error) {
 	}
 
 	core := repositoriesCore.New(db)
-
-	err := core.Init()
-	if err != nil {
+	if err := core.Init(); err != nil {
 		logger.Error.Fatal(err)
 	}
 
-	// system
 	repositorySettings := repositoriesSettings.New(cfg, db)
 	serviceSystem := servicesSystem.New(repositorySettings)
 
-	// game
 	repositoryGame := repositoriesGame.New(cfg, db)
 	serviceGame := servicesGame.New(cfg, repositoryGame)
 
-	// collection
 	repositoryCollection := repositoriesCollection.New(cfg, db)
 	serviceCollection := servicesCollection.New(cfg, repositoryCollection)
 
-	// deck
 	repositoryDeck := repositoriesDeck.New(cfg, db)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
 
-	// card
 	repositoryCard := repositoriesCard.New(cfg, db)
 	serviceCard := servicesCard.New(cfg, repositoryCard)
 
 	serviceTTS := servicesTTS.New()
-
-	// generator
 	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
-
-	// replace
 	serviceReplace := servicesReplace.New(serviceTTS)
-
-	// recursive search
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
 
-	return &Application{
-		cfg:               cfg,
-		serviceGame:       serviceGame,
-		serviceCollection: serviceCollection,
-		serviceDeck:       serviceDeck,
-		serviceCard:       serviceCard,
-		serviceSystem:     serviceSystem,
-		serviceTTS:        serviceTTS,
-		serviceSearch:     serviceSearch,
-		serviceGenerator:  serviceGenerator,
-		serviceReplace:    serviceReplace,
-	}, nil
-}
-
-func (app *Application) Config() *config.Config {
-	return app.cfg
-}
-
-func (app *Application) GameService() servicesGame.Game {
-	return app.serviceGame
-}
-
-func (app *Application) CollectionService() servicesCollection.Collection {
-	return app.serviceCollection
-}
-
-func (app *Application) DeckService() servicesDeck.Deck {
-	return app.serviceDeck
-}
-
-func (app *Application) CardService() servicesCard.Card {
-	return app.serviceCard
-}
-
-func (app *Application) SystemService() servicesSystem.System {
-	return app.serviceSystem
-}
-
-func (app *Application) TTSService() servicesTTS.TTS {
-	return app.serviceTTS
-}
-
-func (app *Application) SearchService() servicesSearch.Search {
-	return app.serviceSearch
-}
-
-func (app *Application) GeneratorService() servicesGenerator.Generator {
-	return app.serviceGenerator
-}
-
-func (app *Application) ReplaceService() servicesReplace.Replace {
-	return app.serviceReplace
+	return &services{
+		cfg:        cfg,
+		game:       serviceGame,
+		collection: serviceCollection,
+		deck:       serviceDeck,
+		card:       serviceCard,
+		system:     serviceSystem,
+		tts:        serviceTTS,
+		search:     serviceSearch,
+		generator:  serviceGenerator,
+		replace:    serviceReplace,
+	}
 }

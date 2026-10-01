@@ -19,7 +19,7 @@ Process-wide paths and generate limits. Constructed once via `config.Get(version
 
 | Method | Meaning | Used by |
 |---|---|---|
-| `Get` | Defaults + macOS home-dir Data | `application.Get`, tests |
+| `Get` | Defaults + macOS home-dir Data | `wire`, tests |
 | `Games()` | `Data/games` **OS path** | repositories (zip export/import), some tests as fsentry root |
 | `Results()` | `Data/result` | generator, replace, TTS buffer |
 | `SetDataPath` | Tests only; retarget Data | `*_test.go` temp dirs |
