@@ -18,10 +18,29 @@ VERSION_LDFLAGS = -X github.com/HardDie/DeckBuilder/pkg/version.Build=$(BUILD_VE
 PRODUCT_VERSION ?= $(patsubst v%,%,$(shell git describe --tags --abbrev=0 2>/dev/null))
 # Ubuntu 24.04+ ships webkit2gtk-4.1; Wails needs this tag instead of 4.0.
 WAILS_TAGS := $(shell pkg-config --exists webkit2gtk-4.1 2>/dev/null && echo -tags webkit2_41)
+# libjpeg-turbo for github.com/pixiv/go-libjpeg. make sets the flags; do not export them by hand.
+CGO_ENABLED := 1
+JPEG_BREW_PREFIX := $(shell brew --prefix jpeg-turbo 2>/dev/null)
+ifneq ($(JPEG_BREW_PREFIX),)
+CGO_CFLAGS := -I$(JPEG_BREW_PREFIX)/include
+CGO_LDFLAGS := -L$(JPEG_BREW_PREFIX)/lib
+else
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+JPEG_PC := $(shell pkg-config --exists libturbojpeg 2>/dev/null && echo libturbojpeg)
+ifeq ($(JPEG_PC),)
+JPEG_PC := $(shell pkg-config --exists libjpeg 2>/dev/null && echo libjpeg)
+endif
+ifneq ($(JPEG_PC),)
+CGO_CFLAGS := $(shell pkg-config --cflags $(JPEG_PC))
+CGO_LDFLAGS := $(shell pkg-config --libs $(JPEG_PC))
+endif
+endif
+endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help version dev build generate test test-integration test-all \
+.PHONY: help version dev build require-jpeg generate test test-integration test-all \
 	vet fmt tidy doc doc-all docs-site frontend-install screenshots clean ci \
 	linter-install linter-run fuzz_game fuzz_collection fuzz_deck fuzz_card
 
@@ -37,12 +56,14 @@ version:
 	PRODUCT_VERSION="$(PRODUCT_VERSION)" ./scripts/sync-product-version.sh
 
 ## dev: Run the Wails app with frontend hot reload
-dev: require-wails version
-	$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
+dev: require-wails require-jpeg version
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" \
+		$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 ## build: Production binary for this machine (build/bin)
-build: require-wails version
-	$(WAILS) build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
+build: require-wails require-jpeg version
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" \
+		$(WAILS) build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 	@if [ "$$(uname)" = "Linux" ]; then \
 		cp build/linux/install.sh build/linux/$(APP_NAME).desktop build/bin/ && \
 		cp build/appicon.png build/bin/$(APP_NAME).png && \
@@ -142,3 +163,9 @@ fuzz_card:
 
 require-wails:
 	@test -f wails.json || (echo "wails.json missing: scaffold with wails init before this target"; exit 1)
+
+require-jpeg:
+	@if [ -z "$(JPEG_BREW_PREFIX)" ] && [ -z "$(JPEG_PC)" ]; then \
+		echo "missing jpeg-turbo via Homebrew, or libturbojpeg dev headers"; \
+		exit 1; \
+	fi

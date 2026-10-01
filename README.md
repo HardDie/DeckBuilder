@@ -37,7 +37,7 @@ git clone https://github.com/HardDie/DeckBuilder
 
 Run the window
 ```
-make wails-dev
+make dev
 ```
 
 Build the app
@@ -46,13 +46,14 @@ make build
 ```
 
 Sheet JPEGs use libjpeg-turbo through `github.com/pixiv/go-libjpeg` (cgo).
-On a Mac, install the library and point cgo at it before `make build` or `make wails-dev`:
+`make build` and `make dev` set `CGO_ENABLED`, `CGO_CFLAGS`, and `CGO_LDFLAGS`.
+Install the library first:
 
 ```
 brew install jpeg-turbo
-export CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include"
-export CGO_LDFLAGS="-L$(brew --prefix jpeg-turbo)/lib"
 ```
+
+Linux without Homebrew needs the `libturbojpeg` dev headers.
 
 The binary is in `build/bin`
 

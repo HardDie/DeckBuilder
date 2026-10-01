@@ -128,7 +128,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 ```bash
 git clone https://github.com/HardDie/DeckBuilder
 make build       # Wails app for this machine (build/bin)
-make wails-dev   # Wails window
+make dev        # Wails window
 make test
 make linter-run  # after make linter-install
 ```
