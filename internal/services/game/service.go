@@ -1,8 +1,6 @@
 package game
 
 import (
-	"strings"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
@@ -38,18 +36,7 @@ func (s *game) List(sortField, search string) ([]*entitiesGame.Game, error) {
 		return make([]*entitiesGame.Game, 0), err
 	}
 
-	// Filter
-	var filteredItems []*entitiesGame.Game
-	if search != "" {
-		search = strings.ToLower(search)
-		for _, item := range items {
-			if strings.Contains(strings.ToLower(item.Name), search) {
-				filteredItems = append(filteredItems, item)
-			}
-		}
-	} else {
-		filteredItems = items
-	}
+	filteredItems := utils.FilterByName(items, search)
 
 	// Sorting
 	utils.Sort(&filteredItems, sortField)

@@ -11,6 +11,22 @@ type ISortable interface {
 	GetCreatedAt() time.Time
 }
 
+// FilterByName keeps items whose name contains search.
+// An empty search returns items unchanged. The match is case-insensitive.
+func FilterByName[T ISortable](items []T, search string) []T {
+	if search == "" {
+		return items
+	}
+	search = strings.ToLower(search)
+	var filtered []T
+	for _, item := range items {
+		if strings.Contains(item.GetName(), search) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
+
 func Sort[T ISortable](items *[]T, field string) {
 	field = strings.ToLower(field)
 	sort.SliceStable(*items, func(i, j int) bool {

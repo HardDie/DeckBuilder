@@ -1,8 +1,6 @@
 package card
 
 import (
-	"strings"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
@@ -43,18 +41,7 @@ func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*
 		return make([]*entitiesCard.Card, 0), err
 	}
 
-	// Filter
-	var filteredItems []*entitiesCard.Card
-	if search != "" {
-		search = strings.ToLower(search)
-		for _, item := range items {
-			if strings.Contains(strings.ToLower(item.Name), search) {
-				filteredItems = append(filteredItems, item)
-			}
-		}
-	} else {
-		filteredItems = items
-	}
+	filteredItems := utils.FilterByName(items, search)
 
 	// Sorting
 	utils.Sort(&filteredItems, sortField)

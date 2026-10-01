@@ -1,8 +1,6 @@
 package collection
 
 import (
-	"strings"
-
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -38,18 +36,7 @@ func (s *collection) List(gameID, sortField, search string) ([]*entitiesCollecti
 		return make([]*entitiesCollection.Collection, 0), err
 	}
 
-	// Filter
-	var filteredItems []*entitiesCollection.Collection
-	if search != "" {
-		search = strings.ToLower(search)
-		for _, item := range items {
-			if strings.Contains(strings.ToLower(item.Name), search) {
-				filteredItems = append(filteredItems, item)
-			}
-		}
-	} else {
-		filteredItems = items
-	}
+	filteredItems := utils.FilterByName(items, search)
 
 	// Sorting
 	utils.Sort(&filteredItems, sortField)
