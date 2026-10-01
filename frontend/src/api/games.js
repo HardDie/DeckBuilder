@@ -52,8 +52,8 @@ export default {
 }
 
 async function importZip(body) {
-  const file = body instanceof FormData ? body.get('file') : body?.file
-  const name = (body instanceof FormData ? body.get('name') : body?.name) || ''
+  const file = body?.file
+  const name = body?.name || ''
   if (!(file instanceof Blob) || file.size === 0) {
     throw new Error('The file must be passed as an argument')
   }

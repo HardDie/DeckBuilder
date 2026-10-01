@@ -78,10 +78,8 @@ const data = ref([])
 
 const onImportFile = ({ file }) => {
   currentFile.value = file.file
-  const formData = new FormData()
-  formData.append('file', currentFile.value)
   replaceStore
-    .prepare(formData)
+    .prepare({ file: currentFile.value })
     .then(res => (data.value = res.data))
     .catch(() => {
       clearInput()

@@ -245,23 +245,17 @@ const onAdd = () => {
     acc[cur.key] = cur.value
     return acc
   }, {})
-  const formData = new FormData()
-  // eslint-disable-next-line no-restricted-syntax
-  for (const [key, value] of Object.entries(form)) {
-    if (form.imageFile && key === 'image') {
-      // eslint-disable-next-line no-continue
-      continue
-    }
-    if (key === 'variables') {
-      if (Object.keys(variables).length) {
-        formData.append(key, JSON.stringify(variables))
-      }
-      // eslint-disable-next-line no-continue
-      continue
-    }
-    formData.append(key, value)
-  }
-  emit('submit', { mode: mode.value, data: formData })
+  emit('submit', {
+    mode: mode.value,
+    data: {
+      name: form.name,
+      description: form.description,
+      image: form.imageFile ? '' : form.image,
+      imageFile: form.imageFile,
+      count: form.count,
+      variables,
+    },
+  })
 }
 </script>
 

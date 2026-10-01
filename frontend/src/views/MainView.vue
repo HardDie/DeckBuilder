@@ -281,11 +281,7 @@ const onFilters = () => {
 }
 
 const onReplace = data => {
-  const formData = new FormData()
-  formData.append('file', data.file)
-  const jsonBlob = new Blob([JSON.stringify({ data: data.mapping })], { type: 'application/json' })
-  formData.append('mapping', jsonBlob)
-  replaceStore.replace(formData)
+  replaceStore.replace(data)
 }
 
 const onItemClick = id => {

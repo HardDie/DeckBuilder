@@ -8,22 +8,23 @@ async function blobBytes(value, emptyMessage) {
   return Array.from(new Uint8Array(await value.arrayBuffer()))
 }
 
+function mappingBytes(mapping) {
+  return Array.from(new TextEncoder().encode(JSON.stringify({ data: mapping })))
+}
+
 export default {
   prepare(requestData) {
-    const file = requestData instanceof FormData ? requestData.get('file') : requestData?.file
     return withBindingError(
-      blobBytes(file, 'The file must be passed as an argument').then(bytes => Prepare(bytes)),
+      blobBytes(requestData?.file, 'The file must be passed as an argument').then(bytes =>
+        Prepare(bytes),
+      ),
     )
   },
   replace(requestData) {
-    const file = requestData instanceof FormData ? requestData.get('file') : requestData?.file
-    const mapping =
-      requestData instanceof FormData ? requestData.get('mapping') : requestData?.mapping
     return withBindingError(
-      Promise.all([
-        blobBytes(file, 'The file must be passed as an argument'),
-        blobBytes(mapping, 'The mapping must be passed as an argument'),
-      ]).then(([fileBytes, mappingBytes]) => Replace(fileBytes, mappingBytes)),
+      blobBytes(requestData?.file, 'The file must be passed as an argument').then(fileBytes =>
+        Replace(fileBytes, mappingBytes(requestData?.mapping)),
+      ),
     )
   },
 }

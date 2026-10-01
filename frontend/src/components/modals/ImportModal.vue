@@ -79,10 +79,7 @@ watch(isModalModel, val => {
 
 const onImport = () => {
   if (form.file) {
-    const formData = new FormData()
-    formData.append('name', form.name)
-    formData.append('file', form.file)
-    emit('submit', formData)
+    emit('submit', { name: form.name, file: form.file })
   }
 }
 </script>

@@ -43,18 +43,6 @@ function formVariables(value) {
 }
 
 export async function writeRequestFromBody(body) {
-  if (body instanceof FormData) {
-    const file = body.get('imageFile')
-    const hasFile = file instanceof Blob && file.size > 0
-    return {
-      name: body.get('name') || '',
-      description: body.get('description') || '',
-      image: hasFile ? '' : body.get('image') || '',
-      imageFile: hasFile ? await imageFileBytes(file) : null,
-      count: formCount(body.get('count')),
-      variables: formVariables(body.get('variables')),
-    }
-  }
   const file = body?.imageFile
   const hasFile = file instanceof Blob && file.size > 0
   return {
