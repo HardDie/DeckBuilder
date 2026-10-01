@@ -195,6 +195,8 @@ func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*
 			return nil, er.CardNotExists.AddMessage(err.Error())
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -256,6 +258,8 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 			return nil, er.CardNotExists.AddMessage(err.Error())
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -282,6 +286,8 @@ func (r *card) delete(gameID, collectionID, deckID string, cardID int64) error {
 			return er.CardNotExists.AddMessage(err.Error())
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
@@ -300,6 +306,8 @@ func (r *card) imageCreate(gameID, collectionID, deckID string, cardID int64, da
 	if err != nil {
 		if errors.Is(err, fsentry.ErrExist) {
 			return er.CardImageExist.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
@@ -317,6 +325,8 @@ func (r *card) imageGet(gameID, collectionID, deckID string, cardID int64) ([]by
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.CardImageNotExists.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -334,6 +344,8 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.CardImageNotExists.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
@@ -341,50 +353,15 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 	return nil
 }
 
-func (r *card) getDeck(gameID, collectionID, deckID string) (string, error) {
-	gameInfo, err := r.db.GetFolder[any](gameID, r.gamesPath)
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return "", er.BadName
-		} else {
-			return "", er.InternalError.AddMessage(err.Error())
-		}
-	}
-
-	collectionInfo, err := r.db.GetFolder[any](collectionID, r.gamesPath, gameInfo.ID)
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return "", er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return "", er.BadName
-		} else {
-			return "", er.InternalError.AddMessage(err.Error())
-		}
-	}
-
-	info, err := r.db.GetFolder[any](deckID, r.gamesPath, gameInfo.ID, collectionInfo.ID)
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return "", er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return "", er.BadName
-		} else {
-			return "", er.InternalError.AddMessage(err.Error())
-		}
-	}
-	return info.ID, nil
-}
-
 func (r *card) rawCardList(gameID, collectionID, deckID string) (cardList, error) {
-	deckIDResolved, err := r.getDeck(gameID, collectionID, deckID)
+	info, err := r.db.GetFolder[cardList]("cards", r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		return nil, err
-	}
-
-	info, err := r.db.GetFolder[cardList]("cards", r.gamesPath, gameID, collectionID, deckIDResolved)
-	if err != nil {
+		if errors.Is(err, fsentry.ErrBadName) {
+			return nil, er.BadName
+		}
+		if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
+		}
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 

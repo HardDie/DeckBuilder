@@ -1,8 +1,11 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -105,4 +108,28 @@ func IfErrorLog(err error) {
 	if err != nil {
 		_ = logger.Error.Output(2, err.Error())
 	}
+}
+
+// MissingAncestor maps a missing catalog parent from fsentry v0.1.7.
+// *fsentry.BadPathError.Path is the caller path from the first segment through
+// the missing one. Under "games", two segments is the game, three the
+// collection, four the deck. The bare ErrBadPath sentinel (".", "..", a
+// separator in a segment) returns nil.
+func MissingAncestor(err error) *Err {
+	var bad *fsentry.BadPathError
+	if !errors.As(err, &bad) || bad == nil || len(bad.Path) < 2 || bad.Path[0] != "games" {
+		return nil
+	}
+	var sentinel *Err
+	switch len(bad.Path) {
+	case 2:
+		sentinel = GameNotExists
+	case 3:
+		sentinel = CollectionNotExists
+	case 4:
+		sentinel = DeckNotExists
+	default:
+		return nil
+	}
+	return sentinel.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 }

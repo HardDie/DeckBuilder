@@ -142,13 +142,11 @@ func (r *deck) GetImage(gameID, collectionID, deckID string) ([]byte, string, er
 }
 
 func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
-	gameIDResolved, err := r.getGame(gameID)
+	list, err := r.db.List(r.gamesPath, gameID)
 	if err != nil {
-		return make([]*entitiesDeck.Deck, 0), err
-	}
-
-	list, err := r.db.List(r.gamesPath, gameIDResolved)
-	if err != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
+			return make([]*entitiesDeck.Deck, 0), mapped
+		}
 		return make([]*entitiesDeck.Deck, 0), er.InternalError.AddMessage(err.Error())
 	}
 
@@ -190,61 +188,28 @@ func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []b
 	return r.imageCreate(gameID, collectionID, deckID, data)
 }
 
-func (r *deck) getGame(gameID string) (string, error) {
-	info, err := r.db.GetFolder[any](gameID, r.gamesPath)
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return "", er.GameNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return "", er.BadName
-		} else {
-			return "", er.InternalError.AddMessage(err.Error())
-		}
-	}
-	return info.ID, nil
-}
-
-func (r *deck) getCollection(gameID, collectionID string) (string, error) {
-	gameIDResolved, err := r.getGame(gameID)
-	if err != nil {
-		return "", err
-	}
-
-	info, err := r.db.GetFolder[any](collectionID, r.gamesPath, gameIDResolved)
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return "", er.CollectionNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return "", er.BadName
-		} else {
-			return "", er.InternalError.AddMessage(err.Error())
-		}
-	}
-	return info.ID, nil
-}
-
 func (r *deck) create(gameID, collectionID string, req CreateRequest) (*entitiesDeck.Deck, error) {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-
 	info, err := r.db.CreateFolder(req.Name, model{
 		Description: fsentry.QuotedString(req.Description),
 		Image:       fsentry.QuotedString(req.Image),
-	}, r.gamesPath, gameID, collectionIDResolved)
+	}, r.gamesPath, gameID, collectionID)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrExist) {
 			return nil, er.DeckExist
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
 	}
 
-	_, err = r.db.CreateFolder[any]("cards", nil, r.gamesPath, gameID, collectionIDResolved, info.ID)
+	_, err = r.db.CreateFolder[any]("cards", nil, r.gamesPath, gameID, collectionID, info.ID)
 	if err != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
+		}
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
@@ -252,17 +217,14 @@ func (r *deck) create(gameID, collectionID string, req CreateRequest) (*entities
 }
 
 func (r *deck) get(gameID, collectionID, name string) (*entitiesDeck.Deck, error) {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := r.db.GetFolder[model](name, r.gamesPath, gameID, collectionIDResolved)
+	info, err := r.db.GetFolder[model](name, r.gamesPath, gameID, collectionID)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -272,19 +234,17 @@ func (r *deck) get(gameID, collectionID, name string) (*entitiesDeck.Deck, error
 }
 
 func (r *deck) list(gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
+	list, err := r.db.List(r.gamesPath, gameID, collectionID)
 	if err != nil {
-		return nil, err
-	}
-
-	list, err := r.db.List(r.gamesPath, gameID, collectionIDResolved)
-	if err != nil {
+		if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
+		}
 		return nil, er.InternalError.AddMessage(err.Error())
 	}
 
 	var decks []*entitiesDeck.Deck
 	for _, folder := range list.Folders {
-		deck, err := r.get(gameID, collectionIDResolved, folder)
+		deck, err := r.get(gameID, collectionID, folder)
 		if err != nil {
 			logger.Error.Println(folder, err.Error())
 			continue
@@ -299,17 +259,14 @@ func (r *deck) list(gameID, collectionID string) ([]*entitiesDeck.Deck, error) {
 }
 
 func (r *deck) move(gameID, collectionID, oldName, newName string) (*entitiesDeck.Deck, error) {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := r.db.MoveFolder[model](oldName, newName, r.gamesPath, gameID, collectionIDResolved)
+	info, err := r.db.MoveFolder[model](oldName, newName, r.gamesPath, gameID, collectionID)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -325,20 +282,17 @@ type updateRequest struct {
 }
 
 func (r *deck) update(gameID, collectionID string, req updateRequest) (*entitiesDeck.Deck, error) {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
-	if err != nil {
-		return nil, err
-	}
-
 	info, err := r.db.UpdateFolder(req.Name, model{
 		Description: fsentry.QuotedString(req.Description),
 		Image:       fsentry.QuotedString(req.Image),
-	}, r.gamesPath, gameID, collectionIDResolved)
+	}, r.gamesPath, gameID, collectionID)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return nil, er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -348,17 +302,14 @@ func (r *deck) update(gameID, collectionID string, req updateRequest) (*entities
 }
 
 func (r *deck) delete(gameID, collectionID, name string) error {
-	collectionIDResolved, err := r.getCollection(gameID, collectionID)
-	if err != nil {
-		return err
-	}
-
-	err = r.db.RemoveFolder(name, r.gamesPath, gameID, collectionIDResolved)
+	err := r.db.RemoveFolder(name, r.gamesPath, gameID, collectionID)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.DeckNotExists.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 		} else if errors.Is(err, fsentry.ErrBadName) {
 			return er.BadName
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
@@ -376,6 +327,8 @@ func (r *deck) imageCreate(gameID, collectionID, deckID string, data []byte) err
 	if err != nil {
 		if errors.Is(err, fsentry.ErrExist) {
 			return er.DeckImageExist.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
@@ -393,6 +346,8 @@ func (r *deck) imageGet(gameID, collectionID, deckID string) ([]byte, error) {
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return nil, er.DeckImageNotExists.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return nil, mapped
 		} else {
 			return nil, er.InternalError.AddMessage(err.Error())
 		}
@@ -410,6 +365,8 @@ func (r *deck) imageDelete(gameID, collectionID, deckID string) error {
 	if err != nil {
 		if errors.Is(err, fsentry.ErrNotExist) {
 			return er.DeckImageNotExists.AddMessage(err.Error())
+		} else if mapped := er.MissingAncestor(err); mapped != nil {
+			return mapped
 		} else {
 			return er.InternalError.AddMessage(err.Error())
 		}
