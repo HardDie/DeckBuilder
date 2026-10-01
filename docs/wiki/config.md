@@ -28,4 +28,4 @@ Process-wide paths and generate limits. Constructed once via `config.Get(version
 
 `MinWidth`/`MaxWidth` (2–10), `MinHeight`/`MaxHeight` (2–7), `MaxCount = 10*7 - 1` (69). TTS uses the last face-sheet cell as the hidden image when `BackIsHidden` is false. `MaxFilenameLength` (200) matches fsentry id limits.
 
-`Game` (`"games"`) is the same string stored as `gamesPath` on db structs. Changing one without the other splits the tree.
+`Game` (`"games"`) is the same string stored as `gamesPath` on `internal/repositories` structs. Changing one without the other splits the tree.

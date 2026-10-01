@@ -1,4 +1,4 @@
-# 4. Layered packages: api, servers, services, repositories, db
+# 4. Layered packages: api, servers, services, repositories
 
 * **Status:** Accepted
 * **Date:** 2026-09-18
@@ -14,11 +14,11 @@ The backend grew CRUD for four aggregates plus generate, search, replace, images
 
 1. **Handlers in `package main` / one `internal/http`.**
 2. **Hexagonal ports with many small packages per verb.**
-3. **Fixed layers used everywhere:** `internal/api` (route registration), `internal/servers` (HTTP), `internal/services` (rules), `internal/repositories` + `internal/db` (disk).
+3. **Fixed layers used everywhere:** `internal/api` (route registration), `internal/servers` (HTTP), `internal/services` (rules), `internal/repositories` (disk).
 
 ## Decision
 
-Use option 3. Wiring is only in `internal/application`. Each aggregate has `contract.go` (interface) and `server.go` / `service.go` / `repository.go` / `db.go`.
+Use option 3. Wiring is only in `internal/application`. Each aggregate has `contract.go` (interface) and `server.go` / `service.go` / `repository.go`.
 
 `internal/entities` are in-process structs. `internal/dto` is the JSON the GUI sees. `internal/tts_entity` is the TTS Saved Object schema — not the same as catalog cards.
 

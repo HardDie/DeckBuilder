@@ -6,7 +6,7 @@ Developer reference. The map of the project is [Internals](Internals).
 
 Sentinel errors (`GameExist`, `BadName`, …) with optional HTTP status. `.AddMessage` / `.HTTP` for wrapping. `IfErrorLog` logs and continues.
 
-Servers call `network.ResponseError` with these. db maps fsentry `ErrExist` / `ErrNotExist` / `ErrBadName` onto them.
+Servers call `network.ResponseError` with these. Repositories map fsentry `ErrExist` / `ErrNotExist` / `ErrBadName` onto them.
 
 ## `internal/network`
 
@@ -14,7 +14,7 @@ JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToOb
 
 ## `internal/logger`
 
-`Info` / `Warn` / `Error` std loggers. db `List` logs corrupt folders here.
+`Info` / `Warn` / `Error` std loggers. Repository `List` logs corrupt folders here.
 
 ## `internal/fs`
 

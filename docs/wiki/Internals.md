@@ -17,17 +17,14 @@ internal/application          wires the process, owns the mux
         ├── internal/services rules
         │         │
         │         ▼
-        ├── internal/repositories   images, zip, paths
-        │         │
-        │         ▼
-        └── internal/db             fsentry folders
+        └── internal/repositories   images, zip, fsentry folders
 ```
 
 Bindings call services directly. `internal/servers` is the HTTP edge that is still left: image GETs and `GET /api/tts/data`.
 
 ## `application`
 
-Composition root. `Get` builds config, opens one `*fsentry.DB` on the data directory, constructs every db package, repository, service, and server, and registers routes. `Listen` binds `127.0.0.1:5000` and walks forward up to 20 ports. `Handler` is the mux Wails mounts so `<img>` tags can load `/api/.../image`.
+Composition root. `Get` builds config, opens one `*fsentry.DB` on the data directory, constructs repositories, services, and servers, and registers routes. `Listen` binds `127.0.0.1:5000` and walks forward up to 20 ports. `Handler` is the mux Wails mounts so `<img>` tags can load `/api/.../image`.
 
 Nothing in this package decides how a card is stored or how a sheet is drawn. A new HTTP route is a constructor plus a register call here.
 
@@ -63,9 +60,9 @@ Disk details that are not the folder layout itself. They store and load image by
 
 Details: [Repositories](Repositories).
 
-## `db`
+## Folder layout
 
-fsentry mapping. One handle, opened on the data root. Games, collections, and decks are folders. A card is a record inside the deck's `cards` folder, with an integer id. Images are sibling binary files. Generate output under `result/` is ordinary files, not fsentry documents.
+One `*fsentry.DB` handle, opened on the data root, shared by `internal/repositories`. Games, collections, and decks are folders. A card is a record inside the deck's `cards` folder, with an integer id. Images are sibling binary files. Generate output under `result/` is ordinary files, not fsentry documents.
 
 Details: [DB](DB). Paths and the 10×7 limits: [Config](Config).
 

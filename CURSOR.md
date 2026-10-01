@@ -158,7 +158,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | TTS Saved Object shapes | `internal/tts_entity` |
 | HTTP handlers | `internal/servers` |
 | Business logic | `internal/services` |
-| Image + fs helpers | `internal/repositories`, `internal/db`, `internal/fs` |
+| Image + fs helpers | `internal/repositories`, `internal/fs` |
 | Sprite composition | `internal/page_drawer` |
 | Wails window | repo root (`main.go`, `frontend/`, `bindings/`) |
 | One-off CLIs | `tools/` |
@@ -188,7 +188,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── servers/            # HTTP adapters
 │   ├── services/           # use-case logic
 │   ├── repositories/       # images + persistence glue
-│   ├── db/                 # fsentry folders per aggregate
 │   ├── entities/           # in-process domain
 │   ├── dto/                # JSON to the GUI
 │   ├── tts_entity/         # TTS JSON schema
@@ -208,9 +207,9 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **`api` registers routes.** Handlers live in `servers`.
 - **`servers` parse HTTP** (mux vars, multipart) and map to services + `dto`. They must not talk to fsentry directly.
 - **`services` own rules** (validation, generate orchestration, replace). They depend on repositories / other services, not `net/http`.
-- **`repositories` + `db`** own disk. `db` is the fsentry mapping; repositories add image files and config paths.
+- **`repositories`** own disk: fsentry folders, image files, and config paths.
 - **`entities` vs `dto` vs `tts_entity`:** do not reuse TTS JSON structs as API DTOs. Cards in TTS have different IDs (`CardID` vs catalog `int64`).
-- **Import direction:** `application` → servers → services → repositories → db. `page_drawer` and `tts_entity` are used by generator, not by `api`.
+- **Import direction:** `application` → servers → services → repositories. `page_drawer` and `tts_entity` are used by generator, not by `api`.
 - **Do not add a new top-level `internal/` package** for a single handler; put it on an existing server.
 - **DTO timestamps are RFC3339 strings.**
   1. Wails bindings cannot resolve `time.Time`.
@@ -250,7 +249,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 - **New user-visible behavior gets a use case** from `docs/use-cases/_TEMPLATE.md` and a row in `INDEX.md`.
 - **Wiki pages** live in `docs/wiki/` as GitHub wiki markdown (`Home.md`, `_Sidebar.md`, slug links without `.md`). Copy into `DeckBuilder.wiki.git` to publish.
 - Prefer the smallest change that preserves the GUI contract over a layer rewrite.
-- Do not collapse `servers` / `services` / `db` “to simplify” without an ADR.
+- Do not collapse `servers` / `services` / `repositories` “to simplify” without an ADR.
 - Do not put business rules in `internal/api` (comments + registration only).
 - The Vue UI that ships is `frontend/`. Do not embed it under `web/`.
 }

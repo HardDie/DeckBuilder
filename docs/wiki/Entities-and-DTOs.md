@@ -6,7 +6,7 @@ Three different structs for “a card”. Do not reuse TTS types as API JSON.
 
 ## `internal/entities`
 
-In-process domain. Used by db → repositories → services → servers (then copied into DTOs).
+In-process domain. Used by repositories → services → servers (then copied into DTOs).
 
 | Package | Extra fields |
 |---|---|

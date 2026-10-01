@@ -1,8 +1,10 @@
-# `internal/db`
+# `internal/repositories`
+
+The code lives in `internal/repositories`.
 
 Developer reference. The map of the project is [Internals](Internals).
 
-Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs), `db.go`, sometimes `model.go` (JSON payload in `.info.json`).
+Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs), `repository.go`, sometimes `model.go` (JSON payload in `.info.json`).
 
 ## Handle
 
@@ -74,11 +76,11 @@ No `gamesPath`. One JSON **entry** named `settings`.
 
 ## `collection`
 
-Same as game, nested one level. Extra field `game dbGame.Game` so `Create`/`Get`/… first `game.Get` (missing game → game error, not a missing collection).
+Same as game, nested one level. Fields are `cfg`, `*fsentry.DB`, and `gamesPath`.
 
-Path: `gamesPath, game.ID`. Entity `GameID` is filled from the request, not from disk.
+Path: `gamesPath, gameID`. Entity `GameID` is the caller's id.
 
-Used by collection repository and as a parent lookup from `db/deck`.
+Package: `internal/repositories/collection`. The deck repository passes the collection id as a path segment.
 
 ## `deck`
 
@@ -86,11 +88,10 @@ Used by collection repository and as a parent lookup from `db/deck`.
 |---|---|
 | `db` | `*fsentry.DB` |
 | `gamesPath` | `"games"` |
-| `collection` | parent `db/collection` |
 
 `Create` makes the deck folder then `CreateFolder[any]("cards", nil, …)` for the card list. Images sit on the deck folder (`"image"` binary = card back).
 
-Used by deck repository and as parent from `db/card`.
+Package: `internal/repositories/deck`. The card repository passes the deck id as a path segment.
 
 ## `card`
 
@@ -98,7 +99,6 @@ Used by deck repository and as parent from `db/card`.
 |---|---|
 | `db` | `*fsentry.DB` |
 | `gamesPath` | `"games"` |
-| `deck` | parent deck (existence check) |
 
 Cards are **not** folders. The `cards` folder payload is `map[id]*model`. Images are binaries named with the numeric id.
 

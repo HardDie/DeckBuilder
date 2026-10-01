@@ -4,7 +4,7 @@
 **Status:** Implemented  
 **Actors:** GUI (Wails desktop)  
 **Goal:** Persist a named game with description and optional image  
-**Preconditions:** App is running; `DeckBuilderData` is initialized (`db/core.Init`)
+**Preconditions:** App is running; `DeckBuilderData` is initialized (`internal/repositories/core` `Init`)
 
 ## Main scenario (happy path)
 

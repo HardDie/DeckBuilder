@@ -23,10 +23,10 @@ Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 
 | Method | Behavior | Called from |
 |---|---|---|
-| `GetSettings` | defaults merged with db settings | `GetSettings` binding; generator (scale, shadow) |
+| `GetSettings` | defaults merged with stored settings | `GetSettings` binding; generator (scale, shadow) |
 | `UpdateSettings` | today only persists `lang` if `en`/`ru` | `UpdateSettings` binding |
 
-Holds `repositorySettings` built from `db/settings`.
+Holds `repositorySettings` from `internal/repositories/settings`.
 
 ## `generator`
 

@@ -10,11 +10,10 @@ Creating a game (desktop):
 
 1. Wails `App.CreateGame` maps fields and calls the **service**.
 2. The **service** forwards to the **repository** (no extra rules on create).
-3. The **repository** calls **db** `Create`, then optionally downloads or stores a binary image.
-4. **db** talks to fsentry: `CreateFolder` under `games/`.
-5. The binding maps the **entity** to a **dto** (`CachedImage` URL) and returns `{ "data": … }`.
+3. The **repository** calls fsentry `CreateFolder` under `games/`, then optionally downloads or stores a binary image.
+4. The binding maps the **entity** to a **dto** (`CachedImage` URL) and returns `{ "data": … }`.
 
-List/search add filtering and sorting in the **service**, not in db. Game zip export is the `game.Export` binding (native save dialog, then write the zip). Game zip import is the `game.Import` binding (zip bytes and an optional name).
+List/search add filtering and sorting in the **service**, not in the repository. Game zip export is the `game.Export` binding (native save dialog, then write the zip). Game zip import is the `game.Import` binding (zip bytes and an optional name).
 
 ## One fsentry handle
 
@@ -25,7 +24,7 @@ db := fsentry.New(cfg.Data, fsentry.WithPretty())
 db.Init() // production lock file `.fsentry.lock`
 ```
 
-Every `internal/db/*` package takes this handle. Tests pass `WithNoLockFile()`.
+Every package under `internal/repositories` takes this handle. Tests pass `WithNoLockFile()`.
 
 ## On-disk layout (production)
 
@@ -33,9 +32,9 @@ DB root = `cfg.Data` (`DeckBuilderData`, or `~/DeckBuilderData` on macOS).
 
 ```text
 <data>/
-  settings.json          # db/settings entry (v0.1 GetEntry/CreateEntry)
+  settings.json          # internal/repositories/settings (GetEntry/CreateEntry)
   .fsentry.lock          # v0.1 inter-process lock
-  games/                 # created by db/core.Init (CreateFolder)
+  games/                 # created by internal/repositories/core Init (CreateFolder)
     <gameId>/            # folder + .info.json (description, image URL)
       image.bin
       <collectionId>/

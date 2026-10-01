@@ -20,11 +20,11 @@ The catalog includes nested folders, JSON metadata, and image binaries. A typica
 
 Use option 3.
 
-`application.Get` constructs one `fsentry.New(cfg.Data, fsentry.WithPretty())` and `Init()`. `internal/db/*` maps aggregates to folders. Repositories attach image files using `cfg` paths.
+`application.Get` constructs one `fsentry.New(cfg.Data, fsentry.WithPretty())` and `Init()`. `internal/repositories` maps aggregates to folders and attaches image files using `cfg` paths.
 
 Data root is `DeckBuilderData` in the working directory, except **macOS uses `~/DeckBuilderData`** because the app bundle is not writable. Generated output is `cfg.Results()` (`…/result`). Tests may call `Config.SetDataPath`.
 
-Settings live in the same store (`internal/db/settings`), not in `os.UserConfigDir`.
+Settings live in the same store (`internal/repositories/settings`), not in `os.UserConfigDir`.
 
 ## Consequences
 

@@ -9,7 +9,7 @@ These records describe **decisions already embodied in this repository**, so age
 | [001](001-loopback-http-embedded-spa.md) | Loopback HTTP process; GUI is a separate SPA | Superseded |
 | [002](002-four-level-catalog.md) | Game → collection → deck → card | Accepted |
 | [003](003-fsentry-on-disk.md) | Catalog stored with fsentry under DeckBuilderData | Accepted |
-| [004](004-layered-go-packages.md) | api → servers → services → repositories → db | Accepted |
+| [004](004-layered-go-packages.md) | api → servers → services → repositories | Accepted |
 | [005](005-tts-generate-local-paths.md) | Generate sprite sheets + TTS JSON with local image paths | Accepted |
 | [006](006-docs-layout.md) | README, CURSOR.md, `docs/` (ADRs, use cases) | Accepted |
 | [007](007-tts-official-api.md) | TTS integration follows api.tabletopsimulator.com | Accepted |
