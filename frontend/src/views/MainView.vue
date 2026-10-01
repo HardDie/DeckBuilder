@@ -71,7 +71,7 @@
     </page-content>
     <page-footer />
     <div
-      v-if="generateProgress"
+      v-if="showGenerateProgress"
       class="render-spinner"
     >
       <n-progress
@@ -255,15 +255,22 @@ const onExport = id => {
 
 const generateInterval = ref(null)
 const generateProgress = ref(0)
+const generateStatus = ref('empty')
+const showGenerateProgress = computed(
+  () => generateStatus.value === 'in_progress' || generateProgress.value > 0,
+)
 
 const startCheckStatusPolling = () => {
+  clearInterval(generateInterval.value)
   generateInterval.value = setInterval(() => {
     systemStore.fetchCheckStatus().then(status => {
-      generateProgress.value = Math.floor(status.progress)
+      generateStatus.value = status.status
+      generateProgress.value = Math.floor(status.progress || 0)
       if (status.status !== 'in_progress') {
         clearInterval(generateInterval.value)
         setTimeout(() => {
           generateProgress.value = 0
+          generateStatus.value = 'empty'
         }, 500)
       }
     })
@@ -289,6 +296,7 @@ const onItemClick = id => {
 }
 
 onBeforeUnmount(() => {
+  clearInterval(generateInterval.value)
   itemsStore.clearItems()
 })
 </script>

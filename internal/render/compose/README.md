@@ -6,7 +6,7 @@ Runs one game render. It is the only caller of both `internal/render/generate` a
 
 Planning is described in `internal/render/generate`. Drawing and the libjpeg-turbo encode are described in `internal/render/sheet`.
 
-`internal/render/generator` and `internal/render/page_drawer` are deprecated. compose does not call them.
+`internal/render/deprecated/generator` and `internal/render/deprecated/page_drawer` are deprecated. compose does not call them.
 
 ## What the app passes in
 
@@ -46,19 +46,16 @@ GenerateGame(gameID, compose.GenerateGameRequest{
 
 ## `GenerateGame`
 
-The call returns as soon as the goroutine is started. Progress type becomes `Image generation` and status becomes `in_progress` before the return.
+The call returns as soon as the goroutine is started. `internal/render/progress.Begin` runs before the return. Status becomes `in_progress` and the percent is 0.
 
 Inside the goroutine, `run`:
 
-1. Sets the message `Reading a list of cards from the disk...`.
-2. Calls `generate.Prepare` with `cfg.Results()`, the game, the deck map, the deck order, the request scale, settings, the deck service, and the card service.
-3. Sets the message `Generating the resulting image pages...` and progress to 0.
-4. Writes each `plan.Backs` entry with `fs.CreateAndProcess` and `fs.BinToWriter`. The bytes are the original back file.
-5. Sets the message `Drawing cards on the page...`.
-6. For each `plan.Sheets` entry, sets the message `Saving the resulting page to disk...` and calls `write.Draw` with the face bytes, back bytes, cell size, shadow flag, and JPEG path.
-7. Writes `plan.Root` to `plan.JSONPath` with `fs.CreateAndProcess` and `fs.JsonToWriter`.
-8. Calls `SendToTTS` with `plan.Bag`.
-9. Sets the message `All image pages were successfully generated!`.
+1. Calls `generate.Prepare` with `cfg.Results()`, the game, the deck map, the deck order, the request scale, settings, the deck service, and the card service.
+2. Calls `progress.Sheets(0, total)`. `total` is the sheet count.
+3. Writes each `plan.Backs` entry with `fs.CreateAndProcess` and `fs.BinToWriter`. The bytes are the original back file.
+4. For each `plan.Sheets` entry, calls `write.Draw` with the face bytes, back bytes, cell size, shadow flag, and JPEG path, then calls `progress.Sheets(done, total)`.
+5. Writes `plan.Root` to `plan.JSONPath` with `fs.CreateAndProcess` and `fs.JsonToWriter`.
+6. Calls `SendToTTS` with `plan.Bag`.
 
 On success, status becomes `done`. On error, status becomes `error` and the log line starts with `Generator:`.
 

@@ -24,13 +24,13 @@ OS files: write generate outputs, JSON helpers. Used by **generator**, image, an
 
 Validate upload/download bytes (png/jpeg/…). Repositories refuse invalid images (game still saved, warning log).
 
-## `internal/render/page_drawer`
+## `internal/render/deprecated/page_drawer`
 
 The generator's JSON walk uses it so page index and slot match the sheets. Methods, cell size, file names: [Page drawer](Page-drawer). Face sheets are written by `internal/render/sheet/page`.
 
-## `internal/progress`
+## `internal/render/deprecated/progress`
 
-Process-wide generate status (`empty`, `in_progress`, `done`, `error`). System `Status` **clears** `done`/`error` after read. Used by generator (write) and the system binding (read).
+Process-wide generate status (`empty`, `in_progress`, `done`, `error`). The deprecated generator writes it. `bindings/system.Status` reads `internal/render/progress`.
 
 ## `internal/utils`
 

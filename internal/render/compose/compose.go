@@ -7,9 +7,9 @@ import (
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/generate"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/catalog"
+	renderprogress "github.com/HardDie/DeckBuilder/internal/render/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/write"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
@@ -65,7 +65,6 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		logger.Error.Printf("can't get config")
 		return err
 	}
-	pr := progress.GetProgress()
 	gameItem, err := s.serviceGame.Item(gameID)
 	if err != nil {
 		return err
@@ -80,16 +79,15 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 	if err := fs.CreateFolder(s.cfg.Results()); err != nil {
 		return err
 	}
-	pr.SetType("Image generation")
-	pr.SetStatus(progress.StatusInProgress)
+	renderprogress.Begin()
 	go func() {
 		err := s.run(gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
-			pr.SetStatus(progress.StatusError)
+			renderprogress.Fail()
 			logger.Error.Println("Generator:", err.Error())
 			return
 		}
-		pr.SetStatus(progress.StatusDone)
+		renderprogress.Finish()
 	}()
 	return nil
 }
@@ -101,30 +99,26 @@ func (s *runner) run(
 	scale int,
 	cfg *entitiesSettings.Settings,
 ) error {
-	pr := progress.GetProgress()
-	pr.SetMessage("Reading a list of cards from the disk...")
 	plan, err := generate.Prepare(s.cfg.Results(), gameItem, decks, order, scale, cfg, s.serviceDeck, s.serviceCard)
 	if err != nil {
 		return err
 	}
-	pr.SetMessage("Generating the resulting image pages...")
-	pr.SetProgress(0)
+	total := len(plan.Sheets)
+	renderprogress.Sheets(0, total)
 	for _, back := range plan.Backs {
 		if err := fs.CreateAndProcess(back.Path, back.Body, fs.BinToWriter); err != nil {
 			return err
 		}
 	}
-	pr.SetMessage("Drawing cards on the page...")
-	for _, sheet := range plan.Sheets {
-		pr.SetMessage("Saving the resulting page to disk...")
+	for i, sheet := range plan.Sheets {
 		if err := write.Draw(sheet.Faces, sheet.Back, sheet.CellW, sheet.CellH, sheet.Shadow, sheet.Path); err != nil {
 			return err
 		}
+		renderprogress.Sheets(i+1, total)
 	}
 	if err := fs.CreateAndProcess(plan.JSONPath, plan.Root, fs.JsonToWriter[tts_entity.RootObjects]); err != nil {
 		return err
 	}
 	s.serviceTTS.SendToTTS(plan.Bag)
-	pr.SetMessage("All image pages were successfully generated!")
 	return nil
 }

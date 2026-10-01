@@ -12,13 +12,13 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	"github.com/HardDie/DeckBuilder/internal/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
+	"github.com/HardDie/DeckBuilder/internal/render/progress"
 )
 
 func TestGenerateUnknownGame(t *testing.T) {
-	progress.GetProgress().Flush()
+	progress.Reset()
 	dir := t.TempDir()
 	cfg := config.Get("test")
 	cfg.SetDataPath(dir)
@@ -28,8 +28,8 @@ func TestGenerateUnknownGame(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected missing game")
 	}
-	if progress.GetProgress().GetStatus().Status != progress.StatusEmpty {
-		t.Fatalf("status %s", progress.GetProgress().GetStatus().Status)
+	if progress.Get().Status != progress.Empty {
+		t.Fatalf("status %s", progress.Get().Status)
 	}
 	if _, err := os.Stat(cfg.Results()); !os.IsNotExist(err) {
 		t.Fatal("results folder was created")
@@ -37,7 +37,7 @@ func TestGenerateUnknownGame(t *testing.T) {
 }
 
 func TestGenerateClearsResults(t *testing.T) {
-	progress.GetProgress().Flush()
+	progress.Reset()
 	dir := t.TempDir()
 	cfg := config.Get("test")
 	cfg.SetDataPath(dir)
@@ -64,6 +64,42 @@ func TestGenerateClearsResults(t *testing.T) {
 	if len(w.TTS()) != 1 {
 		t.Fatalf("tts calls %d", len(w.TTS()))
 	}
+}
+
+func TestReportOneSheet(t *testing.T) {
+	runReport(t, raidWorld())
+	got := progress.Get()
+	if got.Done != 1 || got.Total != 1 || got.Percent != 100 || got.Status != progress.Done {
+		t.Fatalf("one sheet %+v", got)
+	}
+}
+
+func TestReportManySheets(t *testing.T) {
+	w := raidWorld()
+	deck := w.Collections[0].Decks[0]
+	w.Collections[0].Decks = append(w.Collections[0].Decks, &fake.Deck{
+		ID: "crew", Name: "Crew", Back: deck.Back,
+		Cards: []*fake.Card{{ID: 2, Name: "Ada", Count: 1, Face: deck.Cards[0].Face}},
+	})
+	runReport(t, w)
+	got := progress.Get()
+	if got.Done != 2 || got.Total != 2 || got.Percent != 100 || got.Status != progress.Done {
+		t.Fatalf("many sheets %+v", got)
+	}
+}
+
+func runReport(t *testing.T, w *fake.World) {
+	t.Helper()
+	progress.Reset()
+	dir := t.TempDir()
+	cfg := config.Get("test")
+	cfg.SetDataPath(dir)
+	err := compose.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
+		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	waitDone(t)
 }
 
 func raidWorld() *fake.World {
@@ -102,11 +138,11 @@ func waitDone(t *testing.T) {
 	t.Helper()
 	deadline := time.Now().Add(30 * time.Second)
 	for time.Now().Before(deadline) {
-		switch progress.GetProgress().GetStatus().Status {
-		case progress.StatusDone:
+		switch progress.Get().Status {
+		case progress.Done:
 			return
-		case progress.StatusError:
-			t.Fatal(progress.GetProgress().GetStatus().Message)
+		case progress.Error:
+			t.Fatal("generate failed")
 		}
 		time.Sleep(10 * time.Millisecond)
 	}

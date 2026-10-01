@@ -4,7 +4,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	"github.com/HardDie/DeckBuilder/internal/progress"
+	renderprogress "github.com/HardDie/DeckBuilder/internal/render/progress"
 	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
 )
 
@@ -52,15 +52,18 @@ func (s *System) UpdateSettings(req UpdateSettingsRequest) (*SettingsResult, err
 }
 
 func (s *System) Status() *StatusResult {
-	status := progress.GetProgress().GetStatus()
-	if status.Status == progress.StatusError || status.Status == progress.StatusDone {
-		progress.GetProgress().Flush()
+	status := renderprogress.Get()
+	if status.Status == renderprogress.Error || status.Status == renderprogress.Done {
+		renderprogress.Reset()
+	}
+	kind := "No process"
+	if status.Status != renderprogress.Empty {
+		kind = "Image generation"
 	}
 
 	return &StatusResult{Data: dto.Status{
-		Type:     status.Type,
-		Message:  status.Message,
-		Progress: status.Progress,
+		Type:     kind,
+		Progress: status.Percent,
 		Status:   status.Status,
 	}}
 }

@@ -32,7 +32,7 @@ Holds `repositorySettings` from `internal/repositories/settings`.
 
 | Method | Behavior |
 |---|---|
-| `GenerateGame` | Starts a goroutine; the binding returns immediately. Walks game → collections → decks → cards. Face sheets and back PNGs are written through `internal/render/sheet/page` and libjpeg-turbo quality 80. The JSON walk uses `internal/render/page_drawer` with a dummy face. Output is under `cfg.Results()`. Updates `progress`, then `services/tts.SendToTTS`. Details: [Generation](Generation). |
+| `GenerateGame` | Starts a goroutine; the binding returns immediately. Walks game → collections → decks → cards. Face sheets and back PNGs are written through `internal/render/sheet/page` and libjpeg-turbo quality 80. The JSON walk uses `internal/render/deprecated/page_drawer` with a dummy face. Output is under `cfg.Results()`. Updates `progress`, then `services/tts.SendToTTS`. Details: [Generation](Generation). |
 
 Depends on game/collection/deck/card **services** plus system (settings) and TTS. Do not start a second generate; progress is a process singleton.
 

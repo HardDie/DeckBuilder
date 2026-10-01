@@ -100,7 +100,7 @@
 
 ### Neutral
 
-1. `internal/render/page_drawer` is unchanged.
+1. `internal/render/deprecated/page_drawer` is unchanged.
 2. `internal/render/sheet/paint` is unchanged.
 
 ## Stage split

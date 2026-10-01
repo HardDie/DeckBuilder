@@ -1,6 +1,6 @@
 # UC-09: Poll generate progress
 
-**Module:** `internal/progress`  
+**Module:** `internal/render/deprecated/progress`  
 **Status:** Implemented  
 **Actors:** GUI polling system `Status`  
 **Goal:** Show type, message, 0–1 progress, and status of the current job  

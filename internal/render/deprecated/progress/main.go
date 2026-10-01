@@ -1,3 +1,4 @@
+// Deprecated: use internal/render/progress.
 package progress
 
 import (

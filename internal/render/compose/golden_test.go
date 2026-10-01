@@ -6,13 +6,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	"github.com/HardDie/DeckBuilder/internal/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
+	oldgen "github.com/HardDie/DeckBuilder/internal/render/deprecated/generator"
+	oldprogress "github.com/HardDie/DeckBuilder/internal/render/deprecated/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
-	oldgen "github.com/HardDie/DeckBuilder/internal/render/generator"
+	"github.com/HardDie/DeckBuilder/internal/render/progress"
 )
 
 // Fixture is five 8×12 solid PNGs in testdata/fixture.
@@ -26,7 +28,8 @@ import (
 // with 2006-01-02 15:04:05. Image files are the raw bytes.
 func TestIntegrationGoldenBytes(t *testing.T) {
 	w := loadFixture(t)
-	progress.GetProgress().Flush()
+	oldprogress.GetProgress().Flush()
+	progress.Reset()
 
 	oldDir := t.TempDir()
 	run(t, oldDir, w, true)
@@ -110,7 +113,26 @@ func run(t *testing.T, data string, w *fake.World, old bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if old {
+		waitOld(t)
+		return
+	}
 	waitDone(t)
+}
+
+func waitOld(t *testing.T) {
+	t.Helper()
+	deadline := time.Now().Add(30 * time.Second)
+	for time.Now().Before(deadline) {
+		switch oldprogress.GetProgress().GetStatus().Status {
+		case oldprogress.StatusDone:
+			return
+		case oldprogress.StatusError:
+			t.Fatal(oldprogress.GetProgress().GetStatus().Message)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatal("timed out waiting for the old generator")
 }
 
 func readResult(t *testing.T, dir string) map[string][]byte {

@@ -1,4 +1,4 @@
-# `internal/render/page_drawer`
+# `internal/render/deprecated/page_drawer`
 
 Developer reference. The map of the project is [Internals](Internals). How Render walks a game is [Generation](Generation).
 
@@ -6,7 +6,7 @@ One type, `PageDrawer`, fills one TTS custom-deck page and writes two files: a J
 
 ## Who calls it
 
-`generateJson` in `internal/render/generator`.
+`generateJson` in `internal/render/deprecated/generator`.
 
 That walk pushes a 10×10 dummy JPEG so page index and slot stay aligned with the files `generateImages` already wrote. `New` is called with an empty directory and scale `1`. It never calls `Save`.
 

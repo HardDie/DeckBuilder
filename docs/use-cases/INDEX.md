@@ -14,7 +14,7 @@ Scenarios for **behavior that exists in this repository**. Copy [_TEMPLATE.md](_
 | UC-06 | Duplicate, export, and import a game | `internal/services/game` | Implemented | [catalog/uc-06-duplicate-export-import.md](catalog/uc-06-duplicate-export-import.md) |
 | UC-07 | Recursive search | `internal/services/search` | Implemented | [search/uc-07-recursive-search.md](search/uc-07-recursive-search.md) |
 | UC-08 | Generate TTS sheets and JSON | `internal/services/generator` | Implemented | [generate/uc-08-generate-game.md](generate/uc-08-generate-game.md) |
-| UC-09 | Poll generate progress | `internal/progress` | Implemented | [generate/uc-09-poll-status.md](generate/uc-09-poll-status.md) |
+| UC-09 | Poll generate progress | `internal/render/deprecated/progress` | Implemented | [generate/uc-09-poll-status.md](generate/uc-09-poll-status.md) |
 | UC-10 | Spawn last generate in TTS | `internal/services/tts` | Implemented | [generate/uc-10-tts-spawn.md](generate/uc-10-tts-spawn.md) |
 | UC-11 | Map local image paths to URLs | `internal/services/replace` | Implemented | [replace/uc-11-replace-urls.md](replace/uc-11-replace-urls.md) |
 | UC-12 | Settings and version | `internal/services/system` | Implemented | [system/uc-12-settings-version.md](system/uc-12-settings-version.md) |

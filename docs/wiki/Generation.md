@@ -1,4 +1,4 @@
-# `internal/render/generator`
+# `internal/render/deprecated/generator`
 
 Developer reference. The map of the project is [Internals](Internals). Sheet layout for one page is [Page drawer](Page-drawer). The product steps are in the [user guide](Guide).
 
@@ -78,7 +78,7 @@ An empty page writes nothing. The image pass does not build TTS objects.
 
 ## JSON pass
 
-`generateJson` walks the same decks and cards again. It does not redraw. It pushes a 10×10 dummy JPEG through `internal/render/page_drawer` so the page index and the slot stay aligned with the files already written. `New` uses an empty directory and scale `1`. It never calls `Save`.
+`generateJson` walks the same decks and cards again. It does not redraw. It pushes a 10×10 dummy JPEG through `internal/render/deprecated/page_drawer` so the page index and the slot stay aligned with the files already written. `New` uses an empty directory and scale `1`. It never calls `Save`.
 
 The root file is a Saved Object: `ObjectStates` with one bag, the game. `Nickname` is the game name. Inside it, one bag per collection id that contributed a card. The collection bag's `Nickname` is the collection id. Inside a collection bag, the decks and single cards, in deck-name order.
 

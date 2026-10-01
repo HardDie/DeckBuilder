@@ -78,7 +78,7 @@ Details: [Cmd and tools](Cmd-and-tools).
 
 ## Helpers
 
-`internal/render/page_drawer` counts slots for the generator's JSON walk. `internal/render/sheet/page` packs the sheet files. `progress` is the process-wide render status. `images` decodes uploads and draws pixels. `fs` writes the result files. `errors` and `network` shape failures and the `{ data, meta, error }` envelope.
+`internal/render/deprecated/page_drawer` counts slots for the generator's JSON walk. `internal/render/sheet/page` packs the sheet files. `progress` is the process-wide render status. `images` decodes uploads and draws pixels. `fs` writes the result files. `errors` and `network` shape failures and the `{ data, meta, error }` envelope.
 
 Details: [Helpers](Helpers).
 
