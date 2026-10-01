@@ -1,48 +1,88 @@
-# Generation
+# `internal/render/generator`
 
-What **Render** does to a game, from the binding to the files in `result/`. The product steps are in the [user guide](Guide). The host list for those images later is [ADR 016](https://github.com/HardDie/DeckBuilder/blob/master/docs/architecture/016-auto-upload-generated-images.md). The current rule is still local paths: [ADR 005](https://github.com/HardDie/DeckBuilder/blob/master/docs/architecture/005-tts-generate-local-paths.md).
+Developer reference. The map of the project is [Internals](Internals). Sheet layout for one page is [Page drawer](Page-drawer). The product steps are in the [user guide](Guide).
+
+`GenerateGame` turns one game into files under `cfg.Results()` (`<data>/result`). It writes a PNG copy of each deck back, a JPEG face sheet for each page, and one TTS Saved Object JSON. It then asks `tts` to spawn that object.
+
+The host list for those images later is [ADR 016](https://github.com/HardDie/DeckBuilder/blob/master/docs/architecture/016-auto-upload-generated-images.md). The URLs written today are still local paths: [ADR 005](https://github.com/HardDie/DeckBuilder/blob/master/docs/architecture/005-tts-generate-local-paths.md).
 
 ## Who starts it
 
-The window calls the generator binding. `GenerateGame` returns immediately and runs the work in a goroutine. The window polls system `Status` about twice a second and shows the progress circle.
+The window calls `bindings/generator.Game`. Scale below 1 becomes 1 in the binding, then `GenerateGame` runs.
+
+`GenerateGame` returns as soon as the game exists, the cards are listed, and `result/` has been recreated. Drawing continues in a goroutine. The window polls system `Status` about twice a second.
 
 `progress` is one value for the whole process (`empty`, `in_progress`, `done`, `error`). A second render started while the first is running will clobber it. When the window reads `done` or `error`, that read clears the status back to `empty`.
 
-The job loads settings (card scale, back shadow), walks every collection and deck, and fails if a deck has no back image or a card has no face.
+## Steps
 
-## Two passes
+1. `GetSettings`. Failure returns to the caller. The log line is `can't get config`.
+2. `game.Item`. An unknown game returns before any folder change.
+3. `getListOfCards` walks collections, decks, and cards.
+4. `fs.RemoveFolder` on `cfg.Results()`, then `fs.CreateFolder`. The previous render is gone.
+5. Progress type becomes `Image generation` and status becomes `in_progress`.
+6. The goroutine calls `generateBody`. On error, status becomes `error` and the log line starts with `Generator:`. On success, status becomes `done`.
 
-`generateBody` does images first, then JSON.
+`generateBody` sets the message `Reading a list of cards from the disk...`, then `generateImages`, then `generateJson`.
 
-1. `generateImages` reads face and back bytes and writes the sheet files. It returns a map keyed by deck id plus page index. Each entry has the sheet path, the back path, and the grid size.
-2. `generateJson` walks the same decks again and builds TTS objects. It does not redraw. For the grid math it pushes a dummy image per card so the page index and the card slot stay aligned with the files already written.
+## Listing cards
 
-## How a sheet is packed
+`getListOfCards(gameID, sortField)` calls collection `List`, then deck `List`, then card `List`. `sortField` is the request's `SortOrder`. The search string is empty.
 
-`internal/page_drawer` owns one page. Method-level notes: [Page drawer](Page-drawer). TTS custom decks default to 10 columns by 7 rows. With `BackIsHidden` left false, TTS treats the **last cell of the face sheet** as the hidden card. That cell is not a playable face. `MaxCount` is `10*7 - 1`, so 69 faces per page. A 70th card starts another page.
+Each list row becomes:
 
-For each deck:
+| Record | Fields |
+|---|---|
+| `Deck` | deck `ID`, `Name`, `Image` |
+| `Card` | card `ID`, `GameID`, `CollectionID`, `Count` |
 
-1. The first card loads the deck's image and saves it as `backside_<deck>_<hash>.png`. If back shadow is on, the copy drawn into the sheet is darkened by 30 brightness. The file on disk stays the original bytes.
-2. Each face is decoded. The first face sets the cell size. Later faces are resized to that cell with Lanczos. If a 10-wide or 7-tall page would pass 10,000 pixels, the cell is scaled down so the page stays inside that limit.
-3. When the page holds 69 faces, `Save` runs and a new page inherits the back and the cell size.
-4. After the last card, the open page is saved if it has any faces.
+A deck with no cards is omitted. The same `ID`, `Name`, and `Image` in two collections is one map key, and the cards are appended in walk order.
 
-`Save` asks `CalculateGridSize` for the smallest grid that can hold the faces **plus one** (the back), inside 2×2 up to 10×7. It prefers a tighter grid over a full 10×7 when the page is not full. Cells fill left to right, top to bottom. The back is drawn in the last cell (`columns-1`, `rows-1`).
+The returned order is deck `Name`, ascending, stable. Collection order and card order stay whatever `List` returned.
 
-The sheet file name looks like:
+## Image pass
+
+`generateImages` walks that deck order. Progress counts catalog cards, not `Count` copies.
+
+For each deck it builds `internal/render/sheet/page.Page` with the deck id, `cfg.Results()`, the request scale, a `commonIndex`, and settings. `EnableBackShadow` and the request scale affect the pixels. Settings `CardSize` does not.
+
+For each card:
+
+1. On an empty page, `deck.GetImage` loads the back. `SetBacksideImageAndSave` writes the original bytes, then keeps a shaded copy for the sheet. Shadow on darkens by 30 brightness. Shadow off still converts the image. The file on disk stays the original bytes.
+2. A full page (69 faces) is saved, then `Inherit` starts the next page with the same back and cell.
+3. `card.GetImage` loads the face. `AddImage` decodes it. The first face sets the cell. Later faces are resized to that cell with Lanczos. A 10-wide or 7-tall page that would pass 10,000 pixels is scaled down. Request scale divides the cell. `0` becomes `1` inside that math.
+
+A missing back or face returns that error. The log names the game, collection, deck, and card id.
+
+`saveSheet` asks the page for an RGBA image, encodes it with libjpeg-turbo at quality 80 (`internal/render/sheet/draw/libjpeg`), and writes the file. Columns and rows come from the smallest grid that holds the faces plus the back, from 2×2 through 10×7.
+
+The sheet file name:
 
 ```text
 <commonIndex>_<deckId>_<page>_<faceCount>_<columns>x<rows>.jpg
 ```
 
-`commonIndex` counts pages across the whole game, so two decks do not write the same name. The sheet is JPEG. The standalone back is PNG.
+The back file name:
 
-## How the JSON is built
+```text
+backside_<deckId>_<6 hex chars>.png
+```
 
-The root file is a Saved Object: `ObjectStates` with one bag, the game. Inside it, one bag per collection. Inside a collection bag, the decks.
+The hex is the first three MD5 bytes of the original back, printed with `%x`.
 
-A deck object carries `CustomDeck`. The map key is the page index. The value is `FaceURL`, `BackURL`, `NumWidth`, `NumHeight`. Both URLs are `file:///` plus the absolute path `generateImages` returned.
+`commonIndex` on this pass starts at 0, increments once per deck, and increments again when a full page is saved. It does not increment per card.
+
+The map returned to the JSON pass is keyed by `deckID + "_" + pageIndex` (the page index inside the deck, starting at 1). Each value is `PageInfo`: absolute sheet path, absolute back path, columns, rows.
+
+An empty page writes nothing. The image pass does not build TTS objects.
+
+## JSON pass
+
+`generateJson` walks the same decks and cards again. It does not redraw. It pushes a 10×10 dummy JPEG through `internal/render/page_drawer` so the page index and the slot stay aligned with the files already written. `New` uses an empty directory and scale `1`. It never calls `Save`.
+
+The root file is a Saved Object: `ObjectStates` with one bag, the game. `Nickname` is the game name. Inside it, one bag per collection id that contributed a card. The collection bag's `Nickname` is the collection id. Inside a collection bag, the decks and single cards, in deck-name order.
+
+A deck object carries `CustomDeck`. The map key is `pageIndex + deckIdOffset`. `deckIdOffset` starts at 0 and, after each deck, increases by that deck's last page index. The value is `FaceURL`, `BackURL`, `NumWidth`, `NumHeight` from `PageInfo`. Both URLs are `file:///` plus the absolute path. `BackIsHidden` and `UniqueBack` stay false. `Type` stays 0.
 
 Each catalog card becomes a TTS card:
 
@@ -50,21 +90,20 @@ Each catalog card becomes a TTS card:
 |---|---|
 | Name | `Nickname`. `Name` is the string `"Card"`. |
 | Description | `Description` |
-| Variables | `LuaScript`, one `key="value"` line per entry |
-| Which cell | `CardID = pageId*100 + indexOnThatPage` |
-| How many | `count` copies appended to the deck |
+| Variables | `LuaScript`, one `key="value"` line per entry. Go map order. |
+| Which cell | `CardID = pageKey*100 + slot`. Slot is 0-based, `Size()-1` after that face was added. |
+| How many | `Count` copies appended to the deck, from `card.Item`, not from the list row. |
+| GUID | `%06d` of the JSON `commonIndex`, then that counter increments. |
 
-A deck with a single card is written as that card object. TTS will not treat a one-card stack as a deck. Two or more cards are a deck object.
+Card and deck transforms use settings `CardSize`. Bags use scale 1. Positions stay 0.
 
-Card scale from settings is the TTS transform scale on the bag, the decks, and the cards.
+A stack with one contained object is written as that card. TTS will not treat a one-card stack as a deck. Two or more contained objects are a deck object (`Name` `"Deck"`, `Nickname` the deck name). `Count` 2 on a single catalog card is two contained objects, so it stays a deck.
 
-The file written to `result/<gameId>.json` is the `ObjectStates` wrapper, for `Saves/Saved Objects`. `SendToTTS` sends the inner bag only. `spawnObjectJSON` wants one object, not the wrapper.
+The JSON `commonIndex` is a different counter from the image file name. It starts at 0, increments once per deck, increments when a page fills, and increments again for every card GUID. A deck of three cards therefore consumes more numbers than the image pass, and the next deck's sheet prefix is not this counter.
 
-## Spawn
+`result/<gameId>.json` is the `ObjectStates` wrapper, tab-indented, for `Saves/Saved Objects`. The game bag description is `Created at: ` plus `2006-01-02 15:04:05` at the moment of the write.
 
-`SendToTTS` stores the bag, dials `127.0.0.1:39999`, and sends External Editor message `messageID` 3 to Global (`guid` `-1`). The script is `WebRequest.get` of `http://127.0.0.1:<port>/api/tts/data`, then `spawnObjectJSON`. If nothing is listening, render still succeeds. The log says the dial failed.
-
-The HTTP handler returns the bag once and clears it.
+`SendToTTS` stores the inner bag and dials `127.0.0.1:39999`. The script is External Editor `messageID` 3 to Global (`guid` `-1`): `WebRequest.get` of `http://127.0.0.1:<port>/api/tts/data`, then `spawnObjectJSON`. If nothing is listening, render still succeeds. The log says the dial failed. The HTTP handler returns the bag once and clears it.
 
 ## What render does not do
 

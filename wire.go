@@ -7,6 +7,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
@@ -17,7 +18,6 @@ import (
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
 	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
-	servicesGenerator "github.com/HardDie/DeckBuilder/internal/services/generator"
 	servicesReplace "github.com/HardDie/DeckBuilder/internal/services/replace"
 	servicesSearch "github.com/HardDie/DeckBuilder/internal/services/search"
 	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
@@ -33,7 +33,7 @@ type services struct {
 	system     servicesSystem.System
 	tts        servicesTTS.TTS
 	search     servicesSearch.Search
-	generator  servicesGenerator.Generator
+	generator  compose.Generator
 	replace    servicesReplace.Replace
 }
 
@@ -66,7 +66,7 @@ func wire(version string) *services {
 	serviceCard := servicesCard.New(cfg, repositoryCard)
 
 	serviceTTS := servicesTTS.New()
-	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
+	serviceGenerator := compose.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
 	serviceReplace := servicesReplace.New(serviceTTS)
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
 

@@ -17,7 +17,7 @@ DeckBuilder’s generate step must produce objects TTS can load (Saved Objects f
 
 ## Decision
 
-Use option 2. When TTS behavior is unclear, read those pages before changing `internal/tts_entity`, `internal/services/tts`, or sheet layout in `internal/config` / `page_drawer`.
+Use option 2. When TTS behavior is unclear, read those pages before changing `internal/tts_entity`, `internal/services/tts`, or sheet layout in `internal/config` / `internal/render/page_drawer`.
 
 Concrete mapping:
 

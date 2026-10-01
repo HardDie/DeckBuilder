@@ -1,0 +1,173 @@
+{
+	"ObjectStates": [
+		{
+			"Name": "Bag",
+			"Transform": {
+				"posX": 0,
+				"posY": 0,
+				"posZ": 0,
+				"scaleX": 1,
+				"scaleY": 1,
+				"scaleZ": 1
+			},
+			"Nickname": "Raid",
+			"Description": "Created at: 2006-01-02 15:04:05",
+			"ContainedObjects": [
+				{
+					"Name": "Bag",
+					"Transform": {
+						"posX": 0,
+						"posY": 0,
+						"posZ": 0,
+						"scaleX": 1,
+						"scaleY": 1,
+						"scaleZ": 1
+					},
+					"Nickname": "base",
+					"Description": "",
+					"ContainedObjects": [
+						{
+							"GUID": "000001",
+							"Name": "Card",
+							"Nickname": "Lookout",
+							"Description": "Watches the road",
+							"CardID": 100,
+							"LuaScript": "role=\"scout\"",
+							"Transform": {
+								"posX": 0,
+								"posY": 0,
+								"posZ": 0,
+								"scaleX": 1.25,
+								"scaleY": 1.5,
+								"scaleZ": 1.75
+							},
+							"CustomDeck": {
+								"1": {
+									"FaceURL": "file:///RESULT/1_bandits_1_1_2x2.jpg",
+									"BackURL": "file:///RESULT/backside_bandits_09984a.png",
+									"NumWidth": 2,
+									"NumHeight": 2,
+									"BackIsHidden": false,
+									"UniqueBack": false,
+									"Type": 0
+								}
+							}
+						},
+						{
+							"Name": "Deck",
+							"Transform": {
+								"posX": 0,
+								"posY": 0,
+								"posZ": 0,
+								"scaleX": 1.25,
+								"scaleY": 1.5,
+								"scaleZ": 1.75
+							},
+							"Nickname": "Crew",
+							"Description": "",
+							"DeckIDs": [
+								200,
+								200,
+								201
+							],
+							"CustomDeck": {
+								"2": {
+									"FaceURL": "file:///RESULT/2_crew_1_2_2x2.jpg",
+									"BackURL": "file:///RESULT/backside_crew_6db58b.png",
+									"NumWidth": 2,
+									"NumHeight": 2,
+									"BackIsHidden": false,
+									"UniqueBack": false,
+									"Type": 0
+								}
+							},
+							"ContainedObjects": [
+								{
+									"GUID": "000003",
+									"Name": "Card",
+									"Nickname": "Ada",
+									"Description": "Pilot",
+									"CardID": 200,
+									"LuaScript": "seat=\"left\"",
+									"Transform": {
+										"posX": 0,
+										"posY": 0,
+										"posZ": 0,
+										"scaleX": 1.25,
+										"scaleY": 1.5,
+										"scaleZ": 1.75
+									},
+									"CustomDeck": {
+										"2": {
+											"FaceURL": "file:///RESULT/2_crew_1_2_2x2.jpg",
+											"BackURL": "file:///RESULT/backside_crew_6db58b.png",
+											"NumWidth": 2,
+											"NumHeight": 2,
+											"BackIsHidden": false,
+											"UniqueBack": false,
+											"Type": 0
+										}
+									}
+								},
+								{
+									"GUID": "000003",
+									"Name": "Card",
+									"Nickname": "Ada",
+									"Description": "Pilot",
+									"CardID": 200,
+									"LuaScript": "seat=\"left\"",
+									"Transform": {
+										"posX": 0,
+										"posY": 0,
+										"posZ": 0,
+										"scaleX": 1.25,
+										"scaleY": 1.5,
+										"scaleZ": 1.75
+									},
+									"CustomDeck": {
+										"2": {
+											"FaceURL": "file:///RESULT/2_crew_1_2_2x2.jpg",
+											"BackURL": "file:///RESULT/backside_crew_6db58b.png",
+											"NumWidth": 2,
+											"NumHeight": 2,
+											"BackIsHidden": false,
+											"UniqueBack": false,
+											"Type": 0
+										}
+									}
+								},
+								{
+									"GUID": "000004",
+									"Name": "Card",
+									"Nickname": "Bo",
+									"Description": "Gunner",
+									"CardID": 201,
+									"LuaScript": "",
+									"Transform": {
+										"posX": 0,
+										"posY": 0,
+										"posZ": 0,
+										"scaleX": 1.25,
+										"scaleY": 1.5,
+										"scaleZ": 1.75
+									},
+									"CustomDeck": {
+										"2": {
+											"FaceURL": "file:///RESULT/2_crew_1_2_2x2.jpg",
+											"BackURL": "file:///RESULT/backside_crew_6db58b.png",
+											"NumWidth": 2,
+											"NumHeight": 2,
+											"BackIsHidden": false,
+											"UniqueBack": false,
+											"Type": 0
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

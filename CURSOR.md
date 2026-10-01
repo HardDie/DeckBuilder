@@ -118,7 +118,7 @@ Layout (conceptual): `Data/games/<game>/…` collections, decks, cards, images; 
 | GUI | Vue in `frontend/`; Wails window ([ADR 013](docs/architecture/013-http-images-and-tts.md)) |
 | HTTP | Go 1.27.1 (`go.mod`), `gorilla/mux`, listen `127.0.0.1:5000` (try next port up to 20 times if busy) |
 | Persistence | `github.com/HardDie/fsentry` |
-| Images | `disintegration/imaging`, `internal/page_drawer`, `internal/images` |
+| Images | `disintegration/imaging`, `internal/render/page_drawer`, `internal/images` |
 | Tests | `make test` (`-race -tags=nomain`); fuzz targets under services |
 
 ---
@@ -159,7 +159,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 | HTTP handlers | `internal/servers` |
 | Business logic | `internal/services` |
 | Image + fs helpers | `internal/repositories`, `internal/fs` |
-| Sprite composition | `internal/page_drawer` |
+| Sprite composition | `internal/render/page_drawer` |
 | Wails window | repo root (`main.go`, `frontend/`, `bindings/`) |
 | One-off CLIs | `tools/` |
 
@@ -189,7 +189,7 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 │   ├── entities/           # in-process domain
 │   ├── dto/                # JSON to the GUI
 │   ├── tts_entity/         # TTS JSON schema
-│   ├── page_drawer/        # sheet layout
+│   ├── render/             # generate, compose, sheet, page_drawer
 │   ├── progress/           # singleton generate status
 │   ├── config/
 │   ├── network/            # JSON envelope

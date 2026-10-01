@@ -1,4 +1,4 @@
-# `internal/page_drawer`
+# `internal/render/page_drawer`
 
 Developer reference. The map of the project is [Internals](Internals). How Render walks a game is [Generation](Generation).
 
@@ -6,9 +6,11 @@ One type, `PageDrawer`, fills one TTS custom-deck page and writes two files: a J
 
 ## Who calls it
 
-`internal/services/generator` only.
+`generateJson` in `internal/render/generator`.
 
-`generateImages` draws real faces and writes the files. `generateJson` walks the same cards with a 10×10 dummy JPEG so page index and slot stay aligned with those files. The dummy walk uses `New` with an empty directory and scale `1`. It never calls `Save`.
+That walk pushes a 10×10 dummy JPEG so page index and slot stay aligned with the files `generateImages` already wrote. `New` is called with an empty directory and scale `1`. It never calls `Save`.
+
+`generateImages` writes the face sheets and the back PNGs through `internal/render/sheet/page`. The sheet JPEG is libjpeg-turbo at quality 80.
 
 ## `New`
 

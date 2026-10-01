@@ -1,14 +1,14 @@
 package generator
 
 import (
-	servicesGenerator "github.com/HardDie/DeckBuilder/internal/services/generator"
+	"github.com/HardDie/DeckBuilder/internal/render/compose"
 )
 
 type Generator struct {
-	svc servicesGenerator.Generator
+	svc compose.Generator
 }
 
-func New(svc servicesGenerator.Generator) *Generator {
+func New(svc compose.Generator) *Generator {
 	return &Generator{svc: svc}
 }
 
@@ -18,7 +18,7 @@ func (g *Generator) Game(gameID, sortOrder string, scale int) error {
 	if scale < 1 {
 		scale = 1
 	}
-	return g.svc.GenerateGame(gameID, servicesGenerator.GenerateGameRequest{
+	return g.svc.GenerateGame(gameID, compose.GenerateGameRequest{
 		SortOrder: sortOrder,
 		Scale:     scale,
 	})

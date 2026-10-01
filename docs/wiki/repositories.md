@@ -42,4 +42,4 @@ Card repository additionally maps `variables` and `count`.
 
 ## What repositories are not
 
-They do not parse HTTP. They do not draw sprite sheets (generator + `page_drawer`). They should not open a second fsentry root; they use the `*fsentry.DB` handle and `cfg` OS paths for zip.
+They do not parse HTTP. They do not draw sprite sheets (generator + `internal/render/page_drawer`). They should not open a second fsentry root; they use the `*fsentry.DB` handle and `cfg` OS paths for zip.

@@ -8,10 +8,10 @@
 
 ## Context
 
-1. `internal/sheet/paint` draws one cell at a time.
+1. `internal/render/sheet/paint` draws one cell at a time.
 2. A full page is at most 10×7.
 3. The back sits in the bottom-right cell.
-4. These trials live under `internal/sheet/draw/`.
+4. These trials live under `internal/render/sheet/draw/`.
 5. The app stays on `paint`.
 
 ## How they were timed
@@ -80,7 +80,7 @@
 
 ## Decision
 
-1. Do not switch the app off `internal/sheet/paint`.
+1. Do not switch the app off `internal/render/sheet/paint`.
 2. Fastest median is `resize_row` (1474.4 ms).
 3. `row`, `cell`, `resize`, and `resize_row` match the `seq` JPEG bytes.
 
@@ -100,8 +100,8 @@
 
 ### Neutral
 
-1. `internal/page_drawer` is unchanged.
-2. `internal/sheet/paint` is unchanged.
+1. `internal/render/page_drawer` is unchanged.
+2. `internal/render/sheet/paint` is unchanged.
 
 ## Stage split
 
@@ -115,7 +115,7 @@
 8. That loop premultiplies each pixel.
 9. It does not call `At` or `Set`.
 10. `*image.RGBA` with `draw.Src` uses `copy` per row.
-11. `internal/sheet/draw/rgba` converts each cell, then draws.
+11. `internal/render/sheet/draw/rgba` converts each cell, then draws.
 12. That JPEG matches `seq`.
 13. `rgba` min 1752.2 ms. Median 1779.5 ms.
 14. JPEG encode is the shared cost.

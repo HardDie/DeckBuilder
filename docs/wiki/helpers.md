@@ -24,9 +24,9 @@ OS files: write generate outputs, JSON helpers. Used by **generator**, image, an
 
 Validate upload/download bytes (png/jpeg/…). Repositories refuse invalid images (game still saved, warning log).
 
-## `internal/page_drawer`
+## `internal/render/page_drawer`
 
-Lays out TTS 10×7 sheets, last cell hidden/back. Used only by **generator**. Methods, cell size, file names: [Page drawer](Page-drawer).
+The generator's JSON walk uses it so page index and slot match the sheets. Methods, cell size, file names: [Page drawer](Page-drawer). Face sheets are written by `internal/render/sheet/page`.
 
 ## `internal/progress`
 
