@@ -5,7 +5,7 @@ How the program is put together. The pages linked from each section are the fiel
 The window is Wails, at the repo root. The same process serves loopback HTTP for picture bytes and for the one-shot TTS payload. Catalog verbs are Wails bindings. They are not REST handlers.
 
 ```text
-Wails bindings / cmd/deck_builder
+main.go
         │
         ▼
 internal/application          wires the process, owns the mux
@@ -74,8 +74,6 @@ Details: [Entities and DTOs](Entities-and-DTOs).
 ## Bindings and the window
 
 `main.go` starts Wails and the loopback server. `bindings/` is one package per area the window calls: game, collection, deck, card, system, search, generator, replace. A binding maps GUI fields onto a service call and returns the DTO envelope.
-
-`cmd/deck_builder` starts the HTTP server without the window. Use it when you only need image URLs or the TTS payload.
 
 Details: [Cmd and tools](Cmd-and-tools).
 

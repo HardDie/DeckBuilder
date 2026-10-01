@@ -29,7 +29,7 @@ These pages are the field notes. [Internals](Internals) is the map.
 | [DB](DB) | fsentry mapping, fields, methods, callers |
 | [Entities and DTOs](Entities-and-DTOs) | Domain vs GUI JSON vs TTS JSON |
 | [Helpers](Helpers) | errors, network, fs, images, progress, page_drawer |
-| [Cmd and tools](Cmd-and-tools) | `cmd/deck_builder`, root Wails window, `tools/` |
+| [Cmd and tools](Cmd-and-tools) | root Wails window, `tools/` |
 
 ## Publishing these pages
 

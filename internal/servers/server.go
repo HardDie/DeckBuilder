@@ -1,12 +1,15 @@
 package servers
 
 import (
+	"net"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
+	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
@@ -26,8 +29,9 @@ type cardImage interface {
 	GetImage(gameID, collectionID, deckID string, cardID int64) ([]byte, string, error)
 }
 
-type ttsData interface {
+type ttsHTTP interface {
 	DataForTTS() ([]byte, error)
+	SetHTTPPort(port int)
 }
 
 type handlers struct {
@@ -35,17 +39,22 @@ type handlers struct {
 	collection collectionImage
 	deck       deckImage
 	card       cardImage
-	tts        ttsData
+	tts        ttsHTTP
 }
 
-func Register(
-	route *mux.Router,
+type Server struct {
+	router *mux.Router
+	tts    ttsHTTP
+}
+
+func New(
 	game gameImage,
 	collection collectionImage,
 	deck deckImage,
 	card cardImage,
-	tts ttsData,
-) {
+	tts ttsHTTP,
+) *Server {
+	route := mux.NewRouter().StrictSlash(false)
 	h := &handlers{
 		game:       game,
 		collection: collection,
@@ -53,7 +62,12 @@ func Register(
 		card:       card,
 		tts:        tts,
 	}
+	register(route, h)
+	route.Use(corsMiddleware)
+	return &Server{router: route, tts: tts}
+}
 
+func register(route *mux.Router, h *handlers) {
 	gamesRoute := route.PathPrefix("/api/games").Subrouter()
 	gamesRoute.HandleFunc("/{game}/image", h.gameHandler).Methods(http.MethodGet)
 
@@ -67,6 +81,41 @@ func Register(
 	cardsRoute.HandleFunc("/{card}/image", h.cardHandler).Methods(http.MethodGet)
 
 	route.HandleFunc("/api/tts/data", h.ttsHandler).Methods(http.MethodGet)
+}
+
+func (s *Server) Handler() http.Handler {
+	return s.router
+}
+
+func (s *Server) Listen() (net.Listener, int, error) {
+	ln, port, err := listenLoopback(config.HTTPHost, config.HTTPPort, config.HTTPPortAttempts)
+	if err != nil {
+		return nil, 0, err
+	}
+	s.tts.SetHTTPPort(port)
+	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
+	return ln, port, nil
+}
+
+func (s *Server) Serve(ln net.Listener) error {
+	return http.Serve(ln, s.router)
+}
+
+func corsSetupHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, ContentType")
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		corsSetupHeaders(w)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func writeImage(w http.ResponseWriter, img []byte, imgType string, err error) {

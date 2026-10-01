@@ -11,7 +11,7 @@
 1. The window is Wails ([ADR 010](010-wails-shell.md)).
 2. Catalog verbs are bindings ([ADR 011](011-wails-bindings.md)).
 3. The mux still served `web/dist`, SPA fallbacks, and `/docs`.
-4. Startup opened a browser unless `-debug` was set.
+4. Startup opened a browser.
 
 ## Considered options
 
@@ -33,7 +33,7 @@ Use option 2.
    2. `GET /api/tts/data`
 6. Replace is `bindings/replace`.
 7. `AssetServer.Handler` still forwards `/api` so `<img>` can load faces.
-8. `cmd/deck_builder` starts that HTTP server only.
+8. `main.go` starts that HTTP server.
 
 This supersedes the SPA embed and browser in [ADR 001](001-loopback-http-embedded-spa.md).
 Loopback listen stays.
@@ -49,7 +49,6 @@ This supersedes the “production HTTP+SPA” line in [ADR 010](010-wails-shell.
 ### Negative and risks
 
 1. `make web-build` no longer feeds a served GUI.
-2. Do not run `cmd/deck_builder` and Wails together on `:5000`.
 
 ### Neutral
 

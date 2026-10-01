@@ -28,7 +28,7 @@ Use option 2.
 2. Vue sources are `frontend/`.
 3. Catalog bindings are `bindings/`.
 4. `make build` writes `build/bin`.
-5. `cmd/deck_builder` stays the headless HTTP binary.
+5. `main.go` is the only entrypoint.
 6. `frontend/dist/.gitkeep` lets `//go:embed` compile before the first UI build.
 
 This supersedes the nested `desktop/` module in [ADR 010](010-wails-shell.md).

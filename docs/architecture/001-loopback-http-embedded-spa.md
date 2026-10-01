@@ -22,7 +22,7 @@ Options include a single Wails/webview binary, a public web service, or a local 
 
 Use option 3.
 
-`cmd/deck_builder` starts `internal/application`, which binds **only** `127.0.0.1:5000`. Release builds embed the GUI. `-debug` skips opening the browser.
+The process starts `internal/application`, which binds **only** `127.0.0.1:5000`. Release builds embed the GUI.
 
 The GUI repository stays separate; this repo vendors built assets via `make web-build`, not source.
 

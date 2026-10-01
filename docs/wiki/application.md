@@ -28,12 +28,11 @@ Order matters: `db.Init()` (root + lock) then `core.Init()` (`games/` folder).
 
 | Method | Role | Called from |
 |---|---|---|
-| `Get` | Wire everything | `cmd/deck_builder`, `main.go` |
-| `Listen` | Bind loopback (retry port), set TTS port | `Run`, `main.go` |
-| `Serve` | `http.Serve` the mux | `Run`, `main.go` |
+| `Get` | Wire everything | `main.go` |
+| `Listen` | Bind loopback (retry port), set TTS port | `main.go` |
+| `Serve` | `http.Serve` the mux | `main.go` |
 | `Handler` | The mux (for Wails `AssetServer.Handler`) | `main.go` |
 | `Config` / `GameService` / `CollectionService` / `DeckService` / `CardService` | Dependencies for Wails bindings | `main.go` |
-| `Run` | `Listen` + `Serve` | `cmd/deck_builder` |
 | `ReplaceService` | Replace rules for the Wails binding | `main.go` |
 | `corsSetupHeaders` / `corsMiddleware` | `GET,OPTIONS` for image fetches | `routes.Use` |
 

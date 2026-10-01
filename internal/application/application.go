@@ -1,11 +1,7 @@
 package application
 
 import (
-	"net"
-	"net/http"
-
 	"github.com/HardDie/fsentry"
-	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
@@ -15,7 +11,6 @@ import (
 	repositoriesDeck "github.com/HardDie/DeckBuilder/internal/repositories/deck"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	"github.com/HardDie/DeckBuilder/internal/servers"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesCollection "github.com/HardDie/DeckBuilder/internal/services/collection"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
@@ -29,13 +24,12 @@ import (
 
 type Application struct {
 	cfg               *config.Config
-	router            *mux.Router
-	tts               servicesTTS.TTS
 	serviceGame       servicesGame.Game
 	serviceCollection servicesCollection.Collection
 	serviceDeck       servicesDeck.Deck
 	serviceCard       servicesCard.Card
 	serviceSystem     servicesSystem.System
+	serviceTTS        servicesTTS.TTS
 	serviceSearch     servicesSearch.Search
 	serviceGenerator  servicesGenerator.Generator
 	serviceReplace    servicesReplace.Replace
@@ -43,8 +37,6 @@ type Application struct {
 
 func Get(version string) (*Application, error) {
 	cfg := config.Get(version)
-
-	routes := mux.NewRouter().StrictSlash(false)
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty())
 	if err := db.Init(); err != nil {
@@ -79,7 +71,6 @@ func Get(version string) (*Application, error) {
 	serviceCard := servicesCard.New(cfg, repositoryCard)
 
 	serviceTTS := servicesTTS.New()
-	servers.Register(routes, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceTTS)
 
 	// generator
 	serviceGenerator := servicesGenerator.New(cfg, serviceGame, serviceCollection, serviceDeck, serviceCard, serviceSystem, serviceTTS)
@@ -90,16 +81,14 @@ func Get(version string) (*Application, error) {
 	// recursive search
 	serviceSearch := servicesSearch.New(serviceGame, serviceCollection, serviceDeck, serviceCard)
 
-	routes.Use(corsMiddleware)
 	return &Application{
 		cfg:               cfg,
-		router:            routes,
-		tts:               serviceTTS,
 		serviceGame:       serviceGame,
 		serviceCollection: serviceCollection,
 		serviceDeck:       serviceDeck,
 		serviceCard:       serviceCard,
 		serviceSystem:     serviceSystem,
+		serviceTTS:        serviceTTS,
 		serviceSearch:     serviceSearch,
 		serviceGenerator:  serviceGenerator,
 		serviceReplace:    serviceReplace,
@@ -130,6 +119,10 @@ func (app *Application) SystemService() servicesSystem.System {
 	return app.serviceSystem
 }
 
+func (app *Application) TTSService() servicesTTS.TTS {
+	return app.serviceTTS
+}
+
 func (app *Application) SearchService() servicesSearch.Search {
 	return app.serviceSearch
 }
@@ -140,48 +133,4 @@ func (app *Application) GeneratorService() servicesGenerator.Generator {
 
 func (app *Application) ReplaceService() servicesReplace.Replace {
 	return app.serviceReplace
-}
-
-func (app *Application) Handler() http.Handler {
-	return app.router
-}
-
-func (app *Application) Listen() (net.Listener, int, error) {
-	ln, port, err := listenLoopback(config.HTTPHost, config.HTTPPort, config.HTTPPortAttempts)
-	if err != nil {
-		return nil, 0, err
-	}
-	app.tts.SetHTTPPort(port)
-	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
-	return ln, port, nil
-}
-
-func (app *Application) Serve(ln net.Listener) error {
-	return http.Serve(ln, app.router)
-}
-
-func (app *Application) Run() error {
-	ln, _, err := app.Listen()
-	if err != nil {
-		return err
-	}
-	return app.Serve(ln)
-}
-
-// CORS headers
-func corsSetupHeaders(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET,OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, ContentType")
-}
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		corsSetupHeaders(w)
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

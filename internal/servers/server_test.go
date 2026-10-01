@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/gorilla/mux"
-
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
 
@@ -54,6 +52,8 @@ type ttsStub struct {
 	err  error
 }
 
+func (s *ttsStub) SetHTTPPort(int) {}
+
 func (s *ttsStub) DataForTTS() ([]byte, error) {
 	if s.err != nil {
 		return nil, s.err
@@ -73,8 +73,7 @@ func TestRoutes(t *testing.T) {
 	card := &cardStub{imageStub{img: []byte("gif-bytes"), kind: "gif"}}
 	tts := &ttsStub{data: []byte(`{"Name":"Bag"}`)}
 
-	route := mux.NewRouter()
-	Register(route, game, collection, deck, card, tts)
+	route := New(game, collection, deck, card, tts).Handler()
 
 	cases := []struct {
 		path        string
@@ -121,8 +120,7 @@ func TestRoutes(t *testing.T) {
 }
 
 func TestTTSEmpty(t *testing.T) {
-	route := mux.NewRouter()
-	Register(route, &gameStub{}, &collectionStub{}, &deckStub{}, &cardStub{}, &ttsStub{err: errors.New("there is nothing to serve")})
+	route := New(&gameStub{}, &collectionStub{}, &deckStub{}, &cardStub{}, &ttsStub{err: errors.New("there is nothing to serve")}).Handler()
 	rec := httptest.NewRecorder()
 	route.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/tts/data", nil))
 	if rec.Code != http.StatusInternalServerError {

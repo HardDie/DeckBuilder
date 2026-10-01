@@ -133,7 +133,7 @@ make test
 make linter-run  # after make linter-install
 ```
 
-`cmd/deck_builder` listens for images and TTS. It does not open a browser. The UI is `make wails-dev`.
+`main.go` is the only entrypoint. It listens for images and TTS and opens the Wails window.
 
 ---
 
@@ -181,7 +181,6 @@ This file stays lean. **[README.md](README.md)** is the short user entry (what t
 ├── bindings/               # catalog verbs
 ├── frontend/               # Vue UI
 ├── build/                  # Wails packaging; binary in build/bin
-├── cmd/deck_builder/       # image + TTS HTTP server
 ├── internal/
 │   ├── application/        # mux, DI, ListenAndServe
 │   ├── servers/            # image and TTS GET

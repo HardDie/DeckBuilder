@@ -24,6 +24,7 @@ import (
 	bindingsSystem "github.com/HardDie/DeckBuilder/bindings/system"
 	"github.com/HardDie/DeckBuilder/internal/application"
 	"github.com/HardDie/DeckBuilder/internal/logger"
+	"github.com/HardDie/DeckBuilder/internal/servers"
 	"github.com/HardDie/DeckBuilder/pkg/version"
 )
 
@@ -36,12 +37,19 @@ func main() {
 		logger.Error.Fatal(err.Error())
 	}
 
-	ln, _, err := backend.Listen()
+	httpServer := servers.New(
+		backend.GameService(),
+		backend.CollectionService(),
+		backend.DeckService(),
+		backend.CardService(),
+		backend.TTSService(),
+	)
+	ln, _, err := httpServer.Listen()
 	if err != nil {
 		logger.Error.Fatal(err.Error())
 	}
 	go func() {
-		if err := backend.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := httpServer.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error.Println(err.Error())
 		}
 	}()
@@ -63,7 +71,7 @@ func main() {
 		Height: 768,
 		AssetServer: &assetserver.Options{
 			Assets:  assets,
-			Handler: apiHandler(backend.Handler()),
+			Handler: apiHandler(httpServer.Handler()),
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup: func(ctx context.Context) {
