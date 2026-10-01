@@ -32,6 +32,7 @@
               type="primary"
               block
               style="justify-content: flex-start"
+              @click.prevent="openDeveloperPage"
             >
               @harddie
             </n-button>
@@ -43,6 +44,7 @@
               type="primary"
               block
               style="justify-content: flex-start"
+              @click.prevent="openDeveloperPage"
             >
               @lemm1ng
             </n-button>
@@ -137,6 +139,7 @@ import { AddFilled, NoteAddOutlined, SearchOutlined, ChangeCircleOutlined } from
 import { Icon } from '@vicons/utils'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime'
 import { useStore } from '@/stores/main'
 
 const mainStore = useStore()
@@ -199,6 +202,14 @@ const onSearch = val => {
 
 const onBreadcrumbItemClick = idx => {
   router.push(`/${mainStore.pathItems.slice(0, idx * 2).join('/')}`)
+}
+
+const openDeveloperPage = event => {
+  const url = event.currentTarget?.getAttribute('href')
+  if (!url) {
+    return
+  }
+  BrowserOpenURL(url)
 }
 
 const searchModel = computed({
