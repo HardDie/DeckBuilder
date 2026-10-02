@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/HardDie/fsentry"
@@ -25,6 +26,10 @@ type card struct {
 	cfg       *config.Config
 	db        *fsentry.DB
 	gamesPath string
+
+	// mu serializes the read-modify-write of a deck's cards list.
+	// fsentry locks each call, not the read and write pair.
+	mu sync.Mutex
 }
 
 func New(cfg *config.Config, db *fsentry.DB) Card {
@@ -163,6 +168,9 @@ func (r *card) createImageFromByte(gameID, collectionID, deckID string, cardID i
 }
 
 func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	list, err := r.rawCardList(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -233,6 +241,9 @@ func (r *card) list(gameID, collectionID, deckID string) ([]*entitiesCard.Card, 
 }
 
 func (r *card) update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entitiesCard.Card, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	list, err := r.rawCardList(gameID, collectionID, deckID)
 	if err != nil {
 		return nil, err
@@ -269,6 +280,9 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 }
 
 func (r *card) delete(gameID, collectionID, deckID string, cardID int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	list, err := r.rawCardList(gameID, collectionID, deckID)
 	if err != nil {
 		return err

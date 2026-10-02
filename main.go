@@ -75,6 +75,11 @@ func main() {
 			game.BindWindow(games, ctx)
 		},
 		OnShutdown: app.shutdown,
+		// One instance per user. A second launch exits and focuses the first window.
+		SingleInstanceLock: &options.SingleInstanceLock{
+			UniqueId:               "com.harddie.deckbuilder",
+			OnSecondInstanceLaunch: app.focus,
+		},
 		Bind: []interface{}{
 			games,
 			collections,

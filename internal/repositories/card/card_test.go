@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -593,4 +594,35 @@ func TestCardLegacyTimestamps(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(raw, &stored))
 	assert.Nil(t, stored.Data["1"].CreatedAt)
 	assert.Nil(t, stored.Data["1"].UpdatedAt)
+}
+
+func TestCardConcurrentCreate(t *testing.T) {
+	const workers = 20
+
+	e := initCard(t, "card_concurrent_create")
+	gameID, collectionID, deckID := e.createParents(t, "parent_game", "parent_collection", "parent_deck")
+
+	var wg sync.WaitGroup
+	errs := make([]error, workers)
+	for i := range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, errs[i] = e.card.Create(gameID, collectionID, deckID, CreateRequest{Name: "card"})
+		}()
+	}
+	wg.Wait()
+	for _, err := range errs {
+		assert.NoError(t, err)
+	}
+
+	cards, err := e.card.GetAll(gameID, collectionID, deckID)
+	assert.NoError(t, err)
+	assert.Len(t, cards, workers)
+
+	ids := make(map[int64]struct{}, len(cards))
+	for _, c := range cards {
+		ids[c.ID] = struct{}{}
+	}
+	assert.Len(t, ids, len(cards))
 }
