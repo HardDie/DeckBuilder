@@ -571,6 +571,62 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *collectionTest) testRenameWithImage(t *testing.T) {
+	oldName, newName := "rename_image_old", "rename_image_new"
+	oldID, newID := utils.NameToID(oldName), utils.NameToID(newName)
+
+	pageImage := images.CreateImage(100, 100)
+	pngImage, err := images.ImageToPng(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jpegImage, err := images.ImageToJpeg(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create collection with an image
+	_, err = tt.serviceCollection.Create(tt.gameID, CreateRequest{
+		Name:      oldName,
+		ImageFile: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Rename and replace the image in one update
+	collection, err := tt.serviceCollection.Update(tt.gameID, oldID, UpdateRequest{
+		Name:      newName,
+		ImageFile: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if collection.ID != newID {
+		t.Fatal("ID error! [got]", collection.ID, "[want]", newID)
+	}
+
+	// New image lives under the new id
+	_, imgType, err := tt.serviceCollection.GetImage(tt.gameID, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Old id is gone
+	_, _, err = tt.serviceCollection.GetImage(tt.gameID, oldID)
+	if !errors.Is(err, er.CollectionNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete collection
+	err = tt.serviceCollection.Delete(tt.gameID, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestCollection(t *testing.T) {
 	t.Parallel()
@@ -609,6 +665,7 @@ func TestCollection(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("rename_with_image", tt.testRenameWithImage)
 }
 
 func (tt *collectionTest) fuzzCleanup() {

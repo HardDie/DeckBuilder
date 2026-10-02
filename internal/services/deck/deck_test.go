@@ -563,6 +563,62 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func (tt *deckTest) testRenameWithImage(t *testing.T) {
+	oldName, newName := "rename_image_old", "rename_image_new"
+	oldID, newID := utils.NameToID(oldName), utils.NameToID(newName)
+
+	pageImage := images.CreateImage(100, 100)
+	pngImage, err := images.ImageToPng(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jpegImage, err := images.ImageToJpeg(pageImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create deck with an image
+	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
+		Name:      oldName,
+		ImageFile: pngImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Rename and replace the image in one update
+	deck, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, oldID, UpdateRequest{
+		Name:      newName,
+		ImageFile: jpegImage,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deck.ID != newID {
+		t.Fatal("ID error! [got]", deck.ID, "[want]", newID)
+	}
+
+	// New image lives under the new id
+	_, imgType, err := tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if imgType != "jpeg" {
+		t.Fatal("Image type error! [got]", imgType, "[want] jpeg")
+	}
+
+	// Old id is gone
+	_, _, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, oldID)
+	if !errors.Is(err, er.DeckNotExists) {
+		t.Fatal(err)
+	}
+
+	// Delete deck
+	err = tt.serviceDeck.Delete(tt.gameID, tt.collectionID, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestDeck(t *testing.T) {
 	t.Parallel()
@@ -617,6 +673,7 @@ func TestDeck(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("rename_with_image", tt.testRenameWithImage)
 }
 
 func (tt *deckTest) fuzzCleanup() {

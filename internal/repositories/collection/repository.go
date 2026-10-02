@@ -95,7 +95,7 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	}
 
 	if data, _, _ := r.GetImage(gameID, newCollection.ID); data != nil {
-		err = r.imageDelete(gameID, collectionID)
+		err = r.imageDelete(gameID, newCollection.ID)
 		if err != nil {
 			return nil, err
 		}

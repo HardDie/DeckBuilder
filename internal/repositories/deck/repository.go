@@ -95,7 +95,7 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 	}
 
 	if data, _, _ := r.GetImage(gameID, collectionID, newDeck.ID); data != nil {
-		err = r.imageDelete(gameID, collectionID, deckID)
+		err = r.imageDelete(gameID, collectionID, newDeck.ID)
 		if err != nil {
 			return nil, err
 		}
