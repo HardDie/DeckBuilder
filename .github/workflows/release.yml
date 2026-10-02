@@ -128,10 +128,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$x64"
           cmake --build "$src/build-x64" --target install --parallel
+          # The Homebrew archive is read-only. The Makefile links JPEG_LIBJPEG_A instead.
           fat="${RUNNER_TEMP}/libjpeg-universal.a"
           lipo -create "$archive" "$x64/lib/libjpeg.a" -output "$fat"
-          cp "$fat" "$archive"
-          lipo -info "$archive"
+          lipo -info "$fat"
+          echo "JPEG_LIBJPEG_A=$fat" >> "$GITHUB_ENV"
+          echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
 
       - name: Windows libjpeg-turbo
         if: runner.os == 'Windows'
@@ -177,13 +179,21 @@ jobs:
             make build "WAILS_BUILD_ARGS=${args[*]}"
           fi
 
+      # Direct dependencies only. ldd also lists libraries that WebKitGTK loads,
+      # and WebKitGTK itself depends on libjpeg.so.
       - name: Static libjpeg check
-        if: runner.os == 'Linux'
         shell: bash
         run: |
-          bin="build/bin/${APP_NAME}"
-          ldd "$bin"
-          if ldd "$bin" | grep -i libjpeg; then
+          case "${{ runner.os }}" in
+            Linux)
+              deps="$(readelf -d "build/bin/${APP_NAME}" | grep NEEDED)" ;;
+            macOS)
+              deps="$(otool -L "build/bin/${APP_NAME}.app/Contents/MacOS/${APP_NAME}")" ;;
+            Windows)
+              deps="$(objdump -p "build/bin/${APP_NAME}.exe" | grep 'DLL Name')" ;;
+          esac
+          echo "$deps"
+          if echo "$deps" | grep -i jpeg; then
             echo "libjpeg is a shared dependency"
             exit 1
           fi

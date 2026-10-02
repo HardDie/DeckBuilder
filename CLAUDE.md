@@ -2,8 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-DeckBuilder is a **local authoring tool** for card games.
-It exports to [Tabletop Simulator](https://tabletopsimulator.com/) (TTS).
+DeckBuilder is a desktop app for creating card decks.
+The decks are for [Tabletop Simulator](https://tabletopsimulator.com/) (TTS).
+It is a Wails app (Go + Vue).
+
+## Targets and distribution
+
+1. Release targets:
+   1. Linux amd64.
+   2. Linux arm64.
+   3. Windows amd64.
+   4. macOS universal (amd64 + arm64).
+2. The app is statically linked.
+   1. Native libs, such as libjpeg-turbo, link as static archives.
+   2. The OS webview is the only exception, since Wails needs it.
+   3. Never add a shared-library dependency.
+3. Each release ships as a single file, with two exceptions.
+   1. macOS ships a `.app` bundle, so it looks like a production app.
+   2. Linux adds `install.sh`, `DeckBuilder.desktop`, and the icon.
+   3. These Linux extras let users install it as an app.
+   4. They come from `build/linux/` and `build/appicon.png`.
+4. Releases build in `.github/workflows/release.yml` on a `v*` tag.
+   1. Each target runs `make build` with `-platform`.
+   2. CI fails if libjpeg is a direct shared dependency on any target.
+   3. It checks with `readelf -d`, `otool -L`, or `objdump -p`, never `ldd`.
+   4. `ldd` lists WebKitGTK's own `libjpeg.so`, which is expected.
+6. Text files are LF on every checkout (`.gitattributes`).
+   1. On Windows, CRLF breaks prettier in the frontend build.
+5. Any build change must keep all four targets working.
+
+## Shape
 
 1. UI
    1. Wails window at the repo root.
