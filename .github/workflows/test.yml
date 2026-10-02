@@ -29,11 +29,35 @@ jobs:
           go-version: "1.27.1"
           cache: true
 
-      - name: Install libjpeg
+      - name: Install libjpeg-turbo 3.2.0
         if: steps.mod.outputs.present == 'true'
         run: |
+          # Golden JPEGs match libjpeg-turbo 3.2.0 (JPEG 8 ABI).
+          # Ubuntu's libjpeg-turbo8 package is older and changes the bytes.
           sudo apt-get update
-          sudo apt-get install -y gcc pkg-config make libjpeg-turbo8-dev
+          sudo apt-get install -y gcc pkg-config make cmake nasm curl ca-certificates
+          ver=3.2.0
+          src="${RUNNER_TEMP}/libjpeg-turbo-src"
+          prefix="${RUNNER_TEMP}/libjpeg-turbo"
+          curl -fsSL -o "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" \
+            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${ver}/libjpeg-turbo-${ver}.tar.gz"
+          mkdir -p "$src"
+          tar -xzf "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" -C "$src" --strip-components=1
+          cmake -S "$src" -B "$src/build" \
+            -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_JPEG8=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$prefix"
+          cmake --build "$src/build" --target install --parallel
+          if [ -f "$prefix/lib64/libjpeg.a" ]; then
+            lib="$prefix/lib64/libjpeg.a"
+          else
+            lib="$prefix/lib/libjpeg.a"
+          fi
+          test -f "$lib"
+          test -f "$prefix/include/jpeglib.h"
+          echo "JPEG_LIBJPEG_A=$lib" >> "$GITHUB_ENV"
+          echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
+          awk '/LIBJPEG_TURBO_VERSION  /{print; exit}' "$prefix/include/jconfig.h"
 
       - name: Unit tests
         if: steps.mod.outputs.present == 'true'
