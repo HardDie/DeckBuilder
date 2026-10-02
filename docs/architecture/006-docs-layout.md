@@ -1,6 +1,6 @@
 # 6. Documentation layout: README, CURSOR.md, and `docs/`
 
-* **Status:** Accepted
+* **Status:** Superseded by [019](019-claude-md.md)
 * **Date:** 2026-09-18
 * **Authors:** @oleg
 

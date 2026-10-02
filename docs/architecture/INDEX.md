@@ -11,7 +11,7 @@ These records describe **decisions already embodied in this repository**, so age
 | [003](003-fsentry-on-disk.md) | Catalog stored with fsentry under DeckBuilderData | Accepted |
 | [004](004-layered-go-packages.md) | api → servers → services → repositories | Accepted |
 | [005](005-tts-generate-local-paths.md) | Generate sprite sheets + TTS JSON with local image paths | Accepted |
-| [006](006-docs-layout.md) | README, CURSOR.md, `docs/` (ADRs, use cases) | Accepted |
+| [006](006-docs-layout.md) | README, CURSOR.md, `docs/` (ADRs, use cases) | Superseded |
 | [007](007-tts-official-api.md) | TTS integration follows api.tabletopsimulator.com | Accepted |
 | [008](008-require-go-1.27.md) | Require Go 1.27.1 | Accepted |
 | [009](009-catalog-timestamps.md) | Normalize catalog createdAt/updatedAt in memory | Accepted |
@@ -24,3 +24,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [016](016-auto-upload-generated-images.md) | Auto-upload generated images to a web host | Proposed |
 | [017](017-sheet-draw-speed.md) | Sheet draw speed trials | Accepted |
 | [018](018-generation-progress.md) | Generation progress in `internal/render/progress` | Accepted |
+| [019](019-claude-md.md) | CLAUDE.md replaces CURSOR.md | Accepted |

@@ -22,4 +22,4 @@ Developing
 - [Page drawer](Page-drawer)
 - [Cmd and tools](Cmd-and-tools)
 
-[README](https://github.com/HardDie/DeckBuilder#readme) · [CURSOR.md](https://github.com/HardDie/DeckBuilder/blob/master/CURSOR.md)
+[README](https://github.com/HardDie/DeckBuilder#readme) · [CLAUDE.md](https://github.com/HardDie/DeckBuilder/blob/master/CLAUDE.md)

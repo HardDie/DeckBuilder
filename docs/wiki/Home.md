@@ -11,7 +11,7 @@ Two guides. Pick the one that matches why you opened this.
 
 The pictures in the guide are an example catalog from [The Binding of Isaac: Four Souls](https://foursouls.com/).
 
-Product intro and the Saved Objects copy path also live in the [README](https://github.com/HardDie/DeckBuilder#readme). HTTP contracts and agent rules: [CURSOR.md](https://github.com/HardDie/DeckBuilder/blob/master/CURSOR.md). Decisions: [docs/architecture](https://github.com/HardDie/DeckBuilder/tree/master/docs/architecture).
+Product intro and the Saved Objects copy path also live in the [README](https://github.com/HardDie/DeckBuilder#readme). HTTP contracts and agent rules: [CLAUDE.md](https://github.com/HardDie/DeckBuilder/blob/master/CLAUDE.md). Decisions: [docs/architecture](https://github.com/HardDie/DeckBuilder/tree/master/docs/architecture).
 
 ## Developer reference
 
