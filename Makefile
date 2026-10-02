@@ -79,7 +79,7 @@ endif
 
 dev build: jpeg-link
 
-jpeg-link:
+jpeg-link: require-jpeg
 	mkdir -p "$(JPEG_LINK_DIR)"
 	ln -sfn "$(CGO_LDFLAGS)" "$(JPEG_LINK_DIR)/libjpeg.a"
 
@@ -118,14 +118,22 @@ generate: require-wails
 	$(WAILS) generate module
 
 ## test: Unit tests for package main, bindings, internal, and pkg (same as CI, with race)
-test:
-	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) .
-	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./bindings/...
-	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) $(INTERNAL)
+test: jpeg-link
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) . && \
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) $(INTERNAL) && \
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./pkg/...
 
 ## test-integration: Integration tests under internal (build tag integration)
-test-integration:
+test-integration: jpeg-link
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
 	$(GO) test -tags=integration -count=1 $(INTERNAL)
 
 ## test-all: Unit then integration tests

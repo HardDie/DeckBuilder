@@ -76,6 +76,8 @@ func (p *progress) SetStatus(value string) {
 }
 
 func (p *progress) GetStatus() entitiesStatus.Status {
+	p.m.Lock()
+	defer p.m.Unlock()
 	return entitiesStatus.Status{
 		Type:     p.Type,
 		Message:  p.Message,
