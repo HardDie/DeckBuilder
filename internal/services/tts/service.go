@@ -5,12 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 type tts struct {
+	editorAddr string
+
+	// mu guards dataForTTS and httpPort.
+	// SendToTTS runs on the generate or binding goroutine, DataForTTS on the HTTP one.
+	mu         sync.Mutex
 	dataForTTS []byte
 	httpPort   int
 }
@@ -22,18 +28,23 @@ type Message struct {
 }
 
 func New() TTS {
-	return &tts{httpPort: config.HTTPPort}
+	return &tts{
+		httpPort:   config.HTTPPort,
+		editorAddr: "127.0.0.1:39999",
+	}
 }
 
 func (s *tts) SetHTTPPort(port int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.httpPort = port
 }
 
 func (s *tts) SendToTTS(data any) {
 	// Try to open TCP socket
-	conn, err := net.Dial("tcp", "127.0.0.1:39999")
+	conn, err := net.Dial("tcp", s.editorAddr)
 	if err != nil {
-		logger.Info.Println("Can't connect to TTS via tcp connection '127.0.0.1:39999':", err.Error())
+		logger.Info.Printf("Can't connect to TTS via tcp connection %q: %s", s.editorAddr, err.Error())
 		return
 	}
 	defer func() { conn.Close() }()
@@ -43,7 +54,10 @@ func (s *tts) SendToTTS(data any) {
 		logger.Warn.Println("error marshal data for TTS:", err.Error())
 		return
 	}
+	s.mu.Lock()
 	s.dataForTTS = dataForTTS
+	httpPort := s.httpPort
+	s.mu.Unlock()
 
 	msg := Message{
 		MessageID: 3,
@@ -61,7 +75,7 @@ WebRequest.get("http://%s:%d/api/tts/data", function(request)
 			print('Object were spawned! Done!')
 		end
 	})
-end)`, config.HTTPHost, s.httpPort),
+end)`, config.HTTPHost, httpPort),
 	}
 
 	jsonData, err := json.Marshal(msg)
@@ -78,6 +92,8 @@ end)`, config.HTTPHost, s.httpPort),
 }
 
 func (s *tts) DataForTTS() ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.dataForTTS == nil {
 		return nil, errors.New("there is nothing to serve")
 	}

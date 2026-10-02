@@ -2,7 +2,7 @@
 
 **Module:** `internal/services/tts`  
 **Status:** Implemented  
-**Actors:** Generator after writing JSON; TTS Lua; `GET /api/tts/data`  
+**Actors:** Generator after writing JSON; Replace after rewriting URLs ([UC-11](../replace/uc-11-replace-urls.md)); TTS Lua; `GET /api/tts/data`  
 **Goal:** If Tabletop Simulator is listening, spawn the generated bag on the table  
 **Preconditions:** Generate produced a bag; [External Editor](https://api.tabletopsimulator.com/externaleditorapi/) TCP on the TTS host may or may not be up
 
