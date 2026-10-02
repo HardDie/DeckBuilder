@@ -47,13 +47,14 @@ make build
 
 Sheet JPEGs use libjpeg-turbo through `github.com/pixiv/go-libjpeg` (cgo).
 `make build` and `make dev` set `CGO_ENABLED`, `CGO_CFLAGS`, and `CGO_LDFLAGS`.
+The link is the static archive `libjpeg.a`.
 Install the library first:
 
 ```
 brew install jpeg-turbo
 ```
 
-Linux without Homebrew needs the `libturbojpeg` dev headers.
+Linux without Homebrew needs the static `libjpeg` package (`libjpeg.a`).
 
 The binary is in `build/bin`
 

@@ -18,31 +18,70 @@ VERSION_LDFLAGS = -X github.com/HardDie/DeckBuilder/pkg/version.Build=$(BUILD_VE
 PRODUCT_VERSION ?= $(patsubst v%,%,$(shell git describe --tags --abbrev=0 2>/dev/null))
 # Ubuntu 24.04+ ships webkit2gtk-4.1; Wails needs this tag instead of 4.0.
 WAILS_TAGS := $(shell pkg-config --exists webkit2gtk-4.1 2>/dev/null && echo -tags webkit2_41)
-# libjpeg-turbo for github.com/pixiv/go-libjpeg. make sets the flags; do not export them by hand.
+# Static libjpeg.a for github.com/pixiv/go-libjpeg. make sets the flags.
+# Wails drops CC while generating bindings, so -ljpeg still reaches the linker.
+# JPEG_LINK_DIR holds only libjpeg.a. LIBRARY_PATH makes -ljpeg use that archive.
+# JPEG_LIBJPEG_A / JPEG_INCLUDE point at an archive built in CI.
+# WAILS_BUILD_ARGS is for release CI (-skipbindings -platform …).
 CGO_ENABLED := 1
+REAL_CC := $(shell $(GO) env CC)
+UNAME_S := $(shell uname -s)
+JPEG_CC := $(CURDIR)/scripts/cc-static-jpeg
+ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+JPEG_CC := $(shell cygpath -m "$(CURDIR)/scripts/cc-static-jpeg.exe" 2>/dev/null || echo "$(CURDIR)/scripts/cc-static-jpeg.exe")
+endif
+JPEG_EXTRA_LDFLAGS :=
+ifeq ($(UNAME_S),Linux)
+JPEG_EXTRA_LDFLAGS := -lm
+endif
+WAILS_BUILD_ARGS ?=
+JPEG_LINK_DIR := $(CURDIR)/build/libjpeg-link
+JPEG_LIBRARY_PATH := $(JPEG_LINK_DIR)
+ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+JPEG_LIBRARY_PATH := $(shell cygpath -m "$(JPEG_LINK_DIR)" 2>/dev/null || echo "$(JPEG_LINK_DIR)")
+endif
+ifneq ($(JPEG_LIBJPEG_A),)
+CGO_LDFLAGS := $(JPEG_LIBJPEG_A)
+ifneq ($(JPEG_INCLUDE),)
+CGO_CFLAGS := -I$(JPEG_INCLUDE)
+endif
+else
 JPEG_BREW_PREFIX := $(shell brew --prefix jpeg-turbo 2>/dev/null)
 ifneq ($(JPEG_BREW_PREFIX),)
 CGO_CFLAGS := -I$(JPEG_BREW_PREFIX)/include
-CGO_LDFLAGS := -L$(JPEG_BREW_PREFIX)/lib
+CGO_LDFLAGS := $(JPEG_BREW_PREFIX)/lib/libjpeg.a
 else
-UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-JPEG_PC := $(shell pkg-config --exists libturbojpeg 2>/dev/null && echo libturbojpeg)
-ifeq ($(JPEG_PC),)
-JPEG_PC := $(shell pkg-config --exists libjpeg 2>/dev/null && echo libjpeg)
+CGO_CFLAGS := $(shell pkg-config --cflags libjpeg 2>/dev/null)
+CGO_LDFLAGS := $(shell ./scripts/find-libjpeg-a.sh)
+else
+ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+CGO_LDFLAGS := $(shell ./scripts/find-libjpeg-a.sh)
+ifneq ($(CGO_LDFLAGS),)
+CGO_CFLAGS := -I$(patsubst %/lib/libjpeg.a,%/include,$(CGO_LDFLAGS))
 endif
-ifneq ($(JPEG_PC),)
-CGO_CFLAGS := $(shell pkg-config --cflags $(JPEG_PC))
-CGO_LDFLAGS := $(shell pkg-config --libs $(JPEG_PC))
+endif
 endif
 endif
 endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help version dev build require-jpeg generate test test-integration test-all \
+.PHONY: help version dev build jpeg-link require-jpeg generate test test-integration test-all \
 	vet fmt tidy doc doc-all docs-site frontend-install screenshots clean ci \
 	linter-install linter-run fuzz_game fuzz_collection fuzz_deck fuzz_card
+
+ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+dev build: $(JPEG_CC)
+$(JPEG_CC): scripts/cc-static-jpeg.c
+	$(REAL_CC) -O2 -o $@ scripts/cc-static-jpeg.c
+endif
+
+dev build: jpeg-link
+
+jpeg-link:
+	mkdir -p "$(JPEG_LINK_DIR)"
+	ln -sfn "$(CGO_LDFLAGS)" "$(JPEG_LINK_DIR)/libjpeg.a"
 
 ## help: Show this list
 help:
@@ -57,13 +96,17 @@ version:
 
 ## dev: Run the Wails app with frontend hot reload
 dev: require-wails require-jpeg version
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" \
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
 		$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 ## build: Production binary for this machine (build/bin)
 build: require-wails require-jpeg version
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" \
-		$(WAILS) build $(WAILS_TAGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
+		$(WAILS) build $(WAILS_TAGS) $(WAILS_BUILD_ARGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 	@if [ "$$(uname)" = "Linux" ]; then \
 		cp build/linux/install.sh build/linux/$(APP_NAME).desktop build/bin/ && \
 		cp build/appicon.png build/bin/$(APP_NAME).png && \
@@ -165,7 +208,7 @@ require-wails:
 	@test -f wails.json || (echo "wails.json missing: scaffold with wails init before this target"; exit 1)
 
 require-jpeg:
-	@if [ -z "$(JPEG_BREW_PREFIX)" ] && [ -z "$(JPEG_PC)" ]; then \
-		echo "missing jpeg-turbo via Homebrew, or libturbojpeg dev headers"; \
+	@if [ ! -f "$(CGO_LDFLAGS)" ]; then \
+		echo "install the static libjpeg package"; \
 		exit 1; \
 	fi

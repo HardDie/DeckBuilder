@@ -1,0 +1,21 @@
+#!/bin/sh
+# Link driver for dev and build. Drops -ljpeg from github.com/pixiv/go-libjpeg
+# so the linker cannot choose libjpeg.dylib or libjpeg.so.
+# CGO_LDFLAGS is the full path of libjpeg.a.
+cc=${REAL_CC:-cc}
+i=0
+for arg in "$@"; do
+  i=$((i + 1))
+  eval "saved_$i=\$arg"
+done
+count=$i
+set --
+j=1
+while [ "$j" -le "$count" ]; do
+  eval "arg=\$saved_$j"
+  if [ "$arg" != "-ljpeg" ]; then
+    set -- "$@" "$arg"
+  fi
+  j=$((j + 1))
+done
+exec "$cc" "$@"

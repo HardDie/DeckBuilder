@@ -26,12 +26,10 @@ jobs:
           - name: linux-amd64
             os: ubuntu-latest
             wails_platform: linux/amd64
-            wails_tags: webkit2_41
             artifact: linux-amd64.tar.gz
           - name: linux-arm64
             os: ubuntu-24.04-arm
             wails_platform: linux/arm64
-            wails_tags: webkit2_41
             artifact: linux-arm64.tar.gz
           - name: windows-amd64
             os: windows-latest
@@ -71,7 +69,82 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb gcc pkg-config
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb gcc pkg-config make libjpeg-turbo8-dev
+          archive="$(./scripts/find-libjpeg-a.sh)"
+          if [ -n "$archive" ] && [ -f "$archive" ]; then
+            echo "libjpeg.a: $archive"
+            exit 0
+          fi
+          echo "distro package has no libjpeg.a; building libjpeg-turbo"
+          sudo apt-get install -y cmake nasm curl ca-certificates
+          ver=3.1.4.1
+          src="${RUNNER_TEMP}/libjpeg-turbo-src"
+          prefix="${RUNNER_TEMP}/libjpeg-turbo"
+          curl -fsSL -o "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" \
+            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${ver}/libjpeg-turbo-${ver}.tar.gz"
+          mkdir -p "$src"
+          tar -xzf "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" -C "$src" --strip-components=1
+          cmake -S "$src" -B "$src/build" \
+            -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_JPEG8=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$prefix"
+          cmake --build "$src/build" --target install --parallel
+          if [ -f "$prefix/lib64/libjpeg.a" ]; then
+            lib="$prefix/lib64/libjpeg.a"
+          else
+            lib="$prefix/lib/libjpeg.a"
+          fi
+          test -f "$lib"
+          echo "JPEG_LIBJPEG_A=$lib" >> "$GITHUB_ENV"
+          echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
+          echo "libjpeg.a: $lib"
+
+      - name: macOS libjpeg-turbo
+        if: runner.os == 'macOS'
+        run: |
+          brew install jpeg-turbo
+          prefix="$(brew --prefix jpeg-turbo)"
+          archive="$prefix/lib/libjpeg.a"
+          test -f "$archive"
+          echo "libjpeg.a: $archive"
+          if [ "${{ matrix.wails_platform }}" != "darwin/universal" ]; then
+            exit 0
+          fi
+          if lipo -info "$archive" | grep -q x86_64; then
+            exit 0
+          fi
+          echo "brew libjpeg.a is $(lipo -info "$archive"); building an x86_64 slice"
+          brew install cmake nasm
+          ver="$(awk '/LIBJPEG_TURBO_VERSION  /{print $3; exit}' "$prefix/include/jconfig.h")"
+          src="${RUNNER_TEMP}/libjpeg-turbo-src"
+          x64="${RUNNER_TEMP}/libjpeg-turbo-x86_64"
+          curl -fsSL -o "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" \
+            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${ver}/libjpeg-turbo-${ver}.tar.gz"
+          mkdir -p "$src"
+          tar -xzf "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" -C "$src" --strip-components=1
+          cmake -S "$src" -B "$src/build-x64" \
+            -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_JPEG8=ON \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$x64"
+          cmake --build "$src/build-x64" --target install --parallel
+          fat="${RUNNER_TEMP}/libjpeg-universal.a"
+          lipo -create "$archive" "$x64/lib/libjpeg.a" -output "$fat"
+          cp "$fat" "$archive"
+          lipo -info "$archive"
+
+      - name: Windows libjpeg-turbo
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          release: false
+          path-type: inherit
+          install: >-
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-libjpeg-turbo
 
       - name: Download Go modules
         shell: bash
@@ -95,21 +168,24 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          VERSION="$(go run ./pkg/version/cmd/version)"
-          PRODUCT_VERSION="$(git describe --tags --abbrev=0 2>/dev/null || true)"
-          PRODUCT_VERSION="${PRODUCT_VERSION#v}"
-          export PRODUCT_VERSION
-          ./scripts/sync-product-version.sh
           # -skipbindings: committed frontend/wailsjs. Generate locally after binding changes.
-          cmd=(wails build -skipbindings -clean -trimpath -platform "${{ matrix.wails_platform }}" -ldflags "-X github.com/HardDie/DeckBuilder/pkg/version.Build=${VERSION}")
-          # Ubuntu 24.04 has webkit2gtk-4.1 only; Wails still defaults to 4.0.
-          if [ -n "${{ matrix.wails_tags }}" ]; then
-            cmd+=(-tags "${{ matrix.wails_tags }}")
-          fi
+          # make build sets the static libjpeg.a link. Ubuntu tags come from the Makefile.
+          args=(-skipbindings -platform "${{ matrix.wails_platform }}")
           if [ "${{ runner.os }}" = "Linux" ]; then
-            xvfb-run -a "${cmd[@]}"
+            xvfb-run -a make build "WAILS_BUILD_ARGS=${args[*]}"
           else
-            "${cmd[@]}"
+            make build "WAILS_BUILD_ARGS=${args[*]}"
+          fi
+
+      - name: Static libjpeg check
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          bin="build/bin/${APP_NAME}"
+          ldd "$bin"
+          if ldd "$bin" | grep -i libjpeg; then
+            echo "libjpeg is a shared dependency"
+            exit 1
           fi
 
       - name: Package (Unix)
