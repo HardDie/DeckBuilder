@@ -81,8 +81,17 @@ On macOS:
 ```bash
 CGO_ENABLED=1 CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include" \
 CGO_LDFLAGS="$(brew --prefix jpeg-turbo)/lib/libjpeg.a" \
+REAL_CC="$(go env CC)" CC="$PWD/scripts/cc-static-jpeg" \
 go test -race -count=1 -tags=nomain -run TestName ./internal/services/game/
 ```
+
+`CC` must be `scripts/cc-static-jpeg`.
+1. It drops `-ljpeg`, which otherwise fails to link.
+2. Set `REAL_CC` before `CC` on the line.
+3. Otherwise zsh resolves `go env CC` to the wrapper, and the wrapper loops forever.
+
+Sheet benchmarks (full 10×7 page) live in `internal/render/sheet/bench`.
+Run them with the same env plus `-run '^$' -bench . -benchtime 5x`.
 
 Tests:
 1. Unit tests sit next to the package.
@@ -247,6 +256,16 @@ Other locations:
    1. It holds the old `generator`, `page_drawer`, and `progress`.
    2. `docs/wiki/Generation.md` still describes it.
    3. Trust the code and `internal/render/compose/README.md`.
+9. Speed.
+   1. PNG decode is the main cost, about 38 ms per 1312×962 face.
+   2. `write.Draw` decodes and resizes faces in parallel, up to GOMAXPROCS.
+   3. Repository `GetImage` reads only the header (`images.ImageType`).
+   4. Uploads still fully decode (`images.ValidateImage`).
+   5. Never fully decode an image just to learn its format.
+   6. Paint and encode stay on one goroutine.
+      1. Drawing cells in the workers saved only ~3%.
+      2. Drawing pages at the same time saved nothing and doubled memory.
+   7. Lanczos resize is now the largest cost, about half of a page.
 
 ## Tabletop Simulator
 

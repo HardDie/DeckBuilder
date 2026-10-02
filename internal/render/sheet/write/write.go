@@ -3,6 +3,8 @@ package write
 
 import (
 	"image"
+	"runtime"
+	"sync"
 
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -14,24 +16,64 @@ import (
 
 // Draw paints faces and the back into path.
 // Cell width and height are already chosen. Faces and back are the original file bytes.
+// Faces and the back are decoded and resized in parallel, at most GOMAXPROCS at a time.
 func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path string) error {
 	drawn := make([]image.Image, len(faces))
+	var shaded image.Image
+	jobs := make([]func() error, 0, len(faces)+1)
 	for i, raw := range faces {
-		img, err := images.ImageFromBinary(raw)
+		jobs = append(jobs, func() error {
+			img, err := images.ImageFromBinary(raw)
+			if err != nil {
+				return err
+			}
+			drawn[i] = fit.Resize(img, cellW, cellH)
+			return nil
+		})
+	}
+	jobs = append(jobs, func() error {
+		decoded, err := images.ImageFromBinary(rawBack)
 		if err != nil {
 			return err
 		}
-		drawn[i] = fit.Resize(img, cellW, cellH)
-	}
-	decoded, err := images.ImageFromBinary(rawBack)
-	if err != nil {
+		shaded = fit.Resize(back.Shade(decoded, shadow), cellW, cellH)
+		return nil
+	})
+	if err := run(jobs); err != nil {
 		return err
 	}
-	shaded := fit.Resize(back.Shade(decoded, shadow), cellW, cellH)
 	sheet, _, _ := paint.Canvas(cellW, cellH, drawn, shaded)
 	body, err := libjpeg.Encode(sheet)
 	if err != nil {
 		return err
 	}
 	return fs.CreateAndProcess(path, body, fs.BinToWriter)
+}
+
+// run calls every job on at most GOMAXPROCS goroutines and returns the first error in job order.
+func run(jobs []func() error) error {
+	errs := make([]error, len(jobs))
+	next := make(chan int)
+	var wg sync.WaitGroup
+	workers := min(runtime.GOMAXPROCS(0), len(jobs))
+	wg.Add(workers)
+	for w := 0; w < workers; w++ {
+		go func() {
+			defer wg.Done()
+			for i := range next {
+				errs[i] = jobs[i]()
+			}
+		}()
+	}
+	for i := range jobs {
+		next <- i
+	}
+	close(next)
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -19,6 +19,15 @@ func ValidateImage(input []byte) (string, error) {
 	}
 	return imgType, nil
 }
+
+// ImageType reads only the header. Use it for stored images that were validated on upload.
+func ImageType(input []byte) (string, error) {
+	_, imgType, err := image.DecodeConfig(bytes.NewReader(input))
+	if err != nil {
+		return "", errors.UnknownImageType.AddMessage(err.Error())
+	}
+	return imgType, nil
+}
 func CreateImage(width, height int) *image.RGBA {
 	return image.NewRGBA(image.Rect(0, 0, width, height))
 }

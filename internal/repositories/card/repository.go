@@ -136,7 +136,7 @@ func (r *card) GetImage(gameID, collectionID, deckID string, cardID int64) ([]by
 		return nil, "", err
 	}
 
-	imgType, err := images.ValidateImage(data)
+	imgType, err := images.ImageType(data)
 	if err != nil {
 		return nil, "", err
 	}
