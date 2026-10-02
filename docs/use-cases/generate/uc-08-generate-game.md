@@ -17,6 +17,7 @@
 
 ## Alternative scenarios and errors
 
+* **1a. A generate is already running:** `GenerateInProgress` (HTTP 409 code); `result/` and progress are not touched.
 * **2a. Unknown game:** error before the goroutine.
 * **3a. Missing back/face or draw error:** progress `error`; logs the cause.
 * **3b. Too many cards for one page:** extra pages (`index` increments); CustomDeck entries multiply.

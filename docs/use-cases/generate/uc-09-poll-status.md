@@ -15,7 +15,7 @@
 
 ## Alternative scenarios and errors
 
-* **1a. Overlapping generate:** one singleton; later job overwrites fields (unsupported).
+* **1a. Overlapping generate:** rejected with `GenerateInProgress` (UC-08 1a); the running job keeps the singleton.
 * **4a. Client misses the terminal poll:** next poll may already be `empty`.
 
 ## Postconditions

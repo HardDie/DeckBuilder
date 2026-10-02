@@ -2,9 +2,12 @@
 package compose
 
 import (
+	"sync/atomic"
+
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/render/generate"
@@ -37,6 +40,10 @@ type runner struct {
 	serviceCard       servicesCard.Card
 	serviceSystem     servicesSystem.System
 	serviceTTS        servicesTTS.TTS
+
+	// running is true from the start of GenerateGame until the run ends.
+	// A second call meanwhile gets GenerateInProgress.
+	running atomic.Bool
 }
 
 func New(
@@ -60,6 +67,17 @@ func New(
 }
 
 func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
+	if !s.running.CompareAndSwap(false, true) {
+		return er.GenerateInProgress
+	}
+	// Release on an early error. Once the goroutine starts, it releases instead.
+	started := false
+	defer func() {
+		if !started {
+			s.running.Store(false)
+		}
+	}()
+
 	cfg, err := s.serviceSystem.GetSettings()
 	if err != nil {
 		logger.Error.Printf("can't get config")
@@ -80,7 +98,9 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		return err
 	}
 	renderprogress.Begin()
+	started = true
 	go func() {
+		defer s.running.Store(false)
 		err := s.run(gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
 			renderprogress.Fail()

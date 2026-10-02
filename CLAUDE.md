@@ -250,8 +250,8 @@ Other locations:
    2. Values: `empty`, `in_progress`, `done`, `error`.
    3. Reading `done` or `error` resets it to `empty`.
    4. Pollers treat that `empty` as "already observed".
-   5. A second generate clobbers it.
-   6. Do not allow overlapping generates without a product decision.
+   5. Only one generate runs at a time, so one run owns it.
+   6. Overlapping generates are rejected with `GenerateInProgress`.
 8. `internal/render/deprecated/*` is not called by compose.
    1. It holds the old `generator`, `page_drawer`, and `progress`.
    2. `docs/wiki/Generation.md` still describes it.

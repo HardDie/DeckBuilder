@@ -57,6 +57,9 @@ var (
 	// zip
 	BadArchive = NewError("bad zip archive").HTTP(http.StatusBadRequest)
 
+	// generate
+	GenerateInProgress = NewError("generation already in progress", http.StatusConflict)
+
 	// replace
 	ErrorInvalidDeckDescription = NewError("invalid deck description").HTTP(http.StatusBadRequest)
 	ErrorInvalidMapping         = NewError("invalid mapping file").HTTP(http.StatusBadRequest)
