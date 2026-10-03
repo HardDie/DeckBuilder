@@ -85,7 +85,17 @@
       v-if="itemsStore.isApiPending"
       class="render-spinner"
     >
-      <n-spin color="#169747" />
+      <n-progress
+        v-if="showDownloadProgress"
+        class="render-spinner__progress"
+        type="circle"
+        color="#169747"
+        :percentage="downloadProgress"
+      />
+      <n-spin
+        v-else
+        color="#169747"
+      />
     </div>
   </div>
 </template>
@@ -295,8 +305,36 @@ const onItemClick = id => {
   router.push(`${route.path}/${mainStore.itemType}/${id}`.replace('//', '/'))
 }
 
+// While a save is pending, poll the image download so a known size shows a percent.
+// Unknown size, file uploads, and other calls keep the spinner.
+const downloadInterval = ref(null)
+const downloadStatus = ref({ active: false, total: 0, percent: 0 })
+const showDownloadProgress = computed(
+  () => downloadStatus.value.active && downloadStatus.value.total > 0,
+)
+const downloadProgress = computed(() => Math.floor(downloadStatus.value.percent || 0))
+
+watch(
+  () => itemsStore.isApiPending,
+  pending => {
+    clearInterval(downloadInterval.value)
+    downloadStatus.value = { active: false, total: 0, percent: 0 }
+    if (!pending) {
+      return
+    }
+    downloadInterval.value = setInterval(() => {
+      systemStore.fetchDownloadStatus().then(status => {
+        if (itemsStore.isApiPending) {
+          downloadStatus.value = status
+        }
+      })
+    }, 500)
+  },
+)
+
 onBeforeUnmount(() => {
   clearInterval(generateInterval.value)
+  clearInterval(downloadInterval.value)
   itemsStore.clearItems()
 })
 </script>

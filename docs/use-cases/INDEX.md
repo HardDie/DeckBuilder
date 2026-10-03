@@ -18,6 +18,7 @@ Scenarios for **behavior that exists in this repository**. Copy [_TEMPLATE.md](_
 | UC-10 | Spawn last generate in TTS | `internal/services/tts` | Implemented | [generate/uc-10-tts-spawn.md](generate/uc-10-tts-spawn.md) |
 | UC-11 | Map local image paths to URLs | `internal/services/replace` | Implemented | [replace/uc-11-replace-urls.md](replace/uc-11-replace-urls.md) |
 | UC-12 | Settings and version | `internal/services/system` | Implemented | [system/uc-12-settings-version.md](system/uc-12-settings-version.md) |
+| UC-13 | Show image download progress | `internal/network` | Implemented | [catalog/uc-13-image-download-progress.md](catalog/uc-13-image-download-progress.md) |
 
 ## Layout
 

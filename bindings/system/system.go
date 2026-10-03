@@ -4,6 +4,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
+	"github.com/HardDie/DeckBuilder/internal/network"
 	renderprogress "github.com/HardDie/DeckBuilder/internal/render/progress"
 	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
 )
@@ -14,6 +15,10 @@ type SettingsResult struct {
 
 type StatusResult struct {
 	Data dto.Status `json:"data"`
+}
+
+type DownloadStatusResult struct {
+	Data dto.DownloadStatus `json:"data"`
 }
 
 type VersionResult struct {
@@ -66,6 +71,24 @@ func (s *System) Status() *StatusResult {
 		Progress: status.Percent,
 		Status:   status.Status,
 	}}
+}
+
+// DownloadStatus reports the image download of a pending save.
+// The window polls it while a create or update runs.
+func (s *System) DownloadStatus() *DownloadStatusResult {
+	return &DownloadStatusResult{Data: downloadStatusDTO(network.DownloadProgress())}
+}
+
+func downloadStatusDTO(state network.DownloadState) dto.DownloadStatus {
+	status := dto.DownloadStatus{
+		Active: state.Active,
+		Done:   state.Done,
+		Total:  state.Total,
+	}
+	if state.Total > 0 {
+		status.Percent = min(float32(state.Done)/float32(state.Total)*100, 100)
+	}
+	return status
 }
 
 func (s *System) GetVersion() *VersionResult {

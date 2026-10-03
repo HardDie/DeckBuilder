@@ -80,8 +80,8 @@ Use option 3.
 ### Negative and risks
 
 1. Art above 128 MP or 100 MB is refused.
-2. Up to 120 s the dialog still shows nothing.
-   1. A progress bar is a separate item.
+2. A slow download can take up to 120 s.
+   1. Progress is shown per [ADR 021](021-image-download-progress.md).
 3. A failed image does not fail the save.
    1. The image part is not applied.
    2. The binding result carries `warning`, shown as a toast.

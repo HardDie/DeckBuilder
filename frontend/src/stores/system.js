@@ -9,11 +9,15 @@ export const useSystemStore = defineStore('system', () => {
     return api.system.checkStatus().then(response => response.data)
   }
 
+  function fetchDownloadStatus() {
+    return api.system.downloadStatus().then(response => response.data)
+  }
+
   function fetchVersion() {
     return api.system.getVersion().then(response => {
       version.value = response.data
     })
   }
 
-  return { fetchCheckStatus, fetchVersion, version }
+  return { fetchCheckStatus, fetchDownloadStatus, fetchVersion, version }
 })

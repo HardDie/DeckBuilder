@@ -26,3 +26,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [018](018-generation-progress.md) | Generation progress in `internal/render/progress` | Accepted |
 | [019](019-claude-md.md) | CLAUDE.md replaces CURSOR.md | Accepted |
 | [020](020-image-input-limits.md) | Limits on incoming images | Accepted |
+| [021](021-image-download-progress.md) | Image download progress | Accepted |

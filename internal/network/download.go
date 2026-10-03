@@ -55,8 +55,11 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 		return nil, tooLarge
 	}
 
+	beginDownload(resp.ContentLength)
+	defer endDownload()
+
 	// Read one byte past the limit to catch bodies without a length.
-	data, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
+	data, err := io.ReadAll(io.LimitReader(progressReader{r: resp.Body}, limit+1))
 	if err != nil {
 		if isTimeout(err) {
 			return nil, timeoutError(client)
