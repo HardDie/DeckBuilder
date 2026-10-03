@@ -157,15 +157,10 @@ func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*
 
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.CardNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(cardInfo, gameID, collectionID, deckID), nil
@@ -223,15 +218,10 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.CardNotExists,
+			Message:  true,
+		})
 	}
 
 	return r.toEntity(card, gameID, collectionID, deckID), nil
@@ -254,15 +244,10 @@ func (r *card) delete(gameID, collectionID, deckID string, cardID int64) error {
 
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.CardNotExists.AddMessage(err.Error())
-		} else if errors.Is(err, fsentry.ErrBadName) {
-			return er.BadName
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.CardNotExists,
+			Message:  true,
+		})
 	}
 
 	return nil
@@ -276,13 +261,10 @@ func (r *card) imageCreate(gameID, collectionID, deckID string, cardID int64, da
 
 	err = r.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry.ErrExist) {
-			return er.CardImageExist.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			Exist:   er.CardImageExist,
+			Message: true,
+		})
 	}
 	return nil
 }
@@ -295,13 +277,10 @@ func (r *card) imageGet(gameID, collectionID, deckID string, cardID int64) ([]by
 
 	data, err := r.db.GetBinary(fmt.Sprintf("%d", card.ID), nil, r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.CardImageNotExists.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return nil, mapped
-		} else {
-			return nil, er.InternalError.AddMessage(err.Error())
-		}
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.CardImageNotExists,
+			Message:  true,
+		})
 	}
 	return data, nil
 }
@@ -314,13 +293,10 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 
 	err = r.db.RemoveBinary(fmt.Sprintf("%d", card.ID), r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return er.CardImageNotExists.AddMessage(err.Error())
-		} else if mapped := er.MissingAncestor(err); mapped != nil {
-			return mapped
-		} else {
-			return er.InternalError.AddMessage(err.Error())
-		}
+		return repositories.MapFsentry(err, repositories.FsentrySentinels{
+			NotExist: er.CardImageNotExists,
+			Message:  true,
+		})
 	}
 	return nil
 }
@@ -328,13 +304,7 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 func (r *card) rawCardList(gameID, collectionID, deckID string) (cardList, error) {
 	info, err := r.db.GetFolder[cardList]("cards", r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
-		if errors.Is(err, fsentry.ErrBadName) {
-			return nil, er.BadName
-		}
-		if mapped := er.MissingAncestor(err); mapped != nil {
-			return nil, mapped
-		}
-		return nil, er.InternalError.AddMessage(err.Error())
+		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{})
 	}
 
 	list := info.Data

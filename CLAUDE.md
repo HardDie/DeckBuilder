@@ -212,6 +212,10 @@ Layers:
 8. Errors come from `internal/errors`.
 9. Do not add a top-level `internal/` package for a single handler.
 10. Do not collapse `servers` / `services` / `repositories` without an ADR.
+11. Game, collection, and deck repositories wrap `repositories.Folder`.
+    1. It owns folder storage, image swap, and error mapping.
+    2. Each repository adds its errors, parent ids, and extras.
+    3. Cards keep their own store: one map per deck.
 
 Other locations:
 1. Paths and sheet limits: `internal/config`.

@@ -12,527 +12,253 @@ import (
 
 	"github.com/HardDie/fsentry"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
-	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
 var (
 	img = []byte("some_image")
 )
 
-func initGame(t testing.TB, name string) *game {
-	// Create temp dir
-	dir, err := os.MkdirTemp("", name)
-	if err != nil {
-		t.Fatal("error creating temp dir", err)
-	}
-	t.Cleanup(func() {
-		e := os.RemoveAll(dir)
-		if e != nil {
-			t.Fatal("error RemoveAll", e)
-		}
-	})
+type gameEnv struct {
+	*game
+	cfg *config.Config
+}
 
-	// Init config with tmp dir
+func initGame(t testing.TB) gameEnv {
+	t.Helper()
 	cfg := config.Get("")
-	cfg.SetDataPath(dir)
+	cfg.SetDataPath(t.TempDir())
 
 	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())
-	if err = db.Init(); err != nil {
-		t.Fatal("error init db", err)
-	}
+	require.NoError(t, db.Init())
+	require.NoError(t, repositoriesCore.New(db).Init())
 
-	core := repositoriesCore.New(db)
-	err = core.Init()
-	if err != nil {
-		t.Fatal("error init core", err)
-	}
-	t.Cleanup(func() {
-		e := core.Drop()
-		if e != nil {
-			t.Fatal("error drop core", err)
-		}
-	})
-
-	return New(cfg, db).(*game)
+	return gameEnv{game: New(db).(*game), cfg: cfg}
 }
 
-func TestGameCreate(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		wait := &entitiesGame.Game{
-			Name:        "success",
-			Description: "descrption",
-			Image:       "https://some.url/image",
-		}
-		wait.ID = utils.NameToID(wait.Name)
-
-		g := initGame(t, "game_create__success")
-		got, err := g.create(CreateRequest{
-			Name:        wait.Name,
-			Description: wait.Description,
-			Image:       wait.Image,
-		})
-		assert.NoError(t, err)
-		wait.CreatedAt = got.CreatedAt
-		wait.UpdatedAt = got.UpdatedAt
-		assert.Equal(t, wait, got)
-	})
-
-	t.Run("exist", func(t *testing.T) {
-		g := initGame(t, "game_create__exist")
-		_, err := g.create(CreateRequest{Name: "exist"})
-		assert.NoError(t, err)
-		_, err = g.create(CreateRequest{Name: "exist"})
-		assert.ErrorIs(t, err, er.GameExist)
-	})
-
-	t.Run("bad_name", func(t *testing.T) {
-		g := initGame(t, "game_create__bad_name")
-		_, err := g.create(CreateRequest{Name: "---"})
-		assert.ErrorIs(t, err, er.BadName)
-	})
+// writeImage stores raw bytes as the game image, skipping validation.
+func (g gameEnv) writeImage(t testing.TB, gameID string, data []byte) {
+	t.Helper()
+	require.NoError(t, g.db.CreateBinary("image", data, "games", gameID))
 }
-func TestGameGet(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-		desc := "descrption"
-		img := "https://some.url/image"
 
-		g := initGame(t, "game_get__success")
-		wait, err := g.create(CreateRequest{
-			Name:        name,
-			Description: desc,
-			Image:       img,
-		})
-		assert.NoError(t, err)
-		got, err := g.get(name)
-		assert.NoError(t, err)
-		wait.CreatedAt = got.CreatedAt
-		wait.UpdatedAt = got.UpdatedAt
-		assert.Equal(t, wait, got)
-	})
-
-	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_get__not_exist")
-		_, err := g.get("not_exist")
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-
-	t.Run("bad_name", func(t *testing.T) {
-		g := initGame(t, "game_get__bad_name")
-		_, err := g.create(CreateRequest{Name: "---"})
-		assert.ErrorIs(t, err, er.BadName)
-	})
+func (g gameEnv) readImage(t testing.TB, gameID string) []byte {
+	t.Helper()
+	data, err := g.db.GetBinary("image", nil, "games", gameID)
+	require.NoError(t, err)
+	return data
 }
-func TestGameList(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-		desc := "descrption"
-		img := "https://some.url/image"
 
-		g := initGame(t, "game_list__success")
-		wait, err := g.create(CreateRequest{
-			Name:        name,
-			Description: desc,
-			Image:       img,
-		})
-		assert.NoError(t, err)
-		got, err := g.list()
-		assert.NoError(t, err)
-		assert.Len(t, got, 1)
-		wait.CreatedAt = got[0].CreatedAt
-		wait.UpdatedAt = got[0].UpdatedAt
-		assert.Equal(t, []*entitiesGame.Game{wait}, got)
-	})
+// The shared storage rules are tested in repositories.TestFolder.
+// This checks the game wiring: its errors and entity fields.
+func TestGame(t *testing.T) {
+	g := initGame(t)
 
-	t.Run("empty", func(t *testing.T) {
-		g := initGame(t, "game_list__empty")
-		got, err := g.list()
-		assert.NoError(t, err)
-		assert.Equal(t, []*entitiesGame.Game(nil), got)
-	})
+	created, err := g.Create(CreateRequest{Name: "Munchkin", Description: "d"})
+	require.NoError(t, err)
+	assert.Equal(t, "munchkin", created.ID)
+	assert.Equal(t, "Munchkin", created.Name)
+	assert.NoError(t, created.ImageError)
+
+	_, err = g.Create(CreateRequest{Name: "Munchkin"})
+	assert.ErrorIs(t, err, er.GameExist)
+
+	all, err := g.GetAll()
+	require.NoError(t, err)
+	require.Len(t, all, 1)
+	assert.Equal(t, "d", all[0].Description)
+
+	updated, err := g.Update("munchkin", UpdateRequest{Name: "Munchkin 2", Image: "empty"})
+	require.NoError(t, err)
+	assert.Equal(t, "munchkin_2", updated.ID)
+	assert.Error(t, updated.ImageError, "a bad URL is reported, not applied")
+
+	_, _, err = g.GetImage("munchkin_2")
+	assert.ErrorIs(t, err, er.GameImageNotExists)
+
+	require.NoError(t, g.DeleteByID("munchkin_2"))
+	_, err = g.GetByID("munchkin_2")
+	assert.ErrorIs(t, err, er.GameNotExists)
 }
-func TestGameMove(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		oldName := "success_old"
-		newName := "success_new"
-		desc := "descrption"
-		img := "https://some.url/image"
 
-		g := initGame(t, "game_move__success")
-		oldGame, err := g.create(CreateRequest{
-			Name:        oldName,
-			Description: desc,
-			Image:       img,
-		})
-		assert.NoError(t, err)
-		newGame, err := g.move(oldName, newName)
-		assert.NoError(t, err)
-
-		oldGame.ID = utils.NameToID(newName)
-		oldGame.Name = newName
-		oldGame.CreatedAt = oldGame.CreatedAt.Truncate(time.Nanosecond)
-		oldGame.UpdatedAt = newGame.UpdatedAt
-		assert.Equal(t, oldGame, newGame)
-	})
-
-	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_move__not_exist")
-		_, err := g.move("not_exist", "new_name")
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-
-	t.Run("bad_name", func(t *testing.T) {
-		oldName := "bad_name_old"
-		newName := "---"
-		g := initGame(t, "game_move__bad_name")
-		_, err := g.create(CreateRequest{Name: oldName})
-		assert.NoError(t, err)
-		_, err = g.move(oldName, newName)
-		assert.ErrorIs(t, err, er.BadName)
-	})
-}
-func TestGameUpdate(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-		newDesc := "desc"
-		newImage := "img"
-
-		g := initGame(t, "game_update__success")
-		wait, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		got, err := g.update(updateRequest{
-			Name:        name,
-			Description: newDesc,
-			Image:       newImage,
-		})
-		wait.Description = newDesc
-		wait.Image = newImage
-		wait.CreatedAt = got.CreatedAt
-		wait.UpdatedAt = got.UpdatedAt
-		assert.Equal(t, wait, got)
-	})
-
-	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_update__not_exist")
-		_, err := g.update(updateRequest{Name: "not_exist"})
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-
-	t.Run("bad_name", func(t *testing.T) {
-		g := initGame(t, "game_update__bad_name")
-		_, err := g.update(updateRequest{Name: "---"})
-		assert.ErrorIs(t, err, er.BadName)
-	})
-}
-func TestGameDelete(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-		g := initGame(t, "game_delete__success")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.delete(name)
-		assert.NoError(t, err)
-	})
-
-	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_delete__not_exist")
-		err := g.delete("not_exist")
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-
-	t.Run("bad_name", func(t *testing.T) {
-		g := initGame(t, "game_delete__bad_name")
-		err := g.delete("---")
-		assert.ErrorIs(t, err, er.BadName)
-	})
-}
 func TestGameDuplicate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		srcName := "success_origin"
-		dstName := "success_copy"
-		g := initGame(t, "game_duplicate__success")
-		srcGame, err := g.create(CreateRequest{Name: srcName})
-		assert.NoError(t, err)
-		srcGame.CreatedAt = srcGame.CreatedAt.Truncate(time.Nanosecond)
-		srcGame.UpdatedAt = srcGame.UpdatedAt.Truncate(time.Nanosecond)
-		dstGame, err := g.duplicate(srcName, dstName)
-		assert.NoError(t, err)
-		dstGame.CreatedAt = dstGame.CreatedAt.Truncate(time.Nanosecond)
-		dstGame.UpdatedAt = dstGame.UpdatedAt.Truncate(time.Nanosecond)
-		assert.NotEqual(t, srcGame, dstGame)
-		list, err := g.list()
-		assert.NoError(t, err)
-		assert.Len(t, list, 2)
-		assert.ElementsMatch(t, []*entitiesGame.Game{srcGame, dstGame}, list)
+		g := initGame(t)
+		srcGame, err := g.Create(CreateRequest{Name: "success_origin"})
+		require.NoError(t, err)
+		dstGame, err := g.Duplicate("success_origin", DuplicateRequest{Name: "success_copy"})
+		require.NoError(t, err)
+		assert.Equal(t, "success_copy", dstGame.ID)
+
+		list, err := g.GetAll()
+		require.NoError(t, err)
+		truncate := func(e *entitiesGame.Game) *entitiesGame.Game {
+			e.CreatedAt = e.CreatedAt.Truncate(time.Nanosecond)
+			e.UpdatedAt = e.UpdatedAt.Truncate(time.Nanosecond)
+			return e
+		}
+		for _, e := range list {
+			truncate(e)
+		}
+		assert.ElementsMatch(t, []*entitiesGame.Game{truncate(srcGame), truncate(dstGame)}, list)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_duplicate__not_exist")
-		_, err := g.duplicate("not_exist", "new")
+		g := initGame(t)
+		_, err := g.Duplicate("not_exist", DuplicateRequest{Name: "new"})
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 
 	t.Run("exist", func(t *testing.T) {
-		srcName := "exist_origin"
-		dstName := "exist"
-		g := initGame(t, "game_duplicate__exist")
-		_, err := g.create(CreateRequest{Name: srcName})
-		assert.NoError(t, err)
-		_, err = g.create(CreateRequest{Name: dstName})
-		assert.NoError(t, err)
-		_, err = g.duplicate(srcName, dstName)
+		g := initGame(t)
+		_, err := g.Create(CreateRequest{Name: "exist_origin"})
+		require.NoError(t, err)
+		_, err = g.Create(CreateRequest{Name: "exist"})
+		require.NoError(t, err)
+		_, err = g.Duplicate("exist_origin", DuplicateRequest{Name: "exist"})
 		assert.ErrorIs(t, err, er.GameExist)
 	})
 
-	t.Run("bad_name_1", func(t *testing.T) {
-		g := initGame(t, "game_duplicate__bad_name_1")
-		_, err := g.duplicate("---", "good")
+	t.Run("bad_source_name", func(t *testing.T) {
+		g := initGame(t)
+		_, err := g.Duplicate("---", DuplicateRequest{Name: "good"})
 		assert.ErrorIs(t, err, er.BadName)
 	})
 
-	t.Run("bad_name_2", func(t *testing.T) {
-		srcName := "good"
-		dstName := "---"
-		g := initGame(t, "game_duplicate__bad_name_2")
-		_, err := g.create(CreateRequest{Name: srcName})
-		assert.NoError(t, err)
-		_, err = g.duplicate(srcName, dstName)
+	t.Run("bad_target_name", func(t *testing.T) {
+		g := initGame(t)
+		_, err := g.Create(CreateRequest{Name: "good"})
+		require.NoError(t, err)
+		_, err = g.Duplicate("good", DuplicateRequest{Name: "---"})
 		assert.ErrorIs(t, err, er.BadName)
 	})
 }
+
 func TestGameExportImport(t *testing.T) {
 	t.Run("round_trip", func(t *testing.T) {
-		g := initGame(t, "game_export_import__round_trip")
-		created, err := g.create(CreateRequest{
-			Name:        "My Game",
-			Description: "desc",
-		})
-		assert.NoError(t, err)
-		_, err = g.create(CreateRequest{Name: "Other"})
-		assert.NoError(t, err)
-		assert.NoError(t, g.imageCreate(created.ID, img))
+		g := initGame(t)
+		created, err := g.Create(CreateRequest{Name: "My Game", Description: "desc"})
+		require.NoError(t, err)
+		_, err = g.Create(CreateRequest{Name: "Other"})
+		require.NoError(t, err)
+		g.writeImage(t, created.ID, img)
 
 		data, err := g.Export(created.ID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEmpty(t, zr.File)
 		for _, f := range zr.File {
 			assert.True(t, strings.HasPrefix(f.Name, created.ID+"/"), f.Name)
 			assert.NotContains(t, f.Name, "other")
 		}
 
-		dst := initGame(t, "game_export_import__round_trip_dst")
+		dst := initGame(t)
 		got, err := dst.Import(data, "")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, created.ID, got.ID)
 		assert.Equal(t, created.Name, got.Name)
 		assert.Equal(t, created.Description, got.Description)
 		assert.True(t, got.CreatedAt.Equal(created.CreatedAt))
 		assert.True(t, got.UpdatedAt.Equal(created.UpdatedAt))
-		bin, err := dst.imageGet(created.ID)
-		assert.NoError(t, err)
-		assert.Equal(t, img, bin)
-		list, err := dst.list()
-		assert.NoError(t, err)
+		assert.Equal(t, img, dst.readImage(t, created.ID))
+		list, err := dst.GetAll()
+		require.NoError(t, err)
 		assert.Len(t, list, 1)
 	})
 
 	t.Run("rename_keeps_source", func(t *testing.T) {
-		g := initGame(t, "game_export_import__rename")
-		created, err := g.create(CreateRequest{
-			Name:        "My Game",
-			Description: "desc",
-		})
-		assert.NoError(t, err)
+		g := initGame(t)
+		created, err := g.Create(CreateRequest{Name: "My Game", Description: "desc"})
+		require.NoError(t, err)
 		data, err := g.Export(created.ID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		got, err := g.Import(data, "Other Title")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "other_title", got.ID)
 		assert.Equal(t, "Other Title", got.Name)
 		assert.Equal(t, created.Description, got.Description)
 		assert.True(t, got.CreatedAt.Equal(created.CreatedAt))
 		assert.True(t, got.UpdatedAt.Equal(created.UpdatedAt))
 
-		kept, err := g.get(created.ID)
-		assert.NoError(t, err)
+		kept, err := g.GetByID(created.ID)
+		require.NoError(t, err)
 		assert.Equal(t, created.Description, kept.Description)
 	})
 
 	t.Run("existing_destination", func(t *testing.T) {
-		g := initGame(t, "game_export_import__exist")
-		created, err := g.create(CreateRequest{
-			Name:        "My Game",
-			Description: "original",
-		})
-		assert.NoError(t, err)
+		g := initGame(t)
+		created, err := g.Create(CreateRequest{Name: "My Game", Description: "original"})
+		require.NoError(t, err)
 		data, err := g.Export(created.ID)
-		assert.NoError(t, err)
-		_, err = g.Update(created.ID, UpdateRequest{
-			Name:        created.Name,
-			Description: "edited",
-		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
+		_, err = g.Update(created.ID, UpdateRequest{Name: created.Name, Description: "edited"})
+		require.NoError(t, err)
 
 		_, err = g.Import(data, "")
 		assert.ErrorIs(t, err, er.GameExist)
-		kept, err := g.get(created.ID)
-		assert.NoError(t, err)
+		kept, err := g.GetByID(created.ID)
+		require.NoError(t, err)
 		assert.Equal(t, "edited", kept.Description)
 	})
 
 	t.Run("bad_archive", func(t *testing.T) {
-		g := initGame(t, "game_export_import__bad_archive")
+		g := initGame(t)
 		_, err := g.Import([]byte("not a zip"), "")
 		assert.ErrorIs(t, err, er.BadArchive)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
-		g := initGame(t, "game_export_import__bad_name")
-		created, err := g.create(CreateRequest{Name: "My Game"})
-		assert.NoError(t, err)
+		g := initGame(t)
+		created, err := g.Create(CreateRequest{Name: "My Game"})
+		require.NoError(t, err)
 		data, err := g.Export(created.ID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, err = g.Import(data, "---")
 		assert.ErrorIs(t, err, er.BadName)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
-		g := initGame(t, "game_export_import__not_exist")
+		g := initGame(t)
 		_, err := g.Export("missing")
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-}
-func TestImageCreate(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-
-		g := initGame(t, "game_image_create__success")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.imageCreate(name, img)
-		assert.NoError(t, err)
-	})
-
-	t.Run("image_exist", func(t *testing.T) {
-		name := "image_exist"
-
-		g := initGame(t, "game_image_create__image_exist")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.imageCreate(name, img)
-		assert.NoError(t, err)
-		err = g.imageCreate(name, img)
-		assert.ErrorIs(t, err, er.GameImageExist)
-	})
-
-	t.Run("game_not_exist", func(t *testing.T) {
-		name := "game_not_exist"
-
-		g := initGame(t, "game_image_create__game_not_exist")
-		err := g.imageCreate(name, img)
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-}
-func TestImageGet(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-
-		g := initGame(t, "game_image_get__success")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.imageCreate(name, img)
-		assert.NoError(t, err)
-		got, err := g.imageGet(name)
-		assert.NoError(t, err)
-		assert.Equal(t, img, got)
-	})
-
-	t.Run("image_not_exist", func(t *testing.T) {
-		name := "image_not_exist"
-
-		g := initGame(t, "game_image_get__image_not_exist")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		_, err = g.imageGet(name)
-		assert.ErrorIs(t, err, er.GameImageNotExists)
-	})
-
-	t.Run("game_not_exist", func(t *testing.T) {
-		name := "game_not_exist"
-
-		g := initGame(t, "game_image_get__game_not_exist")
-		_, err := g.imageGet(name)
-		assert.ErrorIs(t, err, er.GameNotExists)
-	})
-}
-func TestImageDelete(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		name := "success"
-
-		g := initGame(t, "game_image_delete__success")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.imageCreate(name, img)
-		assert.NoError(t, err)
-		err = g.imageDelete(name)
-		assert.NoError(t, err)
-	})
-
-	t.Run("image_not_exist", func(t *testing.T) {
-		name := "image_not_exist"
-
-		g := initGame(t, "game_image_delete__image_not_exist")
-		_, err := g.create(CreateRequest{Name: name})
-		assert.NoError(t, err)
-		err = g.imageDelete(name)
-		assert.ErrorIs(t, err, er.GameImageNotExists)
-	})
-
-	t.Run("game_not_exist", func(t *testing.T) {
-		name := "game_not_exist"
-
-		g := initGame(t, "game_image_delete__game_not_exist")
-		err := g.imageDelete(name)
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
 }
 
 func TestGameLegacyTimestamps(t *testing.T) {
-	g := initGame(t, "game_legacy_timestamps")
-	created, err := g.create(CreateRequest{Name: "legacy"})
-	assert.NoError(t, err)
+	g := initGame(t)
+	created, err := g.Create(CreateRequest{Name: "legacy"})
+	require.NoError(t, err)
 
 	path := filepath.Join(g.cfg.Games(), created.ID, ".info.json")
 	raw, err := os.ReadFile(path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	var info map[string]json.RawMessage
-	assert.NoError(t, json.Unmarshal(raw, &info))
+	require.NoError(t, json.Unmarshal(raw, &info))
 	info["createdAt"] = json.RawMessage("null")
 	info["updatedAt"] = json.RawMessage("null")
 	out, err := json.Marshal(info)
-	assert.NoError(t, err)
-	assert.NoError(t, os.WriteFile(path, out, 0o644))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, out, 0o644))
 
-	got, err := g.get(created.ID)
-	assert.NoError(t, err)
+	got, err := g.GetByID(created.ID)
+	require.NoError(t, err)
 	assert.False(t, got.CreatedAt.IsZero())
 	assert.False(t, got.UpdatedAt.IsZero())
 
 	raw, err = os.ReadFile(path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	var stored struct {
 		CreatedAt *time.Time `json:"createdAt"`
 		UpdatedAt *time.Time `json:"updatedAt"`
 	}
-	assert.NoError(t, json.Unmarshal(raw, &stored))
-	assert.Nil(t, stored.CreatedAt)
+	require.NoError(t, json.Unmarshal(raw, &stored))
+	assert.Nil(t, stored.CreatedAt, "reading does not write timestamps back")
 	assert.Nil(t, stored.UpdatedAt)
 }

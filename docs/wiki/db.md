@@ -4,15 +4,15 @@ The code lives in `internal/repositories`.
 
 Developer reference. The map of the project is [Internals](Internals).
 
-Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs), `repository.go`, sometimes `model.go` (JSON payload in `.info.json`).
+Maps catalog aggregates to fsentry. Each package: `contract.go` (interface + request structs) and `repository.go`. Game, collection, and deck store `repositories.FolderModel` through `repositories.Folder` (see [Repositories](Repositories)); card and settings keep their own `model.go`.
 
 ## Handle
 
-All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.6 (`New` + `Init`). Callers: `wire` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
+All packages take `*fsentry.DB` from `github.com/HardDie/fsentry` v0.1.7 (`New` + `Init`). Callers: `wire` and service tests. Repositories depend only on the **interfaces** in `contract.go`.
 
 ## Field: `gamesPath`
 
-On game/collection/deck/card/core:
+On deck/game/card/core as a field, and as a constant inside `repositories.Folder`:
 
 ```go
 gamesPath string // always "games"

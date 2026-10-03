@@ -36,11 +36,15 @@ func ImageBytes(imageURL string, data []byte) ([]byte, error) {
 	return data, nil
 }
 
-// MapFsentry maps ErrExist, ErrNotExist, and ErrBadName onto the sentinels
+// MapFsentry maps a missing catalog parent first (er.MissingAncestor).
+// Then it maps ErrExist, ErrNotExist, and ErrBadName onto the sentinels
 // the caller passed. Anything else is an internal error carrying err's text.
 func MapFsentry(err error, sentinels FsentrySentinels) error {
 	if err == nil {
 		return nil
+	}
+	if mapped := er.MissingAncestor(err); mapped != nil {
+		return mapped
 	}
 	switch {
 	case sentinels.Exist != nil && errors.Is(err, fsentry.ErrExist):

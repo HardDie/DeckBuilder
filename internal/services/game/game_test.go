@@ -43,7 +43,7 @@ func newGameTest(t testing.TB) *gameTest {
 	}
 
 	core := repositoriesCore.New(db)
-	repositoryGame := repositoriesGame.New(cfg, db)
+	repositoryGame := repositoriesGame.New(db)
 
 	return &gameTest{
 		cfg:  cfg,

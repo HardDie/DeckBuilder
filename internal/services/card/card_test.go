@@ -53,9 +53,9 @@ func newCardTest(t testing.TB) *cardTest {
 
 	core := repositoriesCore.New(db)
 
-	repositoryGame := repositoriesGame.New(cfg, db)
-	repositoryCollection := repositoriesCollection.New(cfg, db)
-	repositoryDeck := repositoriesDeck.New(cfg, db)
+	repositoryGame := repositoriesGame.New(db)
+	repositoryCollection := repositoriesCollection.New(db)
+	repositoryDeck := repositoriesDeck.New(db)
 	repositoryCard := repositoriesCard.New(cfg, db)
 
 	return &cardTest{

@@ -53,13 +53,13 @@ func wire(version string) *services {
 	repositorySettings := repositoriesSettings.New(cfg, db)
 	serviceSystem := servicesSystem.New(repositorySettings)
 
-	repositoryGame := repositoriesGame.New(cfg, db)
+	repositoryGame := repositoriesGame.New(db)
 	serviceGame := servicesGame.New(cfg, repositoryGame)
 
-	repositoryCollection := repositoriesCollection.New(cfg, db)
+	repositoryCollection := repositoriesCollection.New(db)
 	serviceCollection := servicesCollection.New(cfg, repositoryCollection)
 
-	repositoryDeck := repositoriesDeck.New(cfg, db)
+	repositoryDeck := repositoriesDeck.New(db)
 	serviceDeck := servicesDeck.New(cfg, repositoryDeck)
 
 	repositoryCard := repositoriesCard.New(cfg, db)

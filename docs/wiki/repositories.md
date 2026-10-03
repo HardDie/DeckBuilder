@@ -2,15 +2,21 @@
 
 Developer reference. The map of the project is [Internals](Internals).
 
-Glue between services and fsentry: image files, zip, HTTP download. Each catalog repository holds `cfg`, `*fsentry.DB`, and `gamesPath`.
+Glue between services and fsentry: image files, zip, HTTP download.
 
-## Fields (catalog)
+## Shared folder store (`folder.go`)
 
-| Field | Meaning |
+Game, collection, and deck are the same kind of data: a folder with a description, an image URL, and an optional `image` binary. `repositories.Folder` stores one such level; each repository wraps it.
+
+| Item | Meaning |
 |---|---|
-| `cfg` | `Games()`, image validation helpers |
-| `db` | `*fsentry.DB` |
-| `gamesPath` | `"games"` |
+| `FolderModel` | `.info.json` payload: `description`, `image` |
+| `FolderErrors` | that level's `Exist`, `NotExist`, `ImageExist`, `ImageNotExist` |
+| `parent` | path below `games/`: `nil`, `{gameID}`, or `{gameID, collectionID}` |
+| `Create` / `Update` | `ResolveImage` first (download + validate), then write; a bad image is returned as `Saved.ImageError` and not applied |
+| `Get` / `List` / `Delete` / `Image` | `List` skips unreadable or mismatched folders |
+
+Errors go through `MapFsentry`, which maps a missing parent (`er.MissingAncestor`) before the level's own errors.
 
 ## Game repository methods
 
@@ -27,11 +33,15 @@ Glue between services and fsentry: image files, zip, HTTP download. Each catalog
 
 `Import` with a name asks fsentry to rewrite the folder id and `.info.json` name. Timestamps stay. An existing game with that destination id returns `GameExist` and is left unchanged. Importing under a different id leaves the archive's original game in place.
 
-## Collection / deck / card
+## Collection / deck
 
-Same pattern: folder CRUD, `createImage` / `createImageFromByte` using `network.DownloadBytes` + `images.ValidateImage`, `GetImage` for the image server.
+Thin wrappers over `Folder` that add the parent ids (`GameID`, `CollectionID`) to the entity.
 
-Card repository additionally maps `variables` and `count`.
+Deck also creates the `cards` folder on create and has `GetAllDecksInGame` (unique by name and image URL).
+
+## Card
+
+All cards of a deck live in one `cards/.info.json` map, so the card repository does not use `Folder`. It uses `ResolveImage` and `MapFsentry` the same way. A mutex serializes the read-modify-write of that map. It also maps `variables` and `count` (at least 1).
 
 ## Settings repository
 

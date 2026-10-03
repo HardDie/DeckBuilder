@@ -48,8 +48,8 @@ func newCollectionTest(t testing.TB) *collectionTest {
 
 	core := repositoriesCore.New(db)
 
-	repositoryGame := repositoriesGame.New(cfg, db)
-	repositoryCollection := repositoriesCollection.New(cfg, db)
+	repositoryGame := repositoriesGame.New(db)
+	repositoryCollection := repositoriesCollection.New(db)
 
 	return &collectionTest{
 		gameID: "test_collection__game",
