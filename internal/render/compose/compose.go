@@ -2,6 +2,8 @@
 package compose
 
 import (
+	"fmt"
+	"runtime/debug"
 	"sync/atomic"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -101,7 +103,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 	started = true
 	go func() {
 		defer s.running.Store(false)
-		err := s.run(gameItem, decks, order, req.Scale, cfg)
+		err := s.safeRun(gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
 			renderprogress.Fail()
 			logger.Error.Println("Generator:", err.Error())
@@ -110,6 +112,23 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		renderprogress.Finish()
 	}()
 	return nil
+}
+
+// safeRun calls run and turns a panic into an error.
+// The goroutine then fails the progress like any other error.
+func (s *runner) safeRun(
+	gameItem *entitiesGame.Game,
+	decks map[catalog.Deck][]catalog.Card,
+	order []catalog.Deck,
+	scale int,
+	cfg *entitiesSettings.Settings,
+) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v\n%s", r, debug.Stack())
+		}
+	}()
+	return s.run(gameItem, decks, order, scale, cfg)
 }
 
 func (s *runner) run(

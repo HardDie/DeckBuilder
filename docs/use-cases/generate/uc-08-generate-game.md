@@ -21,6 +21,7 @@
 * **2a. Unknown game:** error before the goroutine.
 * **3a. Missing back/face or draw error:** progress `error`; logs the cause.
 * **3b. Too many cards for one page:** extra pages (`index` increments); CustomDeck entries multiply.
+* **3c. Panic while planning or drawing:** recovered; progress `error`; logs the panic and stack.
 
 ## Postconditions
 

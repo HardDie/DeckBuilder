@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/HardDie/DeckBuilder/internal/images"
@@ -16,6 +17,24 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/fit"
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/paint"
 )
+
+func TestRunRecoversPanic(t *testing.T) {
+	ran := make([]bool, 3)
+	jobs := []func() error{
+		func() error { ran[0] = true; return nil },
+		func() error { ran[1] = true; panic("boom") },
+		func() error { ran[2] = true; return nil },
+	}
+	err := run(jobs)
+	if err == nil || !strings.Contains(err.Error(), "boom") {
+		t.Fatalf("err %v, want the panic", err)
+	}
+	for i, ok := range ran {
+		if !ok {
+			t.Fatalf("job %d did not run", i)
+		}
+	}
+}
 
 func TestDrawMatchesLibjpeg(t *testing.T) {
 	face := pngBytes(t, 8, 12, color.RGBA{R: 220, G: 20, B: 40, A: 255})

@@ -2,8 +2,10 @@
 package write
 
 import (
+	"fmt"
 	"image"
 	"runtime"
+	"runtime/debug"
 	"sync"
 
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -61,7 +63,7 @@ func run(jobs []func() error) error {
 		go func() {
 			defer wg.Done()
 			for i := range next {
-				errs[i] = jobs[i]()
+				errs[i] = callJob(jobs[i])
 			}
 		}()
 	}
@@ -76,4 +78,15 @@ func run(jobs []func() error) error {
 		}
 	}
 	return nil
+}
+
+// callJob runs job and turns a panic into its error.
+// A panic in a worker goroutine would otherwise end the whole app.
+func callJob(job func() error) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v\n%s", r, debug.Stack())
+		}
+	}()
+	return job()
 }

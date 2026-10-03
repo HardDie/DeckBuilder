@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -145,6 +146,43 @@ func TestGenerateRejectsOverlap(t *testing.T) {
 
 	if err := gen.GenerateGame("raid", req); err != nil {
 		t.Fatal("generate after the run finished:", err)
+	}
+	waitDone(t)
+}
+
+// panicTTS panics once at the last step of a run, then behaves like fake.Speech.
+type panicTTS struct {
+	fake.Speech
+	armed *atomic.Bool
+}
+
+func (p panicTTS) SendToTTS(data any) {
+	if p.armed.Swap(false) {
+		panic("boom")
+	}
+	p.Speech.SendToTTS(data)
+}
+
+func TestGenerateRecoversPanic(t *testing.T) {
+	progress.Reset()
+	dir := t.TempDir()
+	cfg := config.Get("test")
+	cfg.SetDataPath(dir)
+	w := raidWorld()
+	tts := panicTTS{Speech: fake.Speech{World: w}, armed: &atomic.Bool{}}
+	tts.armed.Store(true)
+	gen := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, tts)
+	req := compose.GenerateGameRequest{SortOrder: "name", Scale: 1}
+
+	if err := gen.GenerateGame("raid", req); err != nil {
+		t.Fatal(err)
+	}
+	if status := waitFinished(t); status != progress.Error {
+		t.Fatalf("status %s, want error", status)
+	}
+
+	if err := gen.GenerateGame("raid", req); err != nil {
+		t.Fatal("generate after a panic:", err)
 	}
 	waitDone(t)
 }
