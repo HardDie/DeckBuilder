@@ -2,6 +2,8 @@ package tts_entity
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -24,10 +26,10 @@ func NewCard(
 	deckDesc DeckDescription,
 	cardSize Transform,
 ) Card {
-	// Converting lua variables into strings
-	var variables []string
-	for key, value := range variablesMap {
-		variables = append(variables, fmt.Sprintf(`%s=%q`, key, value))
+	// One key="value" line per variable, sorted by key so the JSON is stable.
+	variables := make([]string, 0, len(variablesMap))
+	for _, key := range slices.Sorted(maps.Keys(variablesMap)) {
+		variables = append(variables, fmt.Sprintf(`%s=%q`, key, variablesMap[key]))
 	}
 	return Card{
 		GUID:        guid,

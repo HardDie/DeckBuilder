@@ -46,7 +46,7 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 - **Images with transparency** weight color by alpha, so the hidden color of transparent pixels does not bleed into edges as a dark fringe.
 - **Static linking:** `stb_image_resize2.h` (public domain / MIT) is vendored and compiled into the binary by cgo. There is no library to link. SIMD comes from the target: NEON on arm64, SSE2 on amd64.
 
-`fit.ResizeLanczos` is the previous pure-Go path, kept as a deprecated fallback until stb is verified on every release target. Details: [ADR 022](../../../docs/architecture/022-stb-image-resize.md).
+The previous pure-Go Lanczos path was removed once release builds passed on all four targets. Details: [ADR 022](../../../docs/architecture/022-stb-image-resize.md).
 
 **When you change how a page looks** (filter, paint, shadow, encoder, quality), bump `sheetVersion` in `generate/layout`. Otherwise `compose` keeps reusing pages drawn by the old code.
 
@@ -55,7 +55,7 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 | Package | Job |
 |---|---|
 | `write` | `Draw`: the whole page, as above. The only entry point. |
-| `fit` | `Resize` to the cell (stb); deprecated `ResizeLanczos`. |
+| `fit` | `Resize` to the cell (stb). |
 | `stbresize` | The cgo wrapper around `stb_image_resize2.h`. |
 | `back` | `Shade`: `imaging.AdjustBrightness` by −30% when shadow is on. With shadow off it still converts to NRGBA. |
 | `grid` | `Size(n)`: smallest columns × rows from 2×2 to 10×7 that holds `n` cells. `Slot(i, cols)`: left to right, top to bottom. Same rule as `generate/layout`; keep them identical. |
@@ -70,11 +70,11 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 | Benchmark | Measures |
 |---|---|
 | `AppWriteDraw`, `AppWriteDrawThreeSeq` | `write.Draw` end to end, for one page and three pages in a row |
-| `Stage*` | One step at a time on one goroutine: decode, format check, resize, the deprecated Lanczos, shade, paint, file write |
+| `Stage*` | One step at a time on one goroutine: decode, format check, resize, shade, paint, file write |
 | `Par*` | Decode and resize spread over the cores, as `write.Draw` runs them |
 | `Encode*` | `image/jpeg` against libjpeg-turbo on the same painted page |
 
-`StageResize` runs one image at a time. stb uses one core per image while the old Lanczos used all cores per image, so compare `ParResize` for the real cost. They need the cgo and libjpeg environment from CLAUDE.md ("Commands"):
+`StageResize` runs one image at a time on one core; `ParResize` is the real cost in the app. They need the cgo and libjpeg environment from CLAUDE.md ("Commands"):
 
 ```bash
 go test -tags=nomain -run '^$' -bench . -benchtime 5x ./internal/render/sheet/bench/

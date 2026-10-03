@@ -186,8 +186,8 @@ func BenchmarkStageFormatHeader(b *testing.B) {
 	}
 }
 
-// One goroutine. stb resizes one image per core, while imaging's Lanczos spreads
-// one image over every core, so compare BenchmarkParResize for the app's real cost.
+// One goroutine. stb resizes one image on one core,
+// so BenchmarkParResize is the app's real cost.
 func BenchmarkStageResize(b *testing.B) {
 	in := load(b)
 	b.ResetTimer()
@@ -196,18 +196,6 @@ func BenchmarkStageResize(b *testing.B) {
 			fit.Resize(face, cellW, cellH)
 		}
 		fit.Resize(in.back, cellW, cellH)
-	}
-}
-
-// The previous Lanczos resize, kept until it is removed (ADR 022).
-func BenchmarkStageResizeLanczos(b *testing.B) {
-	in := load(b)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		for _, face := range in.faces {
-			fit.ResizeLanczos(face, cellW, cellH) //nolint:staticcheck // comparison with the deprecated path
-		}
-		fit.ResizeLanczos(in.back, cellW, cellH) //nolint:staticcheck // comparison with the deprecated path
 	}
 }
 

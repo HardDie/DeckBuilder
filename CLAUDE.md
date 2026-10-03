@@ -283,7 +283,7 @@ Other locations:
    7. Resize uses `stb_image_resize2` (Catmull-Rom, SIMD).
       1. See [ADR 022](docs/architecture/022-stb-image-resize.md).
       2. A full page dropped from ~1.5 s to ~0.85 s on an M4.
-      3. `fit.ResizeLanczos` is deprecated until every target is verified.
+      3. The previous Lanczos path was removed after all four targets built.
 10. Unchanged pages are reused across renders.
     1. See [ADR 023](docs/architecture/023-per-game-results-and-page-reuse.md).
     2. A sheet is `<deck>_<page>_<hash>.jpg`; a back is `backside_<deck>_<hash>.png`.

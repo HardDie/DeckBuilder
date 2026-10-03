@@ -93,7 +93,7 @@ The sheet hash is xxHash64 over, in order: `sheetVersion`, cell width, cell heig
 
 ```text
 Bag  (game name)
-└── Bag  (collection id), one per collection that has cards
+└── Bag  (collection id), one per collection that has cards, by collection id
     ├── Deck  (deck name), when the deck holds two or more card objects
     │   └── Card × count, for each card
     └── Card  (card name), when the deck holds exactly one card object
@@ -109,13 +109,13 @@ TTS cannot spawn a deck of one, so a one-object deck is stored as that card. A s
 | `FaceURL`, `BackURL` | `file:///` + the absolute paths from `layout`. |
 | `NumWidth`, `NumHeight` | Columns and rows from `layout`. |
 | Card `Nickname`, `Description` | Catalog name and description. `Name` is always `"Card"`. |
-| `LuaScript` | One `key="value"` line per card variable. |
+| `LuaScript` | One `key="value"` line per card variable, sorted by key. |
 | `CardID` | `CustomDeck key × 100 + slot`, slot counted from 0 on that page. |
 | `GUID` | A 6-digit counter: it steps once per deck, once per page break, and once per card. |
 | Deck and card transform | Settings `CardSize`. Bags use scale 1. |
 | Game bag `Description` | `Created at: <time>`. |
 
-**Known nondeterminism.** Collection bags are emitted in Go map order, and so are the lines of a card's `LuaScript`. Two renders of an unchanged game with several collections, or with cards that have several variables, can produce different JSON. The sheet images are not affected.
+**Order is stable.** Collection bags follow collection id, decks follow deck name, cards follow the catalog list, and `LuaScript` lines follow variable name. An unchanged game gives the same JSON on every render, except the `Created at:` time.
 
 ## `fake`
 

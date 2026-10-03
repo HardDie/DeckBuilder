@@ -3,7 +3,9 @@ package script
 
 import (
 	"fmt"
+	"maps"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"time"
 
@@ -121,8 +123,9 @@ func Build(
 		deckIDOffset += index
 	}
 
-	for _, collectionBag := range collectionBags {
-		bag.ContainedObjects = append(bag.ContainedObjects, collectionBag)
+	// Collection bags in collection-id order, so the same catalog gives the same JSON.
+	for _, collection := range slices.Sorted(maps.Keys(collectionBags)) {
+		bag.ContainedObjects = append(bag.ContainedObjects, collectionBags[collection])
 	}
 	bag.Description = fmt.Sprintf("Created at: %v", time.Now().Format("2006-01-02 15:04:05"))
 	return Document{

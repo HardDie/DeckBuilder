@@ -78,3 +78,9 @@ Measured on the page above. Quality is PSNR against the Lanczos output.
 
 1. `disintegration/imaging` stays for `back.Shade` and the deprecated fallback.
 2. `sheet/bench` keeps `StageResizeLanczos` for comparison until removal.
+
+## Later
+
+1. 2026-10-03: release builds passed on all four targets.
+2. `fit.ResizeLanczos` and its benchmark were removed (review item S15).
+3. A test still compares stb with `imaging` Lanczos (≥ 40 dB).

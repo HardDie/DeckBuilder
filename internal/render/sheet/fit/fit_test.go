@@ -5,25 +5,22 @@ import (
 	"image/color"
 	"math"
 	"testing"
+
+	"github.com/disintegration/imaging"
 )
 
 func TestResize(t *testing.T) {
 	t.Parallel()
-	for name, resize := range map[string]func(image.Image, int, int) image.Image{
-		"stb":     Resize,
-		"lanczos": ResizeLanczos,
-	} {
-		src := image.NewNRGBA(image.Rect(0, 0, 20, 30))
-		if got := resize(src, 20, 30); got != image.Image(src) {
-			t.Fatalf("%s: same size should return the input unchanged", name)
-		}
-		if got := resize(src, 10, 15); got.Bounds() != image.Rect(0, 0, 10, 15) {
-			t.Fatalf("%s: bounds %v, want 10x15", name, got.Bounds())
-		}
+	src := image.NewNRGBA(image.Rect(0, 0, 20, 30))
+	if got := Resize(src, 20, 30); got != image.Image(src) {
+		t.Fatal("same size should return the input unchanged")
+	}
+	if got := Resize(src, 10, 15); got.Bounds() != image.Rect(0, 0, 10, 15) {
+		t.Fatalf("bounds %v, want 10x15", got.Bounds())
 	}
 }
 
-// The live resize stays visually identical to the Lanczos it replaced.
+// The resize stays visually identical to the imaging Lanczos it replaced (ADR 022).
 func TestResizeMatchesLanczos(t *testing.T) {
 	t.Parallel()
 	src := image.NewNRGBA(image.Rect(0, 0, 262, 192))
@@ -33,7 +30,7 @@ func TestResizeMatchesLanczos(t *testing.T) {
 		}
 	}
 	a := Resize(src, 200, 147).(*image.NRGBA)
-	b := ResizeLanczos(src, 200, 147).(*image.NRGBA)
+	b := imaging.Resize(src, 200, 147, imaging.Lanczos)
 	var sum float64
 	for i := range a.Pix {
 		d := float64(a.Pix[i]) - float64(b.Pix[i])
