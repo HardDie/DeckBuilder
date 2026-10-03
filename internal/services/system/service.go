@@ -1,9 +1,8 @@
 package system
 
 import (
-	"log"
-
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
 )
 
@@ -17,27 +16,12 @@ func New(repositorySettings repositoriesSettings.Settings) System {
 	}
 }
 
+// GetSettings returns the stored settings, or the defaults when none are stored.
 func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
-	settings := entitiesSettings.Default()
-
-	set, err := s.repositorySettings.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if set == nil {
-		return &settings, nil
-	}
-
-	settings.Lang = set.Lang
-	settings.EnableBackShadow = set.EnableBackShadow
-	settings.CardSize.ScaleX = set.CardSize.ScaleX
-	settings.CardSize.ScaleY = set.CardSize.ScaleY
-	settings.CardSize.ScaleZ = set.CardSize.ScaleZ
-	return &settings, nil
+	return s.repositorySettings.Get()
 }
 func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error) {
-	log.Println("Update settings")
+	logger.Info.Println("Update settings")
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err
