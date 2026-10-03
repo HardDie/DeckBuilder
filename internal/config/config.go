@@ -1,11 +1,10 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
-
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -43,7 +42,8 @@ func Get(version string) *Config {
 		// So create a data folder in home directory.
 		home, err := os.UserHomeDir()
 		if err != nil {
-			logger.Error.Fatal("Unable to define a user's home directory")
+			slog.Error("no home folder for the data folder", "err", err)
+			os.Exit(1)
 		}
 		data = filepath.Join(home, data)
 	}
@@ -68,6 +68,11 @@ func (c *Config) Games() string {
 }
 func (c *Config) Results() string {
 	return filepath.Join(c.Data, c.Result)
+}
+
+// Logs is the folder of the app log (see ADR 026).
+func (c *Config) Logs() string {
+	return filepath.Join(c.Data, "logs")
 }
 
 // SetDataPath For tests only!!!

@@ -3,13 +3,13 @@ package network
 import (
 	"errors"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -30,20 +30,24 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 	// Parse URL
 	imageURL, err := (&url.URL{}).Parse(source)
 	if err != nil {
-		logger.IfError(err)
+		slog.Warn("image link is not a URL", "url", source, "err", err)
 		return nil, apperr.ErrDownloadBadURL
 	}
 
 	// GET request for image
 	resp, err := client.Get(imageURL.String())
 	if err != nil {
-		logger.IfError(err)
+		slog.Warn("image download failed", "url", source, "err", err)
 		if isTimeout(err) {
 			return nil, timeoutError(client)
 		}
 		return nil, apperr.ErrDownloadFailed
 	}
-	defer func() { logger.IfError(resp.Body.Close()) }()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			slog.Warn("close image download", "url", source, "err", err)
+		}
+	}()
 
 	// Bad response
 	if resp.StatusCode != http.StatusOK {
@@ -64,7 +68,7 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 		if isTimeout(err) {
 			return nil, timeoutError(client)
 		}
-		logger.IfError(err)
+		slog.Warn("image download failed while reading", "url", source, "err", err)
 		return nil, apperr.ErrDownloadFailed
 	}
 	if int64(len(data)) > limit {

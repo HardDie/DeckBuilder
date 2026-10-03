@@ -2,11 +2,11 @@
 package errfmt
 
 import (
+	"log/slog"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 // Format is the Wails ErrorFormatter. Every error a bound method returns passes here.
@@ -15,7 +15,7 @@ import (
 func Format(err error) any {
 	msg := apperr.Message(err)
 	if msg == apperr.Unexpected {
-		logger.Error.Println("unexpected error:", err.Error())
+		slog.Error("unexpected error", "err", err)
 	}
 	return capitalize(msg)
 }

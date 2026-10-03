@@ -2,8 +2,8 @@ package system
 
 import (
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
+	"log/slog"
 )
 
 type system struct {
@@ -27,7 +27,7 @@ func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
 	return &normalized, nil
 }
 func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error) {
-	logger.Info.Println("Update settings")
+	slog.Info("update settings", "lang", req.Lang)
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err

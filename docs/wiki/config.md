@@ -22,6 +22,7 @@ Process-wide paths and generate limits. Constructed once via `config.Get(version
 | `Get` | Defaults + macOS home-dir Data | `wire`, tests |
 | `Games()` | `Data/games` **OS path** | repositories (zip export/import), some tests as fsentry root |
 | `Results()` | `Data/result` | generator, replace, TTS buffer |
+| `Logs()` | `Data/logs` | app log, `logger.Init` ([ADR 026](../architecture/026-log-file-and-rotation.md)) |
 | `SetDataPath` | Tests only; retarget Data | `*_test.go` temp dirs |
 
 ## Constants

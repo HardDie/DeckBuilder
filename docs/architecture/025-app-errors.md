@@ -66,3 +66,9 @@
 ### Neutral
 
 1. A missing image on `/api/…/image` answers 404 instead of 400.
+
+## Later
+
+1. 2026-10-04: `logger.IfError` was removed with `internal/logger`.
+   1. Code logs errors with `slog`: `slog.Warn("…", "err", err)`.
+   2. See [ADR 026](026-log-file-and-rotation.md), section "Later".

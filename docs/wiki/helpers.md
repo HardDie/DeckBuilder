@@ -15,9 +15,9 @@ The errors the app can explain to the user. Each has a clear message and one kin
 
 JSON envelope `{ data, meta, error }`: `ResponseError` for the loopback HTTP routes, `Meta` for binding list results. Image download: `DownloadBytes` (timeout, size cap) and `DownloadProgress`.
 
-## `internal/logger`
+## `pkg/logger`
 
-`Info` / `Warn` / `Error` std loggers. Repository `List` logs corrupt folders here.
+Sets up the standard `log/slog` logger: JSON (or text) lines on the console and in `DeckBuilderData/logs/deckbuilder.log`, rotated at startup when over 5 MB, 3 old files kept ([ADR 026](../architecture/026-log-file-and-rotation.md)). `wire` calls `logger.Init` first. Code logs with `slog` directly; Warn and Error lines carry their source file and line. Wails' own messages come through `wailsLogger` in the module root.
 
 ## `internal/fs`
 
@@ -35,6 +35,6 @@ Process-wide generate status (`empty`, `in_progress`, `done`, `error`) plus done
 
 `NameToID`, sort helpers, `Allocate`, `NormalizeTimestamps`. Used across servers, services, repositories. `NormalizeTimestamps` fills preview null/empty `createdAt`/`updatedAt` when mapping to entities; it does not rewrite files ([ADR 009](../architecture/009-catalog-timestamps.md)).
 
-## `internal/logger`, `internal/network` callers
+## Logging and errors together
 
-`logger.IfError` logs a non-nil error with the caller's file and line. User-facing text comes from `apperr` messages; technical detail goes to the log.
+Log with a short lowercase message and fields: `slog.Warn("image download failed", "url", u, "err", err)`. User-facing text comes from `apperr` messages; technical detail goes to the log.

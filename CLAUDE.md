@@ -233,6 +233,9 @@ Other locations:
 3. Version: `pkg/version`.
 4. One-off CLIs: `tools/`.
 5. `web/` is a dist stub. Do not put the Vue UI there.
+6. Logging setup and rotation: `pkg/logger` on `log/slog`.
+   1. Log with `slog.Info/Warn/Error`: a short lowercase message plus fields.
+   2. Pass errors as `"err", err`; never format values into the message.
 
 ## HTTP contract
 
@@ -351,6 +354,13 @@ File formats:
 6. Catalog `createdAt` and `updatedAt` are written on every create and update.
    1. Empty values in old data are filled in memory.
    2. See [ADR 009](docs/architecture/009-catalog-timestamps.md).
+7. `Data/logs/deckbuilder.log` is the app log, for developers.
+   1. Every `slog` line goes there and to the console (stderr).
+   2. Each launch starts with `"msg":"app started"`: version, OS, arch, data folder.
+   3. Over 5 MB at startup it rotates; 3 old files are kept.
+   4. See [ADR 026](docs/architecture/026-log-file-and-rotation.md).
+   5. Lines are JSON; `pkg/logger` can write text instead.
+   6. Wails' own messages go through `wailsLogger` (`wailslog.go`).
 
 ## Version
 

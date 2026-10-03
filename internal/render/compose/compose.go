@@ -3,6 +3,7 @@ package compose
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -14,7 +15,6 @@ import (
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	"github.com/HardDie/DeckBuilder/internal/fs"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/render/generate"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/catalog"
 	renderprogress "github.com/HardDie/DeckBuilder/internal/render/progress"
@@ -85,7 +85,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 
 	cfg, err := s.serviceSystem.GetSettings()
 	if err != nil {
-		logger.Error.Printf("can't get config")
+		slog.Error("read settings for render", "err", err)
 		return err
 	}
 	gameItem, err := s.serviceGame.Item(gameID)
@@ -117,7 +117,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		err := s.safeRun(dir, gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
 			renderprogress.Fail()
-			logger.Error.Println("Generator:", err.Error())
+			slog.Error("render failed", "game", gameItem.ID, "err", err)
 			return
 		}
 		renderprogress.Finish()
@@ -210,7 +210,7 @@ func (s *runner) run(
 		return err
 	}
 	removeStale(dir, keep)
-	logger.Info.Printf("Generator: %d of %d sheets reused", reused, total)
+	slog.Info("render finished", "game", gameItem.ID, "sheets", total, "reused", reused)
 	s.serviceTTS.SendToTTS(plan.Bag)
 	return nil
 }
@@ -220,7 +220,7 @@ func (s *runner) run(
 func removeStale(dir string, keep map[string]struct{}) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		logger.Warn.Println("Generator: list stale files:", err.Error())
+		slog.Warn("list stale render files", "dir", dir, "err", err)
 		return
 	}
 	for _, e := range entries {
@@ -228,7 +228,7 @@ func removeStale(dir string, keep map[string]struct{}) {
 			continue
 		}
 		if err := os.Remove(filepath.Join(dir, e.Name())); err != nil {
-			logger.Warn.Println("Generator: remove stale file:", err.Error())
+			slog.Warn("remove stale render file", "file", e.Name(), "err", err)
 		}
 	}
 }
@@ -245,7 +245,7 @@ func removeLegacyFiles(results string) {
 			continue
 		}
 		if err := os.Remove(filepath.Join(results, e.Name())); err != nil {
-			logger.Warn.Println("Generator: remove old result file:", err.Error())
+			slog.Warn("remove old result file", "file", e.Name(), "err", err)
 		}
 	}
 }

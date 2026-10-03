@@ -4,13 +4,13 @@ package generate
 import (
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/catalog"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/layout"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/script"
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
+	"log/slog"
 )
 
 // Sheet is one page ready to draw. Faces and back are the original file bytes.
@@ -58,14 +58,14 @@ func Prepare(
 		}
 		back, _, err := deckSvc.GetImage(cards[0].GameID, cards[0].CollectionID, deckInfo.ID)
 		if err != nil {
-			logger.Error.Printf("backside not found for: %s.%s.%s", cards[0].GameID, cards[0].CollectionID, deckInfo.ID)
+			slog.Error("deck back image not found", "game", cards[0].GameID, "collection", cards[0].CollectionID, "deck", deckInfo.ID, "err", err)
 			return Plan{}, err
 		}
 		faces := make([][]byte, 0, len(cards))
 		for _, card := range cards {
 			face, _, err := cardSvc.GetImage(card.GameID, card.CollectionID, deckInfo.ID, card.ID)
 			if err != nil {
-				logger.Error.Printf("card image not found for: %s.%s.%s.%d", card.GameID, card.CollectionID, deckInfo.ID, card.ID)
+				slog.Error("card image not found", "game", card.GameID, "collection", card.CollectionID, "deck", deckInfo.ID, "card", card.ID, "err", err)
 				return Plan{}, err
 			}
 			faces = append(faces, face)

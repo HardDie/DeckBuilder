@@ -1,6 +1,7 @@
 package servers
 
 import (
+	"log/slog"
 	"net"
 	"net/http"
 
@@ -8,7 +9,6 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/fs"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
@@ -92,7 +92,7 @@ func (s *Server) Listen() (net.Listener, int, error) {
 		return nil, 0, err
 	}
 	s.tts.SetHTTPPort(port)
-	logger.Info.Printf("Listening on %s:%d...", config.HTTPHost, port)
+	slog.Info("HTTP server listening", "host", config.HTTPHost, "port", port)
 	return ln, port, nil
 }
 
@@ -124,7 +124,7 @@ func writeImage(w http.ResponseWriter, img []byte, imgType string, err error) {
 	}
 	w.Header().Set("Content-Type", "image/"+imgType)
 	if _, err := w.Write(img); err != nil {
-		logger.IfError(err)
+		slog.Warn("write image response", "err", err)
 	}
 }
 

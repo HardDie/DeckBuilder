@@ -2,10 +2,11 @@ package replace
 
 import (
 	"encoding/json"
+	"fmt"
+	"log/slog"
 	"sort"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -38,7 +39,7 @@ func (s *replace) Prepare(data []byte) ([]Couple, error) {
 	req := Request{}
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		logger.Info.Printf("error parsing data file: %s", err.Error())
+		slog.Info("render file is not JSON", "err", err)
 		return nil, apperr.ErrBadRenderFile
 	}
 
@@ -97,14 +98,14 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 	var m Mapping
 	err := json.Unmarshal(mapping, &m)
 	if err != nil {
-		logger.Info.Printf("error parsing mapping file: %s", err.Error())
+		slog.Info("mapping file is not JSON", "err", err)
 		return nil, apperr.ErrBadMappingFile
 	}
 
 	var root tts_entity.RootObjects
 	err = json.Unmarshal(data, &root)
 	if err != nil {
-		logger.Info.Printf("error parsing data file: %s", err.Error())
+		slog.Info("render file is not JSON", "err", err)
 		return nil, apperr.ErrBadRenderFile
 	}
 
@@ -115,7 +116,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 	}
 
 	if len(root.ObjectStates) != 1 {
-		logger.Info.Println("should be single root object")
+		slog.Info("render file must have one root object", "objects", len(root.ObjectStates))
 		return nil, apperr.ErrBadRenderFile
 	}
 
@@ -123,18 +124,18 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 	for _, collectionBagTemp := range root.ObjectStates[0].ContainedObjects {
 		colName, err := getName(collectionBagTemp)
 		if err != nil {
-			logger.Info.Printf("error get collection name: %T", collectionBagTemp)
+			slog.Info("render file: collection without a name", "type", fmt.Sprintf("%T", collectionBagTemp))
 			return nil, err
 		}
 		if colName != "Bag" {
-			logger.Info.Printf("error collection bag parsing %v", err)
+			slog.Info("render file: bad collection bag", "err", err)
 			return nil, apperr.ErrBadRenderFile
 		}
 
 		var collectionBag tts_entity.Bag
 		err = utils.ObjectJSONObject(collectionBagTemp, &collectionBag)
 		if err != nil {
-			logger.Info.Printf("error collection bag parsing %v", err)
+			slog.Info("render file: bad collection bag", "err", err)
 			return nil, apperr.ErrBadRenderFile
 		}
 
@@ -142,7 +143,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 		for _, item := range collectionBag.ContainedObjects {
 			itemName, err := getName(item)
 			if err != nil {
-				logger.Info.Printf("error get item name: %T", collectionBagTemp)
+				slog.Info("render file: item without a name", "type", fmt.Sprintf("%T", item))
 				return nil, err
 			}
 
@@ -151,7 +152,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 				var deck tts_entity.DeckObject
 				err = utils.ObjectJSONObject(item, &deck)
 				if err != nil {
-					logger.Info.Printf("error deck parsing %v", err)
+					slog.Info("render file: bad deck", "err", err)
 					return nil, apperr.ErrBadRenderFile
 				}
 
@@ -175,7 +176,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 				var card tts_entity.Card
 				err = utils.ObjectJSONObject(item, &card)
 				if err != nil {
-					logger.Info.Printf("error card parsing %v", err)
+					slog.Info("render file: bad card", "err", err)
 					return nil, apperr.ErrBadRenderFile
 				}
 
@@ -187,7 +188,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 
 				collectionBagContaind = append(collectionBagContaind, card)
 			default:
-				logger.Info.Printf("unknown object: %q", itemName)
+				slog.Info("render file: unknown object", "name", itemName)
 				return nil, apperr.ErrBadRenderFile
 			}
 		}
@@ -206,17 +207,17 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 func getName(obj any) (string, error) {
 	tmp, ok := obj.(map[string]any)
 	if !ok {
-		logger.Info.Printf("unknown object type: %T", obj)
+		slog.Info("render file: unknown object type", "type", fmt.Sprintf("%T", obj))
 		return "", apperr.ErrBadRenderFile
 	}
 	name, ok := tmp["Name"]
 	if !ok {
-		logger.Info.Println("object don't have Name field")
+		slog.Info("render file: object has no Name field")
 		return "", apperr.ErrBadRenderFile
 	}
 	nameStr, ok := name.(string)
 	if !ok {
-		logger.Info.Println("Name field is not string")
+		slog.Info("render file: Name field is not a string")
 		return "", apperr.ErrBadRenderFile
 	}
 	return nameStr, nil

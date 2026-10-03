@@ -3,10 +3,13 @@
 package main
 
 import (
+	"log/slog"
+	"os"
+	"runtime"
+
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	repositoriesCard "github.com/HardDie/DeckBuilder/internal/repositories/card"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
@@ -22,6 +25,7 @@ import (
 	servicesSearch "github.com/HardDie/DeckBuilder/internal/services/search"
 	servicesSystem "github.com/HardDie/DeckBuilder/internal/services/system"
 	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
+	"github.com/HardDie/DeckBuilder/pkg/logger"
 )
 
 type services struct {
@@ -40,14 +44,31 @@ type services struct {
 func wire(version string) *services {
 	cfg := config.Get(version)
 
+	// The log file comes first, so everything after it is recorded (ADR 026).
+	logPath, err := logger.Init(logger.Options{
+		Dir:     cfg.Logs(),
+		File:    "deckbuilder.log",
+		Format:  logger.FormatJSON,
+		MaxSize: 5 << 20,
+		Keep:    3,
+	})
+	if err != nil {
+		slog.Warn("log file is off, logging to the console only", "err", err)
+	}
+	// One line per launch, so each run is easy to find in the log.
+	slog.Info("app started", "version", version, "os", runtime.GOOS, "arch", runtime.GOARCH,
+		"data", cfg.Data, "log", logPath)
+
 	db := fsentry.New(cfg.Data, fsentry.WithPretty())
 	if err := db.Init(); err != nil {
-		logger.Error.Fatal(err)
+		slog.Error("open data folder", "err", err)
+		os.Exit(1)
 	}
 
 	core := repositoriesCore.New(db)
 	if err := core.Init(); err != nil {
-		logger.Error.Fatal(err)
+		slog.Error("prepare catalog", "err", err)
+		os.Exit(1)
 	}
 
 	repositorySettings := repositoriesSettings.New(cfg, db)

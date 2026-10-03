@@ -3,12 +3,12 @@ package tts
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"sync"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 type tts struct {
@@ -44,14 +44,14 @@ func (s *tts) SendToTTS(data any) {
 	// Try to open TCP socket
 	conn, err := net.Dial("tcp", s.editorAddr)
 	if err != nil {
-		logger.Info.Printf("Can't connect to TTS via tcp connection %q: %s", s.editorAddr, err.Error())
+		slog.Info("Tabletop Simulator is not reachable", "addr", s.editorAddr, "err", err)
 		return
 	}
 	defer func() { conn.Close() }()
 
 	dataForTTS, err := json.Marshal(data)
 	if err != nil {
-		logger.Warn.Println("error marshal data for TTS:", err.Error())
+		slog.Warn("encode data for Tabletop Simulator", "err", err)
 		return
 	}
 	s.mu.Lock()
@@ -80,13 +80,13 @@ end)`, config.HTTPHost, httpPort),
 
 	jsonData, err := json.Marshal(msg)
 	if err != nil {
-		logger.Warn.Println("error marshal msg for TTS:", err.Error())
+		slog.Warn("encode message for Tabletop Simulator", "err", err)
 		return
 	}
 
 	_, err = conn.Write(jsonData)
 	if err != nil {
-		logger.Warn.Println("error write message into TTS socket:", err.Error())
+		slog.Warn("send message to Tabletop Simulator", "err", err)
 		return
 	}
 }

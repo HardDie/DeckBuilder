@@ -237,7 +237,7 @@ S20. Show render failures in the window
  4. Idea: carry the reason in the polled status and show it as a toast.
 
 S21. Error toasts start with "HTTP[400]"
- 1. Status: `in review` (step 5 of 5).
+ 1. Status: `done`.
  2. `*Err.Error()` prints the HTTP code first; bindings send that text.
  3. Every error toast shows it, e.g. "HTTP[400] game exist".
  4. Warnings already strip it (`catalog.ImageWarning`).
@@ -250,9 +250,17 @@ S21. Error toasts start with "HTTP[400]"
  6. `internal/errors` deleted. Decision: [ADR 025](../architecture/025-app-errors.md).
 
 S22. Rework logging
- 1. Status: `todo`.
+ 1. Status: `in review` (pkg/logger: step 3 of 3).
  2. S21 sends unexpected error details only to the log.
  3. The log must then be easy to find and read.
  4. Today: `internal/logger` writes to stdout (Info, Warn) and stderr (Error) only.
  5. A packaged app has no visible console, so those lines are lost.
  6. Ideas: a log file in the data folder, rotation, a "copy log" action in the window.
+ 7. Done: `DeckBuilderData/logs/deckbuilder.log`, rotated at startup over 5 MB, 3 kept.
+ 8. "App started" line per launch; Wails messages included; no window link (for developers).
+ 9. Decision: [ADR 026](../architecture/026-log-file-and-rotation.md).
+ 10. Generalized into `pkg/logger` on `log/slog`, JSON by default, text optional.
+    1. Step 1: the package and its tests.
+    2. Step 2: switch the app and every call site to `slog`.
+    3. Step 3: delete `internal/logger`; update ADR 026, CLAUDE.md, the wiki.
+ 11. The Wails adapter moved to the module root (`wailslog.go`); `pkg/logger` has no framework code.

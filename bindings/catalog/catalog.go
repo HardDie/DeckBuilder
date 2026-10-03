@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -93,7 +93,7 @@ func ImageWarning(err error) string {
 	}
 	msg := apperr.Message(err)
 	if msg == apperr.Unexpected {
-		logger.Error.Println("image not saved:", err.Error())
+		slog.Error("image not saved", "err", err)
 	}
 	return "Image was not saved: " + msg
 }

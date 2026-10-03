@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -107,12 +107,12 @@ func getName(obj json.RawMessage) (string, error) {
 	}
 	name, ok := tmp["Name"]
 	if !ok {
-		logger.Info.Println("object don't have Name field")
+		slog.Info("render file: object has no Name field")
 		return "", apperr.ErrBadRenderFile
 	}
 	nameStr, ok := name.(string)
 	if !ok {
-		logger.Info.Println("Name field is not string")
+		slog.Info("render file: Name field is not a string")
 		return "", apperr.ErrBadRenderFile
 	}
 	return nameStr, nil

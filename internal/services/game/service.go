@@ -1,13 +1,13 @@
 package game
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	"github.com/HardDie/DeckBuilder/internal/fs"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -74,7 +74,7 @@ func (s *game) Delete(gameID string) error {
 	}
 	// The game's last render goes with it.
 	if err := fs.RemoveFolder(s.results(gameID)); err != nil {
-		logger.Warn.Println("Unable to remove the game's result folder:", err.Error())
+		slog.Warn("remove the game's result folder", "game", gameID, "err", err)
 	}
 	return nil
 }
@@ -107,10 +107,10 @@ func (s *game) moveResults(oldID, newID string) {
 	}
 	dst := s.results(newID)
 	if err := fs.RemoveFolder(dst); err != nil {
-		logger.Warn.Println("Unable to clear the renamed game's result folder:", err.Error())
+		slog.Warn("clear the renamed game's result folder", "game", newID, "err", err)
 		return
 	}
 	if err := os.Rename(src, dst); err != nil {
-		logger.Warn.Println("Unable to move the game's result folder:", err.Error())
+		slog.Warn("move the game's result folder", "from", oldID, "to", newID, "err", err)
 	}
 }

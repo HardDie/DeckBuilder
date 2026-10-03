@@ -2,13 +2,13 @@ package repositories
 
 import (
 	"errors"
+	"log/slog"
 	"slices"
 
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/images"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -103,11 +103,11 @@ func (f *Folder) List(parent []string) ([]FolderInfo, error) {
 	for _, folder := range list.Folders {
 		info, err := f.Get(parent, folder)
 		if err != nil {
-			logger.Error.Println(folder, err.Error())
+			slog.Error("unreadable catalog folder", "folder", folder, "err", err)
 			continue
 		}
 		if folder != info.ID {
-			logger.Error.Println("Corrupted folder:", folder)
+			slog.Error("corrupted catalog folder: id does not match its name", "folder", folder)
 			continue
 		}
 		infos = append(infos, info)

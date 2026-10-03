@@ -9,9 +9,9 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"log/slog"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 // maxImagePixels caps width × height of an accepted image (128 MP, e.g. 16384×8192).
@@ -101,6 +101,6 @@ func ImageToGif(img image.Image) ([]byte, error) {
 // damaged reports a file whose format is known but which does not decode.
 // The decoder's text goes to the log; the user reads a plain sentence.
 func damaged(err error) error {
-	logger.Warn.Println("image decode:", err.Error())
+	slog.Warn("image does not decode", "err", err)
 	return apperr.With(apperr.ErrUnsupportedImage, "the image file is damaged or incomplete")
 }

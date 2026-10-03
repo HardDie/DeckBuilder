@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -114,7 +114,9 @@ func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 
 	g, err := r.GetByID(id)
 	if err != nil {
-		logger.IfError(r.DeleteByID(id))
+		if delErr := r.DeleteByID(id); delErr != nil {
+			slog.Error("remove half-imported game", "game", id, "err", delErr)
+		}
 		return nil, err
 	}
 	return g, nil

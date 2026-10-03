@@ -2,11 +2,11 @@ package network
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/fs"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 type Meta struct {
@@ -42,7 +42,7 @@ func ResponseError(w http.ResponseWriter, e error) {
 	case errors.Is(e, apperr.ErrInvalid):
 		_ = response(w, http.StatusBadRequest, resp)
 	default:
-		logger.Warn.Println("unhandled error: " + e.Error())
+		slog.Warn("unexpected HTTP error", "err", e)
 		_ = response(w, http.StatusInternalServerError, resp)
 	}
 }

@@ -3,10 +3,9 @@ package fs
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
-
-	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -68,7 +67,7 @@ func FileExists(path string) bool {
 func PathToAbsolutePath(path string) string {
 	res, err := filepath.Abs(path)
 	if err != nil {
-		logger.Error.Printf("Can't transform path %q to absolute path. %q", path, err.Error())
+		slog.Error("make path absolute", "path", path, "err", err)
 		return path
 	}
 	return res

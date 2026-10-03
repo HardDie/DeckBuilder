@@ -8,7 +8,9 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -23,7 +25,6 @@ import (
 	bindingsReplace "github.com/HardDie/DeckBuilder/bindings/replace"
 	bindingsSearch "github.com/HardDie/DeckBuilder/bindings/search"
 	bindingsSystem "github.com/HardDie/DeckBuilder/bindings/system"
-	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/servers"
 	"github.com/HardDie/DeckBuilder/pkg/version"
 )
@@ -43,11 +44,12 @@ func main() {
 	)
 	ln, _, err := httpServer.Listen()
 	if err != nil {
-		logger.Error.Fatal(err.Error())
+		slog.Error("start HTTP server", "err", err)
+		os.Exit(1)
 	}
 	go func() {
 		if err := httpServer.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error.Println(err.Error())
+			slog.Error("HTTP server stopped", "err", err)
 		}
 	}()
 
@@ -78,6 +80,8 @@ func main() {
 		OnShutdown: app.shutdown,
 		// Errors from bound methods reach the window as readable messages.
 		ErrorFormatter: errfmt.Format,
+		// Wails' own messages go to the app log file too.
+		Logger: wailsLogger{},
 		// One instance per user. A second launch exits and focuses the first window.
 		SingleInstanceLock: &options.SingleInstanceLock{
 			UniqueId:               "com.harddie.deckbuilder",
