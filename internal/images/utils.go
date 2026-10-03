@@ -2,6 +2,8 @@ package images
 
 import (
 	"bytes"
+	stderrors "errors"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -12,7 +14,23 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/errors"
 )
 
+// maxImagePixels caps width × height of an accepted image (128 MP, e.g. 16384×8192).
+// Decoding allocates about 4 bytes per pixel.
+const maxImagePixels = 16384 * 8192
+
+// ValidateImage checks the header size first, then fully decodes input.
+// A tiny file can declare huge dimensions, so the header check comes before decode.
 func ValidateImage(input []byte) (string, error) {
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(input))
+	if stderrors.Is(err, image.ErrFormat) {
+		return "", errors.UnknownImageType.AddMessage("not a supported image (png, jpeg, gif)")
+	}
+	if err != nil {
+		return "", errors.UnknownImageType.AddMessage(err.Error())
+	}
+	if int64(cfg.Width)*int64(cfg.Height) > maxImagePixels {
+		return "", errors.ImageTooLarge.AddMessage(fmt.Sprintf("image is too large: %dx%d, max %d megapixels", cfg.Width, cfg.Height, maxImagePixels>>20))
+	}
 	_, imgType, err := image.Decode(bytes.NewBuffer(input))
 	if err != nil {
 		return "", errors.UnknownImageType.AddMessage(err.Error())

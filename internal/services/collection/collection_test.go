@@ -548,21 +548,28 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	}
 
 	// Update collection
-	_, err = tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
+	// A bad URL is not applied: the save succeeds and the old image stays
+	updated, err := tt.serviceCollection.Update(tt.gameID, collectionID, UpdateRequest{
 		Name:  collectionName,
 		Image: "empty",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Check no image
-	_, _, err = tt.serviceCollection.GetImage(tt.gameID, collectionID)
-	if err == nil {
-		t.Fatal("Error, collection don't have image")
+	if updated.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
 	}
-	if !errors.Is(err, er.CollectionImageNotExists) {
+	if updated.Image != "" {
+		t.Fatal("Image URL error! [got]", updated.Image, "[want] \"\"")
+	}
+
+	// Check image is kept
+	_, imgType, err = tt.serviceCollection.GetImage(tt.gameID, collectionID)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
 	}
 
 	// Delete collection
@@ -628,6 +635,51 @@ func (tt *collectionTest) testRenameWithImage(t *testing.T) {
 	}
 }
 
+func (tt *collectionTest) testImageFailure(t *testing.T) {
+	name := "image_failure"
+
+	// Create with a bad URL: saved without an image, URL not stored
+	item, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
+		Name:  name,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Image != "" {
+		t.Fatal("Image URL error! [got]", item.Image, "[want] \"\"")
+	}
+	_, _, err = tt.serviceCollection.GetImage(tt.gameID, item.ID)
+	if !errors.Is(err, er.CollectionImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Update the description with a bad URL: the description is saved anyway
+	item, err = tt.serviceCollection.Update(tt.gameID, item.ID, UpdateRequest{
+		Name:        name,
+		Description: "changed",
+		Image:       "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Description != "changed" {
+		t.Fatal("Description error! [got]", item.Description, "[want] changed")
+	}
+
+	// Delete
+	err = tt.serviceCollection.Delete(tt.gameID, item.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCollection(t *testing.T) {
 	t.Parallel()
 
@@ -665,6 +717,7 @@ func TestCollection(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("image_failure", tt.testImageFailure)
 	t.Run("rename_with_image", tt.testRenameWithImage)
 }
 

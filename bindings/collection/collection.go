@@ -15,6 +15,8 @@ type ListResult struct {
 
 type Result struct {
 	Data dto.Collection `json:"data"`
+	// Warning explains why a new image was not applied. The save itself succeeded.
+	Warning string `json:"warning,omitempty"`
 }
 
 type Collection struct {
@@ -54,7 +56,7 @@ func (c *Collection) Create(gameID string, req catalog.WriteRequest) (*Result, e
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.CollectionDTO(c.cfg, gameID, *item)}, nil
+	return &Result{Data: catalog.CollectionDTO(c.cfg, gameID, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
 }
 
 func (c *Collection) Read(gameID, collectionID string) (*Result, error) {
@@ -75,7 +77,7 @@ func (c *Collection) Update(gameID, collectionID string, req catalog.WriteReques
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.CollectionDTO(c.cfg, gameID, *item)}, nil
+	return &Result{Data: catalog.CollectionDTO(c.cfg, gameID, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
 }
 
 func (c *Collection) Delete(gameID, collectionID string) error {

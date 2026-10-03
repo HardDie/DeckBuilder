@@ -17,6 +17,10 @@ type Deck struct {
 
 	GameID       string
 	CollectionID string
+
+	// ImageError is set by create / update when the new image was not applied.
+	// It is never stored.
+	ImageError error
 }
 
 func (e Deck) GetName() string {

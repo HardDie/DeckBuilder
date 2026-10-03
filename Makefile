@@ -114,8 +114,11 @@ build: require-wails require-jpeg version
 	fi
 
 ## generate: Regenerate frontend/wailsjs bindings from Go
-generate: require-wails
-	$(WAILS) generate module
+generate: require-wails jpeg-link
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
+		$(WAILS) generate module $(WAILS_TAGS)
 
 ## test: Unit tests for package main, bindings, internal, and pkg (same as CI, with race)
 test: jpeg-link

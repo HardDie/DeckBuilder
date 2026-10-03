@@ -553,25 +553,77 @@ func (tt *cardTest) testImageBin(t *testing.T) {
 	}
 
 	// Update card
-	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
+	// A bad URL is not applied: the save succeeds and the old image stays
+	updated, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID, UpdateRequest{
 		Name:  cardTitle,
 		Image: "empty",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Check no image
-	_, _, err = tt.serviceCard.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
-	if err == nil {
-		t.Fatal("Error, card don't have image")
+	if updated.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
 	}
-	if !errors.Is(err, er.CardImageNotExists) {
+	if updated.Image != "" {
+		t.Fatal("Image URL error! [got]", updated.Image, "[want] \"\"")
+	}
+
+	// Check image is kept
+	_, imgType, err = tt.serviceCard.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
 	}
 
 	// Delete card
 	err = tt.serviceCard.Delete(tt.gameID, tt.collectionID, tt.deckID+"_image", card.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func (tt *cardTest) testImageFailure(t *testing.T) {
+	name := "image_failure"
+
+	// Create with a bad URL: saved without an image, URL not stored
+	item, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_image", CreateRequest{
+		Name:  name,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Image != "" {
+		t.Fatal("Image URL error! [got]", item.Image, "[want] \"\"")
+	}
+	_, _, err = tt.serviceCard.GetImage(tt.gameID, tt.collectionID, tt.deckID+"_image", item.ID)
+	if !errors.Is(err, er.CardImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Update the description with a bad URL: the description is saved anyway
+	item, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_image", item.ID, UpdateRequest{
+		Name:        name,
+		Description: "changed",
+		Image:       "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Description != "changed" {
+		t.Fatal("Description error! [got]", item.Description, "[want] changed")
+	}
+
+	// Delete
+	err = tt.serviceCard.Delete(tt.gameID, tt.collectionID, tt.deckID+"_image", item.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -649,6 +701,7 @@ func TestCard(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("image_failure", tt.testImageFailure)
 }
 
 func (tt *cardTest) fuzzCleanup() {

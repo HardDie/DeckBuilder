@@ -18,6 +18,7 @@ var (
 	NetworkBadURL      = NewError("bad url", http.StatusBadRequest)
 	NetworkBadRequest  = NewError("bad http request", http.StatusBadRequest)
 	NetworkBadResponse = NewError("bad http response", http.StatusBadRequest)
+	NetworkTimeout     = NewError("download timed out", http.StatusBadRequest)
 
 	BadName = NewError("bad name", http.StatusBadRequest)
 	BadId   = NewError("bad id", http.StatusBadRequest)
@@ -53,6 +54,7 @@ var (
 
 	// image
 	UnknownImageType = NewError("unknown image type").HTTP(http.StatusBadRequest)
+	ImageTooLarge    = NewError("image is too large").HTTP(http.StatusBadRequest)
 
 	// zip
 	BadArchive = NewError("bad zip archive").HTTP(http.StatusBadRequest)

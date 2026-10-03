@@ -161,6 +161,12 @@ Out of scope unless explicitly requested:
 6. Card ids are integers.
    1. Path params named `{card}` are parsed as that integer.
 7. A missing deck back fails generate.
+8. A bad image never fails a create or update.
+   1. The image is downloaded and validated before any write.
+   2. On failure the image part is not applied.
+   3. Create stores no URL. Update keeps the old image and URL.
+   4. The binding `Result` carries `warning`; the GUI shows a toast.
+   5. Limits: [ADR 020](docs/architecture/020-image-input-limits.md).
 
 ## Architecture
 

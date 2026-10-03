@@ -15,8 +15,7 @@ import (
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
-	"github.com/HardDie/DeckBuilder/internal/logger"
-	"github.com/HardDie/DeckBuilder/internal/network"
+	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -41,27 +40,19 @@ func New(cfg *config.Config, db *fsentry.DB) Card {
 }
 
 func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {
+	change, imageErr := repositories.ResolveImage("", req.Image, req.ImageFile)
+	req.Image = change.URL
+
 	c, err := r.create(gameID, collectionID, deckID, req)
 	if err != nil {
 		return nil, err
 	}
-
-	if c.Image == "" && req.ImageFile == nil {
-		return c, nil
-	}
-
-	if c.Image != "" {
-		err = r.createImage(gameID, collectionID, deckID, c.ID, c.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, deckID, c.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The card will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, collectionID, deckID, c.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	c.ImageError = imageErr
 	return c, nil
 }
 
@@ -78,12 +69,15 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 	if err != nil {
 		return nil, err
 	}
+	// Download and validate before any write, so a bad image keeps the old one.
+	change, imageErr := repositories.ResolveImage(oldCard.Image, req.Image, req.ImageFile)
+	req.Image = change.URL
 
-	var newCard *entitiesCard.Card
+	newCard := oldCard
 	if oldCard.Name != req.Name ||
 		oldCard.Description != req.Description ||
-		oldCard.Image != req.Image ||
-		req.ImageFile != nil ||
+		oldCard.Image != change.URL ||
+		change.Data != nil ||
 		oldCard.Count != req.Count ||
 		!utils.CompareMaps(oldCard.Variables, req.Variables) {
 		newCard, err = r.update(gameID, collectionID, deckID, cardID, req)
@@ -92,36 +86,18 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		}
 	}
 
-	if newCard == nil {
-		newCard = oldCard
-	}
-
-	if newCard.Image == oldCard.Image && req.ImageFile == nil {
-		return newCard, nil
-	}
-
-	if data, _, _ := r.GetImage(gameID, collectionID, deckID, newCard.ID); data != nil {
-		err = r.imageDelete(gameID, collectionID, deckID, cardID)
-		if err != nil {
+	if change.Data != nil || change.Clear {
+		err = r.imageDelete(gameID, collectionID, deckID, newCard.ID)
+		if err != nil && !errors.Is(err, er.CardImageNotExists) {
 			return nil, err
 		}
 	}
-
-	if newCard.Image == "" && req.ImageFile == nil {
-		return newCard, nil
-	}
-
-	if newCard.Image != "" {
-		if err = r.createImage(gameID, collectionID, deckID, newCard.ID, newCard.Image); err != nil {
-			logger.Warn.Println("Unable to load image. The card will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, deckID, newCard.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The card will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, collectionID, deckID, newCard.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	newCard.ImageError = imageErr
 	return newCard, nil
 }
 
@@ -147,24 +123,6 @@ func (r *card) GetImage(gameID, collectionID, deckID string, cardID int64) ([]by
 	}
 
 	return data, imgType, nil
-}
-
-func (r *card) createImage(gameID, collectionID, deckID string, cardID int64, imageURL string) error {
-	imageBytes, err := network.DownloadBytes(imageURL)
-	if err != nil {
-		return err
-	}
-
-	return r.createImageFromByte(gameID, collectionID, deckID, cardID, imageBytes)
-}
-
-func (r *card) createImageFromByte(gameID, collectionID, deckID string, cardID int64, data []byte) error {
-	_, err := images.ValidateImage(data)
-	if err != nil {
-		return err
-	}
-
-	return r.imageCreate(gameID, collectionID, deckID, cardID, data)
 }
 
 func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*entitiesCard.Card, error) {

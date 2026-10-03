@@ -17,6 +17,7 @@
 
 * **1a. Bad id on later requests:** `CardNotExists` / `BadId`.
 * **1b. Missing image:** card can exist; generate fails later if the face cannot be read.
+* **1c. Image URL or file fails (download, timeout, size, format):** the card is still saved; the image part is not applied (create stores no URL, update keeps the old image and URL); the result carries `warning`, shown as a toast. Limits: [ADR 020](../../architecture/020-image-input-limits.md).
 
 ## Postconditions
 

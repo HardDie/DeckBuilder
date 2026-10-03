@@ -30,27 +30,19 @@ func New(cfg *config.Config, db *fsentry.DB) Game {
 }
 
 func (r *game) Create(req CreateRequest) (*entitiesGame.Game, error) {
+	change, imageErr := repositories.ResolveImage("", req.Image, req.ImageFile)
+	req.Image = change.URL
+
 	g, err := r.create(req)
 	if err != nil {
 		return nil, err
 	}
-
-	if g.Image == "" && req.ImageFile == nil {
-		return g, nil
-	}
-
-	if g.Image != "" {
-		err = r.createImage(g.ID, g.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(g.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(g.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	g.ImageError = imageErr
 	return g, nil
 }
 
@@ -67,8 +59,10 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 	if err != nil {
 		return nil, err
 	}
+	// Download and validate before any write, so a bad image keeps the old one.
+	change, imageErr := repositories.ResolveImage(oldGame.Image, req.Image, req.ImageFile)
 
-	var newGame *entitiesGame.Game
+	newGame := oldGame
 	if oldGame.Name != req.Name {
 		newGame, err = r.move(oldGame.Name, req.Name)
 		if err != nil {
@@ -77,49 +71,30 @@ func (r *game) Update(gameID string, req UpdateRequest) (*entitiesGame.Game, err
 	}
 
 	if oldGame.Description != req.Description ||
-		oldGame.Image != req.Image ||
-		req.ImageFile != nil {
+		oldGame.Image != change.URL ||
+		change.Data != nil {
 		newGame, err = r.update(updateRequest{
 			Name:        req.Name,
 			Description: req.Description,
-			Image:       req.Image,
+			Image:       change.URL,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if newGame == nil {
-		newGame = oldGame
-	}
-
-	if newGame.Image == oldGame.Image && req.ImageFile == nil {
-		return newGame, nil
-	}
-
-	if data, _, _ := r.GetImage(newGame.ID); data != nil {
+	if change.Data != nil || change.Clear {
 		err = r.imageDelete(newGame.ID)
-		if err != nil {
+		if err != nil && !errors.Is(err, er.GameImageNotExists) {
 			return nil, err
 		}
 	}
-
-	if newGame.Image == "" && req.ImageFile == nil {
-		return newGame, nil
-	}
-
-	if newGame.Image != "" {
-		err = r.createImage(newGame.ID, newGame.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The game will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(newGame.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The game will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(newGame.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	newGame.ImageError = imageErr
 	return newGame, nil
 }
 
@@ -176,22 +151,6 @@ func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 		return nil, err
 	}
 	return g, nil
-}
-
-func (r *game) createImage(gameID, imageURL string) error {
-	data, err := repositories.ImageBytes(imageURL, nil)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, data)
-}
-
-func (r *game) createImageFromByte(gameID string, data []byte) error {
-	data, err := repositories.ImageBytes("", data)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, data)
 }
 
 func (r *game) create(req CreateRequest) (*entitiesGame.Game, error) {

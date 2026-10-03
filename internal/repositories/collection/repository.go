@@ -1,6 +1,8 @@
 package collection
 
 import (
+	"errors"
+
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -27,28 +29,20 @@ func New(cfg *config.Config, db *fsentry.DB) Collection {
 }
 
 func (r *collection) Create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {
-	c, err := r.create(gameID, req)
+	change, imageErr := repositories.ResolveImage("", req.Image, req.ImageFile)
+	req.Image = change.URL
+
+	item, err := r.create(gameID, req)
 	if err != nil {
 		return nil, err
 	}
-
-	if c.Image == "" && req.ImageFile == nil {
-		return c, nil
-	}
-
-	if c.Image != "" {
-		err = r.createImage(gameID, c.ID, c.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, c.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, item.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
-	return c, nil
+	item.ImageError = imageErr
+	return item, nil
 }
 
 func (r *collection) GetByID(gameID, collectionID string) (*entitiesCollection.Collection, error) {
@@ -64,8 +58,10 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	if err != nil {
 		return nil, err
 	}
+	// Download and validate before any write, so a bad image keeps the old one.
+	change, imageErr := repositories.ResolveImage(oldCollection.Image, req.Image, req.ImageFile)
 
-	var newCollection *entitiesCollection.Collection
+	newCollection := oldCollection
 	if oldCollection.Name != req.Name {
 		newCollection, err = r.move(gameID, oldCollection.Name, req.Name)
 		if err != nil {
@@ -74,49 +70,30 @@ func (r *collection) Update(gameID, collectionID string, req UpdateRequest) (*en
 	}
 
 	if oldCollection.Description != req.Description ||
-		oldCollection.Image != req.Image ||
-		req.ImageFile != nil {
+		oldCollection.Image != change.URL ||
+		change.Data != nil {
 		newCollection, err = r.update(gameID, updateRequest{
 			Name:        req.Name,
 			Description: req.Description,
-			Image:       req.Image,
+			Image:       change.URL,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if newCollection == nil {
-		newCollection = oldCollection
-	}
-
-	if newCollection.Image == oldCollection.Image && req.ImageFile == nil {
-		return newCollection, nil
-	}
-
-	if data, _, _ := r.GetImage(gameID, newCollection.ID); data != nil {
+	if change.Data != nil || change.Clear {
 		err = r.imageDelete(gameID, newCollection.ID)
-		if err != nil {
+		if err != nil && !errors.Is(err, er.CollectionImageNotExists) {
 			return nil, err
 		}
 	}
-
-	if newCollection.Image == "" && req.ImageFile == nil {
-		return newCollection, nil
-	}
-
-	if newCollection.Image != "" {
-		err = r.createImage(gameID, newCollection.ID, newCollection.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The collection will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, newCollection.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The collection will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, newCollection.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	newCollection.ImageError = imageErr
 	return newCollection, nil
 }
 
@@ -136,22 +113,6 @@ func (r *collection) GetImage(gameID, collectionID string) ([]byte, string, erro
 	}
 
 	return data, imgType, nil
-}
-
-func (r *collection) createImage(gameID, collectionID, imageURL string) error {
-	data, err := repositories.ImageBytes(imageURL, nil)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, collectionID, data)
-}
-
-func (r *collection) createImageFromByte(gameID, collectionID string, data []byte) error {
-	data, err := repositories.ImageBytes("", data)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, collectionID, data)
 }
 
 func (r *collection) create(gameID string, req CreateRequest) (*entitiesCollection.Collection, error) {

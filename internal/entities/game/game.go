@@ -12,6 +12,10 @@ type Game struct {
 	Image       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+
+	// ImageError is set by create / update when the new image was not applied.
+	// It is never stored.
+	ImageError error
 }
 
 func (e Game) GetName() string {

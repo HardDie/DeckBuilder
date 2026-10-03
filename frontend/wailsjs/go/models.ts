@@ -34,6 +34,7 @@ export namespace card {
 	}
 	export class Result {
 	    data: dto.Card;
+	    warning?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Result(source);
@@ -42,6 +43,7 @@ export namespace card {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = this.convertValues(source["data"], dto.Card);
+	        this.warning = source["warning"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -128,6 +130,7 @@ export namespace collection {
 	}
 	export class Result {
 	    data: dto.Collection;
+	    warning?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Result(source);
@@ -136,6 +139,7 @@ export namespace collection {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = this.convertValues(source["data"], dto.Collection);
+	        this.warning = source["warning"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -195,6 +199,7 @@ export namespace deck {
 	}
 	export class Result {
 	    data: dto.Deck;
+	    warning?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Result(source);
@@ -203,6 +208,7 @@ export namespace deck {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = this.convertValues(source["data"], dto.Deck);
+	        this.warning = source["warning"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -522,6 +528,7 @@ export namespace game {
 	}
 	export class Result {
 	    data: dto.Game;
+	    warning?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Result(source);
@@ -530,6 +537,7 @@ export namespace game {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = this.convertValues(source["data"], dto.Game);
+	        this.warning = source["warning"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

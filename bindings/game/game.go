@@ -23,6 +23,8 @@ type ListResult struct {
 
 type Result struct {
 	Data dto.Game `json:"data"`
+	// Warning explains why a new image was not applied. The save itself succeeded.
+	Warning string `json:"warning,omitempty"`
 }
 
 type Game struct {
@@ -71,7 +73,7 @@ func (g *Game) Create(req catalog.WriteRequest) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.GameDTO(g.cfg, *item)}, nil
+	return &Result{Data: catalog.GameDTO(g.cfg, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
 }
 
 func (g *Game) Read(gameID string) (*Result, error) {
@@ -92,7 +94,7 @@ func (g *Game) Update(gameID string, req catalog.WriteRequest) (*Result, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.GameDTO(g.cfg, *item)}, nil
+	return &Result{Data: catalog.GameDTO(g.cfg, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
 }
 
 func (g *Game) Delete(gameID string) error {

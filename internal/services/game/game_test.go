@@ -3,6 +3,8 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -391,16 +393,74 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, imgType, "gif")
 
-	// Update game
-	_, err = tt.serviceGame.Update(gameID, UpdateRequest{
+	// A bad URL is not applied: the save succeeds and the old image stays
+	updated, err := tt.serviceGame.Update(gameID, UpdateRequest{
 		Name:  gameName,
 		Image: "empty",
 	})
 	assert.NoError(t, err)
+	assert.Error(t, updated.ImageError)
+	assert.Equal(t, "", updated.Image)
 
-	// Check no image
+	// Check image is kept
+	_, imgType, err = tt.serviceGame.GetImage(gameID)
+	assert.NoError(t, err)
+	assert.Equal(t, "gif", imgType)
+
+	// Delete game
+	err = tt.serviceGame.Delete(gameID)
+	assert.NoError(t, err)
+}
+
+func (tt *gameTest) testImageFailure(t *testing.T) {
+	gameName := "image_failure"
+	gameID := utils.NameToID(gameName)
+
+	pngImage, err := images.ImageToPng(images.CreateImage(10, 10))
+	assert.NoError(t, err)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/ok.png" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_, _ = w.Write(pngImage)
+	}))
+	defer srv.Close()
+	okURL, missingURL := srv.URL+"/ok.png", srv.URL+"/missing.png"
+
+	// Create with a bad URL: saved without an image, URL not stored
+	item, err := tt.serviceGame.Create(CreateRequest{
+		Name:  gameName,
+		Image: missingURL,
+	})
+	assert.NoError(t, err)
+	assert.ErrorIs(t, item.ImageError, er.NetworkBadResponse)
+	assert.Equal(t, "", item.Image)
 	_, _, err = tt.serviceGame.GetImage(gameID)
 	assert.ErrorIs(t, err, er.GameImageNotExists)
+
+	// Retry with a good URL: downloads now
+	item, err = tt.serviceGame.Update(gameID, UpdateRequest{
+		Name:  gameName,
+		Image: okURL,
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, item.ImageError)
+	assert.Equal(t, okURL, item.Image)
+
+	// Update the description with a bad URL: description saved, old image kept
+	item, err = tt.serviceGame.Update(gameID, UpdateRequest{
+		Name:        gameName,
+		Description: "changed",
+		Image:       missingURL,
+	})
+	assert.NoError(t, err)
+	assert.ErrorIs(t, item.ImageError, er.NetworkBadResponse)
+	assert.Equal(t, "changed", item.Description)
+	assert.Equal(t, okURL, item.Image)
+	_, imgType, err := tt.serviceGame.GetImage(gameID)
+	assert.NoError(t, err)
+	assert.Equal(t, "png", imgType)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID)
@@ -429,6 +489,7 @@ func TestGame(t *testing.T) {
 	t.Run("duplicate", tt.testDuplicate)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("image_failure", tt.testImageFailure)
 }
 
 func (tt *gameTest) fuzzCleanup() {

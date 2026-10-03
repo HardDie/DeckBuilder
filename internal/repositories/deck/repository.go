@@ -1,6 +1,8 @@
 package deck
 
 import (
+	"errors"
+
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -27,28 +29,20 @@ func New(cfg *config.Config, db *fsentry.DB) Deck {
 }
 
 func (r *deck) Create(gameID, collectionID string, req CreateRequest) (*entitiesDeck.Deck, error) {
-	d, err := r.create(gameID, collectionID, req)
+	change, imageErr := repositories.ResolveImage("", req.Image, req.ImageFile)
+	req.Image = change.URL
+
+	item, err := r.create(gameID, collectionID, req)
 	if err != nil {
 		return nil, err
 	}
-
-	if d.Image == "" && req.ImageFile == nil {
-		return d, nil
-	}
-
-	if d.Image != "" {
-		err = r.createImage(gameID, collectionID, d.ID, d.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, d.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, collectionID, item.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
-	return d, nil
+	item.ImageError = imageErr
+	return item, nil
 }
 
 func (r *deck) GetByID(gameID, collectionID, deckID string) (*entitiesDeck.Deck, error) {
@@ -64,8 +58,10 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 	if err != nil {
 		return nil, err
 	}
+	// Download and validate before any write, so a bad image keeps the old one.
+	change, imageErr := repositories.ResolveImage(oldDeck.Image, req.Image, req.ImageFile)
 
-	var newDeck *entitiesDeck.Deck
+	newDeck := oldDeck
 	if oldDeck.Name != req.Name {
 		newDeck, err = r.move(gameID, collectionID, oldDeck.Name, req.Name)
 		if err != nil {
@@ -74,49 +70,30 @@ func (r *deck) Update(gameID, collectionID, deckID string, req UpdateRequest) (*
 	}
 
 	if oldDeck.Description != req.Description ||
-		oldDeck.Image != req.Image ||
-		req.ImageFile != nil {
+		oldDeck.Image != change.URL ||
+		change.Data != nil {
 		newDeck, err = r.update(gameID, collectionID, updateRequest{
 			Name:        req.Name,
 			Description: req.Description,
-			Image:       req.Image,
+			Image:       change.URL,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if newDeck == nil {
-		newDeck = oldDeck
-	}
-
-	if newDeck.Image == oldDeck.Image && req.ImageFile == nil {
-		return newDeck, nil
-	}
-
-	if data, _, _ := r.GetImage(gameID, collectionID, newDeck.ID); data != nil {
+	if change.Data != nil || change.Clear {
 		err = r.imageDelete(gameID, collectionID, newDeck.ID)
-		if err != nil {
+		if err != nil && !errors.Is(err, er.DeckImageNotExists) {
 			return nil, err
 		}
 	}
-
-	if newDeck.Image == "" && req.ImageFile == nil {
-		return newDeck, nil
-	}
-
-	if newDeck.Image != "" {
-		err = r.createImage(gameID, collectionID, newDeck.ID, newDeck.Image)
-		if err != nil {
-			logger.Warn.Println("Unable to load image. The deck will be saved without an image.", err.Error())
-		}
-	} else if req.ImageFile != nil {
-		err = r.createImageFromByte(gameID, collectionID, newDeck.ID, req.ImageFile)
-		if err != nil {
-			logger.Warn.Println("Invalid image. The deck will be saved without an image.", err.Error())
+	if change.Data != nil {
+		if err = r.imageCreate(gameID, collectionID, newDeck.ID, change.Data); err != nil {
+			imageErr = err
 		}
 	}
-
+	newDeck.ImageError = imageErr
 	return newDeck, nil
 }
 
@@ -165,22 +142,6 @@ func (r *deck) GetAllDecksInGame(gameID string) ([]*entitiesDeck.Deck, error) {
 		}
 	}
 	return decks, nil
-}
-
-func (r *deck) createImage(gameID, collectionID, deckID, imageURL string) error {
-	data, err := repositories.ImageBytes(imageURL, nil)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, collectionID, deckID, data)
-}
-
-func (r *deck) createImageFromByte(gameID, collectionID, deckID string, data []byte) error {
-	data, err := repositories.ImageBytes("", data)
-	if err != nil {
-		return err
-	}
-	return r.imageCreate(gameID, collectionID, deckID, data)
 }
 
 func (r *deck) create(gameID, collectionID string, req CreateRequest) (*entitiesDeck.Deck, error) {

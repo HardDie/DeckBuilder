@@ -18,6 +18,7 @@
 * **2a. Duplicate or illegal name:** `GameExist` or `BadName`.
 * **2b. Unknown id on get/update/delete:** `GameNotExists`.
 * **4a. List:** `meta.total` reflects filtered count.
+* **2c. Image URL or file fails (download, timeout, size, format):** the game is still saved; the image part is not applied (create stores no URL, update keeps the old image and URL); the result carries `warning`, shown as a toast. Limits: [ADR 020](../../architecture/020-image-input-limits.md).
 
 ## Postconditions
 

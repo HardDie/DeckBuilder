@@ -25,3 +25,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [017](017-sheet-draw-speed.md) | Sheet draw speed trials | Accepted |
 | [018](018-generation-progress.md) | Generation progress in `internal/render/progress` | Accepted |
 | [019](019-claude-md.md) | CLAUDE.md replaces CURSOR.md | Accepted |
+| [020](020-image-input-limits.md) | Limits on incoming images | Accepted |

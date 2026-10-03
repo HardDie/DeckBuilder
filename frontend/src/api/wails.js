@@ -1,12 +1,21 @@
 import { useToast } from 'vue-toastification'
 
+// withBindingError shows a binding error as a toast and rethrows it.
+// A successful result with `warning` (e.g. an image that was not saved) shows a warning toast.
 export function withBindingError(promise) {
-  return promise.catch(err => {
-    const toast = useToast()
-    const message = typeof err === 'string' ? err : err?.message || 'Unknown error'
-    toast.error(message)
-    throw err
-  })
+  return promise
+    .then(result => {
+      if (result?.warning) {
+        useToast().warning(result.warning)
+      }
+      return result
+    })
+    .catch(err => {
+      const toast = useToast()
+      const message = typeof err === 'string' ? err : err?.message || 'Unknown error'
+      toast.error(message)
+      throw err
+    })
 }
 
 async function imageFileBytes(file) {

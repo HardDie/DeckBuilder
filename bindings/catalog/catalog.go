@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -77,6 +79,20 @@ func CardDTO(cfg config.Config, item entitiesCard.Card) dto.Card {
 		CreatedAt:   formatTimestamp(item.CreatedAt),
 		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
+}
+
+// ImageWarning tells the user why a new image was not applied.
+// It is "" when err is nil. The HTTP code prefix of *er.Err is left out.
+func ImageWarning(err error) string {
+	if err == nil {
+		return ""
+	}
+	msg := err.Error()
+	var e *er.Err
+	if errors.As(err, &e) {
+		msg = e.GetMessage()
+	}
+	return "Image was not saved: " + msg
 }
 
 // formatTimestamp matches encoding/json for time.Time.

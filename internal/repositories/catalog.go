@@ -60,3 +60,35 @@ func sentinel(target *er.Err, err error, message bool) error {
 	}
 	return target.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
 }
+
+// ImageChange is the image part of a create or update.
+type ImageChange struct {
+	// URL is the image URL to store.
+	URL string
+	// Data is the new image to write. Nil keeps the current file.
+	Data []byte
+	// Clear removes the current file.
+	Clear bool
+}
+
+// ResolveImage decides the image part before anything is written.
+// oldURL is the stored URL, "" on create.
+// A new file wins over a URL, and its stored URL is "".
+// Otherwise a URL different from oldURL is a new image.
+// A new image is downloaded and validated here.
+// On error the change keeps oldURL and the current file,
+// and the error says why the new image was not applied.
+func ResolveImage(oldURL, newURL string, newFile []byte) (ImageChange, error) {
+	if newFile != nil {
+		newURL = ""
+	} else if newURL == oldURL {
+		return ImageChange{URL: oldURL}, nil
+	} else if newURL == "" {
+		return ImageChange{Clear: true}, nil
+	}
+	data, err := ImageBytes(newURL, newFile)
+	if err != nil {
+		return ImageChange{URL: oldURL}, err
+	}
+	return ImageChange{URL: newURL, Data: data}, nil
+}

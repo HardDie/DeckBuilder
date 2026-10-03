@@ -17,6 +17,7 @@
 
 * **2a. Duplicate name:** `DeckExist`.
 * **Generate (UC-08) without a back image:** generate fails when `GetImage` for the deck errors.
+* **2b. Image URL or file fails (download, timeout, size, format):** the deck is still saved; the image part is not applied (create stores no URL, update keeps the old image and URL); the result carries `warning`, shown as a toast. Limits: [ADR 020](../../architecture/020-image-input-limits.md).
 
 ## Postconditions
 

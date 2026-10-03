@@ -16,6 +16,7 @@
 
 * **1a. Missing game:** collection APIs fail with not-exists on the parent.
 * **2a. Duplicate collection name:** `CollectionExist`.
+* **2b. Image URL or file fails (download, timeout, size, format):** the collection is still saved; the image part is not applied (create stores no URL, update keeps the old image and URL); the result carries `warning`, shown as a toast. Limits: [ADR 020](../../architecture/020-image-input-limits.md).
 
 ## Postconditions
 

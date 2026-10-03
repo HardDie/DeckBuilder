@@ -16,6 +16,10 @@ type Collection struct {
 	// Dynamic fields
 
 	GameID string
+
+	// ImageError is set by create / update when the new image was not applied.
+	// It is never stored.
+	ImageError error
 }
 
 func (e Collection) GetName() string {

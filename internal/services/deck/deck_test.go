@@ -540,21 +540,28 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	}
 
 	// Update deck
-	_, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
+	// A bad URL is not applied: the save succeeds and the old image stays
+	updated, err := tt.serviceDeck.Update(tt.gameID, tt.collectionID, deckID, UpdateRequest{
 		Name:  deckType,
 		Image: "empty",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Check no image
-	_, _, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, deckID)
-	if err == nil {
-		t.Fatal("Error, deck don't have image")
+	if updated.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
 	}
-	if !errors.Is(err, er.DeckImageNotExists) {
+	if updated.Image != "" {
+		t.Fatal("Image URL error! [got]", updated.Image, "[want] \"\"")
+	}
+
+	// Check image is kept
+	_, imgType, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, deckID)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if imgType != "gif" {
+		t.Fatal("Image type error! [got]", imgType, "[want] gif")
 	}
 
 	// Delete deck
@@ -620,6 +627,51 @@ func (tt *deckTest) testRenameWithImage(t *testing.T) {
 	}
 }
 
+func (tt *deckTest) testImageFailure(t *testing.T) {
+	name := "image_failure"
+
+	// Create with a bad URL: saved without an image, URL not stored
+	item, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
+		Name:  name,
+		Image: "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Image != "" {
+		t.Fatal("Image URL error! [got]", item.Image, "[want] \"\"")
+	}
+	_, _, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, item.ID)
+	if !errors.Is(err, er.DeckImageNotExists) {
+		t.Fatal(err)
+	}
+
+	// Update the description with a bad URL: the description is saved anyway
+	item, err = tt.serviceDeck.Update(tt.gameID, tt.collectionID, item.ID, UpdateRequest{
+		Name:        name,
+		Description: "changed",
+		Image:       "empty",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.ImageError == nil {
+		t.Fatal("Error, want ImageError for a bad URL")
+	}
+	if item.Description != "changed" {
+		t.Fatal("Description error! [got]", item.Description, "[want] changed")
+	}
+
+	// Delete
+	err = tt.serviceDeck.Delete(tt.gameID, tt.collectionID, item.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestDeck(t *testing.T) {
 	t.Parallel()
 
@@ -673,6 +725,7 @@ func TestDeck(t *testing.T) {
 	t.Run("item", tt.testItem)
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
+	t.Run("image_failure", tt.testImageFailure)
 	t.Run("rename_with_image", tt.testRenameWithImage)
 }
 
