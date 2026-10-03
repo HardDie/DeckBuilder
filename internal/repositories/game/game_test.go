@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 )
 
@@ -66,7 +66,7 @@ func TestGame(t *testing.T) {
 	assert.NoError(t, created.ImageError)
 
 	_, err = g.Create(CreateRequest{Name: "Munchkin"})
-	assert.ErrorIs(t, err, er.GameExist)
+	assert.ErrorIs(t, err, apperr.ErrGameExists)
 
 	all, err := g.GetAll()
 	require.NoError(t, err)
@@ -79,11 +79,11 @@ func TestGame(t *testing.T) {
 	assert.Error(t, updated.ImageError, "a bad URL is reported, not applied")
 
 	_, _, err = g.GetImage("munchkin_2")
-	assert.ErrorIs(t, err, er.GameImageNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameImageNotFound)
 
 	require.NoError(t, g.DeleteByID("munchkin_2"))
 	_, err = g.GetByID("munchkin_2")
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 }
 
 func TestGameDuplicate(t *testing.T) {
@@ -111,7 +111,7 @@ func TestGameDuplicate(t *testing.T) {
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t)
 		_, err := g.Duplicate("not_exist", DuplicateRequest{Name: "new"})
-		assert.ErrorIs(t, err, er.GameNotExists)
+		assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 	})
 
 	t.Run("exist", func(t *testing.T) {
@@ -121,13 +121,13 @@ func TestGameDuplicate(t *testing.T) {
 		_, err = g.Create(CreateRequest{Name: "exist"})
 		require.NoError(t, err)
 		_, err = g.Duplicate("exist_origin", DuplicateRequest{Name: "exist"})
-		assert.ErrorIs(t, err, er.GameExist)
+		assert.ErrorIs(t, err, apperr.ErrGameExists)
 	})
 
 	t.Run("bad_source_name", func(t *testing.T) {
 		g := initGame(t)
 		_, err := g.Duplicate("---", DuplicateRequest{Name: "good"})
-		assert.ErrorIs(t, err, er.BadName)
+		assert.ErrorIs(t, err, apperr.ErrBadName)
 	})
 
 	t.Run("bad_target_name", func(t *testing.T) {
@@ -135,7 +135,7 @@ func TestGameDuplicate(t *testing.T) {
 		_, err := g.Create(CreateRequest{Name: "good"})
 		require.NoError(t, err)
 		_, err = g.Duplicate("good", DuplicateRequest{Name: "---"})
-		assert.ErrorIs(t, err, er.BadName)
+		assert.ErrorIs(t, err, apperr.ErrBadName)
 	})
 }
 
@@ -202,7 +202,7 @@ func TestGameExportImport(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = g.Import(data, "")
-		assert.ErrorIs(t, err, er.GameExist)
+		assert.ErrorIs(t, err, apperr.ErrGameExists)
 		kept, err := g.GetByID(created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, "edited", kept.Description)
@@ -211,7 +211,7 @@ func TestGameExportImport(t *testing.T) {
 	t.Run("bad_archive", func(t *testing.T) {
 		g := initGame(t)
 		_, err := g.Import([]byte("not a zip"), "")
-		assert.ErrorIs(t, err, er.BadArchive)
+		assert.ErrorIs(t, err, apperr.ErrBadArchive)
 	})
 
 	t.Run("bad_name", func(t *testing.T) {
@@ -221,13 +221,13 @@ func TestGameExportImport(t *testing.T) {
 		data, err := g.Export(created.ID)
 		require.NoError(t, err)
 		_, err = g.Import(data, "---")
-		assert.ErrorIs(t, err, er.BadName)
+		assert.ErrorIs(t, err, apperr.ErrBadName)
 	})
 
 	t.Run("not_exist", func(t *testing.T) {
 		g := initGame(t)
 		_, err := g.Export("missing")
-		assert.ErrorIs(t, err, er.GameNotExists)
+		assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 	})
 }
 

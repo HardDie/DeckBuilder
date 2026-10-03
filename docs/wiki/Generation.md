@@ -21,7 +21,7 @@ The window calls `bindings/generator.Game`. Scale below 1 becomes 1, then `compo
 
 `GenerateGame` returns as soon as the game exists, the cards are listed, and `result/<gameID>/` exists. Drawing continues in a goroutine. The window polls system `Status` about twice a second.
 
-Only one render runs at a time; a second call gets `GenerateInProgress`. Reading `done` or `error` resets the status to `empty`.
+Only one render runs at a time; a second call gets `ErrRenderInProgress`. Reading `done` or `error` resets the status to `empty`.
 
 ## Steps
 

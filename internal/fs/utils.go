@@ -1,11 +1,11 @@
 package fs
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
@@ -16,16 +16,14 @@ const (
 func CreateFolder(path string) error {
 	err := os.MkdirAll(path, DirPerm)
 	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
+		return fmt.Errorf("create folder %q: %w", path, err)
 	}
 	return nil
 }
 func RemoveFolder(path string) error {
 	err := os.RemoveAll(path)
 	if err != nil {
-		errors.IfErrorLog(err)
-		return errors.InternalError.AddMessage(err.Error())
+		return fmt.Errorf("remove folder %q: %w", path, err)
 	}
 	return nil
 }

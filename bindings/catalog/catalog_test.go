@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 func TestImageWarning(t *testing.T) {
@@ -15,14 +15,14 @@ func TestImageWarning(t *testing.T) {
 	}{
 		{name: "no_error", want: ""},
 		{
-			name: "catalog_error_without_http_prefix",
-			err:  er.NetworkTimeout.AddMessage("download timed out after 120 s"),
-			want: "Image was not saved: download timed out after 120 s",
+			name: "known_error",
+			err:  apperr.Withf(apperr.ErrDownloadTimeout, "the image download timed out after %d s", 120),
+			want: "Image was not saved: the image download timed out after 120 s",
 		},
 		{
-			name: "plain_error",
+			name: "unexpected_error",
 			err:  errors.New("disk full"),
-			want: "Image was not saved: disk full",
+			want: "Image was not saved: " + apperr.Unexpected,
 		},
 	}
 	for _, tt := range tests {
@@ -35,7 +35,7 @@ func TestImageWarning(t *testing.T) {
 }
 
 func TestSaveWarning(t *testing.T) {
-	failed := er.NetworkBadResponse.AddMessage("server answered 404")
+	failed := apperr.With(apperr.ErrDownloadFailed, "the image could not be downloaded: the server answered 404")
 	tests := []struct {
 		name     string
 		err      error
@@ -44,8 +44,8 @@ func TestSaveWarning(t *testing.T) {
 	}{
 		{name: "image_saved", hasImage: true, want: ""},
 		{name: "no_image", want: CardNoImage},
-		{name: "failed_old_image_kept", err: failed, hasImage: true, want: "Image was not saved: server answered 404"},
-		{name: "failed_and_no_image", err: failed, want: "Image was not saved: server answered 404 " + CardNoImage},
+		{name: "failed_old_image_kept", err: failed, hasImage: true, want: "Image was not saved: the image could not be downloaded: the server answered 404"},
+		{name: "failed_and_no_image", err: failed, want: "Image was not saved: the image could not be downloaded: the server answered 404 " + CardNoImage},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

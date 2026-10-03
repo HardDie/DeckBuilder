@@ -30,3 +30,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [022](022-stb-image-resize.md) | Resize faces with stb_image_resize2 | Accepted |
 | [023](023-per-game-results-and-page-reuse.md) | Per-game result folders and page reuse | Accepted |
 | [024](024-required-deck-and-card-images.md) | Decks and cards require an image | Accepted |
+| [025](025-app-errors.md) | App errors in `internal/apperr` | Accepted |

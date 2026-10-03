@@ -2,10 +2,9 @@ package replace
 
 import (
 	"encoding/json"
-	"fmt"
 	"sort"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	servicesTTS "github.com/HardDie/DeckBuilder/internal/services/tts"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
@@ -39,11 +38,12 @@ func (s *replace) Prepare(data []byte) ([]Couple, error) {
 	req := Request{}
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		return nil, err
+		logger.Info.Printf("error parsing data file: %s", err.Error())
+		return nil, apperr.ErrBadRenderFile
 	}
 
 	if len(req.ObjectStates) != 1 {
-		return nil, errors.ErrorInvalidDeckDescription
+		return nil, apperr.ErrBadRenderFile
 	}
 
 	var res []Couple
@@ -77,14 +77,14 @@ func replaceCustomDeck(customDeck map[int]tts_entity.DeckDescription, mm map[str
 		// Replace back image
 		newUrl, ok := mm[val.BackURL]
 		if !ok {
-			return errors.ErrorInvalidDeckDescription.AddMessage(fmt.Sprintf("can't find mapping for %q back url", val.BackURL))
+			return apperr.Withf(apperr.ErrBadMappingFile, "the mapping file has no URL for %q", val.BackURL)
 		}
 		val.BackURL = newUrl
 
 		// Replace front image
 		newUrl, ok = mm[val.FaceURL]
 		if !ok {
-			return errors.ErrorInvalidDeckDescription.AddMessage(fmt.Sprintf("can't find mapping for %q face url", val.FaceURL))
+			return apperr.Withf(apperr.ErrBadMappingFile, "the mapping file has no URL for %q", val.FaceURL)
 		}
 		val.FaceURL = newUrl
 
@@ -98,14 +98,14 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 	err := json.Unmarshal(mapping, &m)
 	if err != nil {
 		logger.Info.Printf("error parsing mapping file: %s", err.Error())
-		return nil, errors.ErrorInvalidMapping
+		return nil, apperr.ErrBadMappingFile
 	}
 
 	var root tts_entity.RootObjects
 	err = json.Unmarshal(data, &root)
 	if err != nil {
 		logger.Info.Printf("error parsing data file: %s", err.Error())
-		return nil, errors.ErrorInvalidDeckDescription
+		return nil, apperr.ErrBadRenderFile
 	}
 
 	// Convert items into map
@@ -116,7 +116,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 
 	if len(root.ObjectStates) != 1 {
 		logger.Info.Println("should be single root object")
-		return nil, errors.ErrorInvalidDeckDescription
+		return nil, apperr.ErrBadRenderFile
 	}
 
 	var newContained []any
@@ -128,14 +128,14 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 		}
 		if colName != "Bag" {
 			logger.Info.Printf("error collection bag parsing %v", err)
-			return nil, errors.ErrorInvalidDeckDescription
+			return nil, apperr.ErrBadRenderFile
 		}
 
 		var collectionBag tts_entity.Bag
 		err = utils.ObjectJSONObject(collectionBagTemp, &collectionBag)
 		if err != nil {
 			logger.Info.Printf("error collection bag parsing %v", err)
-			return nil, errors.ErrorInvalidDeckDescription
+			return nil, apperr.ErrBadRenderFile
 		}
 
 		var collectionBagContaind []any
@@ -152,7 +152,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 				err = utils.ObjectJSONObject(item, &deck)
 				if err != nil {
 					logger.Info.Printf("error deck parsing %v", err)
-					return nil, errors.ErrorInvalidDeckDescription
+					return nil, apperr.ErrBadRenderFile
 				}
 
 				// Replace for custom deck
@@ -176,7 +176,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 				err = utils.ObjectJSONObject(item, &card)
 				if err != nil {
 					logger.Info.Printf("error card parsing %v", err)
-					return nil, errors.ErrorInvalidDeckDescription
+					return nil, apperr.ErrBadRenderFile
 				}
 
 				// Replace for custom deck
@@ -188,7 +188,7 @@ func (s *replace) Replace(data, mapping []byte) (*tts_entity.RootObjects, error)
 				collectionBagContaind = append(collectionBagContaind, card)
 			default:
 				logger.Info.Printf("unknown object: %q", itemName)
-				return nil, errors.ErrorInvalidDeckDescription
+				return nil, apperr.ErrBadRenderFile
 			}
 		}
 		if len(collectionBagContaind) > 0 {
@@ -207,17 +207,17 @@ func getName(obj any) (string, error) {
 	tmp, ok := obj.(map[string]any)
 	if !ok {
 		logger.Info.Printf("unknown object type: %T", obj)
-		return "", errors.ErrorInvalidDeckDescription
+		return "", apperr.ErrBadRenderFile
 	}
 	name, ok := tmp["Name"]
 	if !ok {
 		logger.Info.Println("object don't have Name field")
-		return "", errors.ErrorInvalidDeckDescription
+		return "", apperr.ErrBadRenderFile
 	}
 	nameStr, ok := name.(string)
 	if !ok {
 		logger.Info.Println("Name field is not string")
-		return "", errors.ErrorInvalidDeckDescription
+		return "", apperr.ErrBadRenderFile
 	}
 	return nameStr, nil
 }

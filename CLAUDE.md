@@ -215,7 +215,11 @@ Layers:
    4. TTS `CardID` differs from the catalog `int64` id.
 6. Each package declares its interface in `contract.go`.
 7. Implementation structs stay unexported.
-8. Errors come from `internal/errors`.
+8. Errors the user can meet come from `internal/apperr` ([ADR 025](docs/architecture/025-app-errors.md)).
+   1. Names start with `Err`; each has a clear message and one kind.
+   2. Errors carry no HTTP codes; the HTTP server maps kinds to status codes.
+   3. Unexpected errors are wrapped with `fmt.Errorf("…: %w", err)`.
+   4. The window shows `apperr.Message`; unexpected ones are logged.
 9. Do not add a top-level `internal/` package for a single handler.
 10. Do not collapse `servers` / `services` / `repositories` without an ADR.
 11. Game, collection, and deck repositories wrap `repositories.Folder`.
@@ -271,7 +275,7 @@ Other locations:
    3. Reading `done` or `error` resets it to `empty`.
    4. Pollers treat that `empty` as "already observed".
    5. Only one generate runs at a time, so one run owns it.
-   6. Overlapping generates are rejected with `GenerateInProgress`.
+   6. Overlapping generates are rejected with `ErrRenderInProgress`.
 8. Compose is the only render path.
    1. The old `generator`, `page_drawer`, and `progress` were removed.
    2. `docs/wiki/Generation.md` and `internal/render/compose/README.md` describe compose.

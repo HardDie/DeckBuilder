@@ -3,11 +3,13 @@ package game
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -23,10 +25,10 @@ func New(db *fsentry.DB) Game {
 		db:        db,
 		gamesPath: "games",
 		folder: repositories.NewFolder(db, repositories.FolderErrors{
-			Exist:         er.GameExist,
-			NotExist:      er.GameNotExists,
-			ImageExist:    er.GameImageExist,
-			ImageNotExist: er.GameImageNotExists,
+			Exist:         apperr.ErrGameExists,
+			NotExist:      apperr.ErrGameNotFound,
+			ImageExist:    apperr.ErrGameImageExists,
+			ImageNotExist: apperr.ErrGameImageNotFound,
 		}),
 	}
 }
@@ -79,9 +81,8 @@ func (r *game) Duplicate(gameID string, req DuplicateRequest) (*entitiesGame.Gam
 	info, err := r.db.DuplicateFolder[repositories.FolderModel](gameID, req.Name, r.gamesPath)
 	if err != nil {
 		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
-			Exist:    er.GameExist,
-			NotExist: er.GameNotExists,
-			Message:  true,
+			Exist:    apperr.ErrGameExists,
+			NotExist: apperr.ErrGameNotFound,
 		})
 	}
 	return toEntity(info, nil), nil
@@ -95,7 +96,7 @@ func (r *game) Export(gameID string) ([]byte, error) {
 
 	var buf bytes.Buffer
 	if err = r.db.ExportFolder(&buf, g.ID, r.gamesPath); err != nil {
-		return nil, er.InternalError.AddMessage(err.Error())
+		return nil, fmt.Errorf("export game %q: %w", g.ID, err)
 	}
 	return buf.Bytes(), nil
 }
@@ -104,17 +105,16 @@ func (r *game) Import(data []byte, name string) (*entitiesGame.Game, error) {
 	id, err := r.db.ImportFolder(bytes.NewReader(data), name, r.gamesPath)
 	if err != nil {
 		if errors.Is(err, fsentry.ErrBadArchive) {
-			return nil, er.BadArchive.AddMessage(err.Error())
+			return nil, apperr.ErrBadArchive
 		}
 		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
-			Exist:   er.GameExist,
-			Message: true,
+			Exist: apperr.ErrGameExists,
 		})
 	}
 
 	g, err := r.GetByID(id)
 	if err != nil {
-		er.IfErrorLog(r.DeleteByID(id))
+		logger.IfError(r.DeleteByID(id))
 		return nil, err
 	}
 	return g, nil

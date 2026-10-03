@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -89,7 +88,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 
 	if change.Data != nil || change.Clear {
 		err = r.imageDelete(gameID, collectionID, deckID, newCard.ID)
-		if err != nil && !errors.Is(err, er.CardImageNotExists) {
+		if err != nil && !errors.Is(err, apperr.ErrCardImageNotFound) {
 			return nil, err
 		}
 	}
@@ -106,7 +105,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 func (r *card) DeleteByID(gameID, collectionID, deckID string, cardID int64) error {
 	err := r.imageDelete(gameID, collectionID, deckID, cardID)
 	if err != nil {
-		if !errors.Is(err, er.CardImageNotExists) {
+		if !errors.Is(err, apperr.ErrCardImageNotFound) {
 			return err
 		}
 	}
@@ -160,8 +159,7 @@ func (r *card) create(gameID, collectionID, deckID string, req CreateRequest) (*
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
-			NotExist: er.CardNotExists,
-			Message:  true,
+			NotExist: apperr.ErrCardNotFound,
 		})
 	}
 
@@ -176,7 +174,7 @@ func (r *card) get(gameID, collectionID, deckID string, cardID int64) (*entities
 
 	card, ok := list[cardID]
 	if !ok {
-		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
+		return nil, apperr.ErrCardNotFound
 	}
 
 	e := r.toEntity(card, gameID, collectionID, deckID)
@@ -211,7 +209,7 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 
 	card, ok := list[cardID]
 	if !ok {
-		return nil, er.CardNotExists
+		return nil, apperr.ErrCardNotFound
 	}
 
 	card.Name = fsentry.QuotedString(req.Name)
@@ -226,8 +224,7 @@ func (r *card) update(gameID, collectionID, deckID string, cardID int64, req Upd
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
-			NotExist: er.CardNotExists,
-			Message:  true,
+			NotExist: apperr.ErrCardNotFound,
 		})
 	}
 
@@ -244,7 +241,7 @@ func (r *card) delete(gameID, collectionID, deckID string, cardID int64) error {
 	}
 
 	if _, ok := list[cardID]; !ok {
-		return er.CardNotExists
+		return apperr.ErrCardNotFound
 	}
 
 	delete(list, cardID)
@@ -252,8 +249,7 @@ func (r *card) delete(gameID, collectionID, deckID string, cardID int64) error {
 	_, err = r.db.UpdateFolder("cards", list, r.gamesPath, gameID, collectionID, deckID)
 	if err != nil {
 		return repositories.MapFsentry(err, repositories.FsentrySentinels{
-			NotExist: er.CardNotExists,
-			Message:  true,
+			NotExist: apperr.ErrCardNotFound,
 		})
 	}
 
@@ -269,8 +265,7 @@ func (r *card) imageCreate(gameID, collectionID, deckID string, cardID int64, da
 	err = r.db.CreateBinary(fmt.Sprintf("%d", card.ID), data, r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		return repositories.MapFsentry(err, repositories.FsentrySentinels{
-			Exist:   er.CardImageExist,
-			Message: true,
+			Exist: apperr.ErrCardImageExists,
 		})
 	}
 	return nil
@@ -285,8 +280,7 @@ func (r *card) imageGet(gameID, collectionID, deckID string, cardID int64) ([]by
 	data, err := r.db.GetBinary(fmt.Sprintf("%d", card.ID), nil, r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		return nil, repositories.MapFsentry(err, repositories.FsentrySentinels{
-			NotExist: er.CardImageNotExists,
-			Message:  true,
+			NotExist: apperr.ErrCardImageNotFound,
 		})
 	}
 	return data, nil
@@ -301,8 +295,7 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 	err = r.db.RemoveBinary(fmt.Sprintf("%d", card.ID), r.gamesPath, gameID, collectionID, deckID, "cards")
 	if err != nil {
 		return repositories.MapFsentry(err, repositories.FsentrySentinels{
-			NotExist: er.CardImageNotExists,
-			Message:  true,
+			NotExist: apperr.ErrCardImageNotFound,
 		})
 	}
 	return nil

@@ -19,8 +19,8 @@
 
 ## Alternative scenarios and errors
 
-* **1a. Unexpected ObjectStates shape:** `ErrorInvalidDeckDescription`.
-* **3a. Mapping missing a FaceURL/BackURL:** `ErrorInvalidDeckDescription` / `ErrorInvalidMapping`.
+* **1a. Unexpected ObjectStates shape:** `ErrBadRenderFile`.
+* **3a. Mapping missing a FaceURL/BackURL:** `ErrBadRenderFile` / `ErrBadMappingFile`.
 * **5a. TTS not running:** dial fails, log only; `Replace` still returns the new JSON and nothing is stored for `/api/tts/data`.
 
 ## Postconditions

@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
-	"github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/network"
@@ -125,7 +124,7 @@ func writeImage(w http.ResponseWriter, img []byte, imgType string, err error) {
 	}
 	w.Header().Set("Content-Type", "image/"+imgType)
 	if _, err := w.Write(img); err != nil {
-		errors.IfErrorLog(err)
+		logger.IfError(err)
 	}
 }
 

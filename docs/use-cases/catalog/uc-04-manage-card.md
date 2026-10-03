@@ -15,7 +15,7 @@
 
 ## Alternative scenarios and errors
 
-* **1a. Bad id on later requests:** `CardNotExists` / `BadId`.
+* **1a. Bad id on later requests:** `ErrCardNotFound` / `ErrBadCardID`.
 * **1b. Missing image:** the card is saved; the result carries the reminder "This card has no image…" as a warning toast, and the card list shows a "No image" placeholder and a warning badge (`hasImage` is false). Render does not start until it has one (UC-08 1b).
 * **1c. Image URL or file fails (download, timeout, size, format):** the card is still saved; the image part is not applied (create stores no URL, update keeps the old image and URL); the result carries `warning`, shown as a toast. Limits: [ADR 020](../../architecture/020-image-input-limits.md).
 * **1d. Count below 1:** create and update store 1; old or imported data with a lower count reads as 1.

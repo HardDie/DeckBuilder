@@ -28,7 +28,7 @@ These pages are the field notes. [Internals](Internals) is the map.
 | [Repositories](Repositories) | Images, zip, config paths |
 | [DB](DB) | fsentry mapping, fields, methods, callers |
 | [Entities and DTOs](Entities-and-DTOs) | Domain vs GUI JSON vs TTS JSON |
-| [Helpers](Helpers) | errors, network, fs, images, render/progress |
+| [Helpers](Helpers) | apperr, network, fs, images, render/progress |
 | [Cmd and tools](Cmd-and-tools) | root Wails window, `tools/` |
 
 ## Publishing these pages

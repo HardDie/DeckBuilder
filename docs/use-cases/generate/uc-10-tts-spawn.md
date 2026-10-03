@@ -17,7 +17,7 @@
 
 * **1a. TTS not running / nothing listening on 39999:** dial fails; generate still succeeded; log only.
 * **2a. Execute Lua on a GUID that has no script:** TTS errors (`Object reference not set…`). We only use Global `-1`.
-* **3a. Second GET `/api/tts/data`:** `there is nothing to serve` (HTTP 404, `TTSNothingToServe`).
+* **3a. Second GET `/api/tts/data`:** "nothing to send to Tabletop Simulator" (HTTP 404, `ErrNothingForTTS`).
 * **4a. `request.is_error`:** Lua prints the error and does not spawn.
 
 ## Postconditions

@@ -9,7 +9,7 @@ import (
 	"image/png"
 	"testing"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 // pngHeader returns a PNG that has only a signature and an IHDR chunk.
@@ -38,14 +38,14 @@ func TestValidateImage(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   []byte
-		wantErr *errors.Err
+		wantErr *apperr.Error
 	}{
 		{name: "small_png", input: small.Bytes()},
-		{name: "not_an_image", input: []byte("text"), wantErr: errors.UnknownImageType},
+		{name: "not_an_image", input: []byte("text"), wantErr: apperr.ErrUnsupportedImage},
 		// At the limit the header passes; decode then fails on the missing data.
-		{name: "header_at_limit", input: pngHeader(16384, 8192), wantErr: errors.UnknownImageType},
-		{name: "header_over_limit", input: pngHeader(16384, 8193), wantErr: errors.ImageTooLarge},
-		{name: "bomb_header", input: pngHeader(50000, 50000), wantErr: errors.ImageTooLarge},
+		{name: "header_at_limit", input: pngHeader(16384, 8192), wantErr: apperr.ErrUnsupportedImage},
+		{name: "header_over_limit", input: pngHeader(16384, 8193), wantErr: apperr.ErrImageTooLarge},
+		{name: "bomb_header", input: pngHeader(50000, 50000), wantErr: apperr.ErrImageTooLarge},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

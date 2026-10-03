@@ -222,7 +222,7 @@ R6. Small cleanups
 ## Added later
 
 S19. Remind about missing deck and card images
- 1. Status: `in review`.
+ 1. Status: `done`.
  2. List: `hasImage` in deck and card DTOs; "No image" placeholder and badge.
  3. Save: warning toast when a deck or card has no image.
  4. Render: `GenerateMissingImages` before start; nothing written.
@@ -237,7 +237,22 @@ S20. Show render failures in the window
  4. Idea: carry the reason in the polled status and show it as a toast.
 
 S21. Error toasts start with "HTTP[400]"
- 1. Status: `todo`.
+ 1. Status: `in review` (step 5 of 5).
  2. `*Err.Error()` prints the HTTP code first; bindings send that text.
  3. Every error toast shows it, e.g. "HTTP[400] game exist".
  4. Warnings already strip it (`catalog.ImageWarning`).
+ 5. Scope grown: rework errors fully into `internal/apperr`.
+    1. No HTTP codes in errors; the HTTP server maps error kinds to status codes.
+    2. `Err…` names, readable messages, one `With` helper for details.
+    3. Unexpected errors show "Something went wrong"; details go to the log.
+    4. Done in steps, reviewed one by one.
+ 5. Service image tests no longer download from github.com; a local server serves the images.
+ 6. `internal/errors` deleted. Decision: [ADR 025](../architecture/025-app-errors.md).
+
+S22. Rework logging
+ 1. Status: `todo`.
+ 2. S21 sends unexpected error details only to the log.
+ 3. The log must then be easy to find and read.
+ 4. Today: `internal/logger` writes to stdout (Info, Warn) and stderr (Error) only.
+ 5. A packaged app has no visible console, so those lines are lost.
+ 6. Ideas: a log file in the data folder, rotation, a "copy log" action in the window.

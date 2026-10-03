@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 type imageStub struct {
@@ -69,7 +69,7 @@ func (s *ttsStub) DataForTTS() ([]byte, error) {
 func TestRoutes(t *testing.T) {
 	game := &gameStub{imageStub{img: []byte("png-bytes"), kind: "png"}}
 	collection := &collectionStub{imageStub{img: []byte("jpeg-bytes"), kind: "jpeg"}}
-	deck := &deckStub{imageStub{err: er.DeckImageNotExists}}
+	deck := &deckStub{imageStub{err: apperr.ErrDeckImageNotFound}}
 	card := &cardStub{imageStub{img: []byte("gif-bytes"), kind: "gif"}}
 	tts := &ttsStub{data: []byte(`{"Name":"Bag"}`)}
 
@@ -83,7 +83,7 @@ func TestRoutes(t *testing.T) {
 	}{
 		{"/api/games/four_souls/image", http.StatusOK, "image/png", "png-bytes"},
 		{"/api/games/four_souls/collections/base/image", http.StatusOK, "image/jpeg", "jpeg-bytes"},
-		{"/api/games/four_souls/collections/base/decks/loot/image", http.StatusBadRequest, "application/json; charset=utf-8", ""},
+		{"/api/games/four_souls/collections/base/decks/loot/image", http.StatusNotFound, "application/json; charset=utf-8", ""},
 		{"/api/games/four_souls/collections/base/decks/loot/cards/7/image", http.StatusOK, "image/gif", "gif-bytes"},
 		{"/api/games/four_souls/collections/base/decks/loot/cards/nope/image", http.StatusBadRequest, "application/json; charset=utf-8", ""},
 		{"/api/tts/data", http.StatusOK, "application/json; charset=utf-8", `{"Name":"Bag"}`},

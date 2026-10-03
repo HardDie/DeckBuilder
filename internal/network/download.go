@@ -1,15 +1,15 @@
 package network
 
 import (
-	stderrors "errors"
-	"fmt"
+	"errors"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 const (
@@ -30,27 +30,27 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 	// Parse URL
 	imageURL, err := (&url.URL{}).Parse(source)
 	if err != nil {
-		errors.IfErrorLog(err)
-		return nil, errors.NetworkBadURL.AddMessage(err.Error())
+		logger.IfError(err)
+		return nil, apperr.ErrDownloadBadURL
 	}
 
 	// GET request for image
 	resp, err := client.Get(imageURL.String())
 	if err != nil {
-		errors.IfErrorLog(err)
+		logger.IfError(err)
 		if isTimeout(err) {
 			return nil, timeoutError(client)
 		}
-		return nil, errors.NetworkBadRequest.AddMessage(err.Error())
+		return nil, apperr.ErrDownloadFailed
 	}
-	defer func() { errors.IfErrorLog(resp.Body.Close()) }()
+	defer func() { logger.IfError(resp.Body.Close()) }()
 
 	// Bad response
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.NetworkBadResponse.AddMessage(fmt.Sprintf("server answered %d", resp.StatusCode))
+		return nil, apperr.Withf(apperr.ErrDownloadFailed, "the image could not be downloaded: the server answered %d", resp.StatusCode)
 	}
 
-	tooLarge := errors.NetworkBadResponse.AddMessage(fmt.Sprintf("image is larger than %d MB", limit>>20))
+	tooLarge := apperr.Withf(apperr.ErrImageTooLarge, "image is larger than %d MB", limit>>20)
 	if resp.ContentLength > limit {
 		return nil, tooLarge
 	}
@@ -64,7 +64,8 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 		if isTimeout(err) {
 			return nil, timeoutError(client)
 		}
-		return nil, errors.NetworkBadResponse.AddMessage(err.Error())
+		logger.IfError(err)
+		return nil, apperr.ErrDownloadFailed
 	}
 	if int64(len(data)) > limit {
 		return nil, tooLarge
@@ -74,9 +75,9 @@ func download(client *http.Client, source string, limit int64) ([]byte, error) {
 
 func isTimeout(err error) bool {
 	var netErr net.Error
-	return stderrors.As(err, &netErr) && netErr.Timeout()
+	return errors.As(err, &netErr) && netErr.Timeout()
 }
 
 func timeoutError(client *http.Client) error {
-	return errors.NetworkTimeout.AddMessage(fmt.Sprintf("download timed out after %d s", int(client.Timeout.Seconds())))
+	return apperr.Withf(apperr.ErrDownloadTimeout, "the image download timed out after %d s", int(client.Timeout.Seconds()))
 }

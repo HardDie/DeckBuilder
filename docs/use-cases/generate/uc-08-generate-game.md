@@ -17,8 +17,8 @@
 
 ## Alternative scenarios and errors
 
-* **1a. A generate is already running:** `GenerateInProgress` (HTTP 409 code); `result/` and progress are not touched.
-* **1b. A deck has no back image or a card has no image:** `GenerateMissingImages`; the message names up to 5 of them and counts the rest. Nothing is written and progress is not touched. See [ADR 024](../../architecture/024-required-deck-and-card-images.md).
+* **1a. A generate is already running:** `ErrRenderInProgress`, "a render is already running"; `result/` and progress are not touched.
+* **1b. A deck has no back image or a card has no image:** `ErrMissingImages`; the message names up to 5 of them and counts the rest. Nothing is written and progress is not touched. See [ADR 024](../../architecture/024-required-deck-and-card-images.md).
 * **2a. Unknown game:** error before the goroutine.
 * **3a. Unreadable back/face or draw error:** progress `error`; logs the cause.
 * **3b. Too many cards for one page:** extra pages (`index` increments); CustomDeck entries multiply.

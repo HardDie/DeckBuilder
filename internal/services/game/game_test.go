@@ -12,9 +12,9 @@ import (
 	"github.com/HardDie/fsentry"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 	repositoriesGame "github.com/HardDie/DeckBuilder/internal/repositories/game"
@@ -71,7 +71,7 @@ func (tt *gameTest) testCreate(t *testing.T) {
 	_, err = tt.serviceGame.Create(CreateRequest{
 		Name: gameName,
 	})
-	assert.ErrorIs(t, err, er.GameExist)
+	assert.ErrorIs(t, err, apperr.ErrGameExists)
 
 	// Delete game
 	err = tt.serviceGame.Delete(g.ID)
@@ -83,7 +83,7 @@ func (tt *gameTest) testDelete(t *testing.T) {
 
 	// Try to remove non-existing game
 	err := tt.serviceGame.Delete(gameID)
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
@@ -97,7 +97,7 @@ func (tt *gameTest) testDelete(t *testing.T) {
 
 	// Try to delete game twice
 	err = tt.serviceGame.Delete(gameID)
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 }
 func (tt *gameTest) testUpdate(t *testing.T) {
 	gameName := []string{"update_one", "update_two"}
@@ -106,7 +106,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 
 	// Try to update non-existing game
 	_, err := tt.serviceGame.Update(gameID[0], UpdateRequest{})
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Create game
 	g, err := tt.serviceGame.Create(CreateRequest{
@@ -132,7 +132,7 @@ func (tt *gameTest) testUpdate(t *testing.T) {
 
 	// Try to update non-existing game
 	_, err = tt.serviceGame.Update(gameID[1], UpdateRequest{})
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 }
 func (tt *gameTest) testList(t *testing.T) {
 	gameName := []string{"B game", "A game"}
@@ -207,7 +207,7 @@ func (tt *gameTest) testItem(t *testing.T) {
 
 	// Try to get non-existing game
 	_, err := tt.serviceGame.Item(gameID[0])
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
@@ -221,7 +221,7 @@ func (tt *gameTest) testItem(t *testing.T) {
 
 	// Get invalid game
 	_, err = tt.serviceGame.Item(gameID[1])
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Rename game
 	_, err = tt.serviceGame.Update(gameID[0], UpdateRequest{
@@ -235,7 +235,7 @@ func (tt *gameTest) testItem(t *testing.T) {
 
 	// Get invalid game
 	_, err = tt.serviceGame.Item(gameID[0])
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID[1])
@@ -259,13 +259,13 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 	_, err = tt.serviceGame.Duplicate("not_exist_game", DuplicateRequest{
 		Name: "new_game",
 	})
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Try to duplicate to exist game
 	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: gameID[1],
 	})
-	assert.ErrorIs(t, err, er.GameExist)
+	assert.ErrorIs(t, err, apperr.ErrGameExists)
 
 	_, err = tt.serviceGame.Duplicate(gameID[0], DuplicateRequest{
 		Name: "good_duplicate",
@@ -282,12 +282,31 @@ func (tt *gameTest) testDuplicate(t *testing.T) {
 func (tt *gameTest) testImage(t *testing.T) {
 	gameName := "image_one"
 	gameID := utils.NameToID(gameName)
-	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
+	// A local server, so the test does not depend on the internet.
+	pngBody, encErr := images.ImageToPng(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	jpegBody, encErr := images.ImageToJpeg(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/image.png":
+			_, _ = w.Write(pngBody)
+		case "/image.jpg":
+			_, _ = w.Write(jpegBody)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+	pngImage, jpegImage := srv.URL+"/image.png", srv.URL+"/image.jpg"
 
 	// Check no game
 	_, _, err := tt.serviceGame.GetImage(gameID)
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
@@ -322,7 +341,7 @@ func (tt *gameTest) testImage(t *testing.T) {
 
 	// Check no image
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	assert.ErrorIs(t, err, er.GameImageNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameImageNotFound)
 
 	// Delete game
 	err = tt.serviceGame.Delete(gameID)
@@ -342,7 +361,7 @@ func (tt *gameTest) testImageBin(t *testing.T) {
 
 	// Check no game
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	// Create game
 	_, err = tt.serviceGame.Create(CreateRequest{
@@ -435,10 +454,10 @@ func (tt *gameTest) testImageFailure(t *testing.T) {
 		Image: missingURL,
 	})
 	assert.NoError(t, err)
-	assert.ErrorIs(t, item.ImageError, er.NetworkBadResponse)
+	assert.ErrorIs(t, item.ImageError, apperr.ErrDownloadFailed)
 	assert.Equal(t, "", item.Image)
 	_, _, err = tt.serviceGame.GetImage(gameID)
-	assert.ErrorIs(t, err, er.GameImageNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameImageNotFound)
 
 	// Retry with a good URL: downloads now
 	item, err = tt.serviceGame.Update(gameID, UpdateRequest{
@@ -456,7 +475,7 @@ func (tt *gameTest) testImageFailure(t *testing.T) {
 		Image:       missingURL,
 	})
 	assert.NoError(t, err)
-	assert.ErrorIs(t, item.ImageError, er.NetworkBadResponse)
+	assert.ErrorIs(t, item.ImageError, apperr.ErrDownloadFailed)
 	assert.Equal(t, "changed", item.Description)
 	assert.Equal(t, okURL, item.Image)
 	_, imgType, err := tt.serviceGame.GetImage(gameID)

@@ -33,7 +33,7 @@ window ──► bindings/generator.Game(gameID, sortOrder, scale)
 
 ## The logic in short
 
-1. **One render at a time.** A second call while one runs gets `GenerateInProgress`.
+1. **One render at a time.** A second call while one runs gets `ErrRenderInProgress`.
 2. **One folder per game.** Output goes to `result/<gameID>/`. Other games' folders are never touched.
 3. **Unchanged pages are reused.** A sheet's file name holds a hash of everything drawn on it, so an existing name means identical content and the page is not drawn again.
 4. **A failure keeps the last good render.** New files are written to a temporary name and renamed. Old files are removed only after the whole render succeeded.
@@ -70,7 +70,7 @@ The window calls `bindings/generator.Game(gameID, sortOrder, scale)`. It turns a
 
 These steps run before the call returns. Any error here goes straight back to the window. An error in steps 1–3 changes no file.
 
-1. Take the "running" flag (`atomic.Bool`, compare-and-swap). If it is taken: `GenerateInProgress`.
+1. Take the "running" flag (`atomic.Bool`, compare-and-swap). If it is taken: `ErrRenderInProgress`.
 2. Read settings. Load the game; an unknown id fails here.
 3. `catalog.Collect` lists every collection, deck, and card.
 4. Remove files lying directly in `result/` (left by versions before per-game folders).

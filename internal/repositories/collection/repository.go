@@ -3,8 +3,8 @@ package collection
 import (
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -16,10 +16,10 @@ type collection struct {
 func New(db *fsentry.DB) Collection {
 	return &collection{
 		folder: repositories.NewFolder(db, repositories.FolderErrors{
-			Exist:         er.CollectionExist,
-			NotExist:      er.CollectionNotExists,
-			ImageExist:    er.CollectionImageExist,
-			ImageNotExist: er.CollectionImageNotExists,
+			Exist:         apperr.ErrCollectionExists,
+			NotExist:      apperr.ErrCollectionNotFound,
+			ImageExist:    apperr.ErrCollectionImageExists,
+			ImageNotExist: apperr.ErrCollectionImageNotFound,
 		}),
 	}
 }

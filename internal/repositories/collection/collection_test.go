@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 )
 
@@ -32,9 +32,9 @@ func TestCollection(t *testing.T) {
 	assert.NoError(t, created.ImageError)
 
 	_, err = repo.Create("game", CreateRequest{Name: "base"})
-	assert.ErrorIs(t, err, er.CollectionExist)
+	assert.ErrorIs(t, err, apperr.ErrCollectionExists)
 	_, err = repo.Create("missing", CreateRequest{Name: "base"})
-	assert.ErrorIs(t, err, er.GameNotExists)
+	assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 
 	got, err := repo.GetByID("game", "base")
 	require.NoError(t, err)
@@ -53,9 +53,9 @@ func TestCollection(t *testing.T) {
 	assert.Error(t, updated.ImageError, "a bad URL is reported, not applied")
 
 	_, _, err = repo.GetImage("game", "dlc")
-	assert.ErrorIs(t, err, er.CollectionImageNotExists)
+	assert.ErrorIs(t, err, apperr.ErrCollectionImageNotFound)
 
 	require.NoError(t, repo.DeleteByID("game", "dlc"))
 	_, err = repo.GetByID("game", "dlc")
-	assert.ErrorIs(t, err, er.CollectionNotExists)
+	assert.ErrorIs(t, err, apperr.ErrCollectionNotFound)
 }

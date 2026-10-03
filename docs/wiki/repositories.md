@@ -16,7 +16,7 @@ Game, collection, and deck are the same kind of data: a folder with a descriptio
 | `Create` / `Update` | `ResolveImage` first (download + validate), then write; a bad image is returned as `Saved.ImageError` and not applied |
 | `Get` / `List` / `Delete` / `Image` | `List` skips unreadable or mismatched folders |
 
-Errors go through `MapFsentry`, which maps a missing parent (`er.MissingAncestor`) before the level's own errors.
+Errors go through `MapFsentry`, which maps a missing parent (`missingParent`) before the level's own errors. All of them are `apperr` errors.
 
 ## Game repository methods
 
@@ -31,7 +31,7 @@ Errors go through `MapFsentry`, which maps a missing parent (`er.MissingAncestor
 | `Import` | `ImportFolder` into `games/`, then `GetByID` | service, Wails `game.Import` |
 | `GetImage` | `GetBinary` `"image"` | service GetImage |
 
-`Import` with a name asks fsentry to rewrite the folder id and `.info.json` name. Timestamps stay. An existing game with that destination id returns `GameExist` and is left unchanged. Importing under a different id leaves the archive's original game in place.
+`Import` with a name asks fsentry to rewrite the folder id and `.info.json` name. Timestamps stay. An existing game with that destination id returns `ErrGameExists` and is left unchanged. Importing under a different id leaves the archive's original game in place.
 
 ## Collection / deck
 

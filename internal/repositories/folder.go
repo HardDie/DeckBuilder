@@ -6,7 +6,7 @@ import (
 
 	"github.com/HardDie/fsentry"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -29,10 +29,10 @@ type FolderInfo = fsentry.FolderInfo[FolderModel]
 
 // FolderErrors are the errors of one catalog level.
 type FolderErrors struct {
-	Exist         *er.Err
-	NotExist      *er.Err
-	ImageExist    *er.Err
-	ImageNotExist *er.Err
+	Exist         *apperr.Error
+	NotExist      *apperr.Error
+	ImageExist    *apperr.Error
+	ImageNotExist *apperr.Error
 }
 
 // FolderWrite is a create or update of one folder.
@@ -86,7 +86,7 @@ func (f *Folder) Create(parent []string, req FolderWrite) (Saved, error) {
 func (f *Folder) Get(parent []string, id string) (FolderInfo, error) {
 	info, err := f.db.GetFolder[FolderModel](id, f.path(parent)...)
 	if err != nil {
-		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist, Message: true})
+		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist})
 	}
 	return info, nil
 }
@@ -160,7 +160,7 @@ func (f *Folder) Update(parent []string, id string, req FolderWrite) (Saved, err
 func (f *Folder) Delete(parent []string, id string) error {
 	err := f.db.RemoveFolder(id, f.path(parent)...)
 	if err != nil {
-		return MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist, Message: true})
+		return MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist})
 	}
 	return nil
 }
@@ -191,7 +191,7 @@ func (f *Folder) Image(parent []string, id string) ([]byte, string, error) {
 func (f *Folder) move(parent []string, oldName, newName string) (FolderInfo, error) {
 	info, err := f.db.MoveFolder[FolderModel](oldName, newName, f.path(parent)...)
 	if err != nil {
-		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist, Message: true})
+		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist})
 	}
 	return info, nil
 }
@@ -202,7 +202,7 @@ func (f *Folder) update(parent []string, name, description, image string) (Folde
 		Image:       fsentry.QuotedString(image),
 	}, f.path(parent)...)
 	if err != nil {
-		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist, Message: true})
+		return FolderInfo{}, MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist})
 	}
 	return info, nil
 }
@@ -214,7 +214,7 @@ func (f *Folder) imageCreate(parent []string, id string, data []byte) error {
 	}
 	err = f.db.CreateBinary(imageName, data, f.path(parent, info.ID)...)
 	if err != nil {
-		return MapFsentry(err, FsentrySentinels{Exist: f.errs.ImageExist, Message: true})
+		return MapFsentry(err, FsentrySentinels{Exist: f.errs.ImageExist})
 	}
 	return nil
 }
@@ -226,7 +226,7 @@ func (f *Folder) imageGet(parent []string, id string) ([]byte, error) {
 	}
 	data, err := f.db.GetBinary(imageName, nil, f.path(parent, info.ID)...)
 	if err != nil {
-		return nil, MapFsentry(err, FsentrySentinels{NotExist: f.errs.ImageNotExist, Message: true})
+		return nil, MapFsentry(err, FsentrySentinels{NotExist: f.errs.ImageNotExist})
 	}
 	return data, nil
 }
@@ -238,7 +238,7 @@ func (f *Folder) imageDelete(parent []string, id string) error {
 	}
 	err = f.db.RemoveBinary(imageName, f.path(parent, info.ID)...)
 	if err != nil {
-		return MapFsentry(err, FsentrySentinels{NotExist: f.errs.ImageNotExist, Message: true})
+		return MapFsentry(err, FsentrySentinels{NotExist: f.errs.ImageNotExist})
 	}
 	return nil
 }

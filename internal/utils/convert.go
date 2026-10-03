@@ -2,20 +2,17 @@ package utils
 
 import (
 	"encoding/json"
-
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"fmt"
 )
 
 func ObjectJSONObject(in any, out any) error {
 	data, err := json.Marshal(in)
 	if err != nil {
-		err = er.InternalError.AddMessage(err.Error())
-		return err
+		return fmt.Errorf("convert object: %w", err)
 	}
 	err = json.Unmarshal(data, out)
 	if err != nil {
-		err = er.InternalError.AddMessage(err.Error())
-		return err
+		return fmt.Errorf("convert object: %w", err)
 	}
 	return nil
 }

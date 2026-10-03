@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 // folderLevel is one catalog level for the shared Folder tests.
@@ -27,7 +27,7 @@ type folderLevel struct {
 	sibling func(t *testing.T, db *fsentry.DB) []string
 	// missing is a parent path that does not exist; nil for a game.
 	missing    []string
-	missingErr *er.Err
+	missingErr *apperr.Error
 }
 
 func folderLevels() []folderLevel {
@@ -40,16 +40,16 @@ func folderLevels() []folderLevel {
 		{
 			name: "game",
 			errs: FolderErrors{
-				Exist: er.GameExist, NotExist: er.GameNotExists,
-				ImageExist: er.GameImageExist, ImageNotExist: er.GameImageNotExists,
+				Exist: apperr.ErrGameExists, NotExist: apperr.ErrGameNotFound,
+				ImageExist: apperr.ErrGameImageExists, ImageNotExist: apperr.ErrGameImageNotFound,
 			},
 			parents: func(*testing.T, *fsentry.DB) []string { return nil },
 		},
 		{
 			name: "collection",
 			errs: FolderErrors{
-				Exist: er.CollectionExist, NotExist: er.CollectionNotExists,
-				ImageExist: er.CollectionImageExist, ImageNotExist: er.CollectionImageNotExists,
+				Exist: apperr.ErrCollectionExists, NotExist: apperr.ErrCollectionNotFound,
+				ImageExist: apperr.ErrCollectionImageExists, ImageNotExist: apperr.ErrCollectionImageNotFound,
 			},
 			parents: func(t *testing.T, db *fsentry.DB) []string {
 				mkdir(t, db, "g", gamesPath)
@@ -60,13 +60,13 @@ func folderLevels() []folderLevel {
 				return []string{"g2"}
 			},
 			missing:    []string{"nope"},
-			missingErr: er.GameNotExists,
+			missingErr: apperr.ErrGameNotFound,
 		},
 		{
 			name: "deck",
 			errs: FolderErrors{
-				Exist: er.DeckExist, NotExist: er.DeckNotExists,
-				ImageExist: er.DeckImageExist, ImageNotExist: er.DeckImageNotExists,
+				Exist: apperr.ErrDeckExists, NotExist: apperr.ErrDeckNotFound,
+				ImageExist: apperr.ErrDeckImageExists, ImageNotExist: apperr.ErrDeckImageNotFound,
 			},
 			parents: func(t *testing.T, db *fsentry.DB) []string {
 				mkdir(t, db, "g", gamesPath)
@@ -78,7 +78,7 @@ func folderLevels() []folderLevel {
 				return []string{"g", "c2"}
 			},
 			missing:    []string{"g", "nope"},
-			missingErr: er.CollectionNotExists,
+			missingErr: apperr.ErrCollectionNotFound,
 		},
 	}
 }
@@ -145,15 +145,15 @@ func TestFolder(t *testing.T) {
 		}},
 		{"bad_name", func(t *testing.T, f *Folder, parent []string, _ folderLevel) {
 			_, err := f.Create(parent, FolderWrite{Name: "---"})
-			assert.ErrorIs(t, err, er.BadName)
+			assert.ErrorIs(t, err, apperr.ErrBadName)
 			_, err = f.Get(parent, "---")
-			assert.ErrorIs(t, err, er.BadName)
-			assert.ErrorIs(t, f.Delete(parent, "---"), er.BadName)
+			assert.ErrorIs(t, err, apperr.ErrBadName)
+			assert.ErrorIs(t, f.Delete(parent, "---"), apperr.ErrBadName)
 
 			_, err = f.Create(parent, FolderWrite{Name: "alpha"})
 			require.NoError(t, err)
 			_, err = f.Update(parent, "alpha", FolderWrite{Name: "---"})
-			assert.ErrorIs(t, err, er.BadName, "rename to a bad name")
+			assert.ErrorIs(t, err, apperr.ErrBadName, "rename to a bad name")
 		}},
 		{"list_empty", func(t *testing.T, f *Folder, parent []string, _ folderLevel) {
 			infos, err := f.List(parent)
@@ -246,7 +246,7 @@ func TestFolder(t *testing.T) {
 			// A bad file is not applied; the old image stays.
 			saved, err := f.Update(parent, "alpha", FolderWrite{Name: "alpha", ImageFile: []byte("text")})
 			require.NoError(t, err)
-			assert.ErrorIs(t, saved.ImageError, er.UnknownImageType)
+			assert.ErrorIs(t, saved.ImageError, apperr.ErrUnsupportedImage)
 			_, imgType, err = f.Image(parent, "alpha")
 			require.NoError(t, err)
 			assert.Equal(t, "jpeg", imgType)

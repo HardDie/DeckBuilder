@@ -3,7 +3,6 @@ package images
 import (
 	"bytes"
 	stderrors "errors"
-	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -11,7 +10,8 @@ import (
 	"image/png"
 	"io"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
 // maxImagePixels caps width × height of an accepted image (128 MP, e.g. 16384×8192).
@@ -23,17 +23,17 @@ const maxImagePixels = 16384 * 8192
 func ValidateImage(input []byte) (string, error) {
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(input))
 	if stderrors.Is(err, image.ErrFormat) {
-		return "", errors.UnknownImageType.AddMessage("not a supported image (png, jpeg, gif)")
+		return "", apperr.ErrUnsupportedImage
 	}
 	if err != nil {
-		return "", errors.UnknownImageType.AddMessage(err.Error())
+		return "", damaged(err)
 	}
 	if int64(cfg.Width)*int64(cfg.Height) > maxImagePixels {
-		return "", errors.ImageTooLarge.AddMessage(fmt.Sprintf("image is too large: %dx%d, max %d megapixels", cfg.Width, cfg.Height, maxImagePixels>>20))
+		return "", apperr.Withf(apperr.ErrImageTooLarge, "image is too large: %dx%d, max %d megapixels", cfg.Width, cfg.Height, maxImagePixels>>20)
 	}
 	_, imgType, err := image.Decode(bytes.NewBuffer(input))
 	if err != nil {
-		return "", errors.UnknownImageType.AddMessage(err.Error())
+		return "", damaged(err)
 	}
 	return imgType, nil
 }
@@ -42,7 +42,7 @@ func ValidateImage(input []byte) (string, error) {
 func ImageType(input []byte) (string, error) {
 	_, imgType, err := image.DecodeConfig(bytes.NewReader(input))
 	if err != nil {
-		return "", errors.UnknownImageType.AddMessage(err.Error())
+		return "", damaged(err)
 	}
 	return imgType, nil
 }
@@ -96,4 +96,11 @@ func ImageToGif(img image.Image) ([]byte, error) {
 		return nil, err
 	}
 	return w.Bytes(), nil
+}
+
+// damaged reports a file whose format is known but which does not decode.
+// The decoder's text goes to the log; the user reads a plain sentence.
+func damaged(err error) error {
+	logger.Warn.Println("image decode:", err.Error())
+	return apperr.With(apperr.ErrUnsupportedImage, "the image file is damaged or incomplete")
 }

@@ -1,18 +1,18 @@
 package catalog
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -86,15 +86,14 @@ func CardDTO(cfg config.Config, item entitiesCard.Card) dto.Card {
 }
 
 // ImageWarning tells the user why a new image was not applied.
-// It is "" when err is nil. The HTTP code prefix of *er.Err is left out.
+// It is "" when err is nil. An unexpected cause is logged and shown generically.
 func ImageWarning(err error) string {
 	if err == nil {
 		return ""
 	}
-	msg := err.Error()
-	var e *er.Err
-	if errors.As(err, &e) {
-		msg = e.GetMessage()
+	msg := apperr.Message(err)
+	if msg == apperr.Unexpected {
+		logger.Error.Println("image not saved:", err.Error())
 	}
 	return "Image was not saved: " + msg
 }

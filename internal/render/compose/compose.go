@@ -9,10 +9,10 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/render/generate"
@@ -73,7 +73,7 @@ func New(
 
 func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 	if !s.running.CompareAndSwap(false, true) {
-		return er.GenerateInProgress
+		return apperr.ErrRenderInProgress
 	}
 	// Release on an early error. Once the goroutine starts, it releases instead.
 	started := false
@@ -102,7 +102,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		return err
 	}
 	if len(missing) > 0 {
-		return er.GenerateMissingImages.AddMessage(missingMessage(missing))
+		return apperr.With(apperr.ErrMissingImages, missingMessage(missing))
 	}
 	// Each game renders into its own folder; the previous files stay until the run succeeds.
 	dir := filepath.Join(s.cfg.Results(), gameItem.ID)

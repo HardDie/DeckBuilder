@@ -1,7 +1,7 @@
 package replace
 
 import (
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	servicesReplace "github.com/HardDie/DeckBuilder/internal/services/replace"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 )
@@ -25,7 +25,7 @@ type Result struct {
 // Prepare lists unique FaceURL and BackURL keys from a Saved Object JSON file.
 func (r *Replace) Prepare(file []byte) (*PrepareResult, error) {
 	if len(file) == 0 {
-		return nil, er.BadArchive.AddMessage("The file must be passed as an argument")
+		return nil, apperr.With(apperr.ErrBadRenderFile, "choose a render file (.json)")
 	}
 	resp, err := r.svc.Prepare(file)
 	if err != nil {
@@ -37,10 +37,10 @@ func (r *Replace) Prepare(file []byte) (*PrepareResult, error) {
 // Replace rewrites FaceURL and BackURL using the mapping JSON the GUI used to post.
 func (r *Replace) Replace(file, mapping []byte) (*Result, error) {
 	if len(file) == 0 {
-		return nil, er.BadArchive.AddMessage("The file must be passed as an argument")
+		return nil, apperr.With(apperr.ErrBadRenderFile, "choose a render file (.json)")
 	}
 	if len(mapping) == 0 {
-		return nil, er.BadArchive.AddMessage("The mapping must be passed as an argument")
+		return nil, apperr.With(apperr.ErrBadMappingFile, "choose a mapping file (.json)")
 	}
 	resp, err := r.svc.Replace(file, mapping)
 	if err != nil {

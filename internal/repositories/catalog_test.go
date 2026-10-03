@@ -13,7 +13,7 @@ import (
 	"github.com/HardDie/fsentry"
 	"github.com/stretchr/testify/assert"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 func TestResolveImage(t *testing.T) {
@@ -67,7 +67,8 @@ func TestResolveImage(t *testing.T) {
 
 func TestMapFsentry(t *testing.T) {
 	missing := func(path ...string) error { return &fsentry.BadPathError{Path: path} }
-	deck := FsentrySentinels{Exist: er.DeckExist, NotExist: er.DeckNotExists}
+	deck := FsentrySentinels{Exist: apperr.ErrDeckExists, NotExist: apperr.ErrDeckNotFound}
+	disk := errors.New("disk")
 
 	tests := []struct {
 		name      string
@@ -76,15 +77,16 @@ func TestMapFsentry(t *testing.T) {
 		want      error
 	}{
 		{name: "nil", err: nil, want: nil},
-		{name: "missing_game", err: missing("games", "g"), sentinels: deck, want: er.GameNotExists},
-		{name: "missing_collection", err: missing("games", "g", "c"), sentinels: deck, want: er.CollectionNotExists},
-		{name: "missing_deck", err: missing("games", "g", "c", "d"), sentinels: deck, want: er.DeckNotExists},
-		{name: "exist", err: fmt.Errorf("x: %w", fsentry.ErrExist), sentinels: deck, want: er.DeckExist},
-		{name: "not_exist", err: fmt.Errorf("x: %w", fsentry.ErrNotExist), sentinels: deck, want: er.DeckNotExists},
-		{name: "not_exist_without_sentinel", err: fsentry.ErrNotExist, want: er.InternalError},
-		{name: "bad_name", err: fsentry.ErrBadName, sentinels: deck, want: er.BadName},
-		{name: "bare_bad_path", err: fsentry.ErrBadPath, sentinels: deck, want: er.InternalError},
-		{name: "other", err: errors.New("disk"), sentinels: deck, want: er.InternalError},
+		{name: "missing_game", err: missing("games", "g"), sentinels: deck, want: apperr.ErrGameNotFound},
+		{name: "missing_collection", err: missing("games", "g", "c"), sentinels: deck, want: apperr.ErrCollectionNotFound},
+		{name: "missing_deck", err: missing("games", "g", "c", "d"), sentinels: deck, want: apperr.ErrDeckNotFound},
+		{name: "exist", err: fmt.Errorf("x: %w", fsentry.ErrExist), sentinels: deck, want: apperr.ErrDeckExists},
+		{name: "not_exist", err: fmt.Errorf("x: %w", fsentry.ErrNotExist), sentinels: deck, want: apperr.ErrDeckNotFound},
+		// Unexpected: wrapped for the log, "Something went wrong" for the user.
+		{name: "not_exist_without_sentinel", err: fsentry.ErrNotExist, want: fsentry.ErrNotExist},
+		{name: "bad_name", err: fsentry.ErrBadName, sentinels: deck, want: apperr.ErrBadName},
+		{name: "bare_bad_path", err: fsentry.ErrBadPath, sentinels: deck, want: fsentry.ErrBadPath},
+		{name: "other", err: disk, sentinels: deck, want: disk},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -94,6 +96,10 @@ func TestMapFsentry(t *testing.T) {
 				return
 			}
 			assert.ErrorIs(t, got, tt.want)
+			var known *apperr.Error
+			if !errors.As(tt.want, &known) {
+				assert.Equal(t, apperr.Unexpected, apperr.Message(got), "unexpected errors show the generic message")
+			}
 		})
 	}
 }

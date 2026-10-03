@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
 	"github.com/HardDie/DeckBuilder/internal/render/progress"
@@ -214,7 +214,7 @@ func TestGenerateRefusesMissingImages(t *testing.T) {
 	req := compose.GenerateGameRequest{SortOrder: "name", Scale: 1}
 
 	err := gen.GenerateGame("raid", req)
-	if !errors.Is(err, er.GenerateMissingImages) {
+	if !errors.Is(err, apperr.ErrMissingImages) {
 		t.Fatalf("err %v, want GenerateMissingImages", err)
 	}
 	for _, want := range []string{`deck "Bandits" (back image)`, `card "Ada" in deck "Crew"`} {
@@ -253,7 +253,7 @@ func TestGenerateMissingImagesListIsCapped(t *testing.T) {
 	}
 	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
 		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
-	if !errors.Is(err, er.GenerateMissingImages) || !strings.Contains(err.Error(), "; and 3 more.") {
+	if !errors.Is(err, apperr.ErrMissingImages) || !strings.Contains(err.Error(), "; and 3 more.") {
 		t.Fatalf("err %v, want 5 names and \"and 3 more\"", err)
 	}
 }

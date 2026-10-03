@@ -15,7 +15,7 @@
 ## Alternative scenarios and errors
 
 * **2a. No image:** `*ImageNotExists` (or equivalent) as JSON error envelope.
-* **2b. Unknown type:** `UnknownImageType`.
+* **2b. Unknown type:** `ErrUnsupportedImage`.
 
 ## Postconditions
 

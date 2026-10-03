@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
@@ -88,7 +90,7 @@ func (tt *deckTest) testCreate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, you can't create duplicate deck")
 	}
-	if !errors.Is(err, er.DeckExist) {
+	if !errors.Is(err, apperr.ErrDeckExists) {
 		t.Fatal(err)
 	}
 
@@ -107,7 +109,7 @@ func (tt *deckTest) testDelete(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -130,7 +132,7 @@ func (tt *deckTest) testDelete(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 }
@@ -143,7 +145,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -180,7 +182,7 @@ func (tt *deckTest) testUpdate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 }
@@ -312,7 +314,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -335,7 +337,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -356,7 +358,7 @@ func (tt *deckTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exist")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -369,15 +371,34 @@ func (tt *deckTest) testItem(t *testing.T) {
 func (tt *deckTest) testImage(t *testing.T) {
 	deckType := "image_one"
 	deckID := utils.NameToID(deckType)
-	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
+	// A local server, so the test does not depend on the internet.
+	pngBody, encErr := images.ImageToPng(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	jpegBody, encErr := images.ImageToJpeg(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/image.png":
+			_, _ = w.Write(pngBody)
+		case "/image.jpg":
+			_, _ = w.Write(jpegBody)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+	pngImage, jpegImage := srv.URL+"/image.png", srv.URL+"/image.jpg"
 
 	// Check no deck
 	_, _, err := tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, deckID)
 	if err == nil {
 		t.Fatal("Error, deck not exists")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -431,7 +452,7 @@ func (tt *deckTest) testImage(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck don't have image")
 	}
-	if !errors.Is(err, er.DeckImageNotExists) {
+	if !errors.Is(err, apperr.ErrDeckImageNotFound) {
 		t.Fatal(err)
 	}
 
@@ -464,7 +485,7 @@ func (tt *deckTest) testImageBin(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, deck not exists")
 	}
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -616,7 +637,7 @@ func (tt *deckTest) testRenameWithImage(t *testing.T) {
 
 	// Old id is gone
 	_, _, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, oldID)
-	if !errors.Is(err, er.DeckNotExists) {
+	if !errors.Is(err, apperr.ErrDeckNotFound) {
 		t.Fatal(err)
 	}
 
@@ -645,7 +666,7 @@ func (tt *deckTest) testImageFailure(t *testing.T) {
 		t.Fatal("Image URL error! [got]", item.Image, "[want] \"\"")
 	}
 	_, _, err = tt.serviceDeck.GetImage(tt.gameID, tt.collectionID, item.ID)
-	if !errors.Is(err, er.DeckImageNotExists) {
+	if !errors.Is(err, apperr.ErrDeckImageNotFound) {
 		t.Fatal(err)
 	}
 
@@ -690,7 +711,7 @@ func TestDeck(t *testing.T) {
 	_, err := tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: "test",
 	})
-	if !errors.Is(err, er.GameNotExists) {
+	if !errors.Is(err, apperr.ErrGameNotFound) {
 		t.Fatal(err)
 	}
 
@@ -706,7 +727,7 @@ func TestDeck(t *testing.T) {
 	_, err = tt.serviceDeck.Create(tt.gameID, tt.collectionID, CreateRequest{
 		Name: "test",
 	})
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 

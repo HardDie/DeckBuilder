@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
 )
@@ -50,9 +50,9 @@ func TestDeck(t *testing.T) {
 	assert.NoError(t, err, "create makes the cards folder")
 
 	_, err = repo.Create("game", "base", CreateRequest{Name: "monster"})
-	assert.ErrorIs(t, err, er.DeckExist)
+	assert.ErrorIs(t, err, apperr.ErrDeckExists)
 	_, err = repo.Create("game", "missing", CreateRequest{Name: "monster"})
-	assert.ErrorIs(t, err, er.CollectionNotExists)
+	assert.ErrorIs(t, err, apperr.ErrCollectionNotFound)
 
 	got, err := repo.GetByID("game", "base", "monster")
 	require.NoError(t, err)
@@ -73,11 +73,11 @@ func TestDeck(t *testing.T) {
 	assert.NoError(t, err, "the cards folder moves with the rename")
 
 	_, _, err = repo.GetImage("game", "base", "monsters")
-	assert.ErrorIs(t, err, er.DeckImageNotExists)
+	assert.ErrorIs(t, err, apperr.ErrDeckImageNotFound)
 
 	require.NoError(t, repo.DeleteByID("game", "base", "monsters"))
 	_, err = repo.GetByID("game", "base", "monsters")
-	assert.ErrorIs(t, err, er.DeckNotExists)
+	assert.ErrorIs(t, err, apperr.ErrDeckNotFound)
 }
 
 func TestGetAllDecksInGame(t *testing.T) {
@@ -115,7 +115,7 @@ func TestGetAllDecksInGame(t *testing.T) {
 	t.Run("game_not_exist", func(t *testing.T) {
 		db := newDeckDB(t)
 		_, err := New(db).GetAllDecksInGame("missing")
-		assert.ErrorIs(t, err, er.GameNotExists)
+		assert.ErrorIs(t, err, apperr.ErrGameNotFound)
 	})
 }
 

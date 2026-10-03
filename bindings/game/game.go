@@ -9,9 +9,9 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/HardDie/DeckBuilder/bindings/catalog"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/network"
 	servicesGame "github.com/HardDie/DeckBuilder/internal/services/game"
 )
@@ -148,7 +148,7 @@ func (g *Game) Export(gameID string) error {
 // Import creates a game from zip bytes. name is optional.
 func (g *Game) Import(name string, data []byte) (*Result, error) {
 	if len(data) == 0 {
-		return nil, er.BadArchive.AddMessage("The file must be passed as an argument")
+		return nil, apperr.With(apperr.ErrBadArchive, "choose a game archive (.zip) to import")
 	}
 	item, err := g.svc.Import(data, name)
 	if err != nil {

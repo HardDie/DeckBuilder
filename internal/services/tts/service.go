@@ -6,8 +6,8 @@ import (
 	"net"
 	"sync"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
@@ -95,7 +95,7 @@ func (s *tts) DataForTTS() ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.dataForTTS == nil {
-		return nil, er.TTSNothingToServe
+		return nil, apperr.ErrNothingForTTS
 	}
 	res := s.dataForTTS
 	s.dataForTTS = nil

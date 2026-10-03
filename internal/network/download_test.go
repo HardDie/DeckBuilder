@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 func TestDownload(t *testing.T) {
@@ -21,7 +21,7 @@ func TestDownload(t *testing.T) {
 		name    string
 		handler http.HandlerFunc
 		want    string
-		wantErr *errors.Err
+		wantErr *apperr.Error
 		errText string
 	}{
 		{
@@ -43,7 +43,7 @@ func TestDownload(t *testing.T) {
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusNotFound)
 			},
-			wantErr: errors.NetworkBadResponse,
+			wantErr: apperr.ErrDownloadFailed,
 			errText: "server answered 404",
 		},
 		{
@@ -51,7 +51,7 @@ func TestDownload(t *testing.T) {
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				_, _ = w.Write([]byte(strings.Repeat("x", limit+1)))
 			},
-			wantErr: errors.NetworkBadResponse,
+			wantErr: apperr.ErrImageTooLarge,
 			errText: "larger than",
 		},
 		{
@@ -62,7 +62,7 @@ func TestDownload(t *testing.T) {
 				w.(http.Flusher).Flush()
 				_, _ = w.Write([]byte(strings.Repeat("x", limit)))
 			},
-			wantErr: errors.NetworkBadResponse,
+			wantErr: apperr.ErrImageTooLarge,
 			errText: "larger than",
 		},
 	}
@@ -112,7 +112,7 @@ func TestDownloadTimeout(t *testing.T) {
 
 			start := time.Now()
 			_, err := download(client, srv.URL, 1<<20)
-			assert.True(t, stderrors.Is(err, errors.NetworkTimeout), "err %v", err)
+			assert.True(t, stderrors.Is(err, apperr.ErrDownloadTimeout), "err %v", err)
 			assert.Less(t, time.Since(start), 5*time.Second, "download did not honor the timeout")
 		})
 	}

@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesCollection "github.com/HardDie/DeckBuilder/internal/entities/collection"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	repositoriesCollection "github.com/HardDie/DeckBuilder/internal/repositories/collection"
 	repositoriesCore "github.com/HardDie/DeckBuilder/internal/repositories/core"
@@ -87,7 +89,7 @@ func (tt *collectionTest) testCreate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, you can't create duplicate collection")
 	}
-	if !errors.Is(err, er.CollectionExist) {
+	if !errors.Is(err, apperr.ErrCollectionExists) {
 		t.Fatal(err)
 	}
 
@@ -106,7 +108,7 @@ func (tt *collectionTest) testDelete(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -129,7 +131,7 @@ func (tt *collectionTest) testDelete(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 }
@@ -143,7 +145,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -188,7 +190,7 @@ func (tt *collectionTest) testUpdate(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 }
@@ -320,7 +322,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -343,7 +345,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -364,7 +366,7 @@ func (tt *collectionTest) testItem(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exist")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -377,15 +379,34 @@ func (tt *collectionTest) testItem(t *testing.T) {
 func (tt *collectionTest) testImage(t *testing.T) {
 	collectionName := "image_one"
 	collectionID := utils.NameToID(collectionName)
-	pngImage := "https://github.com/fluidicon.png"
-	jpegImage := "https://raw.githubusercontent.com/golang/go/go1.27.1/src/image/testdata/video-001.jpeg"
+	// A local server, so the test does not depend on the internet.
+	pngBody, encErr := images.ImageToPng(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	jpegBody, encErr := images.ImageToJpeg(images.CreateImage(10, 10))
+	if encErr != nil {
+		t.Fatal(encErr)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/image.png":
+			_, _ = w.Write(pngBody)
+		case "/image.jpg":
+			_, _ = w.Write(jpegBody)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+	pngImage, jpegImage := srv.URL+"/image.png", srv.URL+"/image.jpg"
 
 	// Check no collection
 	_, _, err := tt.serviceCollection.GetImage(tt.gameID, collectionID)
 	if err == nil {
 		t.Fatal("Error, collection not exists")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -439,7 +460,7 @@ func (tt *collectionTest) testImage(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection don't have image")
 	}
-	if !errors.Is(err, er.CollectionImageNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionImageNotFound) {
 		t.Fatal(err)
 	}
 
@@ -472,7 +493,7 @@ func (tt *collectionTest) testImageBin(t *testing.T) {
 	if err == nil {
 		t.Fatal("Error, collection not exists")
 	}
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -624,7 +645,7 @@ func (tt *collectionTest) testRenameWithImage(t *testing.T) {
 
 	// Old id is gone
 	_, _, err = tt.serviceCollection.GetImage(tt.gameID, oldID)
-	if !errors.Is(err, er.CollectionNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionNotFound) {
 		t.Fatal(err)
 	}
 
@@ -653,7 +674,7 @@ func (tt *collectionTest) testImageFailure(t *testing.T) {
 		t.Fatal("Image URL error! [got]", item.Image, "[want] \"\"")
 	}
 	_, _, err = tt.serviceCollection.GetImage(tt.gameID, item.ID)
-	if !errors.Is(err, er.CollectionImageNotExists) {
+	if !errors.Is(err, apperr.ErrCollectionImageNotFound) {
 		t.Fatal(err)
 	}
 
@@ -698,7 +719,7 @@ func TestCollection(t *testing.T) {
 	_, err := tt.serviceCollection.Create(tt.gameID, CreateRequest{
 		Name: "test",
 	})
-	if !errors.Is(err, er.GameNotExists) {
+	if !errors.Is(err, apperr.ErrGameNotFound) {
 		t.Fatal(err)
 	}
 

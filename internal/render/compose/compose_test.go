@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
 	"github.com/HardDie/DeckBuilder/internal/render/progress"
@@ -146,7 +146,7 @@ func TestGenerateRejectsOverlap(t *testing.T) {
 	waitFile(t, jsonPath)
 
 	err := gen.GenerateGame("raid", req)
-	if !errors.Is(err, er.GenerateInProgress) {
+	if !errors.Is(err, apperr.ErrRenderInProgress) {
 		t.Fatalf("second generate: %v", err)
 	}
 	if _, err := os.Stat(jsonPath); err != nil {

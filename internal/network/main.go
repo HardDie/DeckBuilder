@@ -1,10 +1,10 @@
 package network
 
 import (
-	stderrors "errors"
+	"errors"
 	"net/http"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
@@ -29,20 +29,20 @@ func response(w http.ResponseWriter, httpCode int, data interface{}) error {
 	w.WriteHeader(httpCode)
 	return fs.JsonToWriter(w, data)
 }
+
+// ResponseError writes e as the JSON envelope. The status comes from the error's kind.
 func ResponseError(w http.ResponseWriter, e error) {
-	resp := JSONResponse{
-		Error: e,
-	}
+	resp := JSONResponse{Error: apperr.Message(e)}
 
-	httpCode := http.StatusInternalServerError
-	var val *errors.Err
-	if stderrors.As(e, &val) {
-		if val.GetCode() > 0 {
-			httpCode = val.GetCode()
-		}
-	} else {
+	switch {
+	case errors.Is(e, apperr.ErrNotFound):
+		_ = response(w, http.StatusNotFound, resp)
+	case errors.Is(e, apperr.ErrAlreadyExists), errors.Is(e, apperr.ErrBusy):
+		_ = response(w, http.StatusConflict, resp)
+	case errors.Is(e, apperr.ErrInvalid):
+		_ = response(w, http.StatusBadRequest, resp)
+	default:
 		logger.Warn.Println("unhandled error: " + e.Error())
+		_ = response(w, http.StatusInternalServerError, resp)
 	}
-
-	_ = response(w, httpCode, resp)
 }

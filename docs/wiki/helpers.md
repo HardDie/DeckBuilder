@@ -2,11 +2,14 @@
 
 Developer reference. The map of the project is [Internals](Internals).
 
-## `internal/errors`
+## `internal/apperr`
 
-Sentinel errors (`GameExist`, `BadName`, …) with optional HTTP status. `.AddMessage` / `.HTTP` for wrapping. `IfErrorLog` logs and continues.
+The errors the app can explain to the user. Each has a clear message and one kind: `ErrNotFound`, `ErrAlreadyExists`, `ErrInvalid`, or `ErrBusy`. Details go through `apperr.With` / `Withf`; `errors.Is` still matches the base error and its kind.
 
-Servers call `network.ResponseError` with these. Repositories map fsentry `ErrExist` / `ErrNotExist` / `ErrBadName` onto them.
+- Bound methods return them as-is. `bindings/errfmt.Format` (the Wails `ErrorFormatter`) shows `apperr.Message`; anything unexpected shows "Something went wrong" and is logged.
+- The loopback HTTP server (`network.ResponseError`) maps the kind to a status: 404, 409, 400, else 500.
+- Repositories map fsentry `ErrExist` / `ErrNotExist` / `ErrBadName` onto them in `repositories.MapFsentry`.
+- Unexpected errors are plain errors wrapped with context (`fmt.Errorf("…: %w", err)`). See [ADR 025](../architecture/025-app-errors.md).
 
 ## `internal/network`
 
@@ -34,4 +37,4 @@ Process-wide generate status (`empty`, `in_progress`, `done`, `error`) plus done
 
 ## `internal/logger`, `internal/network` callers
 
-Almost every server. Keep messages user-safe; put fsentry detail in `AddMessage` for logs/HTTP body as existing code does.
+`logger.IfError` logs a non-nil error with the caller's file and line. User-facing text comes from `apperr` messages; technical detail goes to the log.

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
 	"github.com/HardDie/DeckBuilder/internal/utils"
@@ -108,12 +108,12 @@ func getName(obj json.RawMessage) (string, error) {
 	name, ok := tmp["Name"]
 	if !ok {
 		logger.Info.Println("object don't have Name field")
-		return "", errors.ErrorInvalidDeckDescription
+		return "", apperr.ErrBadRenderFile
 	}
 	nameStr, ok := name.(string)
 	if !ok {
 		logger.Info.Println("Name field is not string")
-		return "", errors.ErrorInvalidDeckDescription
+		return "", apperr.ErrBadRenderFile
 	}
 	return nameStr, nil
 }

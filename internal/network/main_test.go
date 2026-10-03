@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 )
 
 func TestResponseError(t *testing.T) {
@@ -16,9 +16,12 @@ func TestResponseError(t *testing.T) {
 		err  error
 		want int
 	}{
-		{name: "catalog_error", err: errors.GameNotExists, want: http.StatusBadRequest},
-		{name: "wrapped_catalog_error", err: fmt.Errorf("load: %w", error(errors.GameNotExists)), want: http.StatusBadRequest},
-		{name: "tts_nothing_to_serve", err: errors.TTSNothingToServe, want: http.StatusNotFound},
+		{name: "not_found", err: apperr.ErrGameNotFound, want: http.StatusNotFound},
+		{name: "wrapped_not_found", err: fmt.Errorf("load: %w", apperr.ErrGameNotFound), want: http.StatusNotFound},
+		{name: "already_exists", err: apperr.ErrGameExists, want: http.StatusConflict},
+		{name: "busy", err: apperr.ErrRenderInProgress, want: http.StatusConflict},
+		{name: "invalid", err: apperr.ErrBadName, want: http.StatusBadRequest},
+		{name: "tts_nothing_to_serve", err: apperr.ErrNothingForTTS, want: http.StatusNotFound},
 		{name: "plain_error", err: stderrors.New("boom"), want: http.StatusInternalServerError},
 	}
 	for _, tt := range tests {

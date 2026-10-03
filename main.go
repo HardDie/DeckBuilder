@@ -17,6 +17,7 @@ import (
 	"github.com/HardDie/DeckBuilder/bindings/card"
 	"github.com/HardDie/DeckBuilder/bindings/collection"
 	"github.com/HardDie/DeckBuilder/bindings/deck"
+	"github.com/HardDie/DeckBuilder/bindings/errfmt"
 	"github.com/HardDie/DeckBuilder/bindings/game"
 	bindingsGenerator "github.com/HardDie/DeckBuilder/bindings/generator"
 	bindingsReplace "github.com/HardDie/DeckBuilder/bindings/replace"
@@ -75,6 +76,8 @@ func main() {
 			game.BindWindow(games, ctx)
 		},
 		OnShutdown: app.shutdown,
+		// Errors from bound methods reach the window as readable messages.
+		ErrorFormatter: errfmt.Format,
 		// One instance per user. A second launch exits and focuses the first window.
 		SingleInstanceLock: &options.SingleInstanceLock{
 			UniqueId:               "com.harddie.deckbuilder",

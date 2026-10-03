@@ -2,22 +2,20 @@ package repositories
 
 import (
 	"errors"
-	"net/http"
+	"fmt"
 
 	"github.com/HardDie/fsentry"
 
-	er "github.com/HardDie/DeckBuilder/internal/errors"
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/network"
 )
 
 // FsentrySentinels are the catalog errors for one fsentry call.
-// A nil Exist or NotExist skips that case. Message keeps the fsentry text
-// on those two, with HTTP 400. ErrBadName is always BadName.
+// A nil Exist or NotExist skips that case.
 type FsentrySentinels struct {
-	Exist    *er.Err
-	NotExist *er.Err
-	Message  bool
+	Exist    *apperr.Error
+	NotExist *apperr.Error
 }
 
 // ImageBytes downloads imageURL when it is set, then validates the bytes.
@@ -36,33 +34,48 @@ func ImageBytes(imageURL string, data []byte) ([]byte, error) {
 	return data, nil
 }
 
-// MapFsentry maps a missing catalog parent first (er.MissingAncestor).
-// Then it maps ErrExist, ErrNotExist, and ErrBadName onto the sentinels
-// the caller passed. Anything else is an internal error carrying err's text.
+// MapFsentry turns an fsentry error into one the user can read.
+// A missing game, collection, or deck on the path comes first.
+// Then ErrExist and ErrNotExist become the caller's sentinels, and ErrBadName becomes ErrBadName.
+// Anything else is unexpected and is wrapped for the log.
 func MapFsentry(err error, sentinels FsentrySentinels) error {
 	if err == nil {
 		return nil
 	}
-	if mapped := er.MissingAncestor(err); mapped != nil {
-		return mapped
+	if missing := missingParent(err); missing != nil {
+		return missing
 	}
 	switch {
 	case sentinels.Exist != nil && errors.Is(err, fsentry.ErrExist):
-		return sentinel(sentinels.Exist, err, sentinels.Message)
+		return sentinels.Exist
 	case sentinels.NotExist != nil && errors.Is(err, fsentry.ErrNotExist):
-		return sentinel(sentinels.NotExist, err, sentinels.Message)
+		return sentinels.NotExist
 	case errors.Is(err, fsentry.ErrBadName):
-		return er.BadName
+		return apperr.ErrBadName
 	default:
-		return er.InternalError.AddMessage(err.Error())
+		return fmt.Errorf("catalog store: %w", err)
 	}
 }
 
-func sentinel(target *er.Err, err error, message bool) error {
-	if !message {
-		return target
+// missingParent maps a missing parent folder from fsentry (*fsentry.BadPathError).
+// Its Path runs from "games" through the missing segment:
+// two segments is the game, three the collection, four the deck.
+// Any other error, including the bare ErrBadPath, gives nil.
+func missingParent(err error) error {
+	var bad *fsentry.BadPathError
+	if !errors.As(err, &bad) || bad == nil || len(bad.Path) < 2 || bad.Path[0] != gamesPath {
+		return nil
 	}
-	return target.AddMessage(err.Error()).HTTP(http.StatusBadRequest)
+	switch len(bad.Path) {
+	case 2:
+		return apperr.ErrGameNotFound
+	case 3:
+		return apperr.ErrCollectionNotFound
+	case 4:
+		return apperr.ErrDeckNotFound
+	default:
+		return nil
+	}
 }
 
 // ImageChange is the image part of a create or update.

@@ -14,9 +14,9 @@
 
 ## Alternative scenarios and errors
 
-* **1a. Target name exists:** `GameExist`.
+* **1a. Target name exists:** `ErrGameExists`.
 * **2a. Dialog cancelled:** no file is written.
-* **3a. Corrupt zip or missing file:** `BadArchive`.
+* **3a. Corrupt zip or missing file:** `ErrBadArchive`.
 
 ## Postconditions
 

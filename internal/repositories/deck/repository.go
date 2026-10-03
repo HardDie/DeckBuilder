@@ -6,8 +6,8 @@ import (
 
 	"github.com/HardDie/fsentry"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesDeck "github.com/HardDie/DeckBuilder/internal/entities/deck"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/repositories"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
@@ -23,10 +23,10 @@ func New(db *fsentry.DB) Deck {
 		db:        db,
 		gamesPath: "games",
 		folder: repositories.NewFolder(db, repositories.FolderErrors{
-			Exist:         er.DeckExist,
-			NotExist:      er.DeckNotExists,
-			ImageExist:    er.DeckImageExist,
-			ImageNotExist: er.DeckImageNotExists,
+			Exist:         apperr.ErrDeckExists,
+			NotExist:      apperr.ErrDeckNotFound,
+			ImageExist:    apperr.ErrDeckImageExists,
+			ImageNotExist: apperr.ErrDeckImageNotFound,
 		}),
 	}
 }

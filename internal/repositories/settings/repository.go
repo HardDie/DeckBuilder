@@ -2,12 +2,12 @@ package settings
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/HardDie/fsentry"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
-	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/utils"
 )
 
@@ -23,14 +23,16 @@ func New(cfg *config.Config, db *fsentry.DB) Settings {
 	}
 }
 
+// Get returns the stored settings, or the defaults when none are stored.
 func (r *settings) Get() (*entitiesSettings.Settings, error) {
-	resp, err := r.get()
-	if err != nil {
-		if errors.Is(err, er.SettingsNotExists) {
-			return utils.Allocate(entitiesSettings.Default()), nil
-		}
-		return nil, err
+	info, err := r.db.GetEntry[model]("settings")
+	if errors.Is(err, fsentry.ErrNotExist) {
+		return utils.Allocate(entitiesSettings.Default()), nil
 	}
+	if err != nil {
+		return nil, fmt.Errorf("read settings: %w", err)
+	}
+	resp := info.Data
 	return &entitiesSettings.Settings{
 		Lang:             resp.Lang,
 		EnableBackShadow: resp.EnableBackShadow,
@@ -54,29 +56,17 @@ func (r *settings) Save(req *entitiesSettings.Settings) error {
 	})
 }
 
-func (r *settings) get() (*model, error) {
-	info, err := r.db.GetEntry[model]("settings")
-	if err != nil {
-		if errors.Is(err, fsentry.ErrNotExist) {
-			return nil, er.SettingsNotExists.AddMessage(err.Error())
-		}
-		return nil, er.InternalError.AddMessage(err.Error())
-	}
-	setting := info.Data
-	return &setting, nil
-}
-
 func (r *settings) set(data *model) error {
 	_, err := r.db.CreateEntry("settings", data)
 	if err == nil {
 		return nil
 	}
 	if !errors.Is(err, fsentry.ErrExist) {
-		return err
+		return fmt.Errorf("save settings: %w", err)
 	}
 	_, err = r.db.UpdateEntry("settings", data)
 	if err != nil {
-		return er.InternalError.AddMessage(err.Error())
+		return fmt.Errorf("save settings: %w", err)
 	}
 	return nil
 }
