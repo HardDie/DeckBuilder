@@ -104,6 +104,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, onBeforeUnmount, h } from 'vue'
+import { useToast } from 'vue-toastification'
 import { useItemsStore } from '@/stores/items'
 import { useStore } from '@/stores/main'
 import { useSystemStore } from '@/stores/system'
@@ -278,6 +279,10 @@ const startCheckStatusPolling = () => {
     systemStore.fetchCheckStatus().then(status => {
       generateStatus.value = status.status
       generateProgress.value = Math.floor(status.progress || 0)
+      // A render that failed after it started: say why (the details are in the log).
+      if (status.status === 'error') {
+        useToast().error(status.message || 'Render failed.')
+      }
       if (status.status !== 'in_progress') {
         clearInterval(generateInterval.value)
         setTimeout(() => {

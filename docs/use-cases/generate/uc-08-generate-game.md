@@ -20,7 +20,7 @@
 * **1a. A generate is already running:** `ErrRenderInProgress`, "a render is already running"; `result/` and progress are not touched.
 * **1b. A deck has no back image or a card has no image:** `ErrMissingImages`; the message names up to 5 of them and counts the rest. Nothing is written and progress is not touched. See [ADR 024](../../architecture/024-required-deck-and-card-images.md).
 * **2a. Unknown game:** error before the goroutine.
-* **3a. Unreadable back/face or draw error:** progress `error`; logs the cause.
+* **3a. Unreadable back/face or draw error:** progress `error` with a message; the window shows it as a toast, e.g. "An image in deck "Crew" could not be read. The file may be damaged."; the cause is logged.
 * **3b. Too many cards for one page:** extra pages (`index` increments); CustomDeck entries multiply.
 * **3c. Panic while planning or drawing:** recovered; progress `error`; logs the panic and stack.
 * **3d. Page unchanged since the last render:** its file name (a hash of what is drawn) already exists, so it is reused, not redrawn. Card text, variables, and count do not count as changes.

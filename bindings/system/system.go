@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/HardDie/DeckBuilder/bindings/errfmt"
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
@@ -66,11 +67,16 @@ func (s *System) Status() *StatusResult {
 		kind = "Image generation"
 	}
 
-	return &StatusResult{Data: dto.Status{
+	result := dto.Status{
 		Type:     kind,
 		Progress: status.Percent,
 		Status:   status.Status,
-	}}
+	}
+	if status.Status == renderprogress.Error {
+		// The window shows this as an error toast; compose already logged the details.
+		result.Message = errfmt.Text(status.Err)
+	}
+	return &StatusResult{Data: result}
 }
 
 // DownloadStatus reports the image download of a pending save.

@@ -187,6 +187,10 @@ func TestGenerateFailureKeepsPreviousResult(t *testing.T) {
 	if status := generate(t, cfg, w); status != progress.Error {
 		t.Fatalf("second run %s, want error", status)
 	}
+	wantMessage := `an image in deck "Bandits" could not be read. The file may be damaged`
+	if msg := apperr.Message(progress.Get().Err); msg != wantMessage {
+		t.Fatalf("status message %q, want %q", msg, wantMessage)
+	}
 	got := files(t, dir)
 	if len(got) != len(before) {
 		t.Fatalf("files %v, want the previous %v", got, before)
@@ -255,5 +259,22 @@ func TestGenerateMissingImagesListIsCapped(t *testing.T) {
 		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
 	if !errors.Is(err, apperr.ErrMissingImages) || !strings.Contains(err.Error(), "; and 3 more.") {
 		t.Fatalf("err %v, want 5 names and \"and 3 more\"", err)
+	}
+}
+
+// A face with a readable header but damaged pixels fails while drawing;
+// the status still names the deck.
+func TestGenerateDamagedImageMessage(t *testing.T) {
+	cfg, _ := newCfg(t)
+	w := twoDecks()
+	bo := w.Collections[0].Decks[1].Cards[1]
+	bo.Face = bo.Face[:40] // header kept, pixels cut off; Ada's face still sets the cell
+
+	if status := generate(t, cfg, w); status != progress.Error {
+		t.Fatalf("status %s, want error", status)
+	}
+	want := `an image in deck "Crew" could not be read. The file may be damaged`
+	if msg := apperr.Message(progress.Get().Err); msg != want {
+		t.Fatalf("status message %q, want %q", msg, want)
 	}
 }

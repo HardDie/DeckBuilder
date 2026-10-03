@@ -11,11 +11,13 @@ const (
 )
 
 // State is one reading of the current run.
+// Err is why the run failed; it is set only with the status Error.
 type State struct {
 	Done    int
 	Total   int
 	Percent float32
 	Status  string
+	Err     error
 }
 
 var (
@@ -57,11 +59,12 @@ func Finish() {
 	state.Status = Done
 }
 
-// Fail marks the run failed. The last percent stays.
-func Fail() {
+// Fail marks the run failed and keeps err for the window. The last percent stays.
+func Fail(err error) {
 	mu.Lock()
 	defer mu.Unlock()
 	state.Status = Error
+	state.Err = err
 }
 
 // Get returns the current reading.

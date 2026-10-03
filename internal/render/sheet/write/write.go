@@ -2,6 +2,7 @@
 package write
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"runtime"
@@ -16,6 +17,9 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/paint"
 )
 
+// ErrUndecodable marks a face or back that does not decode; the decoder's text follows it.
+var ErrUndecodable = errors.New("image does not decode")
+
 // Draw paints faces and the back into path.
 // Cell width and height are already chosen. Faces and back are the original file bytes.
 // Faces and the back are decoded and resized in parallel, at most GOMAXPROCS at a time.
@@ -27,7 +31,7 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 		jobs = append(jobs, func() error {
 			img, err := images.ImageFromBinary(raw)
 			if err != nil {
-				return err
+				return fmt.Errorf("%w: face %d: %v", ErrUndecodable, i+1, err)
 			}
 			drawn[i] = fit.Resize(img, cellW, cellH)
 			return nil
@@ -36,7 +40,7 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 	jobs = append(jobs, func() error {
 		decoded, err := images.ImageFromBinary(rawBack)
 		if err != nil {
-			return err
+			return fmt.Errorf("%w: back: %v", ErrUndecodable, err)
 		}
 		shaded = fit.Resize(back.Shade(decoded, shadow), cellW, cellH)
 		return nil

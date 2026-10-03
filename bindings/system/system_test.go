@@ -1,10 +1,13 @@
 package system
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	"github.com/HardDie/DeckBuilder/internal/dto"
 	"github.com/HardDie/DeckBuilder/internal/network"
+	renderprogress "github.com/HardDie/DeckBuilder/internal/render/progress"
 )
 
 func TestDownloadStatusDTO(t *testing.T) {
@@ -36,5 +39,32 @@ func TestDownloadStatusDTO(t *testing.T) {
 				t.Fatalf("got %+v, want %+v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestStatusCarriesTheRenderError(t *testing.T) {
+	s := &System{}
+	renderprogress.Reset()
+	renderprogress.Begin()
+	renderprogress.Fail(apperr.Withf(apperr.ErrUnsupportedImage, "an image in deck %q could not be read", "Crew"))
+
+	got := s.Status().Data
+	if got.Status != renderprogress.Error || got.Message != `An image in deck "Crew" could not be read` {
+		t.Fatalf("status %+v", got)
+	}
+	if again := s.Status().Data; again.Status != renderprogress.Empty || again.Message != "" {
+		t.Fatalf("after reading the error, status %+v", again)
+	}
+
+	renderprogress.Begin()
+	renderprogress.Fail(errors.New("disk full"))
+	if got := s.Status().Data; got.Message != apperr.Unexpected {
+		t.Fatalf("unexpected error message %q", got.Message)
+	}
+
+	renderprogress.Begin()
+	renderprogress.Finish()
+	if got := s.Status().Data; got.Status != renderprogress.Done || got.Message != "" {
+		t.Fatalf("done status %+v", got)
 	}
 }

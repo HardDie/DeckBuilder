@@ -279,6 +279,9 @@ Other locations:
    4. Pollers treat that `empty` as "already observed".
    5. Only one generate runs at a time, so one run owns it.
    6. Overlapping generates are rejected with `ErrRenderInProgress`.
+   7. An `error` status carries a message; the window shows it as a toast.
+      1. `progress.Fail(err)` keeps the error; `System.Status` turns it into text.
+      2. An unreadable image names its deck (`generate.UnreadableImage`).
 8. Compose is the only render path.
    1. The old `generator`, `page_drawer`, and `progress` were removed.
    2. `docs/wiki/Generation.md` and `internal/render/compose/README.md` describe compose.

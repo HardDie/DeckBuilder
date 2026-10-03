@@ -23,7 +23,10 @@ func TestFormat(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Format(tt.err); got != tt.want {
-				t.Fatalf("got %q, want %q", got, tt.want)
+				t.Fatalf("Format %q, want %q", got, tt.want)
+			}
+			if got := Text(tt.err); got != tt.want {
+				t.Fatalf("Text %q, want %q", got, tt.want)
 			}
 		})
 	}

@@ -88,22 +88,25 @@ If any step before 7 fails, a `defer` releases the flag, so a failed start never
 4. **Sheets.** For each `plan.Sheets` entry: if the file exists, count it as reused; otherwise call `write.Draw`. Then `progress.Sheets(done, total)`.
 5. **JSON.** `plan.Root` is written to `<gameID>.json` every time, since card text may have changed.
 6. **Cleanup.** Every file in the game folder that steps 3–5 did not write or reuse is removed (old pages, old backs, leftover `.tmp` files). Failures here are logged, not fatal.
-7. Log `Generator: <reused> of <total> sheets reused`.
+7. Log `render finished` with the game, sheet count, and reused count.
 8. `SendToTTS(plan.Bag)`: best effort; TTS may not be running.
 
 New files in steps 3–5 go through `fs.WriteAtomic`: written to `<name>.tmp`, then renamed. A crash leaves at most a `.tmp` file, which the next successful render removes.
 
 ### Errors, panics, and progress
 
-| Outcome | Status | Log | Files |
-|---|---|---|---|
-| Success | `done` | `Generator: N of M sheets reused` | Exactly this render's files |
-| Error in `run` | `error` | `Generator: <error>` | Previous files kept; new complete files may be added |
-| Panic in `run` or in a draw worker | `error` | `Generator: panic: … <stack>` | Same as an error |
+| Outcome | Status | Window | Log | Files |
+|---|---|---|---|---|
+| Success | `done` | progress circle closes | `render finished` (game, sheets, reused) | Exactly this render's files |
+| An image cannot be read | `error` | toast: "An image in deck "…" could not be read. The file may be damaged." | `render failed` plus the decoder's text | Previous files kept; new complete files may be added |
+| Other error in `run` | `error` | toast with the error's message, or "Something went wrong…" | `render failed` (game, err) | Same |
+| Panic in `run` or in a draw worker | `error` | toast "Something went wrong…" | `render failed` with `panic: … <stack>` | Same |
 
 `safeRun` recovers a panic in the goroutine and turns it into an error. `sheet/write` does the same for its worker goroutines. A crash inside C code (libjpeg-turbo, stb) cannot be recovered.
 
-The window reads status through `bindings/system.Status`. Reading `done` or `error` resets it to `empty`.
+The window reads status through `bindings/system.Status`. Reading `done` or `error` resets it to `empty`. An `error` status carries the readable message (`errfmt.Text` of the error kept by `progress.Fail`); the window shows it as a toast.
+
+An image that does not decode is reported per deck: `layout` cannot read the first face's header (`*layout.ImageError`), or `write.Draw` cannot decode a face or the back (`write.ErrUndecodable`). Both become `generate.UnreadableImage(deckName)`.
 
 ### Reuse: when is a page drawn again?
 

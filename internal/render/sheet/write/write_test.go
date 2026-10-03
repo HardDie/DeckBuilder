@@ -2,6 +2,7 @@ package write
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -140,4 +141,28 @@ func pngBytes(t *testing.T, w, h int, c color.RGBA) []byte {
 		t.Fatal(err)
 	}
 	return buf.Bytes()
+}
+
+func TestDrawMarksUndecodableImages(t *testing.T) {
+	good := pngBytes(t, 8, 12, color.RGBA{R: 200, A: 255})
+	broken := good[:40] // a valid header, then the pixels are cut off
+	path := filepath.Join(t.TempDir(), "sheet.jpg")
+
+	tests := []struct {
+		name  string
+		faces [][]byte
+		back  []byte
+		where string
+	}{
+		{"face", [][]byte{good, broken}, good, "face 2"},
+		{"back", [][]byte{good}, broken, "back"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := Draw(tt.faces, tt.back, 8, 12, false, path)
+			if !errors.Is(err, ErrUndecodable) || !strings.Contains(err.Error(), tt.where) {
+				t.Fatalf("err %v, want ErrUndecodable naming %s", err, tt.where)
+			}
+		})
+	}
 }

@@ -2,6 +2,7 @@
 package compose
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -116,7 +117,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		defer s.running.Store(false)
 		err := s.safeRun(dir, gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
-			renderprogress.Fail()
+			renderprogress.Fail(err)
 			slog.Error("render failed", "game", gameItem.ID, "err", err)
 			return
 		}
@@ -196,6 +197,11 @@ func (s *runner) run(
 			err := fs.WriteAtomic(sheet.Path, func(tmp string) error {
 				return write.Draw(sheet.Faces, sheet.Back, sheet.CellW, sheet.CellH, sheet.Shadow, tmp)
 			})
+			if errors.Is(err, write.ErrUndecodable) {
+				// The sheet knows its deck, not the card; the decoder's detail goes to the log.
+				slog.Warn("sheet image does not decode", "deck", sheet.DeckName, "err", err)
+				return generate.UnreadableImage(sheet.DeckName)
+			}
 			if err != nil {
 				return err
 			}

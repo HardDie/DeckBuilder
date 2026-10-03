@@ -231,10 +231,14 @@ S19. Remind about missing deck and card images
  7. A deck is also badged when any of its cards has no image (`cardsMissingImage`).
 
 S20. Show render failures in the window
- 1. Status: `todo`.
+ 1. Status: `in review`.
  2. A render that ends with `error` only hides the progress circle.
  3. The reason is only in the log.
  4. Idea: carry the reason in the polled status and show it as a toast.
+ 5. Done: `progress.Fail(err)`; `System.Status` fills `message`; `MainView` toasts it.
+ 6. An unreadable image names its deck: "An image in deck "Crew" could not be read…".
+ 7. Fixed on the way: a deck whose first card was a GIF could not render.
+    1. `layout` now reads sizes with `image.DecodeConfig` (PNG, JPEG, GIF).
 
 S21. Error toasts start with "HTTP[400]"
  1. Status: `done`.
@@ -250,7 +254,7 @@ S21. Error toasts start with "HTTP[400]"
  6. `internal/errors` deleted. Decision: [ADR 025](../architecture/025-app-errors.md).
 
 S22. Rework logging
- 1. Status: `in review` (pkg/logger: step 3 of 3).
+ 1. Status: `done`.
  2. S21 sends unexpected error details only to the log.
  3. The log must then be easy to find and read.
  4. Today: `internal/logger` writes to stdout (Info, Warn) and stderr (Error) only.

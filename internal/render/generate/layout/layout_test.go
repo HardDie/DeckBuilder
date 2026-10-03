@@ -2,9 +2,14 @@ package layout_test
 
 import (
 	"bytes"
+	"encoding/binary"
+	"errors"
 	"fmt"
+	"hash/crc32"
 	"image"
 	"image/color"
+	"image/color/palette"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"path/filepath"
@@ -104,20 +109,21 @@ func cell(t *testing.T, raw []byte, scale int) (int, int) {
 	return pages[0].CellW, pages[0].CellH
 }
 
+// pngHeader is a PNG with only its signature and a complete IHDR chunk:
+// enough for image.DecodeConfig, with no pixel data.
 func pngHeader(w, h int) []byte {
-	b := make([]byte, 24)
-	copy(b, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'})
-	copy(b[12:16], []byte("IHDR"))
-	b[11] = 13
-	put := func(off, v int) {
-		b[off] = byte(v >> 24)
-		b[off+1] = byte(v >> 16)
-		b[off+2] = byte(v >> 8)
-		b[off+3] = byte(v)
-	}
-	put(16, w)
-	put(20, h)
-	return b
+	var ihdr bytes.Buffer
+	ihdr.WriteString("IHDR")
+	_ = binary.Write(&ihdr, binary.BigEndian, uint32(w))
+	_ = binary.Write(&ihdr, binary.BigEndian, uint32(h))
+	ihdr.Write([]byte{8, 6, 0, 0, 0}) // 8-bit RGBA, no interlace
+
+	var out bytes.Buffer
+	out.WriteString("\x89PNG\r\n\x1a\n")
+	_ = binary.Write(&out, binary.BigEndian, uint32(ihdr.Len()-4))
+	out.Write(ihdr.Bytes())
+	_ = binary.Write(&out, binary.BigEndian, crc32.ChecksumIEEE(ihdr.Bytes()))
+	return out.Bytes()
 }
 
 func pngBytes(t *testing.T, w, h int, c color.RGBA) []byte {
@@ -178,5 +184,21 @@ func TestPagesNameFollowsContent(t *testing.T) {
 	}
 	if name([][]byte{big, blue}, back, 2, true) == name([][]byte{big, blue}, back, 1, true) {
 		t.Error("scale change kept the name")
+	}
+}
+
+func TestPagesReadsEveryAcceptedFormat(t *testing.T) {
+	var gifBuf bytes.Buffer
+	if err := gif.Encode(&gifBuf, image.NewPaletted(image.Rect(0, 0, 8, 12), palette.Plan9), nil); err != nil {
+		t.Fatal(err)
+	}
+	if w, h := cell(t, gifBuf.Bytes(), 1); w != 8 || h != 12 {
+		t.Fatalf("gif %dx%d", w, h)
+	}
+
+	_, _, err := layout.Pages(t.TempDir(), []layout.Deck{{ID: "crew", Faces: [][]byte{[]byte("not an image")}}}, 1, false)
+	var imageErr *layout.ImageError
+	if !errors.As(err, &imageErr) || imageErr.DeckID != "crew" {
+		t.Fatalf("err %v, want an ImageError for deck crew", err)
 	}
 }

@@ -16,6 +16,7 @@
 ## Alternative scenarios and errors
 
 * **1a. Overlapping generate:** rejected with `ErrRenderInProgress` (UC-08 1a); the running job keeps the singleton.
+* **4b. Status `error`:** `message` says why the render failed; the window shows it as an error toast before hiding the circle.
 * **4a. Client misses the terminal poll:** next poll may already be `empty`.
 
 ## Postconditions

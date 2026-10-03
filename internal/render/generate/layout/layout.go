@@ -2,8 +2,13 @@
 package layout
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"image"
+	_ "image/gif" // headerSize reads GIF headers
+	_ "image/jpeg"
+	_ "image/png"
 	"math"
 	"path/filepath"
 
@@ -19,6 +24,18 @@ type Deck struct {
 	Back  []byte
 	Faces [][]byte
 }
+
+// ImageError is a deck whose first face has no readable image header,
+// so its cell size cannot be chosen.
+type ImageError struct {
+	DeckID string
+	Err    error
+}
+
+func (e *ImageError) Error() string {
+	return fmt.Sprintf("deck %s: read image size: %v", e.DeckID, e.Err)
+}
+func (e *ImageError) Unwrap() error { return e.Err }
 
 // Page is one sheet the drawer can paint without measuring again.
 type Page struct {
@@ -59,7 +76,7 @@ func Pages(dir string, decks []Deck, scale int, shadow bool) ([]Page, []File, er
 		}
 		cellW, cellH, err := cell(deck.Faces[0], scale)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, &ImageError{DeckID: deck.ID, Err: err}
 		}
 		backPath := backName(dir, deck.ID, deck.Back)
 		backs = append(backs, File{Path: backPath, Body: deck.Back})
@@ -198,69 +215,12 @@ func grid(n int) (cols, rows int) {
 	return
 }
 
+// headerSize reads the width and height from the image header only.
+// It knows every format the app accepts: PNG, JPEG, and GIF.
 func headerSize(raw []byte) (int, int, error) {
-	if w, h, ok := pngSize(raw); ok {
-		return w, h, nil
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(raw))
+	if err != nil {
+		return 0, 0, err
 	}
-	if w, h, ok := jpegSize(raw); ok {
-		return w, h, nil
-	}
-	return 0, 0, fmt.Errorf("image size: not a png or jpeg")
-}
-
-func pngSize(raw []byte) (int, int, bool) {
-	sig := []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}
-	if len(raw) < 24 || string(raw[:8]) != string(sig) || string(raw[12:16]) != "IHDR" {
-		return 0, 0, false
-	}
-	return int(binary.BigEndian.Uint32(raw[16:20])), int(binary.BigEndian.Uint32(raw[20:24])), true
-}
-
-func jpegSize(raw []byte) (int, int, bool) {
-	if len(raw) < 4 || raw[0] != 0xff || raw[1] != 0xd8 {
-		return 0, 0, false
-	}
-	i := 2
-	for i+1 < len(raw) {
-		if raw[i] != 0xff {
-			return 0, 0, false
-		}
-		for i < len(raw) && raw[i] == 0xff {
-			i++
-		}
-		if i >= len(raw) {
-			return 0, 0, false
-		}
-		marker := raw[i]
-		i++
-		if marker == 0xd9 || marker == 0xda {
-			return 0, 0, false
-		}
-		if marker >= 0xd0 && marker <= 0xd7 {
-			continue
-		}
-		if i+1 >= len(raw) {
-			return 0, 0, false
-		}
-		seg := int(binary.BigEndian.Uint16(raw[i : i+2]))
-		if seg < 2 || i+seg > len(raw) {
-			return 0, 0, false
-		}
-		if isSOF(marker) && seg >= 7 {
-			h := int(binary.BigEndian.Uint16(raw[i+3 : i+5]))
-			w := int(binary.BigEndian.Uint16(raw[i+5 : i+7]))
-			return w, h, true
-		}
-		i += seg
-	}
-	return 0, 0, false
-}
-
-func isSOF(marker byte) bool {
-	switch marker {
-	case 0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf:
-		return true
-	default:
-		return false
-	}
+	return cfg.Width, cfg.Height, nil
 }

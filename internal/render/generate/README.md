@@ -61,7 +61,7 @@ The back comes from the deck in the first card's collection. A missing back or f
 
 ## `layout`: pages, cells, and names
 
-`Pages(dir, decks, scale, shadow)` measures. It reads only the width and height from the PNG `IHDR` chunk or the JPEG SOF marker.
+`Pages(dir, decks, scale, shadow)` measures. It reads only the width and height from the image header (`image.DecodeConfig`), for every accepted format: PNG, JPEG, and GIF. A first face whose header cannot be read returns `*layout.ImageError` with the deck id; `Prepare` turns it into `UnreadableImage(deckName)`: "an image in deck … could not be read".
 
 **Splitting.** Faces fill a page in card order until 69 (`config.MaxCount`); the next face starts a new page. Page numbers start at 1 for each deck. The 70th cell of a full 10×7 page holds the back.
 

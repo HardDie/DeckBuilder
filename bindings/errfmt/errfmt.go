@@ -10,14 +10,18 @@ import (
 )
 
 // Format is the Wails ErrorFormatter. Every error a bound method returns passes here.
-// A known error shows its message; anything else shows a generic one,
-// and its details go to the log.
+// It returns Text, and logs the details of an unexpected error.
 func Format(err error) any {
-	msg := apperr.Message(err)
-	if msg == apperr.Unexpected {
+	if apperr.Message(err) == apperr.Unexpected {
 		slog.Error("unexpected error", "err", err)
 	}
-	return capitalize(msg)
+	return Text(err)
+}
+
+// Text is what the window shows for err: a known error's message as a sentence,
+// or the generic message. It does not log.
+func Text(err error) string {
+	return capitalize(apperr.Message(err))
 }
 
 // capitalize upper-cases the first letter: errors are lowercase by Go convention,

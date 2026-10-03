@@ -1,6 +1,9 @@
 package progress
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestSheetsPercent(t *testing.T) {
 	Reset()
@@ -25,5 +28,25 @@ func TestSheetsPercent(t *testing.T) {
 	Finish()
 	if got := Get(); got.Percent != 100 || got.Status != Done {
 		t.Fatalf("many sheets done %+v", got)
+	}
+}
+
+func TestFailKeepsTheError(t *testing.T) {
+	boom := errors.New("boom")
+	Reset()
+	Begin()
+	Fail(boom)
+	if got := Get(); got.Status != Error || got.Err != boom {
+		t.Fatalf("after Fail %+v", got)
+	}
+	Reset()
+	if got := Get(); got.Err != nil || got.Status != Empty {
+		t.Fatalf("after Reset %+v", got)
+	}
+	Begin()
+	Fail(boom)
+	Begin()
+	if Get().Err != nil {
+		t.Fatal("Begin starts a run without the old error")
 	}
 }
