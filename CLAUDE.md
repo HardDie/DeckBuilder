@@ -114,6 +114,10 @@ Must have:
 1. Catalog tree: **game → collection → deck → card**.
 2. Images per entity, from a file upload or a URL.
    1. GUI and TTS load them via `/api/…/image`.
+   2. Decks and cards must have an image; games and collections may not.
+   3. A missing one never blocks a save: the save warns, the list marks it.
+   4. Render refuses to start and names what is missing.
+   5. See [ADR 024](docs/architecture/024-required-deck-and-card-images.md).
 3. Cards carry Lua variables (`map[string]string`).
 4. Cards carry a `count`: copies in the rendered deck.
 5. Render a game.

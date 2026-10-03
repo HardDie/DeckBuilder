@@ -2,6 +2,8 @@ package compose_test
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"image/color"
 	"os"
 	"path/filepath"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
 	"github.com/HardDie/DeckBuilder/internal/render/progress"
@@ -197,5 +200,60 @@ func TestGenerateFailureKeepsPreviousResult(t *testing.T) {
 		if strings.HasSuffix(name, ".tmp") {
 			t.Errorf("temporary file %s left behind", name)
 		}
+	}
+}
+
+// Rendering does not start while a deck has no back or a card has no face;
+// the error names them, and nothing is written.
+func TestGenerateRefusesMissingImages(t *testing.T) {
+	cfg, dir := newCfg(t)
+	w := twoDecks()
+	w.MissingBacks = map[string]bool{"bandits": true}
+	w.MissingFaces = map[int64]bool{2: true}
+	gen := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w})
+	req := compose.GenerateGameRequest{SortOrder: "name", Scale: 1}
+
+	err := gen.GenerateGame("raid", req)
+	if !errors.Is(err, er.GenerateMissingImages) {
+		t.Fatalf("err %v, want GenerateMissingImages", err)
+	}
+	for _, want := range []string{`deck "Bandits" (back image)`, `card "Ada" in deck "Crew"`} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("message %q does not name %s", err.Error(), want)
+		}
+	}
+	if _, statErr := os.Stat(dir); !os.IsNotExist(statErr) {
+		t.Fatal("the game folder was created")
+	}
+	if status := progress.Get().Status; status != progress.Empty {
+		t.Fatalf("status %s, want empty", status)
+	}
+
+	// With the images in place, the next render runs: the flag was released.
+	w.MissingBacks, w.MissingFaces = nil, nil
+	if err := gen.GenerateGame("raid", req); err != nil {
+		t.Fatal(err)
+	}
+	if status := waitFinished(t); status != progress.Done {
+		t.Fatalf("status %s", status)
+	}
+}
+
+func TestGenerateMissingImagesListIsCapped(t *testing.T) {
+	cfg, _ := newCfg(t)
+	w := twoDecks()
+	cards := w.Collections[0].Decks[1].Cards
+	for id := int64(10); id < 18; id++ {
+		cards = append(cards, &fake.Card{ID: id, Name: fmt.Sprintf("C%d", id), Count: 1})
+	}
+	w.Collections[0].Decks[1].Cards = cards
+	w.MissingFaces = map[int64]bool{}
+	for id := int64(10); id < 18; id++ {
+		w.MissingFaces[id] = true
+	}
+	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
+		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
+	if !errors.Is(err, er.GenerateMissingImages) || !strings.Contains(err.Error(), "; and 3 more.") {
+		t.Fatalf("err %v, want 5 names and \"and 3 more\"", err)
 	}
 }

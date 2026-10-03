@@ -142,7 +142,20 @@ func (Collections) GetImage(string, string) ([]byte, string, error) { return nil
 func (Decks) Create(string, string, servicesDeck.CreateRequest) (*entitiesDeck.Deck, error) {
 	return nil, nil
 }
-func (Decks) Item(string, string, string) (*entitiesDeck.Deck, error) { return nil, nil }
+func (d Decks) Item(gameID, collectionID, deckID string) (*entitiesDeck.Deck, error) {
+	deck := d.findDeck(collectionID, deckID)
+	if deck == nil {
+		return nil, errors.New("deck not found")
+	}
+	return &entitiesDeck.Deck{
+		ID:           deck.ID,
+		Name:         deck.Name,
+		Image:        deck.Image,
+		GameID:       gameID,
+		CollectionID: collectionID,
+		HasImage:     !d.MissingBacks[deckID],
+	}, nil
+}
 func (d Decks) List(gameID, collectionID, sortField, _ string) ([]*entitiesDeck.Deck, error) {
 	d.noteSort(sortField)
 	for _, col := range d.Collections {
@@ -157,6 +170,7 @@ func (d Decks) List(gameID, collectionID, sortField, _ string) ([]*entitiesDeck.
 				Image:        deck.Image,
 				GameID:       gameID,
 				CollectionID: collectionID,
+				HasImage:     !d.MissingBacks[deck.ID],
 			}
 		}
 		return out, nil
@@ -187,7 +201,7 @@ func (c Cards) Item(gameID, collectionID, deckID string, cardID int64) (*entitie
 	if card == nil {
 		return nil, errors.New("card missing")
 	}
-	return cardEntity(gameID, collectionID, deckID, card), nil
+	return cardEntity(gameID, collectionID, deckID, card, !c.MissingFaces[card.ID]), nil
 }
 func (c Cards) List(gameID, collectionID, deckID, sortField, _ string) ([]*entitiesCard.Card, error) {
 	c.noteSort(sortField)
@@ -197,7 +211,7 @@ func (c Cards) List(gameID, collectionID, deckID, sortField, _ string) ([]*entit
 	}
 	out := make([]*entitiesCard.Card, len(deck.Cards))
 	for i, card := range deck.Cards {
-		out[i] = cardEntity(gameID, collectionID, deckID, card)
+		out[i] = cardEntity(gameID, collectionID, deckID, card, !c.MissingFaces[card.ID])
 	}
 	return out, nil
 }
@@ -232,7 +246,7 @@ func (s Speech) SendToTTS(data any) {
 }
 func (Speech) DataForTTS() ([]byte, error) { return nil, nil }
 
-func cardEntity(gameID, collectionID, deckID string, card *Card) *entitiesCard.Card {
+func cardEntity(gameID, collectionID, deckID string, card *Card, hasImage bool) *entitiesCard.Card {
 	return &entitiesCard.Card{
 		ID:           card.ID,
 		Name:         card.Name,
@@ -242,6 +256,7 @@ func cardEntity(gameID, collectionID, deckID string, card *Card) *entitiesCard.C
 		GameID:       gameID,
 		CollectionID: collectionID,
 		DeckID:       deckID,
+		HasImage:     hasImage,
 	}
 }
 

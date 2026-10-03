@@ -47,6 +47,8 @@
             :img="item.cachedImage"
             :description="item.description"
             :count="item.count"
+            :missing-image="item.hasImage === false"
+            :warning="imageWarning(item)"
             :clickable="mainStore.itemType !== 'cards'"
             :with-export="mainStore.itemType === 'games'"
             :with-duplicate="mainStore.itemType === 'games'"
@@ -299,6 +301,21 @@ const onFilters = () => {
 
 const onReplace = data => {
   replaceStore.replace(data)
+}
+
+// Decks and cards need images to render; games and collections have no hasImage field.
+const imageWarning = item => {
+  if (mainStore.itemType === 'cards') {
+    return item.hasImage === false ? 'No image. Rendering needs one.' : ''
+  }
+  const parts = []
+  if (item.hasImage === false) {
+    parts.push('No back image.')
+  }
+  if (item.cardsMissingImage) {
+    parts.push('Some cards have no image.')
+  }
+  return parts.length ? `${parts.join(' ')} Rendering needs every image.` : ''
 }
 
 const onItemClick = id => {

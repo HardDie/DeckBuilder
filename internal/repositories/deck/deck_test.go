@@ -1,6 +1,9 @@
 package deck
 
 import (
+	"bytes"
+	"image"
+	pngenc "image/png"
 	"testing"
 
 	"github.com/HardDie/fsentry"
@@ -114,4 +117,51 @@ func TestGetAllDecksInGame(t *testing.T) {
 		_, err := New(db).GetAllDecksInGame("missing")
 		assert.ErrorIs(t, err, er.GameNotExists)
 	})
+}
+
+func TestDeckHasImage(t *testing.T) {
+	db := newDeckDB(t, "base")
+	repo := New(db)
+	var png bytes.Buffer
+	require.NoError(t, pngenc.Encode(&png, image.NewRGBA(image.Rect(0, 0, 2, 2))))
+
+	plain, err := repo.Create("game", "base", CreateRequest{Name: "plain"})
+	require.NoError(t, err)
+	assert.False(t, plain.HasImage)
+	withBack, err := repo.Create("game", "base", CreateRequest{Name: "with_back", ImageFile: png.Bytes()})
+	require.NoError(t, err)
+	assert.True(t, withBack.HasImage)
+
+	all, err := repo.GetAll("game", "base")
+	require.NoError(t, err)
+	got := map[string]bool{}
+	for _, d := range all {
+		got[d.ID] = d.HasImage
+	}
+	assert.Equal(t, map[string]bool{"plain": false, "with_back": true}, got)
+}
+
+func TestDeckCardsMissingImage(t *testing.T) {
+	db := newDeckDB(t, "base")
+	repo := New(db)
+	_, err := repo.Create("game", "base", CreateRequest{Name: "crew"})
+	require.NoError(t, err)
+	cardsPath := []string{"games", "game", "base", "crew"}
+	missing := func() bool {
+		t.Helper()
+		got, err := repo.GetByID("game", "base", "crew")
+		require.NoError(t, err)
+		return got.CardsMissingImage
+	}
+
+	assert.False(t, missing(), "no cards")
+
+	// Two cards in the list, an image file for card 1 only.
+	_, err = db.UpdateFolder("cards", map[string]any{"1": map[string]any{}, "2": map[string]any{}}, cardsPath...)
+	require.NoError(t, err)
+	require.NoError(t, db.CreateBinary("1", []byte("png"), append(cardsPath, "cards")...))
+	assert.True(t, missing(), "card 2 has no image")
+
+	require.NoError(t, db.CreateBinary("2", []byte("png"), append(cardsPath, "cards")...))
+	assert.False(t, missing(), "every card has an image")
 }

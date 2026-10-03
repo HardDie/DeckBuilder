@@ -7,15 +7,33 @@
       :disabled="!propsRef.description.value"
     >
       <template #trigger>
-        <img
-          ref="cardImg"
-          class="img"
-          rel="preload"
-          :src="propsRef.img.value"
-          :alt="propsRef.name.value"
-          @contextmenu="onRightClick"
-          @click="onCardClick"
-        />
+        <div class="img-wrap">
+          <img
+            ref="cardImg"
+            class="img"
+            rel="preload"
+            :src="propsRef.missingImage.value ? noImageSrc : propsRef.img.value"
+            :alt="propsRef.name.value"
+            @contextmenu="onRightClick"
+            @click="onCardClick"
+          />
+          <n-tooltip
+            v-if="propsRef.warning.value"
+            trigger="hover"
+            placement="top"
+          >
+            <template #trigger>
+              <n-icon
+                class="img-wrap__warning"
+                size="28"
+                color="#e0a000"
+              >
+                <warning-amber-round />
+              </n-icon>
+            </template>
+            <span>{{ propsRef.warning.value }}</span>
+          </n-tooltip>
+        </div>
       </template>
       <span>{{ propsRef.description.value }}</span>
     </n-tooltip>
@@ -38,6 +56,17 @@
 
 <script setup>
 import { ref, computed, toRefs, onMounted, onBeforeUnmount } from 'vue'
+import { WarningAmberRound } from '@vicons/material'
+
+// Shown instead of a broken image when a deck or card has no image yet.
+const noImageSrc =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="205" height="288" viewBox="0 0 205 288">' +
+      '<rect width="205" height="288" fill="#e3ded6"/>' +
+      '<text x="102" y="150" font-family="Roboto, sans-serif" font-size="18" fill="#7a7a7a" text-anchor="middle">No image</text>' +
+      '</svg>',
+  )
 
 const emit = defineEmits([
   'card-click',
@@ -89,6 +118,16 @@ const props = defineProps({
   clickable: {
     type: Boolean,
     default: false,
+  },
+  // The item's own image is missing: show a placeholder instead of a broken image.
+  missingImage: {
+    type: Boolean,
+    default: false,
+  },
+  // Shown as a warning badge; empty means no badge.
+  warning: {
+    type: String,
+    default: '',
   },
 })
 
@@ -190,6 +229,17 @@ const onCardClick = () => {
 </script>
 
 <style lang="scss">
+.img-wrap {
+  position: relative;
+
+  &__warning {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  }
+}
+
 .img {
   max-width: 205px;
   border: 2px #138b44 solid;

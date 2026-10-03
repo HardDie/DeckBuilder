@@ -158,9 +158,10 @@ const onSelect = name => {
   if (!isFile) {
     form.image = selected.image || ''
   } else {
+    // A deck without an image answers 404; then there is nothing to copy.
     fetch(selected.cachedImage)
-      .then(res => res.blob())
-      .then(res => (form.imageFile = res))
+      .then(res => (res.ok ? res.blob() : null))
+      .then(blob => (form.imageFile = blob))
   }
 
   form.description = selected.description || ''

@@ -16,12 +16,14 @@ type Deck struct {
 	Image string
 }
 
-// Card is one catalog card on that deck. Count is copied from the list.
+// Card is one catalog card on that deck. Count, Name, and HasImage are copied from the list.
 type Card struct {
 	ID           int64
 	GameID       string
 	CollectionID string
 	Count        int
+	Name         string
+	HasImage     bool
 }
 
 // Collect reads every collection, deck, and card.
@@ -59,6 +61,8 @@ func Collect(
 					GameID:       gameID,
 					CollectionID: collectionItem.ID,
 					Count:        cardItem.Count,
+					Name:         cardItem.Name,
+					HasImage:     cardItem.HasImage,
 				})
 			}
 		}

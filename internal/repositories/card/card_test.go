@@ -1,7 +1,10 @@
 package card
 
 import (
+	"bytes"
 	"encoding/json"
+	"image"
+	"image/png"
 	"os"
 	"path/filepath"
 	"sync"
@@ -10,6 +13,7 @@ import (
 
 	"github.com/HardDie/fsentry"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesCard "github.com/HardDie/DeckBuilder/internal/entities/card"
@@ -651,4 +655,30 @@ func TestCardCountReadsAtLeastOne(t *testing.T) {
 			assert.Equal(t, tt.want, got.Count)
 		})
 	}
+}
+
+func TestCardHasImage(t *testing.T) {
+	e := initCard(t, "card_has_image")
+	gameID, collectionID, deckID := e.createParents(t, "parent_game", "parent_collection", "parent_deck")
+	var buf bytes.Buffer
+	require.NoError(t, png.Encode(&buf, image.NewRGBA(image.Rect(0, 0, 2, 2))))
+
+	plain, err := e.card.Create(gameID, collectionID, deckID, CreateRequest{Name: "plain"})
+	require.NoError(t, err)
+	assert.False(t, plain.HasImage)
+	face, err := e.card.Create(gameID, collectionID, deckID, CreateRequest{Name: "face", ImageFile: buf.Bytes()})
+	require.NoError(t, err)
+	assert.True(t, face.HasImage)
+
+	got, err := e.card.GetByID(gameID, collectionID, deckID, face.ID)
+	require.NoError(t, err)
+	assert.True(t, got.HasImage)
+
+	all, err := e.card.GetAll(gameID, collectionID, deckID)
+	require.NoError(t, err)
+	byName := map[string]bool{}
+	for _, c := range all {
+		byName[c.Name] = c.HasImage
+	}
+	assert.Equal(t, map[string]bool{"plain": false, "face": true}, byName)
 }

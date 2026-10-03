@@ -33,3 +33,25 @@ func TestImageWarning(t *testing.T) {
 		})
 	}
 }
+
+func TestSaveWarning(t *testing.T) {
+	failed := er.NetworkBadResponse.AddMessage("server answered 404")
+	tests := []struct {
+		name     string
+		err      error
+		hasImage bool
+		want     string
+	}{
+		{name: "image_saved", hasImage: true, want: ""},
+		{name: "no_image", want: CardNoImage},
+		{name: "failed_old_image_kept", err: failed, hasImage: true, want: "Image was not saved: server answered 404"},
+		{name: "failed_and_no_image", err: failed, want: "Image was not saved: server answered 404 " + CardNoImage},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SaveWarning(tt.err, tt.hasImage, CardNoImage); got != tt.want {
+				t.Fatalf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

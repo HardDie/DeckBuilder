@@ -57,7 +57,8 @@ var (
 	BadArchive = NewError("bad zip archive").HTTP(http.StatusBadRequest)
 
 	// generate
-	GenerateInProgress = NewError("generation already in progress", http.StatusConflict)
+	GenerateInProgress    = NewError("generation already in progress", http.StatusConflict)
+	GenerateMissingImages = NewError("render needs an image for every deck and card", http.StatusBadRequest)
 
 	// tts
 	TTSNothingToServe = NewError("there is nothing to serve", http.StatusNotFound)

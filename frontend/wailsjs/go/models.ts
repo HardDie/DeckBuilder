@@ -244,6 +244,7 @@ export namespace dto {
 	    count: number;
 	    createdAt: string;
 	    updatedAt: string;
+	    hasImage: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Card(source);
@@ -260,6 +261,7 @@ export namespace dto {
 	        this.count = source["count"];
 	        this.createdAt = source["createdAt"];
 	        this.updatedAt = source["updatedAt"];
+	        this.hasImage = source["hasImage"];
 	    }
 	}
 	export class CardSize {
@@ -310,6 +312,8 @@ export namespace dto {
 	    cachedImage?: string;
 	    createdAt: string;
 	    updatedAt: string;
+	    hasImage: boolean;
+	    cardsMissingImage: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Deck(source);
@@ -324,6 +328,8 @@ export namespace dto {
 	        this.cachedImage = source["cachedImage"];
 	        this.createdAt = source["createdAt"];
 	        this.updatedAt = source["updatedAt"];
+	        this.hasImage = source["hasImage"];
+	        this.cardsMissingImage = source["cardsMissingImage"];
 	    }
 	}
 	export class DownloadStatus {

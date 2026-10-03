@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/HardDie/fsentry"
 
@@ -162,6 +163,15 @@ func (f *Folder) Delete(parent []string, id string) error {
 		return MapFsentry(err, FsentrySentinels{NotExist: f.errs.NotExist, Message: true})
 	}
 	return nil
+}
+
+// HasImage tells whether the folder holds an image file. It lists the folder; no image is read.
+func (f *Folder) HasImage(parent []string, id string) bool {
+	list, err := f.db.List(f.path(parent, id)...)
+	if err != nil {
+		return false
+	}
+	return slices.Contains(list.Binaries, imageName)
 }
 
 // Image returns the image bytes and their type ("png", "jpeg", "gif").

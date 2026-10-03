@@ -656,6 +656,42 @@ func (tt *cardTest) testUpdateCount(t *testing.T) {
 	}
 }
 
+func (tt *cardTest) testDeckCardsMissingImage(t *testing.T) {
+	deckID := tt.deckID + "_item"
+	pngImage, err := images.ImageToPng(images.CreateImage(10, 10))
+	if err != nil {
+		t.Fatal(err)
+	}
+	missing := func() bool {
+		t.Helper()
+		deck, err := tt.serviceDeck.Item(tt.gameID, tt.collectionID, deckID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return deck.CardsMissingImage
+	}
+
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, deckID, CreateRequest{Name: "no_face"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !missing() {
+		t.Fatal("a card without an image should mark the deck")
+	}
+
+	_, err = tt.serviceCard.Update(tt.gameID, tt.collectionID, deckID, card.ID, UpdateRequest{Name: "no_face", ImageFile: pngImage})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if missing() {
+		t.Fatal("every card has an image now")
+	}
+
+	if err = tt.serviceCard.Delete(tt.gameID, tt.collectionID, deckID, card.ID); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCard(t *testing.T) {
 	t.Parallel()
 
@@ -730,6 +766,7 @@ func TestCard(t *testing.T) {
 	t.Run("image_bin", tt.testImageBin)
 	t.Run("image_failure", tt.testImageFailure)
 	t.Run("update_count", tt.testUpdateCount)
+	t.Run("deck_cards_missing_image", tt.testDeckCardsMissingImage)
 }
 
 func (tt *cardTest) fuzzCleanup() {

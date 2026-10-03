@@ -60,7 +60,7 @@ func (c *Card) Create(gameID, collectionID, deckID string, req catalog.WriteRequ
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.CardDTO(c.cfg, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
+	return &Result{Data: catalog.CardDTO(c.cfg, *item), Warning: catalog.SaveWarning(item.ImageError, item.HasImage, catalog.CardNoImage)}, nil
 }
 
 func (c *Card) Read(gameID, collectionID, deckID string, cardID int64) (*Result, error) {
@@ -83,7 +83,7 @@ func (c *Card) Update(gameID, collectionID, deckID string, cardID int64, req cat
 	if err != nil {
 		return nil, err
 	}
-	return &Result{Data: catalog.CardDTO(c.cfg, *item), Warning: catalog.ImageWarning(item.ImageError)}, nil
+	return &Result{Data: catalog.CardDTO(c.cfg, *item), Warning: catalog.SaveWarning(item.ImageError, item.HasImage, catalog.CardNoImage)}, nil
 }
 
 func (c *Card) Delete(gameID, collectionID, deckID string, cardID int64) error {

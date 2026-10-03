@@ -53,6 +53,7 @@ func (r *card) Create(gameID, collectionID, deckID string, req CreateRequest) (*
 		}
 	}
 	c.ImageError = imageErr
+	c.HasImage = r.imageIDs(gameID, collectionID, deckID)[c.ID]
 	return c, nil
 }
 
@@ -98,6 +99,7 @@ func (r *card) Update(gameID, collectionID, deckID string, cardID int64, req Upd
 		}
 	}
 	newCard.ImageError = imageErr
+	newCard.HasImage = r.imageIDs(gameID, collectionID, deckID)[newCard.ID]
 	return newCard, nil
 }
 
@@ -177,7 +179,9 @@ func (r *card) get(gameID, collectionID, deckID string, cardID int64) (*entities
 		return nil, er.CardNotExists.HTTP(http.StatusBadRequest)
 	}
 
-	return r.toEntity(card, gameID, collectionID, deckID), nil
+	e := r.toEntity(card, gameID, collectionID, deckID)
+	e.HasImage = r.imageIDs(gameID, collectionID, deckID)[cardID]
+	return e, nil
 }
 
 func (r *card) list(gameID, collectionID, deckID string) ([]*entitiesCard.Card, error) {
@@ -186,9 +190,12 @@ func (r *card) list(gameID, collectionID, deckID string) ([]*entitiesCard.Card, 
 		return nil, err
 	}
 
+	withImage := r.imageIDs(gameID, collectionID, deckID)
 	var cards []*entitiesCard.Card
 	for _, item := range list {
-		cards = append(cards, r.toEntity(item, gameID, collectionID, deckID))
+		e := r.toEntity(item, gameID, collectionID, deckID)
+		e.HasImage = withImage[item.ID]
+		cards = append(cards, e)
 	}
 	return cards, nil
 }
@@ -299,6 +306,22 @@ func (r *card) imageDelete(gameID, collectionID, deckID string, cardID int64) er
 		})
 	}
 	return nil
+}
+
+// imageIDs lists the cards folder and returns the ids that have an image file.
+// No image is read.
+func (r *card) imageIDs(gameID, collectionID, deckID string) map[int64]bool {
+	list, err := r.db.List(r.gamesPath, gameID, collectionID, deckID, "cards")
+	if err != nil {
+		return nil
+	}
+	ids := make(map[int64]bool, len(list.Binaries))
+	for _, name := range list.Binaries {
+		if id, err := strconv.ParseInt(name, 10, 64); err == nil {
+			ids[id] = true
+		}
+	}
+	return ids
 }
 
 func (r *card) rawCardList(gameID, collectionID, deckID string) (cardList, error) {

@@ -3,6 +3,7 @@ package catalog
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -57,13 +58,15 @@ func CollectionDTO(cfg config.Config, gameID string, item entitiesCollection.Col
 
 func DeckDTO(cfg config.Config, item entitiesDeck.Deck) dto.Deck {
 	return dto.Deck{
-		ID:          item.ID,
-		Name:        item.Name,
-		Description: item.Description,
-		Image:       item.Image,
-		CachedImage: fmt.Sprintf(cfg.DeckImagePath+"?%s", item.GameID, item.CollectionID, item.ID, utils.HashForTime(&item.UpdatedAt)),
-		CreatedAt:   formatTimestamp(item.CreatedAt),
-		UpdatedAt:   formatTimestamp(item.UpdatedAt),
+		ID:                item.ID,
+		Name:              item.Name,
+		Description:       item.Description,
+		Image:             item.Image,
+		CachedImage:       fmt.Sprintf(cfg.DeckImagePath+"?%s", item.GameID, item.CollectionID, item.ID, utils.HashForTime(&item.UpdatedAt)),
+		HasImage:          item.HasImage,
+		CardsMissingImage: item.CardsMissingImage,
+		CreatedAt:         formatTimestamp(item.CreatedAt),
+		UpdatedAt:         formatTimestamp(item.UpdatedAt),
 	}
 }
 
@@ -76,6 +79,7 @@ func CardDTO(cfg config.Config, item entitiesCard.Card) dto.Card {
 		CachedImage: fmt.Sprintf(cfg.CardImagePath+"?%s", item.GameID, item.CollectionID, item.DeckID, item.ID, utils.HashForTime(&item.UpdatedAt)),
 		Variables:   item.Variables,
 		Count:       item.Count,
+		HasImage:    item.HasImage,
 		CreatedAt:   formatTimestamp(item.CreatedAt),
 		UpdatedAt:   formatTimestamp(item.UpdatedAt),
 	}
@@ -93,6 +97,25 @@ func ImageWarning(err error) string {
 		msg = e.GetMessage()
 	}
 	return "Image was not saved: " + msg
+}
+
+// Reminders for a deck or card saved without an image. Rendering needs both.
+const (
+	DeckNoImage = "This deck has no image. Rendering needs a back image for every deck."
+	CardNoImage = "This card has no image. Rendering needs an image for every card."
+)
+
+// SaveWarning joins why a new image was not applied and, when the entity
+// still has no image, the reminder noImage. It is "" when there is nothing to say.
+func SaveWarning(imageErr error, hasImage bool, noImage string) string {
+	var parts []string
+	if w := ImageWarning(imageErr); w != "" {
+		parts = append(parts, w)
+	}
+	if !hasImage {
+		parts = append(parts, noImage)
+	}
+	return strings.Join(parts, " ")
 }
 
 // formatTimestamp matches encoding/json for time.Time.

@@ -18,6 +18,10 @@ type Card struct {
 	CollectionID string
 	DeckID       string
 
+	// HasImage tells whether the image file exists. Rendering needs it.
+	// It is never stored.
+	HasImage bool
+
 	// ImageError is set by create / update when the new image was not applied.
 	// It is never stored.
 	ImageError error

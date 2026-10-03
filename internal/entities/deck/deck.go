@@ -15,6 +15,13 @@ type Deck struct {
 	GameID       string
 	CollectionID string
 
+	// HasImage tells whether the image file exists. Rendering needs it.
+	// It is never stored.
+	HasImage bool
+
+	// CardsMissingImage is true when a card in this deck has no image. It is never stored.
+	CardsMissingImage bool
+
 	// ImageError is set by create / update when the new image was not applied.
 	// It is never stored.
 	ImageError error

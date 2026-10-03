@@ -10,4 +10,7 @@ type Card struct {
 	Count       int               `json:"count"`
 	CreatedAt   string            `json:"createdAt"`
 	UpdatedAt   string            `json:"updatedAt"`
+
+	// HasImage is false when the card has no face image; rendering needs one.
+	HasImage bool `json:"hasImage"`
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"strings"
 	"sync/atomic"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
@@ -95,6 +96,14 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 	if err != nil {
 		return err
 	}
+	// Every deck needs a back and every card a face. Say what is missing instead of starting.
+	missing, err := generate.MissingImages(decks, order, s.serviceDeck)
+	if err != nil {
+		return err
+	}
+	if len(missing) > 0 {
+		return er.GenerateMissingImages.AddMessage(missingMessage(missing))
+	}
 	// Each game renders into its own folder; the previous files stay until the run succeeds.
 	dir := filepath.Join(s.cfg.Results(), gameItem.ID)
 	removeLegacyFiles(s.cfg.Results())
@@ -114,6 +123,19 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 		renderprogress.Finish()
 	}()
 	return nil
+}
+
+// missingShown caps the list in the message; the rest is counted.
+const missingShown = 5
+
+// missingMessage is the text the window shows when images are missing.
+func missingMessage(missing []string) string {
+	shown := missing[:min(len(missing), missingShown)]
+	msg := "Render needs an image for every deck and card. Missing: " + strings.Join(shown, "; ")
+	if rest := len(missing) - len(shown); rest > 0 {
+		msg += fmt.Sprintf("; and %d more", rest)
+	}
+	return msg + "."
 }
 
 // safeRun calls run and turns a panic into an error.
