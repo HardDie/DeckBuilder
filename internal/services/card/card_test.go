@@ -629,6 +629,33 @@ func (tt *cardTest) testImageFailure(t *testing.T) {
 	}
 }
 
+func (tt *cardTest) testUpdateCount(t *testing.T) {
+	card, err := tt.serviceCard.Create(tt.gameID, tt.collectionID, tt.deckID+"_update", CreateRequest{
+		Name:  "update_count",
+		Count: 3,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, count := range []int{0, -5} {
+		updated, err := tt.serviceCard.Update(tt.gameID, tt.collectionID, tt.deckID+"_update", card.ID, UpdateRequest{
+			Name:  "update_count",
+			Count: count,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if updated.Count != 1 {
+			t.Fatal("Count error! [got]", updated.Count, "[want] 1 for", count)
+		}
+	}
+
+	if err = tt.serviceCard.Delete(tt.gameID, tt.collectionID, tt.deckID+"_update", card.ID); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCard(t *testing.T) {
 	t.Parallel()
 
@@ -702,6 +729,7 @@ func TestCard(t *testing.T) {
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
 	t.Run("image_failure", tt.testImageFailure)
+	t.Run("update_count", tt.testUpdateCount)
 }
 
 func (tt *cardTest) fuzzCleanup() {

@@ -346,13 +346,15 @@ func (r *card) rawCardList(gameID, collectionID, deckID string) (cardList, error
 
 func (r *card) toEntity(item *model, gameID, collectionID, deckID string) *entitiesCard.Card {
 	createdAt, updatedAt := utils.NormalizeTimestamps(item.CreatedAt, item.UpdatedAt)
+	// Old or imported data may hold a count below 1; read it as 1.
+	count := max(item.Count, 1)
 	return &entitiesCard.Card{
 		ID:           item.ID,
 		Name:         item.Name.String(),
 		Description:  item.Description.String(),
 		Image:        item.Image.String(),
 		Variables:    convertMapQuotedString(item.Variables),
-		Count:        item.Count,
+		Count:        count,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 		GameID:       gameID,

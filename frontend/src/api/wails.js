@@ -30,7 +30,8 @@ function formCount(value) {
     return 1
   }
   const n = parseInt(value, 10)
-  return Number.isFinite(n) ? n : 1
+  // A card is at least one copy; the backend clamps the same way.
+  return Number.isFinite(n) && n >= 1 ? n : 1
 }
 
 function formVariables(value) {

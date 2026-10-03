@@ -626,3 +626,29 @@ func TestCardConcurrentCreate(t *testing.T) {
 	}
 	assert.Len(t, ids, len(cards))
 }
+
+func TestCardCountReadsAtLeastOne(t *testing.T) {
+	tests := []struct {
+		name   string
+		stored int
+		want   int
+	}{
+		{name: "zero", stored: 0, want: 1},
+		{name: "negative", stored: -5, want: 1},
+		{name: "normal", stored: 3, want: 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := initCard(t, "card_count_"+tt.name)
+			gameID, collectionID, deckID := e.createParents(t, "parent_game", "parent_collection", "parent_deck")
+			// The private create stores the count as given, like old or imported data.
+			created, err := e.card.create(gameID, collectionID, deckID, CreateRequest{Name: "card", Count: tt.stored})
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, created.Count)
+
+			got, err := e.card.GetByID(gameID, collectionID, deckID, created.ID)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got.Count)
+		})
+	}
+}

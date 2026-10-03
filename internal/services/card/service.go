@@ -54,6 +54,9 @@ func (s *card) List(gameID, collectionID, deckID, sortField, search string) ([]*
 	return filteredItems, nil
 }
 func (s *card) Update(gameID, collectionID, deckID string, cardID int64, req UpdateRequest) (*entitiesCard.Card, error) {
+	if req.Count < 1 {
+		req.Count = 1
+	}
 	return s.repositoryCard.Update(gameID, collectionID, deckID, cardID, repositoriesCard.UpdateRequest{
 		Name:        req.Name,
 		Description: req.Description,

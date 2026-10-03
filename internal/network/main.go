@@ -2,6 +2,7 @@ package network
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"io"
 	"net/http"
 
@@ -49,7 +50,8 @@ func ResponseError(w http.ResponseWriter, e error) {
 	}
 
 	httpCode := http.StatusInternalServerError
-	if val, ok := e.(*errors.Err); ok {
+	var val *errors.Err
+	if stderrors.As(e, &val) {
 		if val.GetCode() > 0 {
 			httpCode = val.GetCode()
 		}

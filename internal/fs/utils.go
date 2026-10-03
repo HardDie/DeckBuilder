@@ -64,12 +64,18 @@ func RemoveFolder(path string) error {
 	return nil
 }
 
-func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error) error {
+// CreateAndProcess creates path and lets cb write into it.
+// A Close error is returned too: some disks report a failed write only there.
+func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error) (err error) {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer func() { errors.IfErrorLog(file.Close()) }()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	return cb(file, in)
 }

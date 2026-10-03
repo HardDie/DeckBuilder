@@ -2,12 +2,12 @@ package tts
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"sync"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 	"github.com/HardDie/DeckBuilder/internal/logger"
 )
 
@@ -95,7 +95,7 @@ func (s *tts) DataForTTS() ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.dataForTTS == nil {
-		return nil, errors.New("there is nothing to serve")
+		return nil, er.TTSNothingToServe
 	}
 	res := s.dataForTTS
 	s.dataForTTS = nil

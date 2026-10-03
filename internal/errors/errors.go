@@ -62,6 +62,9 @@ var (
 	// generate
 	GenerateInProgress = NewError("generation already in progress", http.StatusConflict)
 
+	// tts
+	TTSNothingToServe = NewError("there is nothing to serve", http.StatusNotFound)
+
 	// replace
 	ErrorInvalidDeckDescription = NewError("invalid deck description").HTTP(http.StatusBadRequest)
 	ErrorInvalidMapping         = NewError("invalid mapping file").HTTP(http.StatusBadRequest)

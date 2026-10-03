@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	er "github.com/HardDie/DeckBuilder/internal/errors"
 )
 
 // fakeEditor stands in for the TTS External Editor port.
@@ -62,7 +64,7 @@ func TestSendToTTS(t *testing.T) {
 	assert.JSONEq(t, `{"Name":"Bag"}`, string(data))
 
 	_, err = s.DataForTTS()
-	assert.Error(t, err, "data is served once")
+	assert.ErrorIs(t, err, er.TTSNothingToServe, "data is served once")
 }
 
 func TestSendToTTSNoEditor(t *testing.T) {

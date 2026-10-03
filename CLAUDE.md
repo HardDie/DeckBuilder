@@ -167,6 +167,10 @@ Out of scope unless explicitly requested:
    3. Create stores no URL. Update keeps the old image and URL.
    4. The binding `Result` carries `warning`; the GUI shows a toast.
    5. Limits: [ADR 020](docs/architecture/020-image-input-limits.md).
+9. A card count is at least 1.
+   1. The card service raises a lower count to 1 on create and update.
+   2. The card repository reads a stored count below 1 as 1.
+   3. That covers old data and imported zips.
 
 ## Architecture
 
