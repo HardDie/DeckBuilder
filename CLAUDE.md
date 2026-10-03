@@ -128,6 +128,7 @@ Must have:
     1. Language `en` or `ru`.
     2. Card scale.
     3. Back shadow.
+    4. Missing or invalid values read as defaults (`Settings.Normalize`).
 
 Known limitation. Do not "fix" it by inventing a host.
 1. Generated JSON points at local image paths.

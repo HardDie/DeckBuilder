@@ -14,11 +14,17 @@ import (
 
 func newSystem(t *testing.T) System {
 	t.Helper()
+	s, _ := newSystemDB(t)
+	return s
+}
+
+func newSystemDB(t *testing.T) (System, *fsentry.DB) {
+	t.Helper()
 	cfg := config.Get("")
 	cfg.SetDataPath(t.TempDir())
 	db := fsentry.New(cfg.Data, fsentry.WithPretty(), fsentry.WithNoLockFile())
 	require.NoError(t, db.Init())
-	return New(repositoriesSettings.New(cfg, db))
+	return New(repositoriesSettings.New(cfg, db)), db
 }
 
 func TestSettings(t *testing.T) {
@@ -39,4 +45,16 @@ func TestSettings(t *testing.T) {
 	updated, err = s.UpdateSettings(UpdateSettingsRequest{Lang: "fr"})
 	require.NoError(t, err)
 	assert.Equal(t, "ru", updated.Lang, "an unknown language is ignored")
+}
+
+// An older or hand-edited settings.json may miss fields; they read as defaults.
+func TestSettingsMissingFields(t *testing.T) {
+	s, db := newSystemDB(t)
+	_, err := db.CreateEntry("settings", map[string]any{"lang": "ru"})
+	require.NoError(t, err)
+
+	got, err := s.GetSettings()
+	require.NoError(t, err)
+	assert.Equal(t, "ru", got.Lang)
+	assert.Equal(t, entitiesSettings.Default().CardSize, got.CardSize, "missing card size is the default, not 0")
 }

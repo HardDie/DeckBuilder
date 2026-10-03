@@ -17,8 +17,14 @@ func New(repositorySettings repositoriesSettings.Settings) System {
 }
 
 // GetSettings returns the stored settings, or the defaults when none are stored.
+// Missing or invalid values read as their defaults (see Settings.Normalize).
 func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
-	return s.repositorySettings.Get()
+	set, err := s.repositorySettings.Get()
+	if err != nil {
+		return nil, err
+	}
+	normalized := set.Normalize()
+	return &normalized, nil
 }
 func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error) {
 	logger.Info.Println("Update settings")
