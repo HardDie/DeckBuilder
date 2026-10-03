@@ -1,10 +1,9 @@
-// Draw faces and the back into one JPEG sheet.
+// Draw faces and the back into one sheet image.
 package paint
 
 import (
 	"image"
 
-	"github.com/HardDie/DeckBuilder/internal/fs"
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/grid"
 )
@@ -19,12 +18,4 @@ func Canvas(cellW, cellH int, faces []image.Image, back image.Image) (*image.RGB
 	}
 	images.Draw(page, cols-1, rows-1, back)
 	return page, cols, rows
-}
-
-// WriteJPEG encodes quality 80 and returns the absolute path.
-func WriteJPEG(path string, img image.Image) (string, error) {
-	if err := fs.CreateAndProcess(path, img, images.JpegSaveToWriter); err != nil {
-		return "", err
-	}
-	return fs.PathToAbsolutePath(path), nil
 }

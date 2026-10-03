@@ -40,7 +40,7 @@ Details: [Servers](Servers). [API](API) lists the routes.
 
 Rules live here. Catalog services are thin: list, filter, sort, and pass create/update/delete to the repository. Game adds duplicate, zip export, and zip import.
 
-`generator` is the heavy one. It walks the tree, draws sheets, writes JSON, and asks `tts` to spawn. See [Generation](Generation).
+`render/compose` is the heavy one. It walks the tree, draws sheets, writes JSON, and asks `tts` to spawn. See [Generation](Generation).
 
 `search` walks as many ids as the caller passed (all games, one game, or one collection). `replace` rewrites `FaceURL` and `BackURL` in a Saved Object file from a mapping. `system` reads settings. Saving settings today persists `lang` when it is `en` or `ru`. `tts` holds the one-shot bag and dials TTS.
 
@@ -78,7 +78,7 @@ Details: [Cmd and tools](Cmd-and-tools).
 
 ## Helpers
 
-`internal/render/deprecated/page_drawer` counts slots for the generator's JSON walk. `internal/render/sheet/page` packs the sheet files. `progress` is the process-wide render status. `images` decodes uploads and draws pixels. `fs` writes the result files. `errors` and `network` shape failures and the `{ data, meta, error }` envelope.
+`internal/render/generate` plans pages and the JSON. `internal/render/sheet` draws one page. `render/progress` is the process-wide render status. `images` decodes uploads and draws pixels. `fs` writes the result files. `errors` and `network` shape failures and the `{ data, meta, error }` envelope.
 
 Details: [Helpers](Helpers).
 

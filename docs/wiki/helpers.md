@@ -10,7 +10,7 @@ Servers call `network.ResponseError` with these. Repositories map fsentry `ErrEx
 
 ## `internal/network`
 
-JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToObject`.
+JSON envelope `{ data, meta, error }`: `ResponseError` for the loopback HTTP routes, `Meta` for binding list results. Image download: `DownloadBytes` (timeout, size cap) and `DownloadProgress`.
 
 ## `internal/logger`
 
@@ -18,23 +18,19 @@ JSON envelope `{ data, meta, error }`. `Response`, `ResponseError`, `RequestToOb
 
 ## `internal/fs`
 
-OS files: write generate outputs, JSON helpers. Used by **generator**, image, and network. Game export/import uses fsentry `ExportFolder` / `ImportFolder`.
+OS files: write generate outputs, JSON helpers. Used by **render/compose**, image, and network. Game export/import uses fsentry `ExportFolder` / `ImportFolder`.
 
 ## `internal/images`
 
 Validate upload/download bytes (png/jpeg/…). Repositories refuse invalid images (game still saved, warning log).
 
-## `internal/render/deprecated/page_drawer`
+## `internal/render/progress`
 
-The generator's JSON walk uses it so page index and slot match the sheets. Methods, cell size, file names: [Page drawer](Page-drawer). Face sheets are written by `internal/render/sheet/page`.
-
-## `internal/render/deprecated/progress`
-
-Process-wide generate status (`empty`, `in_progress`, `done`, `error`). The deprecated generator writes it. `bindings/system.Status` reads `internal/render/progress`.
+Process-wide generate status (`empty`, `in_progress`, `done`, `error`) plus done/total sheets. Compose writes it; `bindings/system.Status` reads it. See [Generation](Generation).
 
 ## `internal/utils`
 
-`NameToID`, multipart file extract, sort helpers, `Allocate`, `NormalizeTimestamps`. Used across servers, services, repositories. `NormalizeTimestamps` fills preview null/empty `createdAt`/`updatedAt` when mapping to entities; it does not rewrite files ([ADR 009](../architecture/009-catalog-timestamps.md)).
+`NameToID`, sort helpers, `Allocate`, `NormalizeTimestamps`. Used across servers, services, repositories. `NormalizeTimestamps` fills preview null/empty `createdAt`/`updatedAt` when mapping to entities; it does not rewrite files ([ADR 009](../architecture/009-catalog-timestamps.md)).
 
 ## `internal/logger`, `internal/network` callers
 

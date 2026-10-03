@@ -39,7 +39,9 @@ func TestGenerateUnknownGame(t *testing.T) {
 	}
 }
 
-func TestGenerateClearsResults(t *testing.T) {
+// Files that older versions wrote straight into result/ are removed;
+// the render lands in result/<gameID>/.
+func TestGenerateWritesGameFolder(t *testing.T) {
 	progress.Reset()
 	dir := t.TempDir()
 	cfg := config.Get("test")
@@ -47,21 +49,31 @@ func TestGenerateClearsResults(t *testing.T) {
 	if err := os.MkdirAll(cfg.Results(), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	marker := filepath.Join(cfg.Results(), "old.txt")
-	if err := os.WriteFile(marker, []byte("old"), 0o644); err != nil {
+	legacy := filepath.Join(cfg.Results(), "old.jpg")
+	if err := os.WriteFile(legacy, []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	other := filepath.Join(cfg.Results(), "other", "sheet.jpg")
+	if err := os.MkdirAll(filepath.Dir(other), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(other, []byte("other game"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	w := raidWorld()
-	err := compose.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
+	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
 		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
 	waitDone(t)
-	if _, err := os.Stat(marker); !os.IsNotExist(err) {
-		t.Fatal("old result file stayed")
+	if _, err := os.Stat(legacy); !os.IsNotExist(err) {
+		t.Fatal("old file in result/ stayed")
 	}
-	if _, err := os.Stat(filepath.Join(cfg.Results(), "raid.json")); err != nil {
+	if _, err := os.Stat(other); err != nil {
+		t.Fatal("another game's folder was touched:", err)
+	}
+	if _, err := os.Stat(filepath.Join(cfg.Results(), "raid", "raid.json")); err != nil {
 		t.Fatal(err)
 	}
 	if len(w.TTS()) != 1 {
@@ -130,7 +142,7 @@ func TestGenerateRejectsOverlap(t *testing.T) {
 		t.Fatal(err)
 	}
 	// The JSON is written right before SendToTTS, so run 1 now waits on the gate.
-	jsonPath := filepath.Join(cfg.Results(), "raid.json")
+	jsonPath := filepath.Join(cfg.Results(), "raid", "raid.json")
 	waitFile(t, jsonPath)
 
 	err := gen.GenerateGame("raid", req)

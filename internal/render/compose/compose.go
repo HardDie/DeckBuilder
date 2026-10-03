@@ -3,6 +3,8 @@ package compose
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 	"sync/atomic"
 
@@ -93,17 +95,17 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 	if err != nil {
 		return err
 	}
-	if err := fs.RemoveFolder(s.cfg.Results()); err != nil {
-		return err
-	}
-	if err := fs.CreateFolder(s.cfg.Results()); err != nil {
+	// Each game renders into its own folder; the previous files stay until the run succeeds.
+	dir := filepath.Join(s.cfg.Results(), gameItem.ID)
+	removeLegacyFiles(s.cfg.Results())
+	if err := fs.CreateFolder(dir); err != nil {
 		return err
 	}
 	renderprogress.Begin()
 	started = true
 	go func() {
 		defer s.running.Store(false)
-		err := s.safeRun(gameItem, decks, order, req.Scale, cfg)
+		err := s.safeRun(dir, gameItem, decks, order, req.Scale, cfg)
 		if err != nil {
 			renderprogress.Fail()
 			logger.Error.Println("Generator:", err.Error())
@@ -117,6 +119,7 @@ func (s *runner) GenerateGame(gameID string, req GenerateGameRequest) error {
 // safeRun calls run and turns a panic into an error.
 // The goroutine then fails the progress like any other error.
 func (s *runner) safeRun(
+	dir string,
 	gameItem *entitiesGame.Game,
 	decks map[catalog.Deck][]catalog.Card,
 	order []catalog.Deck,
@@ -128,36 +131,99 @@ func (s *runner) safeRun(
 			err = fmt.Errorf("panic: %v\n%s", r, debug.Stack())
 		}
 	}()
-	return s.run(gameItem, decks, order, scale, cfg)
+	return s.run(dir, gameItem, decks, order, scale, cfg)
 }
 
+// run draws the plan into dir.
+// A file whose name is already in dir is reused: names carry a hash of their content.
+// New files go through a temporary name, so a failed run never leaves a broken file.
+// Files the plan does not use are removed only after everything was written.
 func (s *runner) run(
+	dir string,
 	gameItem *entitiesGame.Game,
 	decks map[catalog.Deck][]catalog.Card,
 	order []catalog.Deck,
 	scale int,
 	cfg *entitiesSettings.Settings,
 ) error {
-	plan, err := generate.Prepare(s.cfg.Results(), gameItem, decks, order, scale, cfg, s.serviceDeck, s.serviceCard)
+	plan, err := generate.Prepare(dir, gameItem, decks, order, scale, cfg, s.serviceDeck, s.serviceCard)
 	if err != nil {
 		return err
 	}
+	keep := make(map[string]struct{})
 	total := len(plan.Sheets)
 	renderprogress.Sheets(0, total)
 	for _, back := range plan.Backs {
-		if err := fs.CreateAndProcess(back.Path, back.Body, fs.BinToWriter); err != nil {
+		keep[filepath.Base(back.Path)] = struct{}{}
+		if fs.FileExists(back.Path) {
+			continue
+		}
+		err := fs.WriteAtomic(back.Path, func(tmp string) error {
+			return fs.CreateAndProcess(tmp, back.Body, fs.BinToWriter)
+		})
+		if err != nil {
 			return err
 		}
 	}
+	reused := 0
 	for i, sheet := range plan.Sheets {
-		if err := write.Draw(sheet.Faces, sheet.Back, sheet.CellW, sheet.CellH, sheet.Shadow, sheet.Path); err != nil {
-			return err
+		keep[filepath.Base(sheet.Path)] = struct{}{}
+		if fs.FileExists(sheet.Path) {
+			reused++
+		} else {
+			err := fs.WriteAtomic(sheet.Path, func(tmp string) error {
+				return write.Draw(sheet.Faces, sheet.Back, sheet.CellW, sheet.CellH, sheet.Shadow, tmp)
+			})
+			if err != nil {
+				return err
+			}
 		}
 		renderprogress.Sheets(i+1, total)
 	}
-	if err := fs.CreateAndProcess(plan.JSONPath, plan.Root, fs.JsonToWriter[tts_entity.RootObjects]); err != nil {
+	keep[filepath.Base(plan.JSONPath)] = struct{}{}
+	err = fs.WriteAtomic(plan.JSONPath, func(tmp string) error {
+		return fs.CreateAndProcess(tmp, plan.Root, fs.JsonToWriter[tts_entity.RootObjects])
+	})
+	if err != nil {
 		return err
 	}
+	removeStale(dir, keep)
+	logger.Info.Printf("Generator: %d of %d sheets reused", reused, total)
 	s.serviceTTS.SendToTTS(plan.Bag)
 	return nil
+}
+
+// removeStale deletes the files in dir that the last render did not write or reuse.
+// It is best effort: a file that cannot be removed is logged and left.
+func removeStale(dir string, keep map[string]struct{}) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		logger.Warn.Println("Generator: list stale files:", err.Error())
+		return
+	}
+	for _, e := range entries {
+		if _, ok := keep[e.Name()]; ok || e.IsDir() {
+			continue
+		}
+		if err := os.Remove(filepath.Join(dir, e.Name())); err != nil {
+			logger.Warn.Println("Generator: remove stale file:", err.Error())
+		}
+	}
+}
+
+// removeLegacyFiles deletes files directly in result/.
+// Before per-game folders, every render wrote there and cleared it first.
+func removeLegacyFiles(results string) {
+	entries, err := os.ReadDir(results)
+	if err != nil {
+		return
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		if err := os.Remove(filepath.Join(results, e.Name())); err != nil {
+			logger.Warn.Println("Generator: remove old result file:", err.Error())
+		}
+	}
 }

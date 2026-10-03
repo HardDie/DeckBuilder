@@ -17,6 +17,7 @@ It is a Wails app (Go + Vue).
    1. Native libs, such as libjpeg-turbo, link as static archives.
    2. The OS webview is the only exception, since Wails needs it.
    3. Never add a shared-library dependency.
+   4. Vendored C headers (`stb_image_resize2.h`) compile into the binary via cgo.
 3. Each release ships as a single file, with two exceptions.
    1. macOS ships a `.app` bundle, so it looks like a production app.
    2. Linux adds `install.sh`, `DeckBuilder.desktop`, and the icon.
@@ -117,7 +118,7 @@ Must have:
 4. Cards carry a `count`: copies in the rendered deck.
 5. Render a game.
    1. Output: sprite-sheet images plus one TTS Saved Object JSON.
-   2. Output dir: `DeckBuilderData/result`.
+   2. Output dir: `DeckBuilderData/result/<gameID>`.
 6. Export and import a game as a zip.
 7. Duplicate a game.
 8. Recursive search across the tree.
@@ -245,7 +246,7 @@ Other locations:
    1. A scale below 1 becomes 1.
 2. `compose` (`internal/render/compose`) is the live generator.
    1. `wire.go` builds it as `compose.Generator`.
-3. `GenerateGame` lists cards, clears `result/`, and returns.
+3. `GenerateGame` lists cards, prepares `result/<gameID>/`, and returns.
    1. Never block the binding on image drawing.
 4. A goroutine then runs three steps.
    1. `generate.Prepare` plans the catalog walk, layout, and TTS JSON.
@@ -266,10 +267,10 @@ Other locations:
    4. Pollers treat that `empty` as "already observed".
    5. Only one generate runs at a time, so one run owns it.
    6. Overlapping generates are rejected with `GenerateInProgress`.
-8. `internal/render/deprecated/*` is not called by compose.
-   1. It holds the old `generator`, `page_drawer`, and `progress`.
-   2. `docs/wiki/Generation.md` still describes it.
-   3. Trust the code and `internal/render/compose/README.md`.
+8. Compose is the only render path.
+   1. The old `generator`, `page_drawer`, and `progress` were removed.
+   2. `docs/wiki/Generation.md` and `internal/render/compose/README.md` describe compose.
+   3. Goldens in `compose/testdata/golden` are the byte reference.
 9. Speed.
    1. PNG decode is the main cost, about 38 ms per 1312×962 face.
    2. `write.Draw` decodes and resizes faces in parallel, up to GOMAXPROCS.
@@ -279,7 +280,18 @@ Other locations:
    6. Paint and encode stay on one goroutine.
       1. Drawing cells in the workers saved only ~3%.
       2. Drawing pages at the same time saved nothing and doubled memory.
-   7. Lanczos resize is now the largest cost, about half of a page.
+   7. Resize uses `stb_image_resize2` (Catmull-Rom, SIMD).
+      1. See [ADR 022](docs/architecture/022-stb-image-resize.md).
+      2. A full page dropped from ~1.5 s to ~0.85 s on an M4.
+      3. `fit.ResizeLanczos` is deprecated until every target is verified.
+10. Unchanged pages are reused across renders.
+    1. See [ADR 023](docs/architecture/023-per-game-results-and-page-reuse.md).
+    2. A sheet is `<deck>_<page>_<hash>.jpg`; a back is `backside_<deck>_<hash>.png`.
+    3. The hash covers faces in order, back, cell, grid, shadow, and `sheetVersion`.
+    4. Card text, variables, and count are not drawn, so they are not hashed.
+    5. Bump `layout.sheetVersion` when drawing changes pixels.
+    6. New files are written atomically; stale files go after a successful run.
+    7. Renaming a game moves its result folder; deleting removes it.
 
 ## Tabletop Simulator
 
@@ -310,7 +322,7 @@ Spawn flow:
 6. If TTS is not running, generate still writes `result/`.
 
 File formats:
-1. `result/*.json` is a Saved Object with an `ObjectStates` array.
+1. `result/<gameID>/<gameID>.json` is a Saved Object with an `ObjectStates` array.
    1. Users copy it to `Tabletop Simulator/Saves/Saved Objects`.
 2. `spawnObjectJSON` wants one object, not that wrapper.
 3. `file:///` URLs work on one machine only.
@@ -325,7 +337,7 @@ File formats:
    1. Linux and Windows: `./DeckBuilderData` in the working directory.
    2. macOS: `~/DeckBuilderData`, since a `.app` dir is not writable.
 3. Layout: `Data/games/<game>/…` for the catalog and images.
-4. `Data/result/` holds the last generate.
+4. `Data/result/<gameID>/` holds each game's last render.
 5. Settings live in the same fsentry tree.
 6. Catalog `createdAt` and `updatedAt` are written on every create and update.
    1. Empty values in old data are filled in memory.

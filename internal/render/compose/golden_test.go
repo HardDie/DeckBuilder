@@ -6,13 +6,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	"github.com/HardDie/DeckBuilder/internal/render/compose"
-	oldgen "github.com/HardDie/DeckBuilder/internal/render/deprecated/generator"
-	oldprogress "github.com/HardDie/DeckBuilder/internal/render/deprecated/progress"
 	"github.com/HardDie/DeckBuilder/internal/render/generate/fake"
 	"github.com/HardDie/DeckBuilder/internal/render/progress"
 )
@@ -26,34 +23,31 @@ import (
 //
 // JSON goldens replace the results directory with RESULT and the clock
 // with 2006-01-02 15:04:05. Image files are the raw bytes.
+// WRITE_GOLDEN=1 rewrites the goldens from compose; review the diff before committing.
 func TestIntegrationGoldenBytes(t *testing.T) {
 	w := loadFixture(t)
-	oldprogress.GetProgress().Flush()
 	progress.Reset()
 
-	oldDir := t.TempDir()
-	run(t, oldDir, w, true)
-	oldFiles := readResult(t, filepath.Join(oldDir, "result"))
+	dir := t.TempDir()
+	run(t, dir, w)
+	got := readResult(t, filepath.Join(dir, "result", "raid"))
 
 	goldenDir := filepath.Join("testdata", "golden")
 	if os.Getenv("WRITE_GOLDEN") == "1" {
+		if err := os.RemoveAll(goldenDir); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.MkdirAll(goldenDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
-		for name, body := range oldFiles {
+		for name, body := range got {
 			if err := os.WriteFile(filepath.Join(goldenDir, name), body, 0o644); err != nil {
 				t.Fatal(err)
 			}
 		}
 	}
 
-	newDir := t.TempDir()
-	run(t, newDir, w, false)
-	newFiles := readResult(t, filepath.Join(newDir, "result"))
-
-	want := readGolden(t, goldenDir)
-	compare(t, "old", oldFiles, want)
-	compare(t, "new", newFiles, want)
+	compare(t, "compose", got, readGolden(t, goldenDir))
 }
 
 func loadFixture(t *testing.T) *fake.World {
@@ -97,42 +91,16 @@ func loadFixture(t *testing.T) *fake.World {
 	}
 }
 
-func run(t *testing.T, data string, w *fake.World, old bool) {
+func run(t *testing.T, data string, w *fake.World) {
 	t.Helper()
 	cfg := config.Get("test")
 	cfg.SetDataPath(data)
-	reqSort := "name"
-	var err error
-	if old {
-		err = oldgen.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
-			GenerateGame("raid", oldgen.GenerateGameRequest{SortOrder: reqSort, Scale: 1})
-	} else {
-		err = compose.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
-			GenerateGame("raid", compose.GenerateGameRequest{SortOrder: reqSort, Scale: 1})
-	}
+	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
+		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if old {
-		waitOld(t)
-		return
-	}
 	waitDone(t)
-}
-
-func waitOld(t *testing.T) {
-	t.Helper()
-	deadline := time.Now().Add(30 * time.Second)
-	for time.Now().Before(deadline) {
-		switch oldprogress.GetProgress().GetStatus().Status {
-		case oldprogress.StatusDone:
-			return
-		case oldprogress.StatusError:
-			t.Fatal(oldprogress.GetProgress().GetStatus().Message)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatal("timed out waiting for the old generator")
 }
 
 func readResult(t *testing.T, dir string) map[string][]byte {

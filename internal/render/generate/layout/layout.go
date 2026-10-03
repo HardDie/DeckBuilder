@@ -2,11 +2,12 @@
 package layout
 
 import (
-	"crypto/md5"
 	"encoding/binary"
 	"fmt"
 	"math"
 	"path/filepath"
+
+	"github.com/cespare/xxhash/v2"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -40,17 +41,22 @@ type File struct {
 	Body []byte
 }
 
+// sheetVersion is part of every page hash.
+// Bump it when sheet drawing changes pixels (resize, paint, shadow, encoder, quality),
+// so a page drawn by an older build is not reused.
+const sheetVersion = 1
+
 // Pages splits each deck into sheets of at most 69 faces.
 // The cell comes from the first face. Later pages keep that cell.
+// A sheet is named <deck>_<page>_<hash>.jpg. The hash covers everything drawn on it,
+// so an unchanged page keeps its name across renders and can be reused.
 func Pages(dir string, decks []Deck, scale int, shadow bool) ([]Page, []File, error) {
 	var pages []Page
 	var backs []File
-	var common int
 	for _, deck := range decks {
 		if len(deck.Faces) == 0 {
 			continue
 		}
-		common++
 		cellW, cellH, err := cell(deck.Faces[0], scale)
 		if err != nil {
 			return nil, nil, err
@@ -62,7 +68,8 @@ func Pages(dir string, decks []Deck, scale int, shadow bool) ([]Page, []File, er
 		var faces [][]byte
 		flush := func() {
 			cols, rows := grid(len(faces) + 1)
-			name := fmt.Sprintf("%d_%s_%d_%d_%dx%d.jpg", common, deck.ID, index, len(faces), cols, rows)
+			sum := pageHash(faces, deck.Back, cellW, cellH, cols, rows, shadow)
+			name := fmt.Sprintf("%s_%d_%016x.jpg", deck.ID, index, sum)
 			pages = append(pages, Page{
 				DeckID:    deck.ID,
 				Index:     index,
@@ -82,7 +89,6 @@ func Pages(dir string, decks []Deck, scale int, shadow bool) ([]Page, []File, er
 				flush()
 				faces = nil
 				index++
-				common++
 			}
 			faces = append(faces, face)
 		}
@@ -93,10 +99,38 @@ func Pages(dir string, decks []Deck, scale int, shadow bool) ([]Page, []File, er
 	return pages, backs, nil
 }
 
+// backName is backside_<deck>_<hash>.png. The file is the original bytes.
 func backName(dir, title string, raw []byte) string {
-	sum := md5.Sum(raw)
-	name := "backside_" + title + "_" + fmt.Sprintf("%x", sum[0:3]) + ".png"
+	name := fmt.Sprintf("backside_%s_%016x.png", title, xxhash.Sum64(raw))
 	return fs.PathToAbsolutePath(filepath.Join(dir, name))
+}
+
+// pageHash covers every input that changes a sheet's pixels, in drawing order.
+// Card names, descriptions, variables, and counts are not drawn, so they are not hashed.
+// Every image is prefixed with its length, so two inputs cannot run together.
+func pageHash(faces [][]byte, back []byte, cellW, cellH, cols, rows int, shadow bool) uint64 {
+	h := xxhash.New()
+	var buf [8]byte
+	num := func(v int) {
+		binary.LittleEndian.PutUint64(buf[:], uint64(v))
+		_, _ = h.Write(buf[:])
+	}
+	blob := func(b []byte) {
+		num(len(b))
+		_, _ = h.Write(b)
+	}
+	shade := 0
+	if shadow {
+		shade = 1
+	}
+	for _, v := range []int{sheetVersion, cellW, cellH, cols, rows, shade, len(faces)} {
+		num(v)
+	}
+	blob(back)
+	for _, face := range faces {
+		blob(face)
+	}
+	return h.Sum64()
 }
 
 type box struct {

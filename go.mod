@@ -4,13 +4,12 @@ go 1.27.1
 
 require (
 	github.com/HardDie/fsentry v0.1.7
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/disintegration/imaging v1.6.2
-	github.com/gen2brain/jpegli v0.3.4
 	github.com/gorilla/mux v1.8.0
 	github.com/pixiv/go-libjpeg v0.0.0-20190822045933-3da21a74767d
 	github.com/stretchr/testify v1.11.1
 	github.com/wailsapp/wails/v2 v2.16.0
-	golang.org/x/image v0.41.0
 )
 
 require (
@@ -35,13 +34,13 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/samber/lo v1.49.1 // indirect
-	github.com/tetratelabs/wazero v1.9.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/image v0.41.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.39.0 // indirect

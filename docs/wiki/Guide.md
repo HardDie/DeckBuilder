@@ -76,7 +76,7 @@ Clicking a card does not open another level. This is the bottom of the catalog.
 
 Right-click the game and choose **Render**. A progress circle covers the window until the job finishes.
 
-The app writes into `DeckBuilderData/result` (on macOS, `~/DeckBuilderData/result`):
+The app writes into `DeckBuilderData/result/<game>` (on macOS, `~/DeckBuilderData/result/<game>`). Each game has its own folder, and rendering again only redraws the pages that changed:
 
 1. One JPEG sheet per page of a deck. Faces fill the grid. The back sits in the last cell.
 2. A PNG of that back.
@@ -84,7 +84,7 @@ The app writes into `DeckBuilderData/result` (on macOS, `~/DeckBuilderData/resul
 
 Copy that JSON into `Documents/My Games/Tabletop Simulator/Saves/Saved Objects`, then spawn it from Saved Objects in TTS. If TTS is already open when you render, the app also tries to drop the bag onto the current table.
 
-Leave the pictures in `result/`. The JSON points at those files on your disk.
+Leave the pictures in `result/<game>`. The JSON points at those files on your disk. A changed page gets a new file name, so TTS does not show an old cached picture.
 
 To let other players see the cards, follow [Steam Cloud](Steam-Cloud). That page is the click-path inside TTS that uploads the loaded sheets and rewrites the live table onto cloud URLs.
 

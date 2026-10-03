@@ -2,11 +2,13 @@ package layout_test
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
 	"image/png"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/HardDie/DeckBuilder/internal/render/generate/layout"
@@ -26,11 +28,14 @@ func TestPagesNamesAndCell(t *testing.T) {
 	if len(backs) != 2 || len(pages) != 2 {
 		t.Fatalf("backs %d pages %d", len(backs), len(pages))
 	}
-	if filepath.Base(pages[0].SheetPath) != "1_bandits_1_1_2x2.jpg" {
+	if !sheetName("bandits", 1).MatchString(filepath.Base(pages[0].SheetPath)) {
 		t.Fatalf("first %s", pages[0].SheetPath)
 	}
-	if filepath.Base(pages[1].SheetPath) != "2_crew_1_2_2x2.jpg" {
+	if !sheetName("crew", 1).MatchString(filepath.Base(pages[1].SheetPath)) {
 		t.Fatalf("second %s", pages[1].SheetPath)
+	}
+	if !regexp.MustCompile(`^backside_bandits_[0-9a-f]{16}\.png$`).MatchString(filepath.Base(backs[0].Path)) {
+		t.Fatalf("back %s", backs[0].Path)
 	}
 	if pages[0].CellW != 8 || pages[0].CellH != 12 || pages[0].Cols != 2 || pages[0].Rows != 2 {
 		t.Fatalf("cell %dx%d grid %dx%d", pages[0].CellW, pages[0].CellH, pages[0].Cols, pages[0].Rows)
@@ -53,10 +58,10 @@ func TestPagesSecondPageKeepsCell(t *testing.T) {
 	if len(pages) != 2 {
 		t.Fatalf("pages %d", len(pages))
 	}
-	if filepath.Base(pages[0].SheetPath) != "1_pile_1_69_10x7.jpg" || pages[0].Cols != 10 || pages[0].Rows != 7 {
+	if !sheetName("pile", 1).MatchString(filepath.Base(pages[0].SheetPath)) || pages[0].Cols != 10 || pages[0].Rows != 7 {
 		t.Fatalf("first %+v", pages[0].SheetPath)
 	}
-	if filepath.Base(pages[1].SheetPath) != "2_pile_2_1_2x2.jpg" || pages[1].Cols != 2 || pages[1].Rows != 2 {
+	if !sheetName("pile", 2).MatchString(filepath.Base(pages[1].SheetPath)) || pages[1].Cols != 2 || pages[1].Rows != 2 {
 		t.Fatalf("second %+v", pages[1].SheetPath)
 	}
 	if pages[1].CellW != 4 || pages[1].CellH != 4 {
@@ -128,4 +133,50 @@ func pngBytes(t *testing.T, w, h int, c color.RGBA) []byte {
 		t.Fatal(err)
 	}
 	return buf.Bytes()
+}
+
+func sheetName(deck string, page int) *regexp.Regexp {
+	return regexp.MustCompile(fmt.Sprintf(`^%s_%d_[0-9a-f]{16}\.jpg$`, deck, page))
+}
+
+// The sheet name changes exactly when something drawn on the page changes.
+func TestPagesNameFollowsContent(t *testing.T) {
+	red := pngBytes(t, 8, 12, color.RGBA{R: 200, A: 255})
+	blue := pngBytes(t, 8, 12, color.RGBA{B: 200, A: 255})
+	back := pngBytes(t, 8, 12, color.RGBA{G: 80, A: 255})
+	otherBack := pngBytes(t, 8, 12, color.RGBA{G: 90, A: 255})
+	big := pngBytes(t, 16, 24, color.RGBA{R: 200, A: 255})
+
+	name := func(faces [][]byte, back []byte, scale int, shadow bool) string {
+		t.Helper()
+		pages, _, err := layout.Pages(t.TempDir(), []layout.Deck{{ID: "crew", Back: back, Faces: faces}}, scale, shadow)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return filepath.Base(pages[0].SheetPath)
+	}
+	base := name([][]byte{red, blue}, back, 1, true)
+
+	if got := name([][]byte{red, blue}, back, 1, true); got != base {
+		t.Fatalf("same input, different name: %s vs %s", got, base)
+	}
+	tests := []struct {
+		name string
+		got  string
+	}{
+		{"order", name([][]byte{blue, red}, back, 1, true)},
+		{"face", name([][]byte{red, red}, back, 1, true)},
+		{"face_count", name([][]byte{red, blue, red}, back, 1, true)},
+		{"back", name([][]byte{red, blue}, otherBack, 1, true)},
+		{"shadow", name([][]byte{red, blue}, back, 1, false)},
+		{"cell", name([][]byte{big, blue}, back, 1, true)},
+	}
+	for _, tt := range tests {
+		if tt.got == base {
+			t.Errorf("%s change kept the name %s", tt.name, base)
+		}
+	}
+	if name([][]byte{big, blue}, back, 2, true) == name([][]byte{big, blue}, back, 1, true) {
+		t.Error("scale change kept the name")
+	}
 }

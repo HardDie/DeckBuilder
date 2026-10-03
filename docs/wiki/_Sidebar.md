@@ -19,7 +19,6 @@ Developing
 - [DB](DB)
 - [Entities and DTOs](Entities-and-DTOs)
 - [Helpers](Helpers)
-- [Page drawer](Page-drawer)
 - [Cmd and tools](Cmd-and-tools)
 
 [README](https://github.com/HardDie/DeckBuilder#readme) · [CLAUDE.md](https://github.com/HardDie/DeckBuilder/blob/master/CLAUDE.md)

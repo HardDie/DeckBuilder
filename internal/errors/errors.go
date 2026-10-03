@@ -26,14 +26,12 @@ var (
 	// game
 	GameExist          = NewError("game exist", http.StatusBadRequest)
 	GameNotExists      = NewError("game not exists", http.StatusBadRequest)
-	GameInfoNotExists  = NewError("game info not exists")
 	GameImageExist     = NewError("game image already exists", http.StatusBadRequest)
 	GameImageNotExists = NewError("game image not exists", http.StatusBadRequest)
 
 	// collection
 	CollectionExist          = NewError("collection exist", http.StatusBadRequest)
 	CollectionNotExists      = NewError("collection not exists", http.StatusBadRequest)
-	CollectionInfoNotExists  = NewError("collection info not exists")
 	CollectionImageExist     = NewError("collection image already exists", http.StatusBadRequest)
 	CollectionImageNotExists = NewError("collection image not exists", http.StatusBadRequest)
 
@@ -44,7 +42,6 @@ var (
 	DeckImageNotExists = NewError("deck image not exists", http.StatusBadRequest)
 
 	// card
-	CardExists         = NewError("card exists", http.StatusBadRequest)
 	CardNotExists      = NewError("card not exists", http.StatusBadRequest)
 	CardImageExist     = NewError("card image already exists", http.StatusBadRequest)
 	CardImageNotExists = NewError("card image not exists", http.StatusBadRequest)

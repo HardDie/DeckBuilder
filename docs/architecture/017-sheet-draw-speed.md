@@ -151,3 +151,11 @@
 15. libvips was left out. The first two answered the question.
 16. Fastest encoder is `libjpeg` (161.6 ms).
 17. The app stays on `image/jpeg`.
+
+## Later
+
+1. The trial packages were removed on 2026-10-03.
+   1. `sheet/draw/{seq,row,cell,resize,resize_row,bilinear,rgba,pages,jpegli}`.
+   2. The numbers above stay as the record.
+2. `libjpeg` is the live encoder; `write.Draw` uses it.
+3. `sheet/bench` now measures only the live path.

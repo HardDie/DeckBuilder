@@ -52,4 +52,4 @@ All cards of a deck live in one `cards/.info.json` map, so the card repository d
 
 ## What repositories are not
 
-They do not parse HTTP. They do not draw sprite sheets (generator + `internal/render/deprecated/page_drawer`). They should not open a second fsentry root; they use the `*fsentry.DB` handle and `cfg` OS paths for zip.
+They do not parse HTTP. They do not draw sprite sheets (`internal/render`). They should not open a second fsentry root; they use the `*fsentry.DB` handle and `cfg` OS paths for zip.

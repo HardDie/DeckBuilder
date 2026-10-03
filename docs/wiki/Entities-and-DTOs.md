@@ -23,7 +23,7 @@ In-process domain. Used by repositories → services → servers (then copied in
 
 JSON the GUI sees. Same catalog fields plus `CachedImage` (API URL for `<img src>`).
 Catalog `createdAt` / `updatedAt` are RFC3339 strings.
-List responses go through `network.Response` with `meta.total` (and `cardsTotal` where relevant).
+Binding list results carry `network.Meta` with `total` (and `cardsTotal` where relevant).
 
 Recursive search DTO nests filtered games/collections/decks/cards.
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/HardDie/fsentry"
@@ -467,6 +468,24 @@ func (tt *gameTest) testImageFailure(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func (tt *gameTest) testResultFolderFollowsGame(t *testing.T) {
+	created, err := tt.serviceGame.Create(CreateRequest{Name: "result_old"})
+	assert.NoError(t, err)
+	page := func(id string) string { return filepath.Join(tt.cfg.Results(), id, "page.jpg") }
+	assert.NoError(t, os.MkdirAll(filepath.Dir(page(created.ID)), 0o755))
+	assert.NoError(t, os.WriteFile(page(created.ID), []byte("page"), 0o644))
+
+	// Rename: the render moves with the game.
+	renamed, err := tt.serviceGame.Update(created.ID, UpdateRequest{Name: "result_new"})
+	assert.NoError(t, err)
+	assert.NoFileExists(t, page(created.ID))
+	assert.FileExists(t, page(renamed.ID))
+
+	// Delete: the render goes with the game.
+	assert.NoError(t, tt.serviceGame.Delete(renamed.ID))
+	assert.NoDirExists(t, filepath.Dir(page(renamed.ID)))
+}
+
 func TestGame(t *testing.T) {
 	t.Parallel()
 
@@ -490,6 +509,7 @@ func TestGame(t *testing.T) {
 	t.Run("image", tt.testImage)
 	t.Run("image_bin", tt.testImageBin)
 	t.Run("image_failure", tt.testImageFailure)
+	t.Run("result_folder", tt.testResultFolderFollowsGame)
 }
 
 func (tt *gameTest) fuzzCleanup() {

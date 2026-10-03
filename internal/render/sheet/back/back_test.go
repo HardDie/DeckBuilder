@@ -5,30 +5,8 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"os"
-	"path/filepath"
 	"testing"
 )
-
-func TestWriteKeepsOriginalBytes(t *testing.T) {
-	t.Parallel()
-	raw := pngBytes(t, 3, 3, color.RGBA{G: 255, A: 255})
-	dir := t.TempDir()
-	abs, err := Write(dir, "deck", raw)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got, err := os.ReadFile(abs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, raw) {
-		t.Fatal("back file bytes differ from the input")
-	}
-	if filepath.Base(abs) == "backside_deck_.png" {
-		t.Fatal("missing hash in the file name")
-	}
-}
 
 func TestShadeShadowChangesPixels(t *testing.T) {
 	t.Parallel()

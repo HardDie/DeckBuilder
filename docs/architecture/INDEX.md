@@ -27,3 +27,5 @@ These records describe **decisions already embodied in this repository**, so age
 | [019](019-claude-md.md) | CLAUDE.md replaces CURSOR.md | Accepted |
 | [020](020-image-input-limits.md) | Limits on incoming images | Accepted |
 | [021](021-image-download-progress.md) | Image download progress | Accepted |
+| [022](022-stb-image-resize.md) | Resize faces with stb_image_resize2 | Accepted |
+| [023](023-per-game-results-and-page-reuse.md) | Per-game result folders and page reuse | Accepted |

@@ -13,45 +13,11 @@ const (
 	DirPerm = 0755
 )
 
-func IsFolderExist(path string) (isExist bool, err error) {
-	stat, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// folder not exist
-			return false, nil
-		}
-
-		// other error
-		errors.IfErrorLog(err)
-		err = errors.InternalError.AddMessage(err.Error())
-		return false, err
-	}
-
-	// check if it is a folder
-	if !stat.IsDir() {
-		err = errors.InternalError.AddMessage("there should be a folder, but it's file")
-		return false, err
-	}
-
-	// folder exists
-	return true, nil
-}
 func CreateFolder(path string) error {
 	err := os.MkdirAll(path, DirPerm)
 	if err != nil {
 		errors.IfErrorLog(err)
 		return errors.InternalError.AddMessage(err.Error())
-	}
-	return nil
-}
-func CreateFolderIfNotExist(path string) error {
-	isExists, err := IsFolderExist(path)
-	if err != nil || isExists {
-		return err
-	}
-	err = CreateFolder(path)
-	if err != nil {
-		return err
 	}
 	return nil
 }
@@ -78,6 +44,27 @@ func CreateAndProcess[T any](path string, in T, cb func(w io.Writer, in T) error
 	}()
 
 	return cb(file, in)
+}
+
+// WriteAtomic lets write fill a temporary file next to path, then renames it to path.
+// A crash or an error leaves no half-written file at path.
+func WriteAtomic(path string, write func(tmp string) error) error {
+	tmp := path + ".tmp"
+	if err := write(tmp); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return nil
+}
+
+// FileExists reports whether path is an existing regular file.
+func FileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.Mode().IsRegular()
 }
 
 func PathToAbsolutePath(path string) string {

@@ -21,7 +21,7 @@ The utility has four logical objects.
 - on the last level you can add cards, and you can set variables for the internal lua, such as HP: 2 or AT: 1
 
 ## How to create files for TTS
-Right-click on the game and select the menu item "Render". As a result you will have a folder DeckBuilderData/result, in which you will find png images and one json file.
+Right-click on the game and select the menu item "Render". As a result you will have a folder DeckBuilderData/result/<game>, in which you will find the sheet images and one json file. Rendering again only redraws the pages that changed.
 
 At the moment the json path to the pictures is set as they are located on the HDD, and you have to keep them in the result folder. This means that for now you cannot save a deck of cards to the table.
 But in the future there will be support for automatically uploading images to some image storage.

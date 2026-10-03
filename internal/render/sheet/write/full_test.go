@@ -13,7 +13,7 @@ import (
 
 // A full 10×7 page from the 1312×962 inputs matches the sequential paint path byte for byte.
 func TestIntegrationFullPageMatchesSequential(t *testing.T) {
-	dir := filepath.Join("..", "page", "testdata", "input")
+	dir := filepath.Join("..", "bench", "testdata", "input")
 	read := func(name string) []byte {
 		body, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
