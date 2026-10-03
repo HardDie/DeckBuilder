@@ -1,9 +1,6 @@
 package collection
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 type Collection struct {
 	ID          string
@@ -23,7 +20,7 @@ type Collection struct {
 }
 
 func (e Collection) GetName() string {
-	return strings.ToLower(e.Name)
+	return e.Name
 }
 func (e Collection) GetCreatedAt() time.Time {
 	return e.CreatedAt

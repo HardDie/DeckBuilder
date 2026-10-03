@@ -39,7 +39,7 @@ func (s *deck) List(gameID, collectionID, sortField, search string) ([]*entities
 	filteredItems := utils.FilterByName(items, search)
 
 	// Sorting
-	utils.Sort(&filteredItems, sortField)
+	utils.Sort(filteredItems, sortField)
 
 	// Return empty array if no elements
 	if filteredItems == nil {
@@ -67,6 +67,6 @@ func (s *deck) ListAllUnique(gameID string) ([]*entitiesDeck.Deck, error) {
 	if err != nil {
 		return make([]*entitiesDeck.Deck, 0), err
 	}
-	utils.Sort(&items, "name")
+	utils.Sort(items, "name")
 	return items, nil
 }

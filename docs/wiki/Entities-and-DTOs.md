@@ -17,7 +17,7 @@ In-process domain. Used by repositories → services → servers (then copied in
 | `settings` | `Default()`, lang, shadow, card scale |
 | `status` | generate progress snapshot |
 
-`GetName` / `GetCreatedAt` exist for `utils.Sort`.
+`GetName` / `GetCreatedAt` exist for `utils.Sort` and `utils.FilterByName`. `GetName` returns the name as stored; those helpers ignore case themselves.
 
 ## `internal/dto`
 

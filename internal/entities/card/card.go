@@ -1,9 +1,6 @@
 package card
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 type Card struct {
 	ID          int64
@@ -27,7 +24,7 @@ type Card struct {
 }
 
 func (e Card) GetName() string {
-	return strings.ToLower(e.Name)
+	return e.Name
 }
 func (e Card) GetCreatedAt() time.Time {
 	return e.CreatedAt

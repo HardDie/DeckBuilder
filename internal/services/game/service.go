@@ -44,7 +44,7 @@ func (s *game) List(sortField, search string) ([]*entitiesGame.Game, error) {
 	filteredItems := utils.FilterByName(items, search)
 
 	// Sorting
-	utils.Sort(&filteredItems, sortField)
+	utils.Sort(filteredItems, sortField)
 
 	// Return empty array if no elements
 	if filteredItems == nil {

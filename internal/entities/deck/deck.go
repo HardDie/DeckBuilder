@@ -1,9 +1,6 @@
 package deck
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 type Deck struct {
 	ID          string
@@ -24,7 +21,7 @@ type Deck struct {
 }
 
 func (e Deck) GetName() string {
-	return strings.ToLower(e.Name)
+	return e.Name
 }
 func (e Deck) GetCreatedAt() time.Time {
 	return e.CreatedAt

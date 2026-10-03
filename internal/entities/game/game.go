@@ -1,9 +1,6 @@
 package game
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 type Game struct {
 	ID          string
@@ -19,7 +16,7 @@ type Game struct {
 }
 
 func (e Game) GetName() string {
-	return strings.ToLower(e.Name)
+	return e.Name
 }
 func (e Game) GetCreatedAt() time.Time {
 	return e.CreatedAt
