@@ -62,9 +62,7 @@ func loadFixture(t *testing.T) *fake.World {
 	}
 	cfg := entitiesSettings.Default()
 	cfg.EnableBackShadow = true
-	cfg.CardSize.ScaleX = 1.25
-	cfg.CardSize.ScaleY = 1.5
-	cfg.CardSize.ScaleZ = 1.75
+	cfg.CardScale = 1.25
 	return &fake.World{
 		GameID:   "raid",
 		GameName: "Raid",

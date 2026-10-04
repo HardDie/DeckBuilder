@@ -116,7 +116,7 @@ S12. A file-uploaded image cannot be removed
  6. Skipped by design: decks and cards must have an image ([ADR 024](../architecture/024-required-deck-and-card-images.md)).
 
 S13. Large local uploads are slow over Wails IPC
- 1. Status: `in review`.
+ 1. Status: `done`.
  2. `imageFileBytes` sends the file as a JSON array of numbers.
  3. That is about 4× the file size, parsed on both sides.
  4. Options: base64 string, or a loopback upload route.
@@ -150,11 +150,14 @@ S16. Stable JSON order
  5. Files: `generate/script`, `tts_entity/card.go`.
 
 S17. Card scale and back shadow cannot be changed in the app
- 1. Status: `todo`.
+ 1. Status: `done`.
  2. `UpdateSettingsRequest` has only `Lang`; the GUI sends only `lang`.
  3. CLAUDE.md lists both as persisted settings.
  4. They stay at the defaults unless `settings.json` is edited by hand.
  5. Needs binding fields, validation, and a settings form.
+ 6. Done: a gear in the top bar opens a settings dialog on every screen.
+ 7. Done: one card scale (0.1–10) goes to X and Z; Y stays 1, as TTS does.
+ 8. Done: `ErrBadCardScale` rejects other values; language is not in the dialog.
 
 S18. Missing settings fields read as zero
  1. Status: `done`.

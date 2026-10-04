@@ -38,8 +38,8 @@
 								"posY": 0,
 								"posZ": 0,
 								"scaleX": 1.25,
-								"scaleY": 1.5,
-								"scaleZ": 1.75
+								"scaleY": 1,
+								"scaleZ": 1.25
 							},
 							"CustomDeck": {
 								"1": {
@@ -60,8 +60,8 @@
 								"posY": 0,
 								"posZ": 0,
 								"scaleX": 1.25,
-								"scaleY": 1.5,
-								"scaleZ": 1.75
+								"scaleY": 1,
+								"scaleZ": 1.25
 							},
 							"Nickname": "Crew",
 							"Description": "",
@@ -94,8 +94,8 @@
 										"posY": 0,
 										"posZ": 0,
 										"scaleX": 1.25,
-										"scaleY": 1.5,
-										"scaleZ": 1.75
+										"scaleY": 1,
+										"scaleZ": 1.25
 									},
 									"CustomDeck": {
 										"2": {
@@ -121,8 +121,8 @@
 										"posY": 0,
 										"posZ": 0,
 										"scaleX": 1.25,
-										"scaleY": 1.5,
-										"scaleZ": 1.75
+										"scaleY": 1,
+										"scaleZ": 1.25
 									},
 									"CustomDeck": {
 										"2": {
@@ -148,8 +148,8 @@
 										"posY": 0,
 										"posZ": 0,
 										"scaleX": 1.25,
-										"scaleY": 1.5,
-										"scaleZ": 1.75
+										"scaleY": 1,
+										"scaleZ": 1.25
 									},
 									"CustomDeck": {
 										"2": {

@@ -31,7 +31,7 @@ func Prepare(dir string, gameItem *entitiesGame.Game,
 | `gameItem` | Its id names the JSON file; its name is the game bag's nickname. |
 | `decks`, `order` | From `catalog.Collect`. |
 | `scale` | Integer divisor of the cell; 0 counts as 1. |
-| `cfg` | `EnableBackShadow` goes onto every sheet; `CardSize` is the TTS scale of decks and cards. |
+| `cfg` | `EnableBackShadow` goes onto every sheet; `CardScale` is the TTS scale of decks and cards (X and Z; Y stays 1). |
 | `deckSvc`, `cardSvc` | `GetImage` for raw bytes; card `Item` for name, description, variables, and count. |
 
 The back comes from the deck in the first card's collection. A missing back or face stops the plan with that error, and the log names game, collection, deck, and card.
@@ -112,7 +112,7 @@ TTS cannot spawn a deck of one, so a one-object deck is stored as that card. A s
 | `LuaScript` | One `key="value"` line per card variable, sorted by key. |
 | `CardID` | `CustomDeck key × 100 + slot`, slot counted from 0 on that page. |
 | `GUID` | A 6-digit counter: it steps once per deck, once per page break, and once per card. |
-| Deck and card transform | Settings `CardSize`. Bags use scale 1. |
+| Deck and card transform | Settings `CardScale` on X and Z, Y is 1, as TTS scales cards. Bags use scale 1. |
 | Game bag `Description` | `Created at: <time>`. |
 
 **Order is stable.** Collection bags follow collection id, decks follow deck name, cards follow the catalog list, and `LuaScript` lines follow variable name. An unchanged game gives the same JSON on every render, except the `Created at:` time.

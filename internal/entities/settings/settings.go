@@ -2,28 +2,31 @@ package settings
 
 import "math"
 
-type CardSize struct {
-	ScaleX float64
-	ScaleY float64
-	ScaleZ float64
-}
+// Card scale limits for the settings dialog. TTS itself has no documented limit.
+const (
+	MinCardScale = 0.1
+	MaxCardScale = 10
+)
 
 type Settings struct {
 	Lang             string
 	EnableBackShadow bool
-	CardSize         CardSize
+	// CardScale is the size of spawned cards and decks. 1 is the TTS default.
+	// TTS scales a card in width and length only, so it goes to X and Z; Y stays 1.
+	CardScale float64
 }
 
 func Default() Settings {
 	return Settings{
 		Lang:             "en",
 		EnableBackShadow: false,
-		CardSize: CardSize{
-			ScaleX: 1,
-			ScaleY: 1,
-			ScaleZ: 1,
-		},
+		CardScale:        1,
 	}
+}
+
+// ValidCardScale reports whether v is a card scale the settings dialog accepts.
+func ValidCardScale(v float64) bool {
+	return v >= MinCardScale && v <= MaxCardScale
 }
 
 // Normalize replaces values that cannot be valid with their defaults.
@@ -36,15 +39,13 @@ func (s Settings) Normalize() Settings {
 	default:
 		s.Lang = def.Lang
 	}
-	s.CardSize.ScaleX = validScale(s.CardSize.ScaleX, def.CardSize.ScaleX)
-	s.CardSize.ScaleY = validScale(s.CardSize.ScaleY, def.CardSize.ScaleY)
-	s.CardSize.ScaleZ = validScale(s.CardSize.ScaleZ, def.CardSize.ScaleZ)
-	return s
-}
-
-func validScale(v, def float64) float64 {
-	if v > 0 && !math.IsInf(v, 1) {
-		return v
+	switch {
+	case math.IsNaN(s.CardScale) || s.CardScale <= 0:
+		s.CardScale = def.CardScale
+	case s.CardScale < MinCardScale:
+		s.CardScale = MinCardScale
+	case s.CardScale > MaxCardScale:
+		s.CardScale = MaxCardScale
 	}
-	return def
+	return s
 }

@@ -24,6 +24,7 @@
       v-model:show="isReplaceModal"
       @submit="onReplace"
     />
+    <settings-modal v-model:show="isSettingsModal" />
     <page-header
       show-buttons
       :with-import="mainStore.itemType === 'games'"
@@ -32,6 +33,7 @@
       @on-import="isImportModal = true"
       @on-filters="onFilters"
       @on-replace="isReplaceModal = true"
+      @on-settings="isSettingsModal = true"
     />
     <page-content ref="contentRef">
       <transition-group name="slide-fade">
@@ -117,6 +119,7 @@ import AddModal from '@/components/modals/AddModal.vue'
 import DuplicateModal from '@/components/modals/DuplicateModal.vue'
 import ImportModal from '@/components/modals/ImportModal.vue'
 import ReplaceModal from '@/components/modals/ReplaceModal.vue'
+import SettingsModal from '@/components/modals/SettingsModal.vue'
 import CardEl from '@/components/CardEl.vue'
 import { useDialog } from 'naive-ui'
 import PageFooter from '@/components/layout/PageFooter.vue'
@@ -133,6 +136,7 @@ const isAddModal = ref(false)
 const isImportModal = ref(false)
 const isDuplicateModal = ref(false)
 const isReplaceModal = ref(false)
+const isSettingsModal = ref(false)
 
 const items = computed(() => itemsStore.items)
 const isItemsLoading = computed(() => itemsStore.isItemsLoading)

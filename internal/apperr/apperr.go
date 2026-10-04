@@ -101,6 +101,8 @@ var (
 
 	ErrBadRenderFile  = newErr("not a DeckBuilder render file", ErrInvalid)
 	ErrBadMappingFile = newErr("the mapping file is not valid", ErrInvalid)
+
+	ErrBadCardScale = newErr("card scale must be between 0.1 and 10", ErrInvalid)
 )
 
 // Rendering.

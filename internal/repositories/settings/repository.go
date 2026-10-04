@@ -36,11 +36,7 @@ func (r *settings) Get() (*entitiesSettings.Settings, error) {
 	return &entitiesSettings.Settings{
 		Lang:             resp.Lang,
 		EnableBackShadow: resp.EnableBackShadow,
-		CardSize: entitiesSettings.CardSize{
-			ScaleX: resp.CardSize.ScaleX,
-			ScaleY: resp.CardSize.ScaleY,
-			ScaleZ: resp.CardSize.ScaleZ,
-		},
+		CardScale:        resp.CardSize.ScaleX,
 	}, nil
 }
 
@@ -49,9 +45,9 @@ func (r *settings) Save(req *entitiesSettings.Settings) error {
 		Lang:             req.Lang,
 		EnableBackShadow: req.EnableBackShadow,
 		CardSize: cardSize{
-			ScaleX: req.CardSize.ScaleX,
-			ScaleY: req.CardSize.ScaleY,
-			ScaleZ: req.CardSize.ScaleZ,
+			ScaleX: req.CardScale,
+			ScaleY: 1,
+			ScaleZ: req.CardScale,
 		},
 	})
 }

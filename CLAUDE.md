@@ -133,6 +133,10 @@ Must have:
     2. Card scale.
     3. Back shadow.
     4. Missing or invalid values read as defaults (`Settings.Normalize`).
+    5. The gear in the top bar opens the settings dialog on every screen.
+    6. The dialog edits card scale and back shadow, not language.
+    7. Card scale is one value, 0.1–10.
+    8. It goes to `scaleX` and `scaleZ`; `scaleY` stays 1, as TTS does.
 
 Known limitation. Do not "fix" it by inventing a host.
 1. Generated JSON points at local image paths.

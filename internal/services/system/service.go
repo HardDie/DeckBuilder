@@ -1,9 +1,11 @@
 package system
 
 import (
+	"log/slog"
+
+	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
-	"log/slog"
 )
 
 type system struct {
@@ -26,25 +28,28 @@ func (s *system) GetSettings() (*entitiesSettings.Settings, error) {
 	normalized := set.Normalize()
 	return &normalized, nil
 }
+
 func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error) {
-	slog.Info("update settings", "lang", req.Lang)
+	if !entitiesSettings.ValidCardScale(req.CardScale) {
+		return nil, apperr.ErrBadCardScale
+	}
 	set, err := s.GetSettings()
 	if err != nil {
 		return nil, err
 	}
-	isUpdated := false
+	updated := *set
 	switch req.Lang {
 	case "en", "ru":
-		if set.Lang != req.Lang {
-			set.Lang = req.Lang
-			isUpdated = true
-		}
+		updated.Lang = req.Lang
 	}
-	if isUpdated {
-		err = s.repositorySettings.Save(set)
-		if err != nil {
-			return nil, err
-		}
+	updated.EnableBackShadow = req.EnableBackShadow
+	updated.CardScale = req.CardScale
+	if updated == *set {
+		return set, nil
 	}
-	return set, nil
+	slog.Info("update settings", "lang", updated.Lang, "back_shadow", updated.EnableBackShadow, "card_scale", updated.CardScale)
+	if err := s.repositorySettings.Save(&updated); err != nil {
+		return nil, err
+	}
+	return &updated, nil
 }

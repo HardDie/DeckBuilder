@@ -27,7 +27,9 @@ type VersionResult struct {
 }
 
 type UpdateSettingsRequest struct {
-	Lang string `json:"lang"`
+	Lang             string  `json:"lang"`
+	EnableBackShadow bool    `json:"enable_back_shadow"`
+	CardScale        float64 `json:"card_scale"`
 }
 
 type System struct {
@@ -49,7 +51,9 @@ func (s *System) GetSettings() (*SettingsResult, error) {
 
 func (s *System) UpdateSettings(req UpdateSettingsRequest) (*SettingsResult, error) {
 	setting, err := s.svc.UpdateSettings(servicesSystem.UpdateSettingsRequest{
-		Lang: req.Lang,
+		Lang:             req.Lang,
+		EnableBackShadow: req.EnableBackShadow,
+		CardScale:        req.CardScale,
 	})
 	if err != nil {
 		return nil, err
@@ -105,10 +109,6 @@ func settingsDTO(setting entitiesSettings.Settings) dto.Settings {
 	return dto.Settings{
 		Lang:             setting.Lang,
 		EnableBackShadow: setting.EnableBackShadow,
-		CardSize: dto.CardSize{
-			ScaleX: setting.CardSize.ScaleX,
-			ScaleY: setting.CardSize.ScaleY,
-			ScaleZ: setting.CardSize.ScaleZ,
-		},
+		CardScale:        setting.CardScale,
 	}
 }

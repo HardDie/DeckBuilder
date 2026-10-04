@@ -130,12 +130,33 @@
         </template>
         <span>Replace</span>
       </n-tooltip>
+      <n-tooltip
+        trigger="hover"
+        :delay="300"
+      >
+        <template #trigger>
+          <Icon
+            class="icon header__button"
+            size="24"
+            @click="emit('on-settings')"
+          >
+            <SettingsOutlined />
+          </Icon>
+        </template>
+        <span>Settings</span>
+      </n-tooltip>
     </div>
   </div>
 </template>
 
 <script setup>
-import { AddFilled, NoteAddOutlined, SearchOutlined, ChangeCircleOutlined } from '@vicons/material'
+import {
+  AddFilled,
+  NoteAddOutlined,
+  SearchOutlined,
+  ChangeCircleOutlined,
+  SettingsOutlined,
+} from '@vicons/material'
 import { Icon } from '@vicons/utils'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
@@ -160,7 +181,14 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['on-add', 'on-import', 'on-sort', 'on-filters', 'on-replace'])
+const emit = defineEmits([
+  'on-add',
+  'on-import',
+  'on-sort',
+  'on-filters',
+  'on-replace',
+  'on-settings',
+])
 
 const isDrawer = ref(false)
 

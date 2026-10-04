@@ -54,7 +54,7 @@ No `gamesPath`. One JSON **entry** named `settings`.
 | `Get` | `GetEntry[SettingInfo]("settings")` — payload is `info.Data`, not a field on `SettingInfo` | settings repository |
 | `Set` | `CreateEntry` or `UpdateEntry` if exists | settings repository |
 
-`SettingInfo`: `Lang`, `EnableBackShadow`, `CardSize.{ScaleX,Y,Z}`.
+`SettingInfo`: `Lang`, `EnableBackShadow`, `CardSize.{ScaleX,Y,Z}` on disk; the entity has one `CardScale` (read from `ScaleX`, saved to X and Z, Y is 1).
 
 ## `game`
 

@@ -154,7 +154,8 @@ export default {
   decks: { ...decksApi, create: idle, update: idle, delete: idle },
   cards: { ...cardsApi, create: idle, update: idle, delete: idle },
   system: {
-    getSettings: () => Promise.resolve({ data: { lang: 'en' } }),
+    getSettings: () =>
+      Promise.resolve({ data: { lang: 'en', enable_back_shadow: false, card_scale: 1 } }),
     updateSettings: idle,
     checkStatus: () => Promise.resolve({ data: { status: 'empty', progress: 0 } }),
     getVersion: () => Promise.resolve({ data: 'dev' }),

@@ -37,9 +37,7 @@ func TestBuildOneCardAndADeck(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg := entitiesSettings.Default()
-	cfg.CardSize.ScaleX = 1.25
-	cfg.CardSize.ScaleY = 1.5
-	cfg.CardSize.ScaleZ = 1.75
+	cfg.CardScale = 1.25
 	pages := []Page{
 		{DeckID: "bandits", Index: 1, Image: "/sheets/bandits.jpg", Back: "/sheets/bandits.png", Cols: 2, Rows: 2},
 		{DeckID: "crew", Index: 1, Image: "/sheets/crew.jpg", Back: "/sheets/crew.png", Cols: 2, Rows: 2},
@@ -63,8 +61,13 @@ func TestBuildOneCardAndADeck(t *testing.T) {
 	if deck.Name != "Deck" || deck.Nickname != "Crew" || len(deck.DeckIDs) != 3 {
 		t.Fatalf("deck %+v ids %v", deck.Name, deck.DeckIDs)
 	}
-	if deck.DeckIDs[0] != 200 || deck.DeckIDs[2] != 201 || deck.Transform.ScaleX != 1.25 {
-		t.Fatalf("ids %v scale %v", deck.DeckIDs, deck.Transform.ScaleX)
+	if deck.DeckIDs[0] != 200 || deck.DeckIDs[2] != 201 {
+		t.Fatalf("ids %v", deck.DeckIDs)
+	}
+	// TTS scales a card in X and Z only; thickness (Y) stays 1.
+	want := tts_entity.Transform{ScaleX: 1.25, ScaleY: 1, ScaleZ: 1.25}
+	if card.Transform == nil || *card.Transform != want || deck.Transform != want {
+		t.Fatalf("card scale %+v, deck scale %+v", card.Transform, deck.Transform)
 	}
 	face := card.CustomDeck[1].FaceURL
 	if face != "file:////sheets/bandits.jpg" {

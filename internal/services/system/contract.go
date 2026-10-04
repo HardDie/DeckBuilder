@@ -9,6 +9,10 @@ type System interface {
 	UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Settings, error)
 }
 
+// UpdateSettingsRequest replaces the settings the dialog edits.
+// An empty or unknown Lang keeps the stored language.
 type UpdateSettingsRequest struct {
-	Lang string
+	Lang             string
+	EnableBackShadow bool
+	CardScale        float64
 }

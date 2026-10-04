@@ -12,7 +12,13 @@ export default {
     return withBindingError(GetSettings())
   },
   updateSettings(body) {
-    return withBindingError(UpdateSettings({ lang: body?.lang || '' }))
+    return withBindingError(
+      UpdateSettings({
+        lang: body?.lang || '',
+        enable_back_shadow: Boolean(body?.enable_back_shadow),
+        card_scale: Number(body?.card_scale),
+      }),
+    )
   },
   checkStatus() {
     return withBindingError(Status())

@@ -19,5 +19,20 @@ export const useSystemStore = defineStore('system', () => {
     })
   }
 
-  return { fetchCheckStatus, fetchDownloadStatus, fetchVersion, version }
+  function fetchSettings() {
+    return api.system.getSettings().then(response => response.data)
+  }
+
+  function saveSettings(settings) {
+    return api.system.updateSettings(settings).then(response => response.data)
+  }
+
+  return {
+    fetchCheckStatus,
+    fetchDownloadStatus,
+    fetchVersion,
+    fetchSettings,
+    saveSettings,
+    version,
+  }
 })

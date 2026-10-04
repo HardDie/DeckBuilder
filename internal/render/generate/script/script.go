@@ -106,11 +106,7 @@ func Build(
 				filled-1,
 				cardItem.Variables,
 				deckDescription,
-				tts_entity.Transform{
-					ScaleX: cfg.CardSize.ScaleX,
-					ScaleY: cfg.CardSize.ScaleY,
-					ScaleZ: cfg.CardSize.ScaleZ,
-				},
+				cardTransform(cfg),
 			)
 			for i := 0; i < cardItem.Count; i++ {
 				deck.AddCard(cardObject)
@@ -136,11 +132,16 @@ func Build(
 }
 
 func newDeck(name string, cfg *entitiesSettings.Settings) tts_entity.DeckObject {
-	return tts_entity.NewDeck(name, tts_entity.Transform{
-		ScaleX: cfg.CardSize.ScaleX,
-		ScaleY: cfg.CardSize.ScaleY,
-		ScaleZ: cfg.CardSize.ScaleZ,
-	})
+	return tts_entity.NewDeck(name, cardTransform(cfg))
+}
+
+// cardTransform scales width (X) and length (Z) like TTS does; thickness (Y) stays 1.
+func cardTransform(cfg *entitiesSettings.Settings) tts_entity.Transform {
+	return tts_entity.Transform{
+		ScaleX: cfg.CardScale,
+		ScaleY: 1,
+		ScaleZ: cfg.CardScale,
+	}
 }
 
 func description(info Page) tts_entity.DeckDescription {

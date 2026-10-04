@@ -24,7 +24,7 @@ Collection/deck/card methods take parent ids (`gameID`, …) from the URL.
 | Method | Behavior | Called from |
 |---|---|---|
 | `GetSettings` | defaults merged with stored settings | `GetSettings` binding; generator (scale, shadow) |
-| `UpdateSettings` | today only persists `lang` if `en`/`ru` | `UpdateSettings` binding |
+| `UpdateSettings` | checks card scale 0.1–10 (`ErrBadCardScale`); saves scale, back shadow, and `lang` if `en`/`ru` | `UpdateSettings` binding (settings dialog) |
 
 Holds `repositorySettings` from `internal/repositories/settings`.
 
