@@ -17,7 +17,7 @@ func TestCollectSortsDecksAndSkipsEmpty(t *testing.T) {
 			},
 		}},
 	}
-	grouped, order, err := Collect("raid", "name", fake.Collections{w}, fake.Decks{w}, fake.Cards{w})
+	grouped, order, err := Collect("raid", "name", fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestCollectMergesTheSameDeck(t *testing.T) {
 			}}},
 		},
 	}
-	grouped, order, err := Collect("raid", "", fake.Collections{w}, fake.Decks{w}, fake.Cards{w})
+	grouped, order, err := Collect("raid", "", fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -32,7 +32,7 @@ func TestBuildOneCardAndADeck(t *testing.T) {
 			},
 		}},
 	}
-	grouped, order, err := catalog.Collect("raid", "name", fake.Collections{w}, fake.Decks{w}, fake.Cards{w})
+	grouped, order, err := catalog.Collect("raid", "name", fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestBuildOneCardAndADeck(t *testing.T) {
 		{DeckID: "bandits", Index: 1, Image: "/sheets/bandits.jpg", Back: "/sheets/bandits.png", Cols: 2, Rows: 2},
 		{DeckID: "crew", Index: 1, Image: "/sheets/crew.jpg", Back: "/sheets/crew.png", Cols: 2, Rows: 2},
 	}
-	doc, err := Build(t.TempDir(), &entitiesGame.Game{ID: "raid", Name: "Raid"}, grouped, order, pages, &cfg, fake.Cards{w})
+	doc, err := Build(t.TempDir(), &entitiesGame.Game{ID: "raid", Name: "Raid"}, grouped, order, pages, &cfg, fake.Cards{World: w})
 	if err != nil {
 		t.Fatal(err)
 	}

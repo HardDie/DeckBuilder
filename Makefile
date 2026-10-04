@@ -146,10 +146,14 @@ test-all: test test-integration
 ci: test-all
 
 ## vet: Go vet on package main (no Wails CGO), bindings, internal, and pkg
-vet:
-	$(GO) vet -tags=$(TEST_MAIN_TAGS) .
-	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./bindings/...
-	$(GO) vet -tags=$(TEST_MAIN_TAGS) $(INTERNAL)
+vet: jpeg-link
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) . && \
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) $(INTERNAL) && \
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./pkg/...
 
 ## fmt: Format Go files; fail if any file needed formatting

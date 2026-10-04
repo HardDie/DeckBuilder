@@ -26,7 +26,7 @@ func TestGenerateUnknownGame(t *testing.T) {
 	cfg := config.Get("test")
 	cfg.SetDataPath(dir)
 	w := &fake.World{GameID: "raid", GameName: "Raid"}
-	err := compose.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
+	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
 		GenerateGame("missing", compose.GenerateGameRequest{})
 	if err == nil {
 		t.Fatal("expected missing game")
@@ -109,7 +109,7 @@ func runReport(t *testing.T, w *fake.World) {
 	dir := t.TempDir()
 	cfg := config.Get("test")
 	cfg.SetDataPath(dir)
-	err := compose.New(cfg, fake.Games{w}, fake.Collections{w}, fake.Decks{w}, fake.Cards{w}, fake.Systems{w}, fake.Speech{w}).
+	err := compose.New(cfg, fake.Games{World: w}, fake.Collections{World: w}, fake.Decks{World: w}, fake.Cards{World: w}, fake.Systems{World: w}, fake.Speech{World: w}).
 		GenerateGame("raid", compose.GenerateGameRequest{SortOrder: "name", Scale: 1})
 	if err != nil {
 		t.Fatal(err)
