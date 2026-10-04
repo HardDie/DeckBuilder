@@ -116,10 +116,13 @@ S12. A file-uploaded image cannot be removed
  6. Skipped by design: decks and cards must have an image ([ADR 024](../architecture/024-required-deck-and-card-images.md)).
 
 S13. Large local uploads are slow over Wails IPC
- 1. Status: `todo`.
+ 1. Status: `in review`.
  2. `imageFileBytes` sends the file as a JSON array of numbers.
  3. That is about 4× the file size, parsed on both sides.
  4. Options: base64 string, or a loopback upload route.
+ 5. Done: base64 via `fileToBase64` for images, game import, and replace files.
+    1. 20 MB: JS 1076 → 139 ms, JSON 71 → 27 MB, Go decode 1103 → 56 ms.
+    2. Go needs no change: encoding/json decodes base64 into `[]byte`.
 
 S14. Faster face resize
  1. Status: `done`.
@@ -231,7 +234,7 @@ S19. Remind about missing deck and card images
  7. A deck is also badged when any of its cards has no image (`cardsMissingImage`).
 
 S20. Show render failures in the window
- 1. Status: `in review`.
+ 1. Status: `done`.
  2. A render that ends with `error` only hides the progress circle.
  3. The reason is only in the log.
  4. Idea: carry the reason in the polled status and show it as a toast.

@@ -198,6 +198,9 @@ UI calls:
    2. Entities stay `time.Time`.
 5. Generated JS lives in `frontend/wailsjs` (`make generate`).
 6. If the GUI needs a field, add it to the existing DTO with `json` tags.
+7. Files go to bindings as `[]byte`, sent from JS as a base64 string.
+   1. Use `fileToBase64` in `frontend/src/api/wails.js`.
+   2. Never a JSON array of numbers: about 10x slower and 3x larger.
 
 Layers:
 1. Imports go `main/bindings/servers` → `services` → `repositories` → fsentry.

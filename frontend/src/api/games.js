@@ -9,7 +9,7 @@ import {
   Import,
 } from '../../wailsjs/go/game/Game'
 import { Game as GenerateGame } from '../../wailsjs/go/generator/Generator'
-import { withBindingError, writeRequestFromBody } from '@/api/wails'
+import { fileToBase64, withBindingError, writeRequestFromBody } from '@/api/wails'
 
 export default {
   list(requestData) {
@@ -59,6 +59,6 @@ async function importZip(body) {
   }
   return {
     name,
-    file: Array.from(new Uint8Array(await file.arrayBuffer())),
+    file: await fileToBase64(file),
   }
 }

@@ -18,11 +18,24 @@ export function withBindingError(promise) {
     })
 }
 
+// fileToBase64 reads a file for a Go []byte argument. encoding/json decodes a base64
+// string into []byte; it is about 10x faster end to end than a JSON array of numbers
+// and a third of the size (S13).
+export function fileToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () =>
+      resolve(String(reader.result).slice(String(reader.result).indexOf(',') + 1))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
+  })
+}
+
 async function imageFileBytes(file) {
   if (!(file instanceof Blob)) {
-    return []
+    return ''
   }
-  return Array.from(new Uint8Array(await file.arrayBuffer()))
+  return fileToBase64(file)
 }
 
 function formCount(value) {
