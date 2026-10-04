@@ -30,6 +30,11 @@ JPEG_CC := $(CURDIR)/scripts/cc-static-jpeg
 ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
 JPEG_CC := $(shell cygpath -m "$(CURDIR)/scripts/cc-static-jpeg.exe" 2>/dev/null || echo "$(CURDIR)/scripts/cc-static-jpeg.exe")
 endif
+# make dev builds through GO_OPTIMIZED: it drops the -gcflags "all=-N -l" that wails dev adds.
+GO_OPTIMIZED := $(CURDIR)/build/go-optimized/go-optimized
+ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+GO_OPTIMIZED := $(shell cygpath -m "$(CURDIR)/build/go-optimized/go-optimized.exe" 2>/dev/null || echo "$(CURDIR)/build/go-optimized/go-optimized.exe")
+endif
 JPEG_EXTRA_LDFLAGS :=
 ifeq ($(UNAME_S),Linux)
 JPEG_EXTRA_LDFLAGS := -lm
@@ -67,17 +72,20 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help version dev build jpeg-link require-jpeg generate test test-integration test-all \
+.PHONY: help version dev dev-debug build jpeg-link require-jpeg generate test test-integration test-all \
 	vet fmt tidy doc doc-all docs-site frontend-install screenshots clean ci \
 	linter-install linter-run fuzz_game fuzz_collection fuzz_deck fuzz_card
 
 ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
-dev build: $(JPEG_CC)
+dev dev-debug build: $(JPEG_CC)
 $(JPEG_CC): scripts/cc-static-jpeg.c
 	$(REAL_CC) -O2 -o $@ scripts/cc-static-jpeg.c
 endif
 
-dev build: jpeg-link
+dev dev-debug build: jpeg-link
+
+$(GO_OPTIMIZED): scripts/go-optimized/main.go
+	$(GO) build -o "$@" ./scripts/go-optimized
 
 jpeg-link: require-jpeg
 	mkdir -p "$(JPEG_LINK_DIR)"
@@ -94,8 +102,15 @@ help:
 version:
 	PRODUCT_VERSION="$(PRODUCT_VERSION)" ./scripts/sync-product-version.sh
 
-## dev: Run the Wails app with frontend hot reload
-dev: require-wails require-jpeg version
+## dev: Run the Wails app with frontend hot reload; Go is optimized like make build
+dev: require-wails require-jpeg version $(GO_OPTIMIZED)
+	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" REAL_GO="$(GO)" \
+		$(WAILS) dev $(WAILS_TAGS) -compiler "$(GO_OPTIMIZED)" -ldflags "$(VERSION_LDFLAGS)"
+
+## dev-debug: Like dev, but Go without optimization or inlining (-N -l), for a debugger
+dev-debug: require-wails require-jpeg version
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
 	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \

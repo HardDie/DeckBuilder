@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/HardDie/DeckBuilder/internal/images"
 	"github.com/HardDie/DeckBuilder/internal/render/sheet/back"
@@ -41,7 +42,7 @@ func TestDrawMatchesLibjpeg(t *testing.T) {
 	face := pngBytes(t, 8, 12, color.RGBA{R: 220, G: 20, B: 40, A: 255})
 	rawBack := pngBytes(t, 8, 12, color.RGBA{G: 180, B: 40, A: 255})
 	path := filepath.Join(t.TempDir(), "sheet.jpg")
-	if err := Draw([][]byte{face}, rawBack, 8, 12, false, path); err != nil {
+	if _, err := Draw([][]byte{face}, rawBack, 8, 12, false, path); err != nil {
 		t.Fatal(err)
 	}
 	got, err := os.ReadFile(path)
@@ -70,10 +71,10 @@ func TestDrawShadowChangesPixels(t *testing.T) {
 	rawBack := pngBytes(t, 8, 12, color.RGBA{B: 200, A: 255})
 	plain := filepath.Join(t.TempDir(), "a.jpg")
 	shaded := filepath.Join(t.TempDir(), "b.jpg")
-	if err := Draw([][]byte{face}, rawBack, 8, 12, false, plain); err != nil {
+	if _, err := Draw([][]byte{face}, rawBack, 8, 12, false, plain); err != nil {
 		t.Fatal(err)
 	}
-	if err := Draw([][]byte{face}, rawBack, 8, 12, true, shaded); err != nil {
+	if _, err := Draw([][]byte{face}, rawBack, 8, 12, true, shaded); err != nil {
 		t.Fatal(err)
 	}
 	a, err := os.ReadFile(plain)
@@ -93,7 +94,7 @@ func TestDrawUsesTheGivenCell(t *testing.T) {
 	face := pngBytes(t, 8, 12, color.RGBA{G: 180, A: 255})
 	rawBack := pngBytes(t, 8, 12, color.RGBA{R: 180, A: 255})
 	path := filepath.Join(t.TempDir(), "sheet.jpg")
-	if err := Draw([][]byte{face}, rawBack, 4, 6, false, path); err != nil {
+	if _, err := Draw([][]byte{face}, rawBack, 4, 6, false, path); err != nil {
 		t.Fatal(err)
 	}
 	f, err := os.Open(path)
@@ -159,10 +160,28 @@ func TestDrawMarksUndecodableImages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Draw(tt.faces, tt.back, 8, 12, false, path)
+			_, err := Draw(tt.faces, tt.back, 8, 12, false, path)
 			if !errors.Is(err, ErrUndecodable) || !strings.Contains(err.Error(), tt.where) {
 				t.Fatalf("err %v, want ErrUndecodable naming %s", err, tt.where)
 			}
 		})
+	}
+}
+
+func TestDrawReportsTimings(t *testing.T) {
+	face := pngBytes(t, 64, 96, color.RGBA{R: 220, A: 255})
+	rawBack := pngBytes(t, 64, 96, color.RGBA{B: 180, A: 255})
+	path := filepath.Join(t.TempDir(), "sheet.jpg")
+	got, err := Draw([][]byte{face, face}, rawBack, 32, 48, true, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, d := range map[string]time.Duration{
+		"jobs": got.Jobs, "decode": got.Decode, "resize": got.Resize,
+		"paint": got.Paint, "encode": got.Encode, "write": got.Write,
+	} {
+		if d <= 0 {
+			t.Errorf("%s = %v, want > 0", name, d)
+		}
 	}
 }

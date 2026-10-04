@@ -1,6 +1,9 @@
 package system
 
 import (
+	"context"
+	"io"
+	"log/slog"
 	"math"
 	"testing"
 
@@ -12,6 +15,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/config"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
+	"github.com/HardDie/DeckBuilder/pkg/logger"
 )
 
 func newSystem(t *testing.T) System {
@@ -51,7 +55,7 @@ func TestSettings(t *testing.T) {
 	// The dialog sends no language: the stored one stays.
 	updated, err = s.UpdateSettings(UpdateSettingsRequest{EnableBackShadow: true, CardScale: 2.5})
 	require.NoError(t, err)
-	want := entitiesSettings.Settings{Lang: "ru", EnableBackShadow: true, CardScale: 2.5}
+	want := entitiesSettings.Settings{Lang: "ru", EnableBackShadow: true, CardScale: 2.5, LogLevel: entitiesSettings.LogLevelInfo}
 	assert.Equal(t, want, *updated)
 	got, err = s.GetSettings()
 	require.NoError(t, err)
@@ -93,4 +97,40 @@ func TestSettingsMissingFields(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "ru", got.Lang)
 	assert.Equal(t, entitiesSettings.Default().CardScale, got.CardScale, "missing card size is the default, not 0")
+}
+
+// A saved log level is stored, reads back, and applies to the logger at once.
+// An empty or unknown level keeps the stored one.
+func TestUpdateSettingsLogLevel(t *testing.T) {
+	_, err := logger.Init(logger.Options{Console: io.Discard})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = logger.Close() })
+	debugOn := func() bool { return slog.Default().Enabled(context.Background(), slog.LevelDebug) }
+
+	s := newSystem(t)
+	require.False(t, debugOn(), "Info by default")
+
+	updated, err := s.UpdateSettings(UpdateSettingsRequest{CardScale: 1, LogLevel: entitiesSettings.LogLevelDebug})
+	require.NoError(t, err)
+	assert.Equal(t, entitiesSettings.LogLevelDebug, updated.LogLevel)
+	assert.True(t, debugOn(), "debug applies without a restart")
+
+	for _, level := range []string{"", "trace"} {
+		updated, err = s.UpdateSettings(UpdateSettingsRequest{CardScale: 1, LogLevel: level})
+		require.NoError(t, err)
+		assert.Equal(t, entitiesSettings.LogLevelDebug, updated.LogLevel, "level %q keeps the stored one", level)
+	}
+	got, err := s.GetSettings()
+	require.NoError(t, err)
+	assert.Equal(t, entitiesSettings.LogLevelDebug, got.LogLevel, "the level reads back")
+
+	_, err = s.UpdateSettings(UpdateSettingsRequest{CardScale: 1, LogLevel: entitiesSettings.LogLevelError})
+	require.NoError(t, err)
+	ctx := context.Background()
+	assert.False(t, slog.Default().Enabled(ctx, slog.LevelWarn), "error hides warn")
+	assert.True(t, slog.Default().Enabled(ctx, slog.LevelError), "error keeps error")
+
+	_, err = s.UpdateSettings(UpdateSettingsRequest{CardScale: 1, LogLevel: entitiesSettings.LogLevelInfo})
+	require.NoError(t, err)
+	assert.False(t, debugOn(), "back to Info")
 }

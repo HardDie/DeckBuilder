@@ -59,6 +59,7 @@ Prefer `make` targets over bare `go` commands.
 
 ```bash
 make dev               # Wails window with frontend hot reload
+make dev-debug         # same, Go with -N -l (no optimization) for a debugger
 make build             # production binary -> build/bin
 make test              # unit tests, -race -tags=nomain (root, bindings, internal, pkg)
 make test-integration  # go test -tags=integration ./internal/...
@@ -70,6 +71,11 @@ make generate          # regenerate frontend/wailsjs after changing bindings/ si
 make fuzz_game         # also fuzz_collection, fuzz_deck, fuzz_card
 make help
 ```
+
+`make dev` builds Go through `scripts/go-optimized`.
+1. `wails dev` always adds `-gcflags "all=-N -l"`, which turns off optimization.
+2. The wrapper drops that pair, so `make dev` renders at release speed.
+3. `make dev-debug` keeps it, for a debugger.
 
 Running a single test:
 1. Always pass `-tags=nomain`.
@@ -137,6 +143,9 @@ Must have:
     6. The dialog edits card scale and back shadow, not language.
     7. Card scale is one value, 0.1–10.
     8. It goes to `scaleX` and `scaleZ`; `scaleY` stays 1, as TTS does.
+    9. Log level `debug`, `info`, `warn`, or `error`; the dialog edits it too.
+       1. Missing or unknown reads as `info`.
+       2. It applies at once, without a restart.
 
 Known limitation. Do not "fix" it by inventing a host.
 1. Generated JSON points at local image paths.
@@ -314,6 +323,13 @@ Other locations:
     5. Bump `layout.sheetVersion` when drawing changes pixels.
     6. New files are written atomically; stale files go after a successful run.
     7. Renaming a game moves its result folder; deleting removes it.
+11. Each render step logs its time at Debug.
+    1. Lines: `render catalog`, `render prepare`, `render sheet` (one per page), `render steps`.
+    2. `write.Draw` returns `write.Timings`; `compose` logs them.
+    3. `render finished` (Info) carries `duration_ms`.
+    4. Turn them on with the log level setting (`debug`).
+    5. `make dev-debug` compiles Go with `-N -l`: a render is about 3.4× slower.
+    6. Measure speed with `make dev` or `make build`, never `make dev-debug`.
 
 ## Tabletop Simulator
 
@@ -371,6 +387,10 @@ File formats:
    4. See [ADR 026](docs/architecture/026-log-file-and-rotation.md).
    5. Lines are JSON; `pkg/logger` can write text instead.
    6. Wails' own messages go through `wailsLogger` (`wailslog.go`).
+   7. The level comes from the log level setting (`debug` … `error`).
+      1. `wire.go` applies it at startup, after the settings are read.
+      2. Saving the setting applies it at once (`logger.SetLevel`).
+      3. `app started` is written before that, so no level hides it.
 
 ## Version
 

@@ -12,4 +12,5 @@ type model struct {
 	Lang             string   `json:"lang"`
 	EnableBackShadow bool     `json:"enable_back_shadow"`
 	CardSize         cardSize `json:"card_size"`
+	LogLevel         string   `json:"log_level"`
 }

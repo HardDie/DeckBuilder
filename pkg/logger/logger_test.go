@@ -147,3 +147,17 @@ func TestUnwritableFolderFallsBackToConsole(t *testing.T) {
 		t.Fatal("the console logger should still work")
 	}
 }
+
+func TestSetLevel(t *testing.T) {
+	path, _ := initFile(t, Options{})
+	slog.Debug("hidden before")
+	SetLevel(slog.LevelDebug)
+	slog.Debug("shown after")
+	SetLevel(slog.LevelInfo)
+	slog.Debug("hidden again")
+
+	got := lines(t, path)
+	if len(got) != 1 || got[0]["msg"] != "shown after" {
+		t.Fatalf("lines %v", got)
+	}
+}

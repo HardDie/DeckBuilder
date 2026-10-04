@@ -17,6 +17,7 @@ export default {
         lang: body?.lang || '',
         enable_back_shadow: Boolean(body?.enable_back_shadow),
         card_scale: Number(body?.card_scale),
+        log_level: body?.log_level || '',
       }),
     )
   },

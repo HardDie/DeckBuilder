@@ -6,6 +6,7 @@ import (
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
 	repositoriesSettings "github.com/HardDie/DeckBuilder/internal/repositories/settings"
+	"github.com/HardDie/DeckBuilder/pkg/logger"
 )
 
 type system struct {
@@ -44,12 +45,18 @@ func (s *system) UpdateSettings(req UpdateSettingsRequest) (*entitiesSettings.Se
 	}
 	updated.EnableBackShadow = req.EnableBackShadow
 	updated.CardScale = req.CardScale
+	if entitiesSettings.ValidLogLevel(req.LogLevel) {
+		updated.LogLevel = req.LogLevel
+	}
 	if updated == *set {
 		return set, nil
 	}
-	slog.Info("update settings", "lang", updated.Lang, "back_shadow", updated.EnableBackShadow, "card_scale", updated.CardScale)
+	slog.Info("update settings", "lang", updated.Lang, "back_shadow", updated.EnableBackShadow,
+		"card_scale", updated.CardScale, "log_level", updated.LogLevel)
 	if err := s.repositorySettings.Save(&updated); err != nil {
 		return nil, err
 	}
+	// The new level applies at once; the next launch reads it in wire.go.
+	logger.SetLevel(updated.SlogLevel())
 	return &updated, nil
 }

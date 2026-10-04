@@ -449,6 +449,7 @@ export namespace dto {
 	    lang: string;
 	    enable_back_shadow: boolean;
 	    card_scale: number;
+	    log_level: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -459,6 +460,7 @@ export namespace dto {
 	        this.lang = source["lang"];
 	        this.enable_back_shadow = source["enable_back_shadow"];
 	        this.card_scale = source["card_scale"];
+	        this.log_level = source["log_level"];
 	    }
 	}
 	export class Status {
@@ -782,6 +784,7 @@ export namespace system {
 	    lang: string;
 	    enable_back_shadow: boolean;
 	    card_scale: number;
+	    log_level: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UpdateSettingsRequest(source);
@@ -792,6 +795,7 @@ export namespace system {
 	        this.lang = source["lang"];
 	        this.enable_back_shadow = source["enable_back_shadow"];
 	        this.card_scale = source["card_scale"];
+	        this.log_level = source["log_level"];
 	    }
 	}
 	export class VersionResult {

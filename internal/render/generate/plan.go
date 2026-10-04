@@ -3,6 +3,9 @@ package generate
 
 import (
 	"errors"
+	"log/slog"
+	"time"
+
 	"github.com/HardDie/DeckBuilder/internal/apperr"
 	entitiesGame "github.com/HardDie/DeckBuilder/internal/entities/game"
 	entitiesSettings "github.com/HardDie/DeckBuilder/internal/entities/settings"
@@ -12,7 +15,6 @@ import (
 	servicesCard "github.com/HardDie/DeckBuilder/internal/services/card"
 	servicesDeck "github.com/HardDie/DeckBuilder/internal/services/deck"
 	"github.com/HardDie/DeckBuilder/internal/tts_entity"
-	"log/slog"
 )
 
 // Sheet is one page ready to draw. Faces and back are the original file bytes.
@@ -54,6 +56,7 @@ func Prepare(
 	deckSvc servicesDeck.Deck,
 	cardSvc servicesCard.Card,
 ) (Plan, error) {
+	start := time.Now()
 	measured := make([]layout.Deck, 0, len(order))
 	deckNames := make(map[string]string, len(order))
 	for _, deckInfo := range order {
@@ -79,7 +82,9 @@ func Prepare(
 		deckNames[deckInfo.ID] = deckInfo.Name
 	}
 
+	readDone := time.Now()
 	pages, backs, err := layout.Pages(dir, measured, scale, cfg.EnableBackShadow)
+	layoutDone := time.Now()
 	var imageErr *layout.ImageError
 	if errors.As(err, &imageErr) {
 		slog.Warn("deck image size unreadable", "deck", deckNames[imageErr.DeckID], "err", err)
@@ -109,10 +114,16 @@ func Prepare(
 			Path:     page.SheetPath,
 		}
 	}
+	scriptStart := time.Now()
 	doc, err := script.Build(dir, gameItem, decks, order, scriptPages, cfg, cardSvc)
 	if err != nil {
 		return Plan{}, err
 	}
+	slog.Debug("render prepare",
+		"read_images_ms", readDone.Sub(start).Milliseconds(),
+		"layout_ms", layoutDone.Sub(readDone).Milliseconds(),
+		"script_ms", time.Since(scriptStart).Milliseconds(),
+		"pages", len(pages))
 	rawBacks := make([]File, len(backs))
 	for i, back := range backs {
 		rawBacks[i] = File{Path: back.Path, Body: back.Body}

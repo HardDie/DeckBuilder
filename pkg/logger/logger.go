@@ -50,7 +50,14 @@ type Options struct {
 var (
 	mu   sync.Mutex
 	file *os.File
+	// level is shared by every handler Init builds, so SetLevel takes effect at once.
+	level slog.LevelVar
 )
+
+// SetLevel changes the lowest level written, without reopening the log.
+func SetLevel(l slog.Level) {
+	level.Set(l)
+}
 
 // Init makes the default slog logger write as opts says and returns the log file path.
 // If the file cannot be used, the logger still writes to the console
@@ -59,6 +66,7 @@ func Init(opts Options) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 	closeFile()
+	level.Set(opts.Level)
 
 	console := opts.Console
 	if console == nil {
@@ -88,6 +96,7 @@ func Init(opts Options) (string, error) {
 func Close() error {
 	mu.Lock()
 	defer mu.Unlock()
+	level.Set(slog.LevelInfo)
 	slog.SetDefault(slog.New(newHandler(os.Stderr, Options{})))
 	return closeFile()
 }
@@ -118,7 +127,7 @@ func openRotated(path string, maxSize int64, keep int) (*os.File, error) {
 // newHandler adds the source file and line only to Warn and Error lines.
 func newHandler(w io.Writer, opts Options) slog.Handler {
 	build := func(source bool) slog.Handler {
-		ho := &slog.HandlerOptions{Level: opts.Level, AddSource: source, ReplaceAttr: shortSource}
+		ho := &slog.HandlerOptions{Level: &level, AddSource: source, ReplaceAttr: shortSource}
 		if opts.Format == FormatText {
 			return slog.NewTextHandler(w, ho)
 		}

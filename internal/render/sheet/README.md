@@ -26,7 +26,7 @@ Steps 1–3 run in parallel. Painting and encoding run on one goroutine: in the 
 ## `write.Draw`
 
 ```go
-func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path string) error
+func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path string) (Timings, error)
 ```
 
 - `faces`, `rawBack`: the original file bytes, in page order.
@@ -35,6 +35,7 @@ func Draw(faces [][]byte, rawBack []byte, cellW, cellH int, shadow bool, path st
 - A panic in a job is recovered and returned as that job's error, so a bad image fails the page instead of the app.
 - The canvas is `cellW × columns` by `cellH × rows`; the grid comes from `grid.Size(faces + 1)`.
 - `compose` passes a temporary path and renames it afterwards; `Draw` itself writes the path it is given.
+- `Timings` reports each part: the wall time of the parallel jobs, the summed decode and resize time of all jobs, then paint, encode, and write. `compose` logs it at Debug.
 
 ## Resize
 

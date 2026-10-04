@@ -56,6 +56,7 @@ func wire(version string) *services {
 		slog.Warn("log file is off, logging to the console only", "err", err)
 	}
 	// One line per launch, so each run is easy to find in the log.
+	// It goes before the log level setting is applied, so Warn or Error never hides it.
 	slog.Info("app started", "version", version, "os", runtime.GOOS, "arch", runtime.GOARCH,
 		"data", cfg.Data, "log", logPath)
 
@@ -73,6 +74,12 @@ func wire(version string) *services {
 
 	repositorySettings := repositoriesSettings.New(cfg, db)
 	serviceSystem := servicesSystem.New(repositorySettings)
+	// The log level is a setting; until it is read, the log writes Info.
+	if settings, err := serviceSystem.GetSettings(); err == nil {
+		logger.SetLevel(settings.SlogLevel())
+	} else {
+		slog.Warn("read settings for the log level", "err", err)
+	}
 
 	repositoryGame := repositoriesGame.New(db)
 	serviceGame := servicesGame.New(cfg, repositoryGame)

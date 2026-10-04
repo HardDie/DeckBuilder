@@ -124,7 +124,7 @@ func BenchmarkAppWriteDraw(b *testing.B) {
 	path := filepath.Join(b.TempDir(), "sheet.jpg")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err := write.Draw(in.rawFaces, in.rawBack, cellW, cellH, true, path); err != nil {
+		if _, err := write.Draw(in.rawFaces, in.rawBack, cellW, cellH, true, path); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -137,7 +137,7 @@ func BenchmarkAppWriteDrawThreeSeq(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for p := 0; p < 3; p++ {
-			if err := write.Draw(in.rawFaces, in.rawBack, cellW, cellH, true, path); err != nil {
+			if _, err := write.Draw(in.rawFaces, in.rawBack, cellW, cellH, true, path); err != nil {
 				b.Fatal(err)
 			}
 		}

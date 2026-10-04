@@ -3,7 +3,7 @@ module github.com/HardDie/DeckBuilder
 go 1.27.1
 
 require (
-	github.com/HardDie/fsentry v0.1.7
+	github.com/HardDie/fsentry v0.1.8
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/gorilla/mux v1.8.0

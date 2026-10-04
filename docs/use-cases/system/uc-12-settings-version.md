@@ -20,8 +20,10 @@
 * **4a. Card scale outside 0.1–10:** the dialog shows an error and does not save; the binding returns `apperr.ErrBadCardScale` ("Card scale must be between 0.1 and 10") and saves nothing.
 * **4b. Empty or unknown lang:** the stored language is kept. The dialog has no language field yet.
 * **Stored file:** keeps the older `card_size{scaleX,scaleY,scaleZ}` shape. The scale is read from `scaleX`; a missing or invalid one reads as 1, an out-of-range one is clamped (`Settings.Normalize`).
+* **Log level:** the dialog also shows `Debug`, `Info`, `Warn`, or `Error` (`log_level`). Saving applies it to the log at once; the next launch reads it before the first render. An empty or unknown value keeps the stored one; a missing stored value reads as `info`. At `debug` each render step logs its time; at `warn` and `error` only problems are written. The `app started` line is written before the level applies, so every level keeps it.
 
 ## Postconditions
 
 * Card scale, back shadow, and language are stored in the fsentry settings file when they changed.
+* The log level is stored as `log_level` and is the level of the running log.
 * The about chrome shows the process version string.

@@ -4,6 +4,7 @@
 /web/dist/
 /build/bin
 /build/libjpeg-link
+/build/go-optimized
 /scripts/cc-static-jpeg.exe
 /frontend/dist/*
 !/frontend/dist/.gitkeep

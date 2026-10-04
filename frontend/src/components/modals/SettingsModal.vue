@@ -26,6 +26,16 @@
         <n-switch v-model:value="form.enable_back_shadow" />
       </n-form-item>
       <div class="settings-modal__hint">Darkens the card back on the sheet.</div>
+      <n-form-item label="Log level:">
+        <n-select
+          v-model:value="form.log_level"
+          :options="logLevels"
+        />
+      </n-form-item>
+      <div class="settings-modal__hint">
+        Debug also logs how long each render step takes. Warn and Error write only problems. Applies
+        at once.
+      </div>
     </n-form>
   </ui-modal>
 </template>
@@ -39,6 +49,13 @@ import { useSystemStore } from '@/stores/system'
 // Same limits as entities/settings (MinCardScale, MaxCardScale).
 const minScale = 0.1
 const maxScale = 10
+// Same values as entities/settings (LogLevel*), lowest first.
+const logLevels = [
+  { label: 'Debug', value: 'debug' },
+  { label: 'Info', value: 'info' },
+  { label: 'Warn', value: 'warn' },
+  { label: 'Error', value: 'error' },
+]
 
 const emit = defineEmits(['update:show'])
 const props = defineProps({
@@ -61,7 +78,7 @@ const isModalModel = computed({
 })
 
 const isLoaded = ref(false)
-const form = reactive({ card_scale: 1, enable_back_shadow: false })
+const form = reactive({ card_scale: 1, enable_back_shadow: false, log_level: 'info' })
 
 watch(
   () => props.show,
@@ -75,6 +92,7 @@ watch(
       .then(settings => {
         form.card_scale = settings.card_scale
         form.enable_back_shadow = settings.enable_back_shadow
+        form.log_level = settings.log_level
         isLoaded.value = true
       })
       .catch(() => {
@@ -93,7 +111,11 @@ const onSave = () => {
     return
   }
   systemStore
-    .saveSettings({ card_scale: scale, enable_back_shadow: form.enable_back_shadow })
+    .saveSettings({
+      card_scale: scale,
+      enable_back_shadow: form.enable_back_shadow,
+      log_level: form.log_level,
+    })
     .then(() => {
       toast.success('Settings saved')
       isModalModel.value = false

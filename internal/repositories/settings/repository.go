@@ -37,6 +37,7 @@ func (r *settings) Get() (*entitiesSettings.Settings, error) {
 		Lang:             resp.Lang,
 		EnableBackShadow: resp.EnableBackShadow,
 		CardScale:        resp.CardSize.ScaleX,
+		LogLevel:         resp.LogLevel,
 	}, nil
 }
 
@@ -49,6 +50,7 @@ func (r *settings) Save(req *entitiesSettings.Settings) error {
 			ScaleY: 1,
 			ScaleZ: req.CardScale,
 		},
+		LogLevel: req.LogLevel,
 	})
 }
 
