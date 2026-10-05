@@ -18,129 +18,49 @@ VERSION_LDFLAGS = -X github.com/HardDie/DeckBuilder/pkg/version.Build=$(BUILD_VE
 PRODUCT_VERSION ?= $(patsubst v%,%,$(shell git describe --tags --abbrev=0 2>/dev/null))
 # Ubuntu 24.04+ ships webkit2gtk-4.1; Wails needs this tag instead of 4.0.
 WAILS_TAGS := $(shell pkg-config --exists webkit2gtk-4.1 2>/dev/null && echo -tags webkit2_41)
-# Static libjpeg.a for github.com/pixiv/go-libjpeg. make sets the flags.
-# Wails drops CC while generating bindings, so -ljpeg still reaches the linker.
-# JPEG_LINK_DIR holds only libjpeg.a. LIBRARY_PATH makes -ljpeg use that archive.
-# JPEG_LIBJPEG_A / JPEG_INCLUDE point at an archive built in CI.
 # WAILS_BUILD_ARGS is for release CI (-skipbindings -platform …).
-CGO_ENABLED := 1
-REAL_CC := $(shell $(GO) env CC)
+WAILS_BUILD_ARGS ?=
 UNAME_S := $(shell uname -s)
-JPEG_CC := $(CURDIR)/scripts/cc-static-jpeg
-ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
-JPEG_CC := $(shell cygpath -m "$(CURDIR)/scripts/cc-static-jpeg.exe" 2>/dev/null || echo "$(CURDIR)/scripts/cc-static-jpeg.exe")
-endif
 # make dev builds through GO_OPTIMIZED: it drops the -gcflags "all=-N -l" that wails dev adds.
 GO_OPTIMIZED := $(CURDIR)/build/go-optimized/go-optimized
 ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
 GO_OPTIMIZED := $(shell cygpath -m "$(CURDIR)/build/go-optimized/go-optimized.exe" 2>/dev/null || echo "$(CURDIR)/build/go-optimized/go-optimized.exe")
 endif
-JPEG_EXTRA_LDFLAGS :=
-ifeq ($(UNAME_S),Linux)
-JPEG_EXTRA_LDFLAGS := -lm
-endif
-WAILS_BUILD_ARGS ?=
-JPEG_LINK_DIR := $(CURDIR)/build/libjpeg-link
-JPEG_LIBRARY_PATH := $(JPEG_LINK_DIR)
-ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
-JPEG_LIBRARY_PATH := $(shell cygpath -m "$(JPEG_LINK_DIR)" 2>/dev/null || echo "$(JPEG_LINK_DIR)")
-endif
-ifneq ($(JPEG_LIBJPEG_A),)
-CGO_LDFLAGS := $(JPEG_LIBJPEG_A)
-ifneq ($(JPEG_INCLUDE),)
-CGO_CFLAGS := -I$(JPEG_INCLUDE)
-endif
-else
-JPEG_BREW_PREFIX := $(shell brew --prefix jpeg-turbo 2>/dev/null)
-ifneq ($(JPEG_BREW_PREFIX),)
-CGO_CFLAGS := -I$(JPEG_BREW_PREFIX)/include
-CGO_LDFLAGS := $(JPEG_BREW_PREFIX)/lib/libjpeg.a
-else
-ifeq ($(UNAME_S),Linux)
-CGO_CFLAGS := $(shell pkg-config --cflags libjpeg 2>/dev/null)
-CGO_LDFLAGS := $(shell ./scripts/find-libjpeg-a.sh)
-else
-ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
-CGO_LDFLAGS := $(shell ./scripts/find-libjpeg-a.sh)
-ifneq ($(CGO_LDFLAGS),)
-CGO_CFLAGS := -I$(patsubst %/lib/libjpeg.a,%/include,$(CGO_LDFLAGS))
-endif
-endif
-endif
-endif
-endif
 
-# Static libwebp for internal/images/webp (ADR 027): libwebp.a and libsharpyuv.a.
-# WEBP_LIBWEBP_A / WEBP_LIBSHARPYUV_A / WEBP_INCLUDE point at archives built in CI.
-ifneq ($(WEBP_LIBWEBP_A),)
-WEBP_CFLAGS := $(if $(WEBP_INCLUDE),-I$(WEBP_INCLUDE))
-WEBP_LDFLAGS := $(WEBP_LIBWEBP_A) $(WEBP_LIBSHARPYUV_A)
-else
-WEBP_BREW_PREFIX := $(shell brew --prefix webp 2>/dev/null)
-ifneq ($(wildcard $(WEBP_BREW_PREFIX)/lib/libwebp.a),)
-WEBP_CFLAGS := -I$(WEBP_BREW_PREFIX)/include
-WEBP_LDFLAGS := $(WEBP_BREW_PREFIX)/lib/libwebp.a $(WEBP_BREW_PREFIX)/lib/libsharpyuv.a
-else
-WEBP_CFLAGS := $(shell pkg-config --cflags libwebp 2>/dev/null)
-WEBP_LDFLAGS := $(shell ./scripts/find-static-lib.sh libwebp.a libwebp) $(shell ./scripts/find-static-lib.sh libsharpyuv.a libsharpyuv)
-endif
-endif
-# Every cgo build gets both libraries; libjpeg's variables keep their own meaning above.
-CGO_ALL_CFLAGS = $(CGO_CFLAGS) $(WEBP_CFLAGS)
-CGO_ALL_LDFLAGS = $(CGO_LDFLAGS) $(WEBP_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)
+# Static C libraries (libjpeg-turbo, libwebp) and the cgo flags: see third_party/.
+include third_party/deps.mk
 
 .DEFAULT_GOAL := help
 
-.PHONY: help version dev dev-debug build jpeg-link require-jpeg generate test test-integration test-all \
+.PHONY: help version dev dev-debug build generate test test-integration test-all \
 	vet fmt tidy doc doc-all docs-site frontend-install screenshots clean ci \
 	linter-install linter-run fuzz_game fuzz_collection fuzz_deck fuzz_card
 
-ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
-dev dev-debug build: $(JPEG_CC)
-$(JPEG_CC): scripts/cc-static-jpeg.c
-	$(REAL_CC) -O2 -o $@ scripts/cc-static-jpeg.c
-endif
-
-dev dev-debug build: jpeg-link
-
 $(GO_OPTIMIZED): scripts/go-optimized/main.go
 	$(GO) build -o "$@" ./scripts/go-optimized
-
-jpeg-link: require-jpeg
-	mkdir -p "$(JPEG_LINK_DIR)"
-	ln -sfn "$(CGO_LDFLAGS)" "$(JPEG_LINK_DIR)/libjpeg.a"
 
 ## help: Show this list
 help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/^## //' | awk -F': ' '{printf "  %-22s %s\n", $$1, $$2}'
+	@grep -h -E '^## ' $(MAKEFILE_LIST) | sed 's/^## //' | awk -F': ' '{printf "  %-22s %s\n", $$1, $$2}'
 
 ## version: Set wails.json productVersion from the last git tag
 version:
 	PRODUCT_VERSION="$(PRODUCT_VERSION)" ./scripts/sync-product-version.sh
 
 ## dev: Run the Wails app with frontend hot reload; Go is optimized like make build
-dev: require-wails require-jpeg version $(GO_OPTIMIZED)
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" REAL_GO="$(GO)" \
-		$(WAILS) dev $(WAILS_TAGS) -compiler "$(GO_OPTIMIZED)" -ldflags "$(VERSION_LDFLAGS)"
+dev: require-wails deps version $(GO_OPTIMIZED)
+	REAL_GO="$(GO)" $(WAILS) dev $(WAILS_TAGS) -compiler "$(GO_OPTIMIZED)" -ldflags "$(VERSION_LDFLAGS)"
 
 ## dev-debug: Like dev, but Go without optimization or inlining (-N -l), for a debugger
-dev-debug: require-wails require-jpeg version
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
-		$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
+dev-debug: require-wails deps version
+	$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 ## build: Production binary for this machine (build/bin)
-build: require-wails require-jpeg version
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
-		$(WAILS) build $(WAILS_TAGS) $(WAILS_BUILD_ARGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
+build: require-wails deps version
+	$(WAILS) build $(WAILS_TAGS) $(WAILS_BUILD_ARGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 	@if [ "$$(uname)" = "Linux" ]; then \
 		cp build/linux/install.sh build/linux/$(APP_NAME).desktop build/bin/ && \
 		cp build/appicon.png build/bin/$(APP_NAME).png && \
@@ -148,29 +68,19 @@ build: require-wails require-jpeg version
 	fi
 
 ## generate: Regenerate frontend/wailsjs bindings from Go
-generate: require-wails jpeg-link
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
-		$(WAILS) generate module $(WAILS_TAGS)
+generate: require-wails deps
+	$(WAILS) generate module $(WAILS_TAGS)
 
-## test: Unit tests for package main, bindings, internal, and pkg (same as CI, with race)
-test: jpeg-link
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
+## test: Unit tests for package main, bindings, internal, pkg, and third_party (same as CI, with race)
+test: deps
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) . && \
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) $(INTERNAL) && \
-	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./pkg/...
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./pkg/... && \
+	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./third_party/...
 
 ## test-integration: Integration tests under internal (build tag integration)
-test-integration: jpeg-link
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
+test-integration: deps
 	$(GO) test -tags=integration -count=1 $(INTERNAL)
 
 ## test-all: Unit then integration tests
@@ -179,16 +89,13 @@ test-all: test test-integration
 ## ci: What GitHub Actions test.yml runs
 ci: test-all
 
-## vet: Go vet on package main (no Wails CGO), bindings, internal, and pkg
-vet: jpeg-link
-	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
-		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
+## vet: Go vet on package main (no Wails CGO), bindings, internal, pkg, and third_party
+vet: deps
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) . && \
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) $(INTERNAL) && \
-	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./pkg/...
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./pkg/... && \
+	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./third_party/...
 
 ## fmt: Format Go files; fail if any file needed formatting
 fmt:
@@ -256,10 +163,3 @@ fuzz_card:
 require-wails:
 	@test -f wails.json || (echo "wails.json missing: scaffold with wails init before this target"; exit 1)
 
-require-jpeg:
-	@if [ ! -f "$(CGO_LDFLAGS)" ]; then \
-		echo "install the static libjpeg package"; \
-		exit 1; \
-	fi
-	@for a in $(WEBP_LDFLAGS); do [ -f "$$a" ] || { echo "install the static libwebp package (libwebp.a, libsharpyuv.a)"; exit 1; }; done
-	@[ -n "$(strip $(WEBP_LDFLAGS))" ] || { echo "install the static libwebp package (libwebp.a, libsharpyuv.a)"; exit 1; }

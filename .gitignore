@@ -3,9 +3,8 @@
 /bin/
 /web/dist/
 /build/bin
-/build/libjpeg-link
+/build/third_party
 /build/go-optimized
-/scripts/cc-static-jpeg.exe
 /frontend/dist/*
 !/frontend/dist/.gitkeep
 /frontend/node_modules

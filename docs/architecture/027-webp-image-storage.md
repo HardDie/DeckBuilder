@@ -72,7 +72,7 @@
 4. Encoder
    1. libwebp, linked as a static archive (`libwebp.a`, `libsharpyuv.a`).
    2. Pure Go has no WebP encoder.
-   3. Release CI builds 1.6.0 from source on every target (`scripts/build-libwebp.sh`).
+   3. Release CI builds 1.6.0 from source on every target (`third_party/libwebp`, ADR 028).
    4. CI checks it is not a shared dependency, as for libjpeg.
    5. The build uses libwebp's `makefile.unix`: only make and a C compiler.
    6. Threads are off, so no pthread (winpthread on Windows) is linked.
@@ -80,11 +80,11 @@
 5. Display
    1. The image route already sends `Content-Type` from the file header.
    2. It sends `image/webp`; all three webviews show it.
-   3. WKWebView shows WebP from macOS 11, so the minimum macOS becomes 12.0 (see 5.7).
+   3. WKWebView shows WebP from macOS 11, so the minimum macOS becomes 13.0 (see 5.7).
    4. The upload preview no longer shows the local file.
    5. A binding converts the chosen file and returns the WebP to preview.
    6. A file that cannot be converted fails at preview, before save.
-   7. 12.0, not 11.0: Go 1.25+ already needs macOS 12 (`LSMinimumSystemVersion`).
+   7. 13.0, not 11.0: Go 1.27's linker already targets macOS 13 (`LSMinimumSystemVersion`).
 6. Game marker
    1. A converted game has `image_format: "webp"` in its `.info.json` data.
    2. A game created by this version gets the marker at once.
@@ -150,7 +150,7 @@
 2. JPEG-sourced games grow on disk by about 1.2–1.5×.
 3. Backups double disk use until the user deletes them.
 4. libwebp is a new static dependency on four targets.
-5. macOS 10.13–11 are no longer listed as supported; Go 1.25+ never ran there.
+5. macOS 10.13–12 are no longer listed as supported; Go 1.27 does not support them.
 6. A large collection blocks the app at its first start (about 1 minute per 1000 large cards on 10 cores).
 7. Applying EXIF orientation can turn existing cards that were sideways on sheets.
 8. An image that falls back to lossless is encoded twice.
@@ -166,7 +166,7 @@
 1. This ADR.
 2. fsentry: atomic binary replace.
 3. `internal/images`: decode the six formats, orientation, WebP encode, verify.
-4. libwebp in the Makefile and release CI; minimum macOS 12.0.
+4. libwebp in the Makefile and release CI; minimum macOS 13.0.
 5. Upload, URL download, and preview through the conversion.
 6. Game marker; new games get it.
 7. Migration service, backups, disk check, resume.

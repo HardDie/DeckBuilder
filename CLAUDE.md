@@ -30,9 +30,12 @@ It is a Wails app (Go + Vue).
    3. It checks with `readelf -d`, `otool -L`, or `objdump -p`, never `ldd`.
    4. `ldd` lists WebKitGTK's own `libjpeg.so`, which is expected.
    5. libwebp is built from source on every target and checked the same way.
-      1. `scripts/build-libwebp.sh`: pinned 1.6.0, static, no threads.
+      1. `third_party/libwebp`: pinned 1.6.0, static, no threads.
       2. macOS joins an arm64 and an x86_64 build with `lipo`.
-   6. The minimum macOS is 12.0: Go 1.25+ needs it.
+   6. The minimum macOS is 13.0: Go 1.27's linker supports macOS 13 and later.
+   7. Every C library is built from source by `make deps` ([ADR 028](docs/architecture/028-third-party-c-libraries.md)).
+      1. Sources, versions, and sha256 live in `third_party/`.
+      2. CI caches `build/third_party`.
 6. Text files are LF on every checkout (`.gitattributes`).
    1. On Windows, CRLF breaks prettier in the frontend build.
 5. Any build change must keep all four targets working.
@@ -57,11 +60,12 @@ Keep this file updated when routes, disk layout, generate rules, or layers chang
 
 ## Commands
 
-All Go builds and tests need cgo and a **static libjpeg**.
-On macOS: `brew install jpeg-turbo`.
-They also need a **static libwebp** (`libwebp.a` and `libsharpyuv.a`).
-On macOS: `brew install webp`. On Ubuntu: `libwebp-dev libsharpyuv-dev`.
-The Makefile sets `CGO_*`, `CC`, and `LIBRARY_PATH`.
+All Go builds and tests need cgo and two static C libraries: libjpeg-turbo and libwebp.
+`make deps` builds them from source into `build/third_party` ([third_party](third_party/README.md)).
+Every cgo target depends on it; the first run takes about 30 s.
+It needs cmake and nasm: `brew install cmake nasm`, or the apt / MSYS2 packages.
+`third_party/deps.mk` exports `CGO_ENABLED`, `CGO_CFLAGS`, and `CGO_LDFLAGS`.
+There is no `CC` wrapper and no `LIBRARY_PATH`.
 Prefer `make` targets over bare `go` commands.
 
 ```bash
@@ -91,19 +95,16 @@ Running a single test:
 2. Packages that reach `internal/render/sheet/draw/libjpeg` also need the cgo flags.
 3. Packages that reach `internal/images` need the libwebp flags too; the repositories do.
 
-On macOS:
+Any OS:
 
 ```bash
-CGO_ENABLED=1 CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include -I$(brew --prefix webp)/include" \
-CGO_LDFLAGS="$(brew --prefix jpeg-turbo)/lib/libjpeg.a $(brew --prefix webp)/lib/libwebp.a $(brew --prefix webp)/lib/libsharpyuv.a" \
-REAL_CC="$(go env CC)" CC="$PWD/scripts/cc-static-jpeg" \
+eval "$(make -s cgo-env)"   # builds the libraries if needed, then prints the exports
 go test -race -count=1 -tags=nomain -run TestName ./internal/services/game/
 ```
 
-`CC` must be `scripts/cc-static-jpeg`.
-1. It drops `-ljpeg`, which otherwise fails to link.
-2. Set `REAL_CC` before `CC` on the line.
-3. Otherwise zsh resolves `go env CC` to the wrapper, and the wrapper loops forever.
+The libjpeg link stays static without a wrapper.
+1. go-libjpeg asks for `-ljpeg`; `CGO_LDFLAGS` puts `-L build/third_party/…/lib` first.
+2. That folder holds only `libjpeg.a`, so the linker has no shared library to pick.
 
 Sheet benchmarks (full 10×7 page) live in `internal/render/sheet/bench`.
 Run them with the same env plus `-run '^$' -bench . -benchtime 5x`.

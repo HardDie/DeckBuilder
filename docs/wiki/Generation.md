@@ -12,7 +12,7 @@ The URLs written today are local paths: [ADR 005](https://github.com/HardDie/Dec
 |---|---|
 | `render/compose` | Runs one render; the only caller of `generate` and `sheet`. Field-level notes: `internal/render/compose/README.md`. |
 | `render/generate` | Plans: walks the catalog, lays out pages, builds the TTS JSON. Draws nothing. |
-| `render/sheet` | Draws one page: decode, resize to the cell (`sheet/stbresize`), paint, libjpeg-turbo quality 80. |
+| `render/sheet` | Draws one page: decode, resize to the cell (`third_party/stbresize`), paint, libjpeg-turbo quality 80. |
 | `render/progress` | Process-wide status the window polls: `empty`, `in_progress`, `done`, `error`. |
 
 ## Who starts it

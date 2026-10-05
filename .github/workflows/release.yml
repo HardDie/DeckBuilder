@@ -69,103 +69,14 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb gcc pkg-config make libjpeg-turbo8-dev
-          archive="$(./scripts/find-libjpeg-a.sh)"
-          if [ -n "$archive" ] && [ -f "$archive" ]; then
-            echo "libjpeg.a: $archive"
-            exit 0
-          fi
-          echo "distro package has no libjpeg.a; building libjpeg-turbo"
-          sudo apt-get install -y cmake nasm curl ca-certificates
-          ver=3.1.4.1
-          src="${RUNNER_TEMP}/libjpeg-turbo-src"
-          prefix="${RUNNER_TEMP}/libjpeg-turbo"
-          curl -fsSL -o "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" \
-            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${ver}/libjpeg-turbo-${ver}.tar.gz"
-          mkdir -p "$src"
-          tar -xzf "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" -C "$src" --strip-components=1
-          cmake -S "$src" -B "$src/build" \
-            -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_JPEG8=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="$prefix"
-          cmake --build "$src/build" --target install --parallel
-          if [ -f "$prefix/lib64/libjpeg.a" ]; then
-            lib="$prefix/lib64/libjpeg.a"
-          else
-            lib="$prefix/lib/libjpeg.a"
-          fi
-          test -f "$lib"
-          echo "JPEG_LIBJPEG_A=$lib" >> "$GITHUB_ENV"
-          echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
-          echo "libjpeg.a: $lib"
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb gcc pkg-config make cmake nasm curl
 
-      # libwebp is built from the pinned release on every target (scripts/build-libwebp.sh):
-      # static, no threads, so there is no pthread or shared libwebp to link. ADR 027.
-      - name: Linux libwebp
-        if: runner.os == 'Linux'
-        run: |
-          prefix="${RUNNER_TEMP}/libwebp"
-          ./scripts/build-libwebp.sh "$prefix"
-          echo "WEBP_LIBWEBP_A=$prefix/lib/libwebp.a" >> "$GITHUB_ENV"
-          echo "WEBP_LIBSHARPYUV_A=$prefix/lib/libsharpyuv.a" >> "$GITHUB_ENV"
-          echo "WEBP_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
-
-      - name: macOS libjpeg-turbo
+      # libjpeg-turbo needs cmake, and nasm for its x86 SIMD; libwebp needs only make.
+      - name: macOS build tools
         if: runner.os == 'macOS'
-        run: |
-          brew install jpeg-turbo
-          prefix="$(brew --prefix jpeg-turbo)"
-          archive="$prefix/lib/libjpeg.a"
-          test -f "$archive"
-          echo "libjpeg.a: $archive"
-          if [ "${{ matrix.wails_platform }}" != "darwin/universal" ]; then
-            exit 0
-          fi
-          if lipo -info "$archive" | grep -q x86_64; then
-            exit 0
-          fi
-          echo "brew libjpeg.a is $(lipo -info "$archive"); building an x86_64 slice"
-          brew install cmake nasm
-          ver="$(awk '/LIBJPEG_TURBO_VERSION  /{print $3; exit}' "$prefix/include/jconfig.h")"
-          src="${RUNNER_TEMP}/libjpeg-turbo-src"
-          x64="${RUNNER_TEMP}/libjpeg-turbo-x86_64"
-          curl -fsSL -o "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" \
-            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${ver}/libjpeg-turbo-${ver}.tar.gz"
-          mkdir -p "$src"
-          tar -xzf "${RUNNER_TEMP}/libjpeg-turbo.tar.gz" -C "$src" --strip-components=1
-          cmake -S "$src" -B "$src/build-x64" \
-            -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_JPEG8=ON \
-            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="$x64"
-          cmake --build "$src/build-x64" --target install --parallel
-          # The Homebrew archive is read-only. The Makefile links JPEG_LIBJPEG_A instead.
-          fat="${RUNNER_TEMP}/libjpeg-universal.a"
-          lipo -create "$archive" "$x64/lib/libjpeg.a" -output "$fat"
-          lipo -info "$fat"
-          echo "JPEG_LIBJPEG_A=$fat" >> "$GITHUB_ENV"
-          echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
+        run: brew install cmake nasm
 
-      # One slice per architecture, then lipo: the universal build links both.
-      # 12.0 is the app's minimum macOS (Go 1.25+ needs Monterey).
-      - name: macOS libwebp
-        if: runner.os == 'macOS'
-        run: |
-          arm="${RUNNER_TEMP}/libwebp-arm64"
-          x64="${RUNNER_TEMP}/libwebp-x86_64"
-          out="${RUNNER_TEMP}/libwebp"
-          ./scripts/build-libwebp.sh "$arm" "-arch arm64 -mmacosx-version-min=12.0"
-          ./scripts/build-libwebp.sh "$x64" "-arch x86_64 -mmacosx-version-min=12.0"
-          mkdir -p "$out/lib"
-          for lib in libwebp libsharpyuv; do
-            lipo -create "$arm/lib/$lib.a" "$x64/lib/$lib.a" -output "$out/lib/$lib.a"
-            lipo -info "$out/lib/$lib.a"
-          done
-          echo "WEBP_LIBWEBP_A=$out/lib/libwebp.a" >> "$GITHUB_ENV"
-          echo "WEBP_LIBSHARPYUV_A=$out/lib/libsharpyuv.a" >> "$GITHUB_ENV"
-          echo "WEBP_INCLUDE=$arm/include" >> "$GITHUB_ENV"
-
-      - name: Windows libjpeg-turbo
+      - name: Windows build tools
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
@@ -178,19 +89,25 @@ jobs:
             curl
             tar
             mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-libjpeg-turbo
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-nasm
 
-      # Built from source like the other targets: MSYS2's libwebp.a uses threads,
-      # which would need winpthread.
-      - name: Windows libwebp
+      # The static C libraries (third_party/, ADR 028). The cache key covers every
+      # build input; make deps also checks them by content, so a hit is never stale.
+      - name: Cache C libraries
+        uses: actions/cache@v4
+        with:
+          path: build/third_party
+          key: third-party-${{ matrix.name }}-${{ hashFiles('third_party/**') }}
+
+      - name: Build C libraries
+        if: runner.os != 'Windows'
+        run: make deps
+
+      - name: Build C libraries (Windows)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        run: |
-          prefix="$(cygpath -m "${RUNNER_TEMP}")/libwebp"
-          CC=gcc ./scripts/build-libwebp.sh "$prefix"
-          echo "WEBP_LIBWEBP_A=$prefix/lib/libwebp.a" >> "$GITHUB_ENV"
-          echo "WEBP_LIBSHARPYUV_A=$prefix/lib/libsharpyuv.a" >> "$GITHUB_ENV"
-          echo "WEBP_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
+        run: make deps
 
       - name: Download Go modules
         shell: bash
@@ -215,7 +132,7 @@ jobs:
         shell: bash
         run: |
           # -skipbindings: committed frontend/wailsjs. Generate locally after binding changes.
-          # make build sets the static libjpeg.a link. Ubuntu tags come from the Makefile.
+          # make build links the static C libraries from build/third_party. Ubuntu tags come from the Makefile.
           args=(-skipbindings -platform "${{ matrix.wails_platform }}")
           if [ "${{ runner.os }}" = "Linux" ]; then
             xvfb-run -a make build "WAILS_BUILD_ARGS=${args[*]}"

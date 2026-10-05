@@ -33,3 +33,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [025](025-app-errors.md) | App errors in `internal/apperr` | Accepted |
 | [026](026-log-file-and-rotation.md) | Log file and rotation | Accepted |
 | [027](027-webp-image-storage.md) | Store every image as WebP | Accepted |
+| [028](028-third-party-c-libraries.md) | C libraries built from source in `third_party` | Accepted |

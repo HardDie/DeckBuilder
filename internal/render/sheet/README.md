@@ -57,7 +57,7 @@ The previous pure-Go Lanczos path was removed once release builds passed on all 
 |---|---|
 | `write` | `Draw`: the whole page, as above. The only entry point. |
 | `fit` | `Resize` to the cell (stb). |
-| `stbresize` | The cgo wrapper around `stb_image_resize2.h`. |
+| `third_party/stbresize` | The cgo wrapper around `stb_image_resize2.h` (moved out of `sheet/`, ADR 028). |
 | `back` | `Shade`: `imaging.AdjustBrightness` by −30% when shadow is on. With shadow off it still converts to NRGBA. |
 | `grid` | `Size(n)`: smallest columns × rows from 2×2 to 10×7 that holds `n` cells. `Slot(i, cols)`: left to right, top to bottom. Same rule as `generate/layout`; keep them identical. |
 | `paint` | `Canvas`: places the already-resized images on an RGBA page; the back in the bottom-right cell. |

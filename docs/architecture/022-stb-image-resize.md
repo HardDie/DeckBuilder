@@ -84,3 +84,5 @@ Measured on the page above. Quality is PSNR against the Lanczos output.
 1. 2026-10-03: release builds passed on all four targets.
 2. `fit.ResizeLanczos` and its benchmark were removed (review item S15).
 3. A test still compares stb with `imaging` Lanczos (≥ 40 dB).
+4. 2026-10-05: the package moved to `third_party/stbresize` with the other C code (ADR 028).
+   1. `fit.Resize` imports it from there; the header and the wrapper did not change.

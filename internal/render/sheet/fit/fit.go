@@ -4,7 +4,7 @@ package fit
 import (
 	"image"
 
-	"github.com/HardDie/DeckBuilder/internal/render/sheet/stbresize"
+	"github.com/HardDie/DeckBuilder/third_party/stbresize"
 )
 
 // Resize scales img to the cell with stb_image_resize2 (Catmull-Rom).

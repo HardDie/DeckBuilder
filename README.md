@@ -45,16 +45,16 @@ Build the app
 make build
 ```
 
-Sheet JPEGs use libjpeg-turbo through `github.com/pixiv/go-libjpeg` (cgo).
-`make build` and `make dev` set `CGO_ENABLED`, `CGO_CFLAGS`, and `CGO_LDFLAGS`.
-The link is the static archive `libjpeg.a`.
-Install the library first:
+The app links two C libraries statically: libjpeg-turbo and libwebp.
+The first `make` builds them from source into `build/third_party` (see [third_party](third_party/README.md)).
+That needs cmake and nasm:
 
 ```
-brew install jpeg-turbo
+brew install cmake nasm            # macOS
+sudo apt install cmake nasm        # Ubuntu
 ```
 
-Linux without Homebrew needs the static `libjpeg` package (`libjpeg.a`).
+On Windows (MSYS2 MINGW64): `pacman -S make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-nasm`.
 
 The binary is in `build/bin`
 
