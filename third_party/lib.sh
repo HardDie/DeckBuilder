@@ -42,7 +42,8 @@ fetch() {
   fi
   rm -rf "$1"
   mkdir -p "$1"
-  tar -xzf "$tarball" -C "$1" --strip-components=1
+  # Read the archive from stdin: GNU tar (MSYS2) takes "D:/…" as host "D" and a remote path.
+  tar -xzf - -C "$1" --strip-components=1 <"$tarball"
 }
 
 # build_all <prefix>: native build, or on macOS an arm64 and an x86_64 build
