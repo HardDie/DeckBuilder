@@ -92,7 +92,7 @@ var (
 	ErrBadCardID  = newErr("invalid card id", ErrInvalid)
 	ErrBadArchive = newErr("not a DeckBuilder game archive", ErrInvalid)
 
-	ErrUnsupportedImage = newErr("not a supported image (png, jpeg, gif)", ErrInvalid)
+	ErrUnsupportedImage = newErr("not a supported image (png, jpeg, gif, webp, bmp, tiff)", ErrInvalid)
 	ErrImageTooLarge    = newErr("image is too large", ErrInvalid)
 
 	ErrDownloadBadURL  = newErr("the image link is not a valid URL", ErrInvalid)

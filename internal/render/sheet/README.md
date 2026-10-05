@@ -15,7 +15,7 @@ face bytes ─► decode ─► resize to cell ─┤   in parallel,
 back bytes ─► decode ─► darken ─► resize┘   up to one job per core
 ```
 
-1. **Decode** every face and the back (PNG, JPEG, or GIF).
+1. **Decode** every face and the back (PNG, JPEG, GIF, WebP, BMP, or TIFF).
 2. **Resize** each to the cell with `stb_image_resize2` (Catmull-Rom).
 3. **Darken** the back when the shadow setting is on.
 4. **Paint** faces left to right, top to bottom; the back goes in the last cell.

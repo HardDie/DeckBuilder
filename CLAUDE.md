@@ -18,6 +18,7 @@ It is a Wails app (Go + Vue).
    2. The OS webview is the only exception, since Wails needs it.
    3. Never add a shared-library dependency.
    4. Vendored C headers (`stb_image_resize2.h`) compile into the binary via cgo.
+   5. libwebp (`libwebp.a`, `libsharpyuv.a`) links the same way ([ADR 027](docs/architecture/027-webp-image-storage.md)).
 3. Each release ships as a single file, with two exceptions.
    1. macOS ships a `.app` bundle, so it looks like a production app.
    2. Linux adds `install.sh`, `DeckBuilder.desktop`, and the icon.
@@ -28,6 +29,10 @@ It is a Wails app (Go + Vue).
    2. CI fails if libjpeg is a direct shared dependency on any target.
    3. It checks with `readelf -d`, `otool -L`, or `objdump -p`, never `ldd`.
    4. `ldd` lists WebKitGTK's own `libjpeg.so`, which is expected.
+   5. libwebp is built from source on every target and checked the same way.
+      1. `scripts/build-libwebp.sh`: pinned 1.6.0, static, no threads.
+      2. macOS joins an arm64 and an x86_64 build with `lipo`.
+   6. The minimum macOS is 12.0: Go 1.25+ needs it.
 6. Text files are LF on every checkout (`.gitattributes`).
    1. On Windows, CRLF breaks prettier in the frontend build.
 5. Any build change must keep all four targets working.
@@ -54,6 +59,8 @@ Keep this file updated when routes, disk layout, generate rules, or layers chang
 
 All Go builds and tests need cgo and a **static libjpeg**.
 On macOS: `brew install jpeg-turbo`.
+They also need a **static libwebp** (`libwebp.a` and `libsharpyuv.a`).
+On macOS: `brew install webp`. On Ubuntu: `libwebp-dev libsharpyuv-dev`.
 The Makefile sets `CGO_*`, `CC`, and `LIBRARY_PATH`.
 Prefer `make` targets over bare `go` commands.
 
@@ -82,12 +89,13 @@ Running a single test:
    1. `main.go` and `wire.go` are `//go:build !nomain`.
    2. They need Wails cgo.
 2. Packages that reach `internal/render/sheet/draw/libjpeg` also need the cgo flags.
+3. Packages that reach `internal/images` need the libwebp flags too; the repositories do.
 
 On macOS:
 
 ```bash
-CGO_ENABLED=1 CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include" \
-CGO_LDFLAGS="$(brew --prefix jpeg-turbo)/lib/libjpeg.a" \
+CGO_ENABLED=1 CGO_CFLAGS="-I$(brew --prefix jpeg-turbo)/include -I$(brew --prefix webp)/include" \
+CGO_LDFLAGS="$(brew --prefix jpeg-turbo)/lib/libjpeg.a $(brew --prefix webp)/lib/libwebp.a $(brew --prefix webp)/lib/libsharpyuv.a" \
 REAL_CC="$(go env CC)" CC="$PWD/scripts/cc-static-jpeg" \
 go test -race -count=1 -tags=nomain -run TestName ./internal/services/game/
 ```

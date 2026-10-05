@@ -70,6 +70,25 @@ endif
 endif
 endif
 
+# Static libwebp for internal/images/webp (ADR 027): libwebp.a and libsharpyuv.a.
+# WEBP_LIBWEBP_A / WEBP_LIBSHARPYUV_A / WEBP_INCLUDE point at archives built in CI.
+ifneq ($(WEBP_LIBWEBP_A),)
+WEBP_CFLAGS := $(if $(WEBP_INCLUDE),-I$(WEBP_INCLUDE))
+WEBP_LDFLAGS := $(WEBP_LIBWEBP_A) $(WEBP_LIBSHARPYUV_A)
+else
+WEBP_BREW_PREFIX := $(shell brew --prefix webp 2>/dev/null)
+ifneq ($(wildcard $(WEBP_BREW_PREFIX)/lib/libwebp.a),)
+WEBP_CFLAGS := -I$(WEBP_BREW_PREFIX)/include
+WEBP_LDFLAGS := $(WEBP_BREW_PREFIX)/lib/libwebp.a $(WEBP_BREW_PREFIX)/lib/libsharpyuv.a
+else
+WEBP_CFLAGS := $(shell pkg-config --cflags libwebp 2>/dev/null)
+WEBP_LDFLAGS := $(shell ./scripts/find-static-lib.sh libwebp.a libwebp) $(shell ./scripts/find-static-lib.sh libsharpyuv.a libsharpyuv)
+endif
+endif
+# Every cgo build gets both libraries; libjpeg's variables keep their own meaning above.
+CGO_ALL_CFLAGS = $(CGO_CFLAGS) $(WEBP_CFLAGS)
+CGO_ALL_LDFLAGS = $(CGO_LDFLAGS) $(WEBP_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)
+
 .DEFAULT_GOAL := help
 
 .PHONY: help version dev dev-debug build jpeg-link require-jpeg generate test test-integration test-all \
@@ -105,21 +124,21 @@ version:
 ## dev: Run the Wails app with frontend hot reload; Go is optimized like make build
 dev: require-wails require-jpeg version $(GO_OPTIMIZED)
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" REAL_GO="$(GO)" \
 		$(WAILS) dev $(WAILS_TAGS) -compiler "$(GO_OPTIMIZED)" -ldflags "$(VERSION_LDFLAGS)"
 
 ## dev-debug: Like dev, but Go without optimization or inlining (-N -l), for a debugger
 dev-debug: require-wails require-jpeg version
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
 		$(WAILS) dev $(WAILS_TAGS) -ldflags "$(VERSION_LDFLAGS)"
 
 ## build: Production binary for this machine (build/bin)
 build: require-wails require-jpeg version
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
 		$(WAILS) build $(WAILS_TAGS) $(WAILS_BUILD_ARGS) -clean -trimpath -ldflags "$(VERSION_LDFLAGS)"
 	@if [ "$$(uname)" = "Linux" ]; then \
@@ -131,15 +150,15 @@ build: require-wails require-jpeg version
 ## generate: Regenerate frontend/wailsjs bindings from Go
 generate: require-wails jpeg-link
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}" \
-	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)" \
 		$(WAILS) generate module $(WAILS_TAGS)
 
 ## test: Unit tests for package main, bindings, internal, and pkg (same as CI, with race)
 test: jpeg-link
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) . && \
 	$(GO) test -race -count=1 -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
@@ -149,8 +168,8 @@ test: jpeg-link
 ## test-integration: Integration tests under internal (build tag integration)
 test-integration: jpeg-link
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
 	$(GO) test -tags=integration -count=1 $(INTERNAL)
 
@@ -163,8 +182,8 @@ ci: test-all
 ## vet: Go vet on package main (no Wails CGO), bindings, internal, and pkg
 vet: jpeg-link
 	LIBRARY_PATH="$(JPEG_LIBRARY_PATH)$${LIBRARY_PATH:+:$$LIBRARY_PATH}"; \
-	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_CFLAGS)" \
-		CGO_LDFLAGS="$(CGO_LDFLAGS) $(JPEG_EXTRA_LDFLAGS)" \
+	export LIBRARY_PATH CGO_ENABLED="$(CGO_ENABLED)" CGO_CFLAGS="$(CGO_ALL_CFLAGS)" \
+		CGO_LDFLAGS="$(CGO_ALL_LDFLAGS)" \
 		CC="$(JPEG_CC)" REAL_CC="$(REAL_CC)"; \
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) . && \
 	$(GO) vet -tags=$(TEST_MAIN_TAGS) ./bindings/... && \
@@ -242,3 +261,5 @@ require-jpeg:
 		echo "install the static libjpeg package"; \
 		exit 1; \
 	fi
+	@for a in $(WEBP_LDFLAGS); do [ -f "$$a" ] || { echo "install the static libwebp package (libwebp.a, libsharpyuv.a)"; exit 1; }; done
+	@[ -n "$(strip $(WEBP_LDFLAGS))" ] || { echo "install the static libwebp package (libwebp.a, libsharpyuv.a)"; exit 1; }

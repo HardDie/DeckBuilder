@@ -99,6 +99,17 @@ jobs:
           echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
           echo "libjpeg.a: $lib"
 
+      # libwebp is built from the pinned release on every target (scripts/build-libwebp.sh):
+      # static, no threads, so there is no pthread or shared libwebp to link. ADR 027.
+      - name: Linux libwebp
+        if: runner.os == 'Linux'
+        run: |
+          prefix="${RUNNER_TEMP}/libwebp"
+          ./scripts/build-libwebp.sh "$prefix"
+          echo "WEBP_LIBWEBP_A=$prefix/lib/libwebp.a" >> "$GITHUB_ENV"
+          echo "WEBP_LIBSHARPYUV_A=$prefix/lib/libsharpyuv.a" >> "$GITHUB_ENV"
+          echo "WEBP_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
+
       - name: macOS libjpeg-turbo
         if: runner.os == 'macOS'
         run: |
@@ -135,6 +146,25 @@ jobs:
           echo "JPEG_LIBJPEG_A=$fat" >> "$GITHUB_ENV"
           echo "JPEG_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
 
+      # One slice per architecture, then lipo: the universal build links both.
+      # 12.0 is the app's minimum macOS (Go 1.25+ needs Monterey).
+      - name: macOS libwebp
+        if: runner.os == 'macOS'
+        run: |
+          arm="${RUNNER_TEMP}/libwebp-arm64"
+          x64="${RUNNER_TEMP}/libwebp-x86_64"
+          out="${RUNNER_TEMP}/libwebp"
+          ./scripts/build-libwebp.sh "$arm" "-arch arm64 -mmacosx-version-min=12.0"
+          ./scripts/build-libwebp.sh "$x64" "-arch x86_64 -mmacosx-version-min=12.0"
+          mkdir -p "$out/lib"
+          for lib in libwebp libsharpyuv; do
+            lipo -create "$arm/lib/$lib.a" "$x64/lib/$lib.a" -output "$out/lib/$lib.a"
+            lipo -info "$out/lib/$lib.a"
+          done
+          echo "WEBP_LIBWEBP_A=$out/lib/libwebp.a" >> "$GITHUB_ENV"
+          echo "WEBP_LIBSHARPYUV_A=$out/lib/libsharpyuv.a" >> "$GITHUB_ENV"
+          echo "WEBP_INCLUDE=$arm/include" >> "$GITHUB_ENV"
+
       - name: Windows libjpeg-turbo
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
@@ -145,8 +175,22 @@ jobs:
           path-type: inherit
           install: >-
             make
+            curl
+            tar
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-libjpeg-turbo
+
+      # Built from source like the other targets: MSYS2's libwebp.a uses threads,
+      # which would need winpthread.
+      - name: Windows libwebp
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          prefix="$(cygpath -m "${RUNNER_TEMP}")/libwebp"
+          CC=gcc ./scripts/build-libwebp.sh "$prefix"
+          echo "WEBP_LIBWEBP_A=$prefix/lib/libwebp.a" >> "$GITHUB_ENV"
+          echo "WEBP_LIBSHARPYUV_A=$prefix/lib/libsharpyuv.a" >> "$GITHUB_ENV"
+          echo "WEBP_INCLUDE=$prefix/include" >> "$GITHUB_ENV"
 
       - name: Download Go modules
         shell: bash
@@ -180,8 +224,8 @@ jobs:
           fi
 
       # Direct dependencies only. ldd also lists libraries that WebKitGTK loads,
-      # and WebKitGTK itself depends on libjpeg.so.
-      - name: Static libjpeg check
+      # and WebKitGTK itself depends on libjpeg.so (and may load libwebp.so).
+      - name: Static libjpeg and libwebp check
         shell: bash
         run: |
           case "${{ runner.os }}" in
@@ -195,6 +239,10 @@ jobs:
           echo "$deps"
           if echo "$deps" | grep -i jpeg; then
             echo "libjpeg is a shared dependency"
+            exit 1
+          fi
+          if echo "$deps" | grep -i -E "webp|sharpyuv"; then
+            echo "libwebp is a shared dependency"
             exit 1
           fi
 

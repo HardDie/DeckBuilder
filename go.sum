@@ -1,7 +1,7 @@
 git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 h1:N3IGoHHp9pb6mj1cbXbuaSXV/UMKwmbKLf53nQmtqMA=
 git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3/go.mod h1:QtOLZGz8olr4qH2vWK0QH0w0O4T9fEIjMuWpKUsH7nc=
-github.com/HardDie/fsentry v0.1.8 h1:lOmI7pk4Ugw0yTV0JGHj3Sp6KmwUQRpWhFFnWpXUX/A=
-github.com/HardDie/fsentry v0.1.8/go.mod h1:IL9b7GPqiXaln2ai9tCZVG5S/hMTPclKLvnLfbIbj30=
+github.com/HardDie/fsentry v0.1.9 h1:lrbXu/iaOsN+kcU4/hVJo4ZcNsoXf5BredAkzTTKQ5w=
+github.com/HardDie/fsentry v0.1.9/go.mod h1:IL9b7GPqiXaln2ai9tCZVG5S/hMTPclKLvnLfbIbj30=
 github.com/bep/debounce v1.2.1 h1:v67fRdBA9UQu2NhLFXrSg0Brw7CexQekrBwDMM8bzeY=
 github.com/bep/debounce v1.2.1/go.mod h1:H8yggRPQKLUhUoqrJC1bO2xNya7vanpDl7xR3ISbCJ0=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

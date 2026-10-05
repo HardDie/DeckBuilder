@@ -6,13 +6,16 @@ import (
 	"encoding/binary"
 	"fmt"
 	"image"
-	_ "image/gif" // headerSize reads GIF headers
+	_ "image/gif" // headerSize reads the header of every accepted format (ADR 027)
 	_ "image/jpeg"
 	_ "image/png"
 	"math"
 	"path/filepath"
 
 	"github.com/cespare/xxhash/v2"
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 
 	"github.com/HardDie/DeckBuilder/internal/config"
 	"github.com/HardDie/DeckBuilder/internal/fs"
@@ -216,7 +219,7 @@ func grid(n int) (cols, rows int) {
 }
 
 // headerSize reads the width and height from the image header only.
-// It knows every format the app accepts: PNG, JPEG, and GIF.
+// It knows every format the app accepts: PNG, JPEG, GIF, WebP, BMP, and TIFF.
 func headerSize(raw []byte) (int, int, error) {
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(raw))
 	if err != nil {

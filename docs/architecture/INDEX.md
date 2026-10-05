@@ -32,3 +32,4 @@ These records describe **decisions already embodied in this repository**, so age
 | [024](024-required-deck-and-card-images.md) | Decks and cards require an image | Accepted |
 | [025](025-app-errors.md) | App errors in `internal/apperr` | Accepted |
 | [026](026-log-file-and-rotation.md) | Log file and rotation | Accepted |
+| [027](027-webp-image-storage.md) | Store every image as WebP | Accepted |

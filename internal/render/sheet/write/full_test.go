@@ -30,7 +30,7 @@ func TestIntegrationFullPageMatchesSequential(t *testing.T) {
 	const cellW, cellH = 1000, 733
 
 	path := filepath.Join(t.TempDir(), "sheet.jpg")
-	if err := Draw(faces, rawBack, cellW, cellH, true, path); err != nil {
+	if _, err := Draw(faces, rawBack, cellW, cellH, true, path); err != nil {
 		t.Fatal(err)
 	}
 	got, err := os.ReadFile(path)
